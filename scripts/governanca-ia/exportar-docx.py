@@ -122,8 +122,8 @@ def gerar_docx_ria014():
                                     'sequencial (local -> lan -> cloud) com probe leve de saúde em /auth/v1/health, '
                                     'classificador arquitetural de falhas impedindo fallback em erros 4xx/RLS, '
                                     'testes de contrato/unidade/integração/E2E e configuração PWA com isolamento '
-                                    'total do cache em relação ao Supabase. Código e testes disponíveis para revisão na branch: '
-                                    'https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/chore/bootstrap-antigravity'),
+                                    'total do cache em relação ao Supabase. Código e testes disponíveis para revisão no Pull Request: '
+                                    'https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/2'),
         'Análise crítica da equipe': ('A equipe acompanhou a execução em regime TDD rigoroso. A arquitetura de '
                                       'conectividade implementada respeita todas as regras da constituição do '
                                       'FluxID: credenciais secretas nunca são expostas ao cliente, nenhuma chave '
@@ -143,8 +143,7 @@ def gerar_docx_ria014():
                                'do W3C e documentação do Vite PWA Workbox.'),
         'Identificador do registro': 'RIA-014',
         'Data e hora da interação': '28/09/2026, 11:40:24 - America/Fortaleza',
-        'Decisões e dados pendentes': ('Substituir o link da branch pelo link definitivo do Pull Request '
-                                       'antes de efetuar o merge na branch principal main (vinculado à issue #1).'),
+        'Decisões e dados pendentes': 'Nenhuma pendência declarada. Pull Request #2 aberto e vinculado à issue #1.',
         'Responsável pela revisão da equipe': 'Alisson Almeida (Líder Técnico / Equipe FluxID)',
         'Data da validação humana': '28/09/2026   Assinatura ou rubrica: Alisson Almeida'
     }

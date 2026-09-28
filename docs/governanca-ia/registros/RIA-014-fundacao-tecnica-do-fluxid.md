@@ -9,9 +9,9 @@
 - Ferramenta de IA utilizada: Google Antigravity (Gemini 2.5 Pro)
 - Objetivo do uso: Implementar o ciclo 01 da Spec 001 (Fundação técnica do FluxID), abrangendo o setup do projeto React 19 + TypeScript 7 + Vite 8 + Tailwind 4, resolução determinística de conectividade Supabase (local, lan, cloud), estabilidade de sessão, isolamento de credenciais e validação PWA/acessibilidade.
 - Prompt utilizado, em síntese sanitizada: Execução do fluxo `/speckit-implement` sobre a especificação técnica 001 (`specs/001-fundacao-tecnica`), cobrindo as histórias de usuário US1 (MVP técnico do shell vazio), US2 (resolução de conectividade sequencial), US3 (classificação de falhas e estabilidade da sessão) e US4 (adaptação multi-dispositivo PWA com WCAG 2.2 AA).
-- Resposta gerada pela IA: Implementação completa do shell web em TypeScript/React sem regras de negócio, fábrica de cliente Supabase singleton por endpoint ativo, resolvedor sequencial (`local → lan → cloud`) com probe leve de saúde em `/auth/v1/health`, classificador arquitetural de falhas impedindo fallback em erros 4xx/RLS, testes de contrato/unidade/integração/E2E e configuração PWA com isolamento total do cache em relação ao Supabase. Código e testes disponíveis para revisão na branch: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/chore/bootstrap-antigravity
+- Resposta gerada pela IA: Implementação completa do shell web em TypeScript/React sem regras de negócio, fábrica de cliente Supabase singleton por endpoint ativo, resolvedor sequencial (`local → lan → cloud`) com probe leve de saúde em `/auth/v1/health`, classificador arquitetural de falhas impedindo fallback em erros 4xx/RLS, testes de contrato/unidade/integração/E2E e configuração PWA com isolamento total do cache em relação ao Supabase. Código e testes disponíveis para revisão no Pull Request: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/2
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/chore/bootstrap-antigravity
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/2
 - Análise crítica da equipe: A equipe acompanhou a execução em regime TDD rigoroso. A arquitetura de conectividade implementada respeita todas as regras da constituição do FluxID: credenciais secretas nunca são expostas ao cliente, nenhuma chave secreta utiliza prefixo `VITE_`, e erros 401/403/RLS bloqueiam transições em vez de acionar fallbacks inseguros. A compatibilidade de compilação do TypeScript 7 foi tratada de forma limpa.
 - Validação humana realizada: Execução dos gates automatizados: `tsc --noEmit` (0 erros), `eslint .` (0 avisos), 63 testes Vitest aprovados (93.3% de cobertura de linhas e 97.6% de funções), 15 testes Playwright E2E aprovados em Desktop, Tablet e Mobile 360px sem violações axe-core, e `npm run build` gerando bundle de produção em menos de 1 segundo.
 - Decisão final: utilizado
@@ -52,7 +52,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-- Substituir o link da branch pelo link definitivo do Pull Request antes de efetuar o merge na branch main.
+Nenhuma pendência declarada. Pull Request #2 aberto e vinculado à issue #1.
 
 ## Validação humana
 
