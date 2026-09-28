@@ -7,6 +7,7 @@ dos registros existentes no repositório.
 """
 
 import sys
+import argparse
 import os
 import zipfile
 import xml.etree.ElementTree as ET
@@ -64,10 +65,7 @@ def set_cell_text(tc, new_text, ns, is_multiline_decision=False, justification='
         t.text = new_text
 
 
-def gerar_docx_ria014():
-    base_docx = 'docs/governanca-ia/registros/13_Gate_de_Registro_de_IA_por_Ciclo_SpecKit.docx'
-    out_registros = 'docs/governanca-ia/registros/14_Fundacao_Tecnica_do_FluxID.docx'
-    out_exportados = 'docs/governanca-ia/exportados/14_Fundacao_Tecnica_do_FluxID.docx'
+def gerar_docx(source_md, base_docx, out_registros):
 
     if not os.path.exists(base_docx):
         print(f"Arquivo base não encontrado: {base_docx}")
@@ -89,13 +87,22 @@ def gerar_docx_ria014():
     ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
     tree = ET.fromstring(xml_content)
 
+    with open(source_md, encoding='utf-8') as source:
+        markdown = source.read()
+    titulo = markdown.split('\n', 3)[1].replace('**FluxID | ', '').replace('**', '')
+    valores = {}
+    for line in markdown.splitlines():
+        if line.startswith('- ') and ': ' in line:
+            chave, valor = line[2:].split(': ', 1)
+            valores[chave] = valor
+
     # 1. Atualiza os parágrafos do cabeçalho
     for p in tree.findall('.//w:body/w:p', ns):
         text = ''.join(p.itertext()).strip()
         if 'RIA-013' in text:
             for t in p.findall('.//w:t', ns):
                 if 'RIA-013' in (t.text or ''):
-                    t.text = 'FluxID  |  RIA-014  |  Fundação técnica do FluxID'
+                    t.text = f'FluxID  |  {titulo}'
         elif text.startswith('Este documento registra'):
             for t in p.findall('.//w:t', ns):
                 if t.text and 'Este documento registra' in t.text:
@@ -104,7 +111,7 @@ def gerar_docx_ria014():
                               'cobrindo o setup técnico, resolução determinística de conectividade Supabase, '
                               'proteção de credenciais e validação PWA/acessibilidade.')
 
-    # 2. Mapeamento de campos da Tabela 2
+    # 2. Mapeamento de campos da Tabela 2 (fallback histórico e valores da fonte Markdown)
     campos = {
         'Ferramenta de IA utilizada': 'Google Antigravity (Gemini 2.5 Pro)',
         'Objetivo do uso': ('Implementar o ciclo 01 da Spec 001 (Fundação técnica do FluxID), abrangendo o '
@@ -148,6 +155,12 @@ def gerar_docx_ria014():
         'Data da validação humana': '28/09/2026   Assinatura ou rubrica: Alisson Almeida'
     }
 
+    for campo in list(campos):
+        for chave, valor in valores.items():
+            if campo.lower() in chave.lower() or chave.lower() in campo.lower():
+                campos[campo] = valor
+                break
+
     tables = tree.findall('.//w:tbl', ns)
     if len(tables) >= 3:
         tbl2 = tables[2]
@@ -157,7 +170,7 @@ def gerar_docx_ria014():
                 label = ''.join(cells[0].itertext()).strip()
                 for key, val in campos.items():
                     if key.lower() in label.lower():
-                        if key == 'Decisão final':
+                        if key == 'Decisão final' and isinstance(val, tuple):
                             set_cell_text(cells[1], val[0], ns, is_multiline_decision=True, justification=val[1])
                         else:
                             set_cell_text(cells[1], val, ns)
@@ -165,20 +178,23 @@ def gerar_docx_ria014():
 
     # 3. Atualiza core.xml
     core_str = core_content.decode('utf-8')
-    core_str = core_str.replace('Gate de registro de IA por ciclo Spec Kit', 'Fundação técnica do FluxID')
-    core_str = core_str.replace('RIA-013', 'RIA-014')
+    core_str = core_str.replace('Gate de registro de IA por ciclo Spec Kit', titulo)
+    core_str = core_str.replace('RIA-013', titulo.split('|')[0].strip())
 
     new_doc_xml = ET.tostring(tree, encoding='utf-8', xml_declaration=True)
     all_files['word/document.xml'] = new_doc_xml
     all_files['docProps/core.xml'] = core_str.encode('utf-8')
 
-    # Salva nos destinos solicitados
-    for out_path in [out_registros, out_exportados]:
-        os.makedirs(os.path.dirname(out_path), exist_ok=True)
-        with zipfile.ZipFile(out_path, 'w', compression=zipfile.ZIP_DEFLATED) as zout:
-            for fname, data in all_files.items():
-                zout.writestr(fname, data)
-        print(f"Registro DOCX gerado com sucesso: {out_path}")
+    os.makedirs(os.path.dirname(out_registros), exist_ok=True)
+    with zipfile.ZipFile(out_registros, 'w', compression=zipfile.ZIP_DEFLATED) as zout:
+        for fname, data in all_files.items():
+            zout.writestr(fname, data)
+    print(f"Registro DOCX gerado com sucesso: {out_registros}")
 
 if __name__ == '__main__':
-    gerar_docx_ria014()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--source', required=True)
+    parser.add_argument('--template', default='docs/governanca-ia/registros/13_Gate_de_Registro_de_IA_por_Ciclo_SpecKit.docx')
+    parser.add_argument('--output', required=True)
+    args = parser.parse_args()
+    gerar_docx(args.source, args.template, args.output)
