@@ -18,10 +18,13 @@ describe('App Shell (História 1)', () => {
 
   it('não renderiza funcionalidades, cadastros ou dados de domínio', () => {
     render(<App />);
-    // Garante ausência de termos de negócio/domínio (animais, lotes, vacinas, mapas, etc.)
-    expect(screen.queryByText(/animal/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/lote/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/dispositivo/i)).not.toBeInTheDocument();
+    // Garante ausência de telas, tabelas e regras de negócio de cilindros de gases nesta fundação.
+    expect(screen.queryByText(/cadastro de cilindro/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/válvula/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/capacete/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/lacre/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/viagem/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/frota/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
 

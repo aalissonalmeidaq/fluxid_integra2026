@@ -16,6 +16,6 @@
 | RIA-012 | 27/09/2026 18:05:48 - America/Fortaleza | Governança | Documentação | Documentação oficial, metodologia, PRD e visão | `registros/12_Documentacao_Oficial_Metodologia_PRD_e_Visao.docx` | Em uso com revisão da equipe |
 | RIA-013 | 28/09/2026 06:56:00 - America/Fortaleza | Governança | Implantação | Gate de registro de IA por ciclo Spec Kit | `registros/13_Gate_de_Registro_de_IA_por_Ciclo_SpecKit.docx` | Em uso com revisão da equipe |
 
-| RIA-014 | 28/09/2026, 11:40:24 - America/Fortaleza | 001 | 01 | Fundação técnica do FluxID | `registros/14_Fundacao_Tecnica_do_FluxID.docx` (`RIA-014.md`) | Utilizado |
+| RIA-014 | 28/09/2026, 16:25:00 - America/Fortaleza | 001 | 01 | Fundação técnica do FluxID | `registros/14_Fundacao_Tecnica_do_FluxID.docx` (`RIA-014.md`) | Utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.

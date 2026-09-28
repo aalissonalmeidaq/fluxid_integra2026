@@ -13,12 +13,12 @@
 
 Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/2
 - Análise crítica da equipe: A equipe acompanhou a execução em regime TDD rigoroso. A arquitetura de conectividade implementada respeita todas as regras da constituição do FluxID: credenciais secretas nunca são expostas ao cliente, nenhuma chave secreta utiliza prefixo `VITE_`, e erros 401/403/RLS bloqueiam transições em vez de acionar fallbacks inseguros. A compatibilidade de compilação do TypeScript 7 foi tratada de forma limpa.
-- Validação humana realizada: Execução dos gates automatizados: `tsc --noEmit` (0 erros), `eslint .` (0 avisos), 63 testes Vitest aprovados (93.3% de cobertura de linhas e 97.6% de funções), 15 testes Playwright E2E aprovados em Desktop, Tablet e Mobile 360px sem violações axe-core, e `npm run build` gerando bundle de produção em menos de 1 segundo.
+- Validação humana realizada: Execução dos gates automatizados: `tsc --noEmit` (0 erros), `eslint .` (0 avisos), 69 testes Vitest aprovados (93.39% de cobertura de linhas e 95.55% de funções), 24 testes Playwright E2E aprovados em Desktop, Tablet e Mobile 360px sem violações axe-core críticas ou graves, e `npm run build` gerando bundle de produção em 840 ms. Resolução integral de todos os bloqueadores apontados na revisão da PR #2.
 - Decisão final: utilizado
 - Justificativa: O código produzido atendeu todos os critérios de aceitação definidos na especificação, passou em 100% da bateria de testes e manteve a base técnica limpa e desacoplada de dados de domínio.
 - Fontes verificadas: Documentação oficial do Supabase CLI e Supabase JS v2, Diretrizes WCAG 2.2 AA do W3C e documentação do Vite PWA Workbox.
 - Identificador do registro: RIA-014
-- Data e hora da interação: 28/09/2026, 11:40:24 - America/Fortaleza
+- Data e hora da interação: 28/09/2026, 16:25:00 - America/Fortaleza
 
 ## Rastreabilidade técnica do ciclo
 
@@ -27,7 +27,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - Spec: 001
 - Ciclo: 01
 - Commit-base: efa9c3b3f00442cc1414ebf7e518d3819a42fb9e
-- Hash do diff funcional preparado: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- Hash do diff funcional preparado: f067730e93ac2cdeec6e01f11d7c6a84c4f59acb1139238399fd1fe8e9fd9756
 - Arquivos e áreas afetadas:
 
 - `.agents/`
@@ -40,15 +40,17 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `src/styles/`
 - `tests/contract/`
 - `tests/e2e/`
+- `tests/governanca-ia/`
 - `tests/integration/`
 - `public/`
+- `scripts/governanca-ia/`
 - `supabase/config.toml`
 
 ## Testes e evidências
 
 - Comando(s): npm run lint, npm run typecheck, npm run test, npm run test:coverage, npm run test:e2e, npm run build
 - Resultado: aprovado
-- Evidência: 63 testes unitários e de contrato aprovados; 15 testes E2E aprovados no Playwright (desktop, tablet, mobile); cobertura superior a 93% das linhas; zero erros de tipagem e linting; tempo de carga do shell menor que 300 ms. Evidências detalhadas registradas em specs/001-fundacao-tecnica/validation.md.
+- Evidência: 69 testes unitários, de contrato e de integração aprovados; 24 testes E2E aprovados no Playwright (desktop-chrome, tablet, mobile-360); cobertura superior a 93% das linhas; zero erros de tipagem e linting; tempo de carga do shell abaixo de 250 ms (dentro do limite contratual estrito de 2000 ms). Evidências detalhadas registradas em specs/001-fundacao-tecnica/validation.md.
 
 ## Decisões e dados pendentes
 

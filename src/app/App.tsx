@@ -9,15 +9,27 @@ export function App(): React.JSX.Element {
   const { isInstallable, promptInstall } = usePwaInstall();
   const isOnline = useOnlineStatus();
 
+  const focusMainContent = (): void => {
+    document.getElementById('main-content')?.focus();
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col w-full selection:bg-emerald-500 selection:text-white">
+      <a
+        href="#main-content"
+        tabIndex={0}
+        onClick={focusMainContent}
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-slate-100 focus:px-4 focus:py-3 focus:text-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+      >
+        Pular para o conteúdo principal
+      </a>
       {!isOnline && (
         <div
           role="status"
           aria-live="polite"
           className="bg-amber-600 text-slate-950 px-4 py-2 text-center text-xs font-semibold tracking-wide flex items-center justify-center gap-2"
         >
-          <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping" aria-hidden="true" />
+          <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping motion-reduce:animate-none" aria-hidden="true" />
           <span>Dispositivo sem conexão de rede. Modo offline em operação.</span>
         </div>
       )}
@@ -43,7 +55,7 @@ export function App(): React.JSX.Element {
         </div>
       </header>
 
-      <main className="flex-1 p-4 sm:p-6 max-w-5xl mx-auto w-full" id="main-content">
+      <main className="flex-1 p-4 sm:p-6 max-w-5xl mx-auto w-full" id="main-content" tabIndex={-1}>
         <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-slate-100 mb-2">Fundação Técnica Ativa</h2>
           <p className="text-sm text-slate-400 leading-relaxed max-w-2xl">
@@ -54,8 +66,8 @@ export function App(): React.JSX.Element {
         </div>
       </main>
 
-      <footer className="border-t border-slate-900 px-4 py-3 sm:px-6 text-center text-xs text-slate-600">
-        FluxID &copy; 2026 &mdash; Plataforma de Identidade e Rastreabilidade
+      <footer className="border-t border-slate-900 px-4 py-3 sm:px-6 text-center text-xs text-slate-400">
+        FluxID &copy; 2026 &mdash; Plataforma de Identidade e Rastreabilidade de Cilindros
       </footer>
     </div>
   );

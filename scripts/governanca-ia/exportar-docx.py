@@ -131,10 +131,10 @@ def gerar_docx_ria014():
                                       'vez de acionar fallbacks inseguros. A compatibilidade de compilação do '
                                       'TypeScript 7 com ESLint foi solucionada de forma isolada via hook de compatibilidade.'),
         'Validação humana realizada': ('Execução completa dos gates automatizados: tsc --noEmit (0 erros), eslint . '
-                                       '(0 avisos), 63 testes Vitest aprovados (93.3% de cobertura de linhas e 97.6% '
-                                       'de funções), 15 testes Playwright E2E aprovados em Desktop, Tablet e Mobile '
-                                       '360px sem violações axe-core, e npm run build gerando bundle de produção '
-                                       'em 927 ms. Relatório detalhado em specs/001-fundacao-tecnica/validation.md.'),
+                                       '(0 avisos), 69 testes Vitest aprovados (93.39% de cobertura de linhas e 95.55% '
+                                       'de funções), 24 testes Playwright E2E aprovados em Desktop, Tablet e Mobile '
+                                       '360px sem violações axe-core críticas ou graves, e npm run build gerando bundle de produção '
+                                       'em 840 ms. Resolução integral de todos os bloqueadores da PR #2. Relatório detalhado em specs/001-fundacao-tecnica/validation.md.'),
         'Decisão final': ('☒ utilizado   ☐ adaptado   ☐ descartado',
                           ('a implementação atendeu integralmente aos critérios de aceitação da Spec 001, '
                            'respeitou os princípios da constituição do FluxID e obteve aprovação total em 100% dos testes '
@@ -142,7 +142,7 @@ def gerar_docx_ria014():
         'Fontes verificadas': ('Documentação oficial do Supabase CLI e Supabase JS v2, Diretrizes WCAG 2.2 AA '
                                'do W3C e documentação do Vite PWA Workbox.'),
         'Identificador do registro': 'RIA-014',
-        'Data e hora da interação': '28/09/2026, 11:40:24 - America/Fortaleza',
+        'Data e hora da interação': '28/09/2026, 16:25:00 - America/Fortaleza',
         'Decisões e dados pendentes': 'Nenhuma pendência declarada. Pull Request #2 aberto e vinculado à issue #1.',
         'Responsável pela revisão da equipe': 'Alisson Almeida (Líder Técnico / Equipe FluxID)',
         'Data da validação humana': '28/09/2026   Assinatura ou rubrica: Alisson Almeida'

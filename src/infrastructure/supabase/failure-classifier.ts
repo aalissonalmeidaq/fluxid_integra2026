@@ -9,7 +9,8 @@ export interface ProbeFailureOptions {
 export interface OperationalErrorMetadata {
   statusCode?: number;
   code?: string;
-  message?: string;
+  networkError?: boolean;
+  context?: 'auth' | 'data' | 'network' | 'unknown';
 }
 
 /**
@@ -44,6 +45,14 @@ export function classifyProbeFailure(options: ProbeFailureOptions): FailureKind 
 export function classifyOperationalError(meta: OperationalErrorMetadata): FailureKind {
   const { statusCode, code } = meta;
 
+  if (meta.networkError) {
+    return 'network';
+  }
+
+  if (statusCode !== undefined && statusCode >= 500) {
+    return 'service_unavailable';
+  }
+
   // Erros de autenticação (credencial, sessão inválida ou expirada)
   if (statusCode === 401 || code === 'PGRST301' || code === 'invalid_jwt') {
     return 'authentication';
@@ -54,8 +63,13 @@ export function classifyOperationalError(meta: OperationalErrorMetadata): Failur
     return 'authorization';
   }
 
-  // Erros de isolamento e RLS
-  if (code === 'PGRST116' || code === 'rls_violation') {
+  // PGRST116 indica uma consulta singular sem resultado único; não prova violação de RLS.
+  if (code === 'PGRST116') {
+    return 'validation';
+  }
+
+  // Erros de isolamento e RLS explicitamente identificados.
+  if (code === 'rls_violation') {
     return 'isolation';
   }
 

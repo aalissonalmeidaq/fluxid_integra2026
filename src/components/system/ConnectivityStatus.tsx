@@ -69,7 +69,7 @@ export function ConnectivityStatus({
           <button
             type="button"
             onClick={onReconnect}
-            className="ml-2 underline text-white hover:text-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 rounded px-1"
+            className="ml-2 inline-flex min-h-11 items-center underline text-white hover:text-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 rounded px-1"
           >
             Tentar reconectar
           </button>
@@ -90,7 +90,7 @@ export function ConnectivityStatus({
           <button
             type="button"
             onClick={onReconnect}
-            className="ml-2 underline text-white hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 rounded px-1"
+            className="ml-2 inline-flex min-h-11 items-center underline text-white hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 rounded px-1"
           >
             Reconectar
           </button>

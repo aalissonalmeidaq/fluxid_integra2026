@@ -42,9 +42,15 @@ describe('Classificador de Falhas (Failure Classifier - História 3)', () => {
       expect(isFallbackAllowed(failure)).toBe(false);
     });
 
-    it('classifica isolamento / RLS como bloqueante', () => {
+    it('classifica PGRST116 como validação, e não como violação de RLS', () => {
       const meta: OperationalErrorMetadata = { code: 'PGRST116' };
       const failure = classifyOperationalError(meta);
+      expect(failure).toBe('validation');
+      expect(isFallbackAllowed(failure)).toBe(false);
+    });
+
+    it('classifica código explícito de política como isolamento bloqueante', () => {
+      const failure = classifyOperationalError({ code: 'rls_violation' });
       expect(failure).toBe('isolation');
       expect(isFallbackAllowed(failure)).toBe(false);
     });
@@ -61,6 +67,12 @@ describe('Classificador de Falhas (Failure Classifier - História 3)', () => {
       const failure = classifyOperationalError(meta);
       expect(failure).toBe('unknown');
       expect(isFallbackAllowed(failure)).toBe(false);
+    });
+
+    it('classifica indisponibilidade e rede de forma determinística', () => {
+      expect(classifyOperationalError({ statusCode: 503 })).toBe('service_unavailable');
+      expect(classifyOperationalError({ networkError: true })).toBe('network');
+      expect(classifyOperationalError({})).toBe('unknown');
     });
   });
 });

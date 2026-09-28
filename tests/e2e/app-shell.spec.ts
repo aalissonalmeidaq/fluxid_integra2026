@@ -9,7 +9,7 @@ test.describe('App Shell Responsiveness and Performance (US4)', () => {
     await expect(heading).toBeVisible();
 
     const duration = Date.now() - startTime;
-    expect(duration).toBeLessThanOrEqual(2500); // 2000ms orçamento de referência
+    expect(duration, `O shell levou ${duration} ms para exibir o título FluxID.`).toBeLessThanOrEqual(2000);
 
     // Valida ausência de rolagem horizontal indevida
     const hasHorizontalOverflow = await page.evaluate(() => {

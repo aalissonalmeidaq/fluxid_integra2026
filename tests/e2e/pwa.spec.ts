@@ -20,4 +20,47 @@ test.describe('PWA e Funcionamento Offline (US4)', () => {
     expect(json.short_name).toBe('FluxID');
     expect(json.display).toBe('standalone');
   });
+
+  test('registra, ativa e usa o service worker para abrir o shell offline', async ({ page, context, browserName }) => {
+    await page.goto('/');
+
+    await page.evaluate(async () => {
+      await navigator.serviceWorker.ready;
+    });
+    await page.reload();
+
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+    const serviceWorker = await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.ready;
+      return Boolean(registration.active);
+    });
+    expect(serviceWorker).toBe(true);
+
+    // Emulação offline no Playwright com Service Worker é estável no Chromium;
+    // no WebKit para Windows, setOffline provoca crash interno de IPC no driver.
+    if (browserName !== 'webkit') {
+      await context.setOffline(true);
+      await page.reload();
+      await expect(page.getByRole('heading', { level: 1, name: 'FluxID' })).toBeVisible();
+
+      await context.setOffline(false);
+    }
+  });
+
+  test('mantém o shell previsível quando recurso remoto do Supabase falha', async ({ page }) => {
+    await page.goto('/');
+    await page.route('**/auth/v1/**', (route) => route.abort('failed'));
+
+    const remoteResult = await page.evaluate(async () => {
+      try {
+        await fetch('/auth/v1/health');
+        return 'resolved';
+      } catch {
+        return 'failed';
+      }
+    });
+
+    expect(remoteResult).toBe('failed');
+    await expect(page.getByRole('main')).toBeVisible();
+  });
 });

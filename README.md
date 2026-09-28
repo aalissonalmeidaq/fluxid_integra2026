@@ -1,6 +1,6 @@
 # FluxID
 
-Plataforma de Identidade e Rastreabilidade Animal.
+Plataforma de Identidade e Rastreabilidade de cilindros de gases medicinais e industriais.
 
 Este pacote reúne a constituição, metodologia, visão, especificações e fundação técnica do FluxID.
 
@@ -21,8 +21,9 @@ Este pacote reúne a constituição, metodologia, visão, especificações e fun
 ```bash
 git clone <url-do-repositorio>
 cd fluxid
-npm install
+npm ci
 ```
+> O comando `npm ci` garante a instalação reproduzível e determinística a partir do `package-lock.json`. O projeto utiliza TypeScript 7 com compatibilidade do parser `@typescript-eslint` mantida via `overrides` declarados no `package.json`.
 
 ### 2. Configurar variáveis de ambiente
 Copie o modelo de variáveis públicas:

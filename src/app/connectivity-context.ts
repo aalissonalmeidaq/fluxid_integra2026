@@ -2,13 +2,14 @@ import { createContext, useContext } from 'react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { ResolutionResult } from '@/infrastructure/supabase/connection-state';
 import { AppConfig } from '@/config/environment';
+import { OperationalErrorMetadata } from '@/infrastructure/supabase/failure-classifier';
 
 export interface ConnectivityContextValue {
   result: ResolutionResult;
   client: SupabaseClient | null;
   config: AppConfig | null;
   reconnect: () => Promise<void>;
-  reportOperationalError: (statusCode?: number) => void;
+  reportOperationalError: (metadata: OperationalErrorMetadata) => void;
 }
 
 export const initialResult: ResolutionResult = {

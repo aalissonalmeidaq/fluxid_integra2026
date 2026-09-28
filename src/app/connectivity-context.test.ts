@@ -11,6 +11,6 @@ describe('connectivity-context', () => {
 
     // Invoca funções padrão para garantir que são funções válidas e no-op
     await expect(result.current.reconnect()).resolves.toBeUndefined();
-    expect(() => result.current.reportOperationalError(500)).not.toThrow();
+    expect(() => result.current.reportOperationalError({ statusCode: 500 })).not.toThrow();
   });
 });

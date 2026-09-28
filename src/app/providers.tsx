@@ -5,6 +5,11 @@ import { validateEnvironment, AppConfig } from '@/config/environment';
 import { resolveConnection } from '@/infrastructure/supabase/connection-resolver';
 import { createSelectedClient } from '@/infrastructure/supabase/client-factory';
 import {
+  classifyOperationalError,
+  isFallbackAllowed,
+  OperationalErrorMetadata,
+} from '@/infrastructure/supabase/failure-classifier';
+import {
   ConnectivityContext,
   initialResult,
 } from './connectivity-context';
@@ -38,6 +43,7 @@ export function Providers({ children, customEnv }: ProvidersProps): React.JSX.El
 
     const appConfig = validation.config;
     setConfig(appConfig);
+    setClient(null);
     setResult({ state: 'probing', attempts: [] });
 
     try {
@@ -59,10 +65,16 @@ export function Providers({ children, customEnv }: ProvidersProps): React.JSX.El
     }
   }, [customEnv]);
 
-  const reportOperationalError = useCallback((statusCode?: number) => {
+  const reportOperationalError = useCallback((metadata: OperationalErrorMetadata) => {
+    const failure = classifyOperationalError(metadata);
+    const nextState = isFallbackAllowed(failure) ? 'offline' : 'blocked';
+
+    setClient(null);
     setResult((prev) => ({
-      state: 'blocked',
-      selectedEndpoint: prev.selectedEndpoint,
+      state: nextState,
+      ...(nextState === 'blocked' && prev.selectedEndpoint
+        ? { selectedEndpoint: prev.selectedEndpoint }
+        : {}),
       attempts: [
         ...prev.attempts,
         ...(prev.selectedEndpoint
@@ -71,8 +83,10 @@ export function Providers({ children, customEnv }: ProvidersProps): React.JSX.El
                 endpoint: prev.selectedEndpoint,
                 startedAt: Date.now(),
                 durationMs: 0,
-                outcome: 'authorization' as const,
-                statusCode,
+                outcome: failure,
+                ...(metadata.statusCode !== undefined
+                  ? { statusCode: metadata.statusCode }
+                  : {}),
               },
             ]
           : []),

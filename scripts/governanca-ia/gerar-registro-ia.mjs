@@ -1,7 +1,7 @@
-import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { assertNonEmptyFunctionalDiff } from './registro-utils.mjs';
 
 const RAIZ = process.cwd();
 const DIR = join(RAIZ, 'docs', 'governanca-ia');
@@ -61,6 +61,14 @@ if (!arquivos.length) {
   process.exit(1);
 }
 
+let diffHash;
+try {
+  diffHash = assertNonEmptyFunctionalDiff(diff);
+} catch (error) {
+  console.error(error instanceof Error ? error.message : 'Não foi possível calcular o hash do diff funcional.');
+  process.exit(1);
+}
+
 const agora = new Date();
 const timestamp = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short', timeStyle: 'medium', timeZone: 'America/Fortaleza'
@@ -70,7 +78,6 @@ const arquivo = join(REGISTROS, `${id}-${slug(a.titulo)}.md`);
 const repo = basename(git(['rev-parse', '--show-toplevel'], RAIZ));
 const branch = git(['branch', '--show-current'], 'desconhecida');
 const baseSha = git(['rev-parse', 'HEAD'], 'repositório sem commit');
-const diffHash = createHash('sha256').update(diff).digest('hex');
 const contemCodigo = arquivos.some((f) => /^(src|app|apps|packages|supabase|tests|e2e|public|design-system)\//.test(f)
   || /(^|\/)(package(-lock)?\.json|pnpm-lock\.yaml|yarn\.lock|vite\.config\.|tailwind\.config\.|tsconfig)/.test(f));
 const resposta = a.resposta ?? a.resultado ?? 'PREENCHER antes do commit.';
