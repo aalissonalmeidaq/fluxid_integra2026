@@ -1,214 +1,68 @@
-# Design System Master File
+# Sistema de design oficial do FluxID
 
-> **LOGIC:** When building a specific page, first check `design-system/pages/[page-name].md`.
-> If that file exists, its rules **override** this Master file.
-> If not, strictly follow the rules below.
+> Este é o ponto de partida para toda tela do produto. Uma especificação de página pode complementar estas regras, mas não pode contrariar a identidade, a acessibilidade ou os tokens definidos aqui.
 
----
+## Identidade
 
-**Project:** FluxID
-**Generated:** 2026-09-28 14:48:03
-**Category:** NFT/Web3 Platform
+- **Marca:** FluxID
+- **Slogan:** Rastreabilidade que protege. Inteligência que conecta.
+- **Personalidade:** segura, inteligente e conectada.
+- **Contexto:** rastreabilidade e gestão de cilindros de gases medicinais e industriais.
 
----
+O visual deve comunicar operação confiável, leitura rápida de dados e conexão entre pessoas, cilindros e locais. A interface não redesenha a marca: logotipo, ícones proprietários e demais artefatos oficiais devem ser reutilizados como fornecidos pela equipe.
 
-## Global Rules
+## Direção visual
 
-### Color Palette
+- Fundos claros como padrão, com superfícies brancas e cinza-gelo.
+- Azul para navegação, informação e confiança; verde para confirmação e disponibilidade; ciano para conectividade e dados em tempo real.
+- Dashboards legíveis, mapas e localização quando a funcionalidade exigir, sem elementos decorativos que disputem atenção com a operação.
+- Ícones lineares de uma única família, acompanhados de texto quando o significado não for óbvio.
+- Layout mobile-first, sem rolagem horizontal de 360 px a desktop amplo.
+- Não usar ficção científica, efeitos de distorção, elementos de jogo, interfaces simulando painel de controle ou qualquer linguagem visual de especulação financeira.
 
-| Role | Hex | CSS Variable |
-|------|-----|--------------|
-| Primary | `#8B5CF6` | `--color-primary` |
-| On Primary | `#000000` | `--color-on-primary` |
-| Secondary | `#A78BFA` | `--color-secondary` |
-| On Secondary | `#0F172A` | `--color-on-secondary` |
-| Accent/CTA | `#FBBF24` | `--color-accent` |
-| On Accent/CTA | `#0F172A` | `--color-on-accent` |
-| Background | `#0F0F23` | `--color-background` |
-| Foreground | `#F8FAFC` | `--color-foreground` |
-| Card | `#1E1D35` | `--color-card` |
-| Card Foreground | `#F8FAFC` | `--color-card-foreground` |
-| Muted | `#27273B` | `--color-muted` |
-| Muted Foreground | `#94A3B8` | `--color-muted-foreground` |
-| Border | `#4C1D95` | `--color-border` |
-| Destructive | `#EF4444` | `--color-destructive` |
-| On Destructive | `#000000` | `--color-on-destructive` |
-| Ring | `#8B5CF6` | `--color-ring` |
+## Tokens de cor
 
-**Color Notes:** Purple tech + gold value
+| Papel | Valor | Uso |
+|---|---:|---|
+| Azul profundo | `#1249BB` | marca, navegação e ações principais |
+| Azul royal | `#1766D9` | estados ativos e interação |
+| Azul ciano | `#23AFE5` | conectividade e informação complementar |
+| Verde vivo | `#37D20A` | sucesso e disponibilidade confirmada |
+| Verde escuro | `#159B19` | sucesso com contraste reforçado |
+| Navy | `#163B72` | títulos, textos de alta ênfase e superfícies institucionais |
+| Branco | `#FFFFFF` | superfícies principais |
+| Cinza-gelo | `#F3F7FA` | fundo da aplicação e áreas secundárias |
+| Grafite | `#26384A` | texto de corpo e ícones |
 
-### Typography
+Não usar cor como único indicador de estado: todo alerta inclui texto e, quando aplicável, ícone e semântica acessível.
 
-- **Heading Font:** Orbitron
-- **Body Font:** Exo 2
-- **Mood:** crypto, web3, futuristic, tech, blockchain, digital
-- **Google Fonts:** [Orbitron + Exo 2](https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap)
+## Tipografia e espaçamento
 
-**CSS Import:**
-```css
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap');
-```
+- **Fonte principal:** Montserrat. Use uma fonte de sistema compatível até que o carregamento oficial esteja configurado.
+- Texto de corpo: 16 px ou maior, linha de pelo menos 1,5.
+- Hierarquia: um `h1` por tela, seguido de `h2` e `h3` sem saltos.
+- Escala de espaçamento: 4, 8, 12, 16, 24, 32, 48 e 64 px.
+- Raios discretos: 6 a 12 px. Sombras apenas sutis para separar superfícies.
 
-### Spacing Variables
+## Componentes e comportamento
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--space-xs` | `4px` / `0.25rem` | Tight gaps |
-| `--space-sm` | `8px` / `0.5rem` | Icon gaps, inline spacing |
-| `--space-md` | `16px` / `1rem` | Standard padding |
-| `--space-lg` | `24px` / `1.5rem` | Section padding |
-| `--space-xl` | `32px` / `2rem` | Large gaps |
-| `--space-2xl` | `48px` / `3rem` | Section margins |
-| `--space-3xl` | `64px` / `4rem` | Hero padding |
+- Botões e controles de toque têm ao menos 44 × 44 px, com rótulo claro e estado desabilitado perceptível.
+- Ação principal: azul profundo; confirmação: verde escuro; ação secundária: contorno azul; ação destrutiva usa cor e texto explícitos.
+- Campos usam rótulo visível, ajuda e erro próximo ao campo. O foco usa anel de alto contraste.
+- Estados de conectividade, carregamento, vazio, erro, offline, sincronização e permissão negada são previstos desde o desenho.
+- Transições são curtas e funcionais. `prefers-reduced-motion` desativa animações que não sejam essenciais.
 
-### Shadow Depths
+## Acessibilidade e validação
 
-| Level | Value | Usage |
-|-------|-------|-------|
-| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)` | Subtle lift |
-| `--shadow-md` | `0 4px 6px rgba(0,0,0,0.1)` | Cards, buttons |
-| `--shadow-lg` | `0 10px 15px rgba(0,0,0,0.1)` | Modals, dropdowns |
-| `--shadow-xl` | `0 20px 25px rgba(0,0,0,0.15)` | Hero images, featured cards |
+- Atender WCAG 2.2 AA, contraste mínimo de 4,5:1 para texto normal e foco sempre visível.
+- A navegação por teclado segue a ordem visual e oferece link para pular ao conteúdo principal.
+- Nunca prender o foco; todo controle pode ser acionado por teclado.
+- Validar em 360 px, tablet e desktop, com testes automatizados de axe para violações críticas e graves.
 
----
+## Lista de entrega para telas
 
-## Component Specs
-
-### Buttons
-
-```css
-/* Primary Button */
-.btn-primary {
-  background: #FBBF24;
-  color: #0F172A;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-/* Secondary Button */
-.btn-secondary {
-  background: transparent;
-  color: #F8FAFC;
-  border: 2px solid #8B5CF6;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-```
-
-### Cards
-
-```css
-.card {
-  background: #0F0F23;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--shadow-md);
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-```
-
-### Inputs
-
-```css
-.input {
-  padding: 12px 16px;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 200ms ease;
-}
-
-.input:focus {
-  border-color: #8B5CF6;
-  outline: none;
-  box-shadow: 0 0 0 3px #8B5CF620;
-}
-```
-
-### Modals
-
-```css
-.modal-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.modal {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: var(--shadow-xl);
-  max-width: 500px;
-  width: 90%;
-}
-```
-
----
-
-## Style Guidelines
-
-**Style:** Cyberpunk UI
-
-**Keywords:** Neon, dark mode, terminal, HUD, sci-fi, glitch, dystopian, futuristic, matrix, tech noir
-
-**Best For:** Gaming platforms, tech products, crypto apps, sci-fi applications, developer tools, entertainment
-
-**Key Effects:** Neon glow (text-shadow), glitch animations (skew/offset), scanlines (::before overlay), terminal fonts
-
-### Page Pattern
-
-**Pattern Name:** Feature-Rich Showcase
-
-- **Conversion Strategy:** Clear feature hierarchy. One key message per card. Strong CTA repetition.
-- **CTA Placement:** Hero (sticky) + After features + Bottom
-- **Section Order:** Hero (value prop) > Feature grid/cards (4-6) > Use cases or benefits > Social proof or logos > CTA
-
----
-
-## Anti-Patterns (Do NOT Use)
-
-- ❌ Light mode default
-- ❌ No transaction status
-
-### Additional Forbidden Patterns
-
-- ❌ **Emojis as icons** — Use SVG icons (Heroicons, Lucide, Simple Icons)
-- ❌ **Missing cursor:pointer** — All clickable elements must have cursor:pointer
-- ❌ **Layout-shifting hovers** — Avoid scale transforms that shift layout
-- ❌ **Low contrast text** — Maintain 4.5:1 minimum contrast ratio
-- ❌ **Instant state changes** — Always use transitions (150-300ms)
-- ❌ **Invisible focus states** — Focus states must be visible for a11y
-
----
-
-## Pre-Delivery Checklist
-
-Before delivering any UI code, verify:
-
-- [ ] No emojis used as icons (use SVG instead)
-- [ ] All icons from consistent icon set (Heroicons/Lucide)
-- [ ] `cursor-pointer` on all clickable elements
-- [ ] Hover states with smooth transitions (150-300ms)
-- [ ] Light mode: text contrast 4.5:1 minimum
-- [ ] Focus states visible for keyboard navigation
-- [ ] `prefers-reduced-motion` respected
-- [ ] Responsive: 375px, 768px, 1024px, 1440px
-- [ ] No content hidden behind fixed navbars
-- [ ] No horizontal scroll on mobile
+- [ ] Usa os tokens e a tipografia definidos neste arquivo.
+- [ ] Mantém foco, contraste, estados e alvos de toque acessíveis.
+- [ ] É responsiva de 360 px a desktop amplo.
+- [ ] Explica estados operacionais com texto, não só com cor.
+- [ ] Reutiliza os artefatos oficiais da marca sem recriá-los.

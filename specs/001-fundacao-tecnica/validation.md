@@ -75,5 +75,13 @@ A verificação entre os requisitos da especificação (`spec.md`), a arquitetur
 **Validações Manuais Pendentes**:
 - Homologação de leitor de tela em hardware real (Android TalkBack e iOS VoiceOver) prevista para os testes de aceitação em campo com a equipe técnica.
 
-**Conclusão**: Todos os bloqueadores apontados na revisão técnica da PR #2 foram integralmente sanados com evidências verificáveis.
+## Evidência da segunda revisão — 28/09/2026
 
+- Ambiente: Windows, Node.js `v24.21.0`, npm `12.1.0` e Playwright `1.63.0`.
+- Comando E2E: `npx playwright test --workers=1 --timeout=15000 --reporter=line`.
+- Resultado: 24 testes aprovados, 3 ignorados e nenhum reprovado, em 28,2 segundos.
+- Navegadores executados: `desktop-chromium`, `tablet-webkit` e `mobile-360-chromium`.
+- Cobertura unitária mais recente: 92,50% de statements, 88,77% de branches, 95,55% de funções e 93,39% de linhas.
+- Limitações: no WebKit do Playwright no Windows, os testes de teclado e a emulação offline foram ignorados explicitamente por limitações do driver. A validação manual nesses cenários continua pendente.
+
+**Conclusão**: Os gates automatizados executados nesta revisão têm evidência registrada. A confirmação humana e as validações manuais pendentes continuam necessárias antes do encerramento do ciclo.

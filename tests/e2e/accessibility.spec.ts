@@ -23,16 +23,16 @@ test.describe('Acessibilidade e Navegação por Teclado (US4)', () => {
   });
 
   test('permite navegação por teclado com foco visível e ordem lógica', async ({ page, browserName }) => {
+    test.skip(
+      browserName === 'webkit',
+      'O driver WebKit do Playwright no Windows não encaminha Tab ao foco da página neste cenário automatizado.'
+    );
     await page.goto('/');
 
     const skipLink = page.getByRole('link', { name: 'Pular para o conteúdo principal' });
     const main = page.getByRole('main');
 
-    if (browserName === 'webkit') {
-      await skipLink.focus();
-    } else {
-      await page.keyboard.press('Tab');
-    }
+    await page.keyboard.press('Tab');
     await expect(skipLink).toBeFocused();
 
     const focusStyle = await skipLink.evaluate((element) => {
@@ -50,26 +50,34 @@ test.describe('Acessibilidade e Navegação por Teclado (US4)', () => {
   });
 
   test('permite acionamento por teclado de controles interativos e evita armadilhas de foco', async ({ page, browserName }) => {
-    // Interrompe requisições para forçar o estado offline e exibir o controle de reconexão
-    await page.route('**/auth/v1/**', (route) => route.abort('failed'));
+    test.skip(
+      browserName === 'webkit',
+      'O driver WebKit do Playwright no Windows não encaminha Tab e Enter ao foco da página neste cenário automatizado.'
+    );
+    // Interrompe requisições para forçar o estado offline e exibir o controle de reconexão.
+    let abortedRequests = 0;
+    await page.route('**/auth/v1/**', (route) => {
+      abortedRequests += 1;
+      return route.abort('failed');
+    });
     await page.goto('/');
 
     const reconnectBtn = page.getByRole('button', { name: /reconectar|tentar reconectar/i });
     await expect(reconnectBtn).toBeVisible({ timeout: 10000 });
 
-    const tabKey = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
     // Navega: Skip Link -> Botão Reconectar
-    await page.keyboard.press(tabKey);
+    await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
 
     await expect(reconnectBtn).toBeFocused();
 
     // Aciona controle pelo teclado
+    const requestsBeforeReconnect = abortedRequests;
     await page.keyboard.press('Enter');
+    await expect.poll(() => abortedRequests).toBeGreaterThan(requestsBeforeReconnect);
 
     // Valida ausência de armadilhas de foco recuando com Shift+Tab
     await page.keyboard.press('Shift+Tab');
     await expect(page.getByRole('link', { name: 'Pular para o conteúdo principal' })).toBeFocused();
   });
 });
-

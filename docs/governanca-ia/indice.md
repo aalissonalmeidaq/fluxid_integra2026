@@ -18,4 +18,6 @@
 
 | RIA-014 | 28/09/2026, 16:25:00 - America/Fortaleza | 001 | 01 | Fundação técnica do FluxID | `registros/14_Fundacao_Tecnica_do_FluxID.docx` (`RIA-014.md`) | Utilizado |
 
+| RIA-015 | 28/09/2026, 17:51:24 - America/Fortaleza | 001 | 02 | Correções finais da revisão da Spec 001 | `registros/RIA-015-correcoes-finais-da-revisao-da-spec-001.md` | utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.

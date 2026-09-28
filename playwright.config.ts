@@ -13,16 +13,17 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'desktop-chrome',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'desktop-chromium',
+      use: { ...devices['Desktop Chrome'], browserName: 'chromium' },
     },
     {
-      name: 'tablet',
-      use: { ...devices['iPad (gen 7)'] },
+      name: 'tablet-webkit',
+      use: { ...devices['iPad (gen 7)'], browserName: 'webkit' },
     },
     {
-      name: 'mobile-360',
+      name: 'mobile-360-chromium',
       use: {
+        browserName: 'chromium',
         viewport: { width: 360, height: 640 },
         isMobile: true,
         hasTouch: true,

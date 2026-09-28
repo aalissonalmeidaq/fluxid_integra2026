@@ -8,7 +8,7 @@ test.describe('PWA e Funcionamento Offline (US4)', () => {
     await expect(manifestLink).toBeAttached();
 
     const themeColor = page.locator('meta[name="theme-color"]');
-    await expect(themeColor).toHaveAttribute('content', '#0f172a');
+    await expect(themeColor).toHaveAttribute('content', '#1249BB');
   });
 
   test('manifest webmanifest é acessível e contém metadados corretos', async ({ request }) => {
@@ -21,7 +21,7 @@ test.describe('PWA e Funcionamento Offline (US4)', () => {
     expect(json.display).toBe('standalone');
   });
 
-  test('registra, ativa e usa o service worker para abrir o shell offline', async ({ page, context, browserName }) => {
+  test('registra, ativa, controla a página e carrega o app shell', async ({ page }) => {
     await page.goto('/');
 
     await page.evaluate(async () => {
@@ -36,13 +36,28 @@ test.describe('PWA e Funcionamento Offline (US4)', () => {
     });
     expect(serviceWorker).toBe(true);
 
-    // Emulação offline no Playwright com Service Worker é estável no Chromium;
-    // no WebKit para Windows, setOffline provoca crash interno de IPC no driver.
-    if (browserName !== 'webkit') {
-      await context.setOffline(true);
+    await expect(page.getByRole('main')).toBeVisible();
+  });
+
+  test('abre o app shell sem rede quando a emulação offline é suportada', async ({ page, context, browserName }) => {
+    test.skip(
+      browserName === 'webkit',
+      'O driver WebKit do Playwright no Windows apresenta falha de IPC ao combinar setOffline com service worker.'
+    );
+
+    await page.goto('/');
+    await page.evaluate(async () => {
+      await navigator.serviceWorker.ready;
+    });
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+
+    await context.setOffline(true);
+    try {
       await page.reload();
       await expect(page.getByRole('heading', { level: 1, name: 'FluxID' })).toBeVisible();
-
+      await expect(page.getByRole('main')).toBeVisible();
+    } finally {
       await context.setOffline(false);
     }
   });
