@@ -20,4 +20,7 @@
 
 | RIA-015 | 28/09/2026, 17:51:24 - America/Fortaleza | 001 | 02 | Correções finais da revisão da Spec 001 | `registros/15_Correcoes_Finais_da_Revisao_da_Spec_001.docx` (`RIA-015-correcoes-finais-da-revisao-da-spec-001.md`) | utilizado |
 
+
+| RIA-016 | 29/09/2026, 07:41:23 - America/Fortaleza | 001 | 03 | Correção do ambiente E2E e convergência do CI da Spec 001 | `registros/16_Correcao_do_Ambiente_E2E_e_Convergencia_do_CI_da_Spec_001.docx` (`RIA-016-correcao-do-ambiente-e2e-e-convergencia-do-ci-da-spec-001.md`) | utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.

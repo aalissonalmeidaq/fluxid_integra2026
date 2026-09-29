@@ -85,3 +85,11 @@ A verificação entre os requisitos da especificação (`spec.md`), a arquitetur
 - Limitações: no WebKit do Playwright no Windows, os testes de teclado e a emulação offline foram ignorados explicitamente por limitações do driver. A validação manual nesses cenários continua pendente.
 
 **Conclusão**: Os gates automatizados executados nesta revisão têm evidência registrada. A confirmação humana e as validações manuais pendentes continuam necessárias antes do encerramento do ciclo.
+
+## Correção do ambiente E2E — 29/09/2026
+
+- Execução anterior do GitHub Actions: 22 testes aprovados, 3 ignorados e 2 reprovados. A falha ocorreu nos cenários de reconexão em Chromium porque o build do Playwright não recebia configuração pública fictícia do Supabase; portanto, o ambiente era bloqueado antes do probe.
+- Correção: `playwright.config.ts` passou a fornecer variáveis públicas, fictícias e exclusivas do `webServer` E2E. Nenhum `.env.local`, segredo ou projeto Supabase real é usado.
+- Nova execução local: build de produção com a configuração E2E e `npx playwright test --workers=1 --timeout=15000 --reporter=line`.
+- Resultado local: 24 aprovados, 3 ignorados, 0 reprovados, em 35,1 segundos. Os três ignorados são limitações explicitamente documentadas do WebKit no Windows para teclado e offline.
+- CI remoto: pendente de execução após o próximo push da branch da PR #2.

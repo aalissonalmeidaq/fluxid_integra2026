@@ -35,5 +35,12 @@ export default defineConfig({
     port: 4173,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
+    env: {
+      ...process.env,
+      VITE_SUPABASE_CONNECTION_MODE: 'local',
+      VITE_SUPABASE_LOCAL_URL: 'http://127.0.0.1:54321',
+      VITE_SUPABASE_LOCAL_PUBLISHABLE_KEY: 'chave-publica-exclusiva-para-e2e',
+      VITE_SUPABASE_PROBE_TIMEOUT_MS: '500',
+    },
   },
 });

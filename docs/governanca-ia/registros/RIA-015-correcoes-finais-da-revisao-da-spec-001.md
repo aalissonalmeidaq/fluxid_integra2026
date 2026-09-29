@@ -50,7 +50,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Validação manual de teclado e offline em WebKit no Windows permanece pendente por limitação do driver automatizado.
+Os 24 testes aprovados e 3 ignorados registrados acima pertencem à execução local em Windows. Uma execução posterior do GitHub Actions encontrou 2 falhas em Chromium na reconexão, pois o ambiente E2E não recebia configuração pública fictícia antes do probe. A aprovação local não representa aprovação do CI; a correção continua no ciclo seguinte. A validação manual de teclado e offline em WebKit no Windows permanece pendente.
 
 ## Validação humana
 
