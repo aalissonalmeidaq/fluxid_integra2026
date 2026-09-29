@@ -58,9 +58,9 @@ Nenhuma pendência declarada. Pull Request #2 aberto e vinculado à issue #1.
 
 ## Validação humana
 
-- Responsável pela revisão da equipe: Alisson Almeida
+- Responsável pela revisão da equipe: Equipe
 - Data da validação humana: 28/09/2026
-- Observações: Ciclo 01 concluído com sucesso. Código preparado para abertura de Pull Request vinculado à issue #1.
+- Observações: Validação registrada em nome da equipe. Ciclo 01 concluído com sucesso e código preparado para a Pull Request vinculada à issue #1.
 
 ## Regras de preenchimento
 

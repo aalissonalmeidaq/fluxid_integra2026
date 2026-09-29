@@ -13,7 +13,7 @@
 
 Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/2
 - Análise crítica da equipe: A equipe revisou as alterações e confirmou que os resultados atendem ao escopo da revisão. As limitações do WebKit foram mantidas visíveis, sem serem tratadas como aprovação.
-- Validação humana realizada: Alterações validadas pelo solicitante nesta conversa em 28/09/2026.
+- Validação humana realizada: Alterações aprovadas pela equipe em 28/09/2026.
 - Decisão final: utilizado
 - Justificativa: As correções eliminam as falhas encontradas e preservam evidência reproduzível para os cenários que o ambiente suporta.
 - Fontes verificadas: Documentação local do projeto, resultados do Playwright, Vite PWA e configurações versionadas.
@@ -54,9 +54,9 @@ Os 24 testes aprovados e 3 ignorados registrados acima pertencem à execução l
 
 ## Validação humana
 
-- Responsável pela revisão da equipe: Solicitante da alteração (identidade não registrada no RIA).
+- Responsável pela revisão da equipe: Equipe.
 - Data da validação humana: 28/09/2026.
-- Observações: Confirmação expressa recebida nesta conversa: “alterações validadas pode segui”.
+- Observações: Validação registrada em nome da equipe.
 
 ## Regras de preenchimento
 

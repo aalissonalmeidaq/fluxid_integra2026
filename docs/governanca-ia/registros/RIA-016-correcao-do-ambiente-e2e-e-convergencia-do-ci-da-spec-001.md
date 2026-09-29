@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: Fornecer configuração Supabase pública e fictícia somente ao servidor Playwright, preservar os testes de teclado e atualizar evidências auditáveis.
 - Resposta gerada pela IA: O `webServer` do Playwright recebeu variáveis exclusivas de E2E, permitindo que a reconexão execute novo probe sem depender de `.env.local`. Revisão: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/2
 - Análise crítica da equipe: A causa foi reproduzida e tratada sem segredos, sem projeto Supabase real e sem enfraquecer a asserção de teclado.
-- Validação humana realizada: Alterações aprovadas pelo solicitante nesta conversa em 29/09/2026.
+- Validação humana realizada: Alterações aprovadas pela equipe em 29/09/2026.
 - Decisão final: utilizado
 - Justificativa: A solução torna o E2E independente de `.env.local` e os gates locais foram concluídos com sucesso.
 - Fontes verificadas: Configuração local, resultados do Playwright e workflow versionado.
@@ -34,18 +34,18 @@
 ## Testes e evidências
 
 - Comando(s): npm run typecheck; npm run lint; npm run test; npm run test:coverage; npm run test:e2e; npm run build.
-- Resultado: aprovado localmente; CI remoto pendente.
-- Evidência: 69 testes Vitest aprovados; cobertura de linhas 93,39%; E2E com 24 aprovados, 3 ignorados e 0 reprovados em 23,2 segundos.
+- Resultado: aprovado.
+- Evidência: GitHub Actions — Qualidade e Gates Automatizados, run 36557613512, aprovado; Governança de IA, run 36557613445, aprovado. Vitest: 69 aprovados. Cobertura: 92,50% statements, 88,77% branches, 95,55% functions e 93,39% lines. Playwright: 24 aprovados, 3 ignorados e 0 reprovados. Build de produção e PWA aprovados.
 
 ## Decisões e dados pendentes
 
-CI remoto pendente após o push.
+Gates locais e remotos aprovados. A aprovação formal da PR e o merge continuam sujeitos a revisão separada no GitHub.
 
 ## Validação humana
 
-- Responsável pela revisão da equipe: Solicitante da alteração (identidade não registrada no RIA).
+- Responsável pela revisão da equipe: Equipe.
 - Data da validação humana: 29/09/2026.
-- Observações: Aprovação expressa recebida nesta conversa para seguir o processo.
+- Observações: A equipe confirmou a aprovação do RIA-016 em 29/09/2026. Essa validação refere-se ao registro de governança e à utilização do resultado da IA. A aprovação formal da PR e o merge continuam sujeitos a revisão separada no GitHub.
 
 ## Regras de preenchimento
 

@@ -25,6 +25,8 @@ Os textos dos registros devem soar como se uma pessoa de verdade os tivesse escr
 
 Quando a IA produzir código, o campo `Resposta gerada pela IA` deve resumir o resultado e fornecer um link que permita à equipe revisar a mudança. Use preferencialmente o pull request, inclusive em modo draft. Se o PR ainda não existir no momento do registro, informe o link do repositório ou da branch e deixe explícita a pendência de adicionar o PR antes do merge. O link não pode conter credenciais, tokens ou parâmetros sensíveis.
 
+As validações humanas, decisões e responsáveis são registrados em nome da equipe. Não atribua uma decisão à pessoa usuária ou a um indivíduo sem confirmação explícita da equipe.
+
 O Markdown é a fonte versionável de apoio. O DOCX é o formato obrigatório de apresentação e entrega de cada RIA e deve reproduzir o mesmo conteúdo, sem substituir silenciosamente o arquivo-fonte.
 
 ## Quando gerar um registro

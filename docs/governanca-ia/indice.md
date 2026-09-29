@@ -24,3 +24,5 @@
 | RIA-016 | 29/09/2026, 07:41:23 - America/Fortaleza | 001 | 03 | Correção do ambiente E2E e convergência do CI da Spec 001 | `registros/16_Correcao_do_Ambiente_E2E_e_Convergencia_do_CI_da_Spec_001.docx` (`RIA-016-correcao-do-ambiente-e2e-e-convergencia-do-ci-da-spec-001.md`) | utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
+
+> Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

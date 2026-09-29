@@ -92,4 +92,6 @@ A verificação entre os requisitos da especificação (`spec.md`), a arquitetur
 - Correção: `playwright.config.ts` passou a fornecer variáveis públicas, fictícias e exclusivas do `webServer` E2E. Nenhum `.env.local`, segredo ou projeto Supabase real é usado.
 - Nova execução local: build de produção com a configuração E2E e `npx playwright test --workers=1 --timeout=15000 --reporter=line`.
 - Resultado local: 24 aprovados, 3 ignorados, 0 reprovados, em 35,1 segundos. Os três ignorados são limitações explicitamente documentadas do WebKit no Windows para teclado e offline.
-- CI remoto: pendente de execução após o próximo push da branch da PR #2.
+- GitHub Actions — Qualidade e Gates Automatizados: run `36557613512`, aprovado; 69 testes Vitest aprovados; Playwright com 24 aprovados, 3 ignorados e 0 reprovados; build de produção e PWA aprovados.
+- GitHub Actions — Validar registro de IA: run `36557613445`, aprovado.
+- Conclusão: o primeiro CI identificou a ausência de configuração E2E, a causa foi corrigida no `playwright.config.ts` e a nova execução do CI foi aprovada. Os três testes ignorados e as validações manuais de teclado e offline no WebKit do Windows continuam documentados. O RIA-016 foi aprovado pela equipe; a PR ainda depende de nova revisão formal e de autorização de merge.
