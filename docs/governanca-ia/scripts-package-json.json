@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "ia:registro": "node scripts/governanca-ia/gerar-registro-ia.mjs",
+    "ia:validar": "node scripts/governanca-ia/validar-registro-ia.mjs --staged",
+    "ia:hooks": "node scripts/governanca-ia/instalar-hooks.mjs"
+  }
+}
