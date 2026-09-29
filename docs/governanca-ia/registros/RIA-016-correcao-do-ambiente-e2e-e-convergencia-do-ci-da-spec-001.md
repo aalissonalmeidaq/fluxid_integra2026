@@ -43,7 +43,7 @@ Gates locais e remotos aprovados. A aprovação formal da PR e o merge continuam
 
 ## Validação humana
 
-- Responsável pela revisão da equipe: Equipe.
+- Responsável pela revisão da equipe: Alisson Almeida
 - Data da validação humana: 29/09/2026.
 - Observações: A equipe confirmou a aprovação do RIA-016 em 29/09/2026. Essa validação refere-se ao registro de governança e à utilização do resultado da IA. A aprovação formal da PR e o merge continuam sujeitos a revisão separada no GitHub.
 

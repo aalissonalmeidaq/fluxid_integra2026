@@ -42,7 +42,7 @@
 
 ## Validação humana
 
-- Responsável pela revisão da equipe: Equipe
+- Responsável pela revisão da equipe: {{REVISOR}}
 - Data da validação humana: {{DATA_VALIDACAO}}
 - Observações: {{OBSERVACOES}}
 
@@ -52,7 +52,7 @@
 - Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
 - Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
 - Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
-- Registrar validações e decisões em nome da equipe, sem atribuí-las à pessoa usuária. Exemplo: “Alterações aprovadas pela equipe em 29/09/2026.”
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
 - Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
 - Evitar dados pessoais, sigilosos ou sensíveis.
 - Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
