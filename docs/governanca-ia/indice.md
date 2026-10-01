@@ -32,3 +32,5 @@
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
 
 > Atualização do RIA-017: o link de revisão foi trocado pelo do pull request #3 em 30/09/2026.
+
+> Atualização do RIA-018: o link de revisão foi trocado pelo do pull request #7 em 01/10/2026.

@@ -216,6 +216,6 @@ describe('ProfilePage: apresentação (Spec 003)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Salvar nome' }));
     const status = await screen.findByRole('status');
     expect(status).toHaveAttribute('data-variant', 'sucesso');
-    expect(status).toHaveFocus();
+    await waitFor(() => expect(status).toHaveFocus());
   });
 });

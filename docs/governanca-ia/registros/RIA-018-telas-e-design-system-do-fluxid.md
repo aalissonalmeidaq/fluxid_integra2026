@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: O responsável pediu ao assistente que executasse o fluxo do Spec Kit da Spec 003 (implementar as tarefas com TDD, convergir e analisar) e, depois, que o orientasse na validação humana. Durante a validação ele relatou que a tela de verificação em duas etapas dava erro ao gerar o QR Code e que só via algumas telas no sistema; pediu a investigação e a correção, e depois aprovou o resultado.
 - Resposta gerada pela IA: A IA gerou o design system (tokens, componentes, ícones, marca, catálogo), o shell da aplicação, a migração das telas de entrada, recuperação, verificação em duas etapas, sessões, organização, perfil, administração e auditoria, os testes (unitários, de contrato e E2E nas larguras de 360, 768 e 1920 px, teclado, cores forçadas, escalas e regressão visual), as capturas de referência geradas no Linux e a documentação do ciclo. Também corrigiu a matrícula do segundo fator, que falhava quando o usuário tinha um fator abandonado (nome repetido), e dois defeitos achados nas capturas (QR do simulador e botão que quebrava em duas linhas).
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/003-design-system-telas
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/7
 - Análise crítica da equipe: A conferência crítica achou e corrigiu o que os testes verdes não mostravam: as capturas de referência trariam um QR Code quebrado (o simulador mandava um SVG já com prefixo e o supabase-js acrescenta o próprio) e botões do cabeçalho que quebravam em duas linhas a 768 px; o campo de data e hora não tinha anel de foco; a tabela de auditoria estourava a largura a 768 px; e o skip link ficava com 40 px de altura ao receber foco. A matrícula do segundo fator falhava com mfa_factor_name_conflict, e a causa estava na camada de aplicação da Spec 002. O teste ao vivo do MFA não foi repetido depois dessa correção, porque o usuário global já tem um fator verificado do teste manual; a correção é coberta por testes unitários.
 - Validação humana realizada: O responsável pela spec, Alisson Almeida, validou o catálogo do design system e as telas de entrada, início, perfil e verificação em duas etapas no próprio sistema, com o Supabase local, usando Chrome no Windows 11 e sem leitor de tela. As demais telas foram conferidas por ele nas capturas de referência. Ao final ele declarou "tudo aprovado", inclusive a linha de base visual. Amostra: uma pessoa. A duração não foi informada. Ele não detalhou, item a item, o símbolo de 16 px, o piscar e o aparelho real, e não houve teste com leitor de tela nem confirmação de teste em aparelho real.
 - Decisão final: utilizado
@@ -315,13 +315,13 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Trocar o link de validação pelo do pull request antes do merge (obrigatório). Confirmar, quando houver oportunidade, o teste em aparelho real (teclado virtual, rede móvel lenta, paisagem) e com leitor de tela nas tabelas em cartão, que não foram feitos. Registrar a duração da validação humana, se for conhecida.
+Link de validação trocado pelo do pull request #7 em 01/10/2026. Confirmar, quando houver oportunidade, o teste em aparelho real (teclado virtual, rede móvel lenta, paisagem) e com leitor de tela nas tabelas em cartão, que não foram feitos. Registrar a duração da validação humana, se for conhecida.
 
 ## Validação humana
 
 - Responsável pela revisão da equipe: Alisson Almeida
 - Data da validação humana: 01/10/2026
-- Observações: A duração da validação humana não foi informada e não foi estimada. O desempenho do shell ficou dentro do limite de 20% (132 ms contra 114 ms; 694.916 contra 592.778 bytes), com pouca folga: o logotipo vertical e o negativo passam de 56 KB cada. Sem rede, salvar o perfil mostra Acesso negado em vez de uma mensagem de conexão; isso vem da camada de aplicação da Spec 002 e não foi alterado.
+- Observações: Depois de aberto o pull request, o CI reprovou um teste de foco da própria spec (lento no servidor, passava local); ele passou a aguardar o foco com waitFor, e o link do RIA foi trocado pelo do PR. A duração da validação humana não foi informada e não foi estimada. O desempenho do shell ficou dentro do limite de 20% (132 ms contra 114 ms; 694.916 contra 592.778 bytes), com pouca folga: o logotipo vertical e o negativo passam de 56 KB cada. Sem rede, salvar o perfil mostra Acesso negado em vez de uma mensagem de conexão; isso vem da camada de aplicação da Spec 002 e não foi alterado.
 
 ## Regras de preenchimento
 

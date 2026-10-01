@@ -58,7 +58,7 @@ describe('TenantSelectionView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Entrar em Tenant A' }));
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(text);
-    expect(alert).toHaveFocus();
+    await waitFor(() => expect(alert).toHaveFocus());
     expect(screen.getByRole('button', { name: 'Entrar em Tenant A' })).toBeEnabled();
   });
 
@@ -111,7 +111,7 @@ describe('TenantSelectionView: apresentação (Spec 003)', () => {
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveAttribute('data-variant', 'erro');
     expect(alert.querySelector('svg')).not.toBeNull();
-    expect(alert).toHaveFocus();
+    await waitFor(() => expect(alert).toHaveFocus());
   });
 
   it('o andamento usa o indicador de carregamento do padrão', async () => {
