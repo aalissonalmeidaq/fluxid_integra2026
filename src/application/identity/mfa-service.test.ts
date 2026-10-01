@@ -36,6 +36,29 @@ describe('MfaService.begin', () => {
     expect(c.enroll).toHaveBeenCalledTimes(1);
   });
 
+  // O Auth devolve em totp só os fatores verificados; os abandonados vêm apenas em all.
+  it('descarta o fator abandonado que o Auth lista só em all, não em totp', async () => {
+    const c = client({
+      listFactors: vi.fn(async () => ({
+        data: { totp: [], all: [{ id: 'abandonado', status: 'unverified', factor_type: 'totp' }, { id: 'outro-tipo', status: 'unverified', factor_type: 'phone' }] },
+        error: null,
+      })),
+    });
+    await new MfaService(c).begin();
+    expect(c.unenroll).toHaveBeenCalledTimes(1);
+    expect(c.unenroll).toHaveBeenCalledWith({ factorId: 'abandonado' });
+  });
+
+  it('matricula com nome amigável único, para um fator esquecido nunca bloquear a matrícula (mfa_factor_name_conflict)', async () => {
+    const c = client();
+    await new MfaService(c).begin();
+    await new MfaService(c).begin();
+    const nomes = (c.enroll as ReturnType<typeof vi.fn>).mock.calls.map(([params]) => (params as { friendlyName?: string } | undefined)?.friendlyName);
+    expect(nomes).toHaveLength(2);
+    expect(nomes[0]).toMatch(/^FluxID /);
+    expect(nomes[0]).not.toBe(nomes[1]);
+  });
+
   it('informa indisponibilidade quando o Auth falha', async () => {
     const c = client({ listFactors: vi.fn(async () => ({ data: null, error: { message: 'x' } })) });
     await expect(new MfaService(c).begin()).resolves.toEqual({ kind: 'unavailable' });

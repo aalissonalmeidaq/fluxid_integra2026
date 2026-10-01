@@ -1,0 +1,348 @@
+# Registro do uso de inteligência artificial e validação humana
+
+**FluxID | RIA-018 | Telas e design system do FluxID**
+
+> Ponto de atenção: a IA apoia a equipe, mas a responsabilidade final é humana.
+
+## Registro da interação
+
+- Ferramenta de IA utilizada: Claude Code (Anthropic), modelo Claude Sonnet 5.5
+- Objetivo do uso: Implementar a Spec 003: um design system versionado do FluxID (tokens com contraste verificado, componentes, logotipo oficial e 30 ícones, catálogo próprio) e refazer com ele as telas de identidade da Spec 002, sem mudar rota, campo, validação, permissão nem mensagem de segurança.
+- Prompt utilizado, em síntese sanitizada: O responsável pediu ao assistente que executasse o fluxo do Spec Kit da Spec 003 (implementar as tarefas com TDD, convergir e analisar) e, depois, que o orientasse na validação humana. Durante a validação ele relatou que a tela de verificação em duas etapas dava erro ao gerar o QR Code e que só via algumas telas no sistema; pediu a investigação e a correção, e depois aprovou o resultado.
+- Resposta gerada pela IA: A IA gerou o design system (tokens, componentes, ícones, marca, catálogo), o shell da aplicação, a migração das telas de entrada, recuperação, verificação em duas etapas, sessões, organização, perfil, administração e auditoria, os testes (unitários, de contrato e E2E nas larguras de 360, 768 e 1920 px, teclado, cores forçadas, escalas e regressão visual), as capturas de referência geradas no Linux e a documentação do ciclo. Também corrigiu a matrícula do segundo fator, que falhava quando o usuário tinha um fator abandonado (nome repetido), e dois defeitos achados nas capturas (QR do simulador e botão que quebrava em duas linhas).
+
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/7
+- Análise crítica da equipe: A conferência crítica achou e corrigiu o que os testes verdes não mostravam: as capturas de referência trariam um QR Code quebrado (o simulador mandava um SVG já com prefixo e o supabase-js acrescenta o próprio) e botões do cabeçalho que quebravam em duas linhas a 768 px; o campo de data e hora não tinha anel de foco; a tabela de auditoria estourava a largura a 768 px; e o skip link ficava com 40 px de altura ao receber foco. A matrícula do segundo fator falhava com mfa_factor_name_conflict, e a causa estava na camada de aplicação da Spec 002. O teste ao vivo do MFA não foi repetido depois dessa correção, porque o usuário global já tem um fator verificado do teste manual; a correção é coberta por testes unitários.
+- Validação humana realizada: O responsável pela spec, Alisson Almeida, validou o catálogo do design system e as telas de entrada, início, perfil e verificação em duas etapas no próprio sistema, com o Supabase local, usando Chrome no Windows 11 e sem leitor de tela. As demais telas foram conferidas por ele nas capturas de referência. Ao final ele declarou "tudo aprovado", inclusive a linha de base visual. Amostra: uma pessoa. A duração não foi informada. Ele não detalhou, item a item, o símbolo de 16 px, o piscar e o aparelho real, e não houve teste com leitor de tela nem confirmação de teste em aparelho real.
+- Decisão final: utilizado
+- Justificativa: A entrega cumpre a spec e passou em todas as verificações automáticas. O responsável aprovou o catálogo, as telas e a linha de base. Os dois defeitos que ele ajudou a achar (QR do simulador e botão quebrado em 768 px) e a falha da matrícula do segundo fator foram corrigidos antes da aprovação.
+- Fontes verificadas: Nenhuma fonte externa consultada. As decisões partiram da spec, do plano, dos contratos, da constituição e das pranchas de identidade do repositório. A fonte Montserrat vem do pacote @fontsource-variable/montserrat (licença OFL-1.1), hospedada no aplicativo.
+- Identificador do registro: RIA-018
+- Data e hora da interação: 01/10/2026, 15:02:31 - America/Fortaleza
+
+## Rastreabilidade técnica do ciclo
+
+- Repositório: fluxid
+- Branch: feat/003-design-system-telas
+- Spec: 003
+- Ciclo: 01
+- Commit-base: 9275499624b8b3cb3bd8d84a63c46181973f809d
+- Hash do diff funcional preparado: 6ea7354a7968c1f3da8bb3bdcf42c4dc5a30f8e06cd311ef1a938fa04d56872b
+- Arquivos e áreas afetadas:
+
+- `.github/workflows/quality.yml`
+- `.gitignore`
+- `catalogo/catalogo.css`
+- `catalogo/catalogo.tsx`
+- `catalogo/index.html`
+- `catalogo/main.tsx`
+- `catalogo/paginas/componentes.tsx`
+- `catalogo/paginas/cores.tsx`
+- `catalogo/paginas/excecoes.tsx`
+- `catalogo/paginas/exemplos-auxiliares.tsx`
+- `catalogo/paginas/exemplos.tsx`
+- `catalogo/paginas/icones.tsx`
+- `catalogo/paginas/inicio.tsx`
+- `catalogo/paginas/layout.tsx`
+- `catalogo/paginas/logotipo.tsx`
+- `catalogo/paginas/tipografia.tsx`
+- `catalogo/secoes.ts`
+- `design-system/fluxid/MASTER.md`
+- `docs/ferramentas-e-skills-vendorizadas.md`
+- `docs/prd.md`
+- `index.html`
+- `package-lock.json`
+- `package.json`
+- `playwright.config.ts`
+- `public/favicon.svg`
+- `public/icons/icon-192.png`
+- `public/icons/icon-512.png`
+- `public/icons/maskable-512.png`
+- `scripts/design-system/atualizar-capturas-visuais.mjs`
+- `scripts/design-system/gerar-icones-pwa.mjs`
+- `scripts/design-system/gerar-tokens-css.mjs`
+- `scripts/design-system/gerar-variacoes-da-marca.mjs`
+- `specs/003-design-system-telas/baseline-desempenho.md`
+- `specs/003-design-system-telas/checklists/requirements.md`
+- `specs/003-design-system-telas/contracts/ativos-de-marca.md`
+- `specs/003-design-system-telas/contracts/componentes.md`
+- `specs/003-design-system-telas/contracts/shell-e-estados.md`
+- `specs/003-design-system-telas/contracts/tokens-e-escalas.md`
+- `specs/003-design-system-telas/contracts/verificacoes-automaticas.md`
+- `specs/003-design-system-telas/data-model.md`
+- `specs/003-design-system-telas/plan.md`
+- `specs/003-design-system-telas/quickstart.md`
+- `specs/003-design-system-telas/referencias/02-variacoes-da-marca.png`
+- `specs/003-design-system-telas/referencias/03-sistema-de-iconografia.png`
+- `specs/003-design-system-telas/referencias/04-sistema-de-layout.png`
+- `specs/003-design-system-telas/referencias/05-sistema-de-cores.png`
+- `specs/003-design-system-telas/referencias/06-sistema-tipografico.png`
+- `specs/003-design-system-telas/referencias/prancha-identidade-fluxid.png`
+- `specs/003-design-system-telas/research.md`
+- `specs/003-design-system-telas/spec.md`
+- `specs/003-design-system-telas/tasks.md`
+- `specs/003-design-system-telas/validation.md`
+- `src/app/App.test.tsx`
+- `src/app/App.tsx`
+- `src/app/pwa-config.test.ts`
+- `src/app/routing/protected-route.tsx`
+- `src/app/shell/app-shell.test.tsx`
+- `src/app/shell/app-shell.tsx`
+- `src/app/shell/connection-bar.tsx`
+- `src/app/shell/footer.tsx`
+- `src/app/shell/header.tsx`
+- `src/app/tenant/tenant-gate.test.tsx`
+- `src/app/tenant/tenant-gate.tsx`
+- `src/app/tenant/tenant-indicator.tsx`
+- `src/application/identity/mfa-service.test.ts`
+- `src/application/identity/mfa-service.ts`
+- `src/components/identity/confirmation-dialog.tsx`
+- `src/components/identity/form-field.tsx`
+- `src/components/system/ConnectivityStatus.tsx`
+- `src/components/system/app-initialization-screen.test.tsx`
+- `src/components/system/app-initialization-screen.tsx`
+- `src/components/system/connectivity-status.test.tsx`
+- `src/design-system/brand/constantes.ts`
+- `src/design-system/brand/logo-variacoes.ts`
+- `src/design-system/brand/logo.test.tsx`
+- `src/design-system/brand/logo.tsx`
+- `src/design-system/brand/oficial/icone.svg`
+- `src/design-system/brand/oficial/logo-escala-de-cinza.svg`
+- `src/design-system/brand/oficial/logo-horizontal.svg`
+- `src/design-system/brand/oficial/logo-monocromatica-azul.svg`
+- `src/design-system/brand/oficial/logo-monocromatica-preta.svg`
+- `src/design-system/brand/oficial/logo-negativa-branca.svg`
+- `src/design-system/brand/oficial/logo-negativa-navy.svg`
+- `src/design-system/brand/oficial/logo-principal.svg`
+- `src/design-system/brand/oficial/logo-vertical.svg`
+- `src/design-system/brand/oficial/logo-wordmark.svg`
+- `src/design-system/brand/symbol.tsx`
+- `src/design-system/components/alert.tsx`
+- `src/design-system/components/blocos.test.tsx`
+- `src/design-system/components/button.test.tsx`
+- `src/design-system/components/button.tsx`
+- `src/design-system/components/card.tsx`
+- `src/design-system/components/classes-do-controle.ts`
+- `src/design-system/components/cores.ts`
+- `src/design-system/components/data-table.css`
+- `src/design-system/components/data-table.test.tsx`
+- `src/design-system/components/data-table.tsx`
+- `src/design-system/components/dialog.test.tsx`
+- `src/design-system/components/dialog.tsx`
+- `src/design-system/components/empty-state.tsx`
+- `src/design-system/components/error-state.tsx`
+- `src/design-system/components/estados.test.tsx`
+- `src/design-system/components/field.tsx`
+- `src/design-system/components/form-section.tsx`
+- `src/design-system/components/index.ts`
+- `src/design-system/components/list.tsx`
+- `src/design-system/components/loading.tsx`
+- `src/design-system/components/select.tsx`
+- `src/design-system/components/skip-link.tsx`
+- `src/design-system/components/status-badge.tsx`
+- `src/design-system/components/sync-status.tsx`
+- `src/design-system/components/text-field.test.tsx`
+- `src/design-system/components/text-field.tsx`
+- `src/design-system/components/visually-hidden.tsx`
+- `src/design-system/contrast.test.ts`
+- `src/design-system/contrast.ts`
+- `src/design-system/docs/catalogo-completo.test.ts`
+- `src/design-system/docs/componentes.ts`
+- `src/design-system/docs/estados.ts`
+- `src/design-system/docs/index.ts`
+- `src/design-system/docs/marca.ts`
+- `src/design-system/docs/shell.ts`
+- `src/design-system/docs/tipos.ts`
+- `src/design-system/escalas.test.ts`
+- `src/design-system/gerar-css.ts`
+- `src/design-system/icons/ativos-logistica.ts`
+- `src/design-system/icons/conectividade.ts`
+- `src/design-system/icons/icon.tsx`
+- `src/design-system/icons/icons.test.tsx`
+- `src/design-system/icons/rastreabilidade.ts`
+- `src/design-system/icons/registro.ts`
+- `src/design-system/icons/seguranca.ts`
+- `src/design-system/icons/sistema.ts`
+- `src/design-system/icons/tipos.ts`
+- `src/design-system/index.ts`
+- `src/design-system/tokens-sincronizados.test.ts`
+- `src/design-system/tokens.css`
+- `src/design-system/tokens.test.ts`
+- `src/design-system/tokens.ts`
+- `src/design-system/verificar-contraste.ts`
+- `src/infrastructure/supabase/session-adapters.test.ts`
+- `src/infrastructure/supabase/session-adapters.ts`
+- `src/pages/admin/tenant-audit-log-page.test.tsx`
+- `src/pages/admin/tenant-audit-log-page.tsx`
+- `src/pages/admin/tenant-members-page.test.tsx`
+- `src/pages/admin/tenant-members-page.tsx`
+- `src/pages/admin/tenant-roles-page.test.tsx`
+- `src/pages/admin/tenant-roles-page.tsx`
+- `src/pages/admin/tenants-dashboard-page.test.tsx`
+- `src/pages/admin/tenants-dashboard-page.tsx`
+- `src/pages/auth/active-sessions-dialog.tsx`
+- `src/pages/auth/login-page.test.tsx`
+- `src/pages/auth/login-page.tsx`
+- `src/pages/auth/mfa-page.test.tsx`
+- `src/pages/auth/mfa-page.tsx`
+- `src/pages/auth/recovery-confirm-page.tsx`
+- `src/pages/auth/recovery-pages.test.tsx`
+- `src/pages/auth/recovery-request-page.tsx`
+- `src/pages/auth/tenant-selection-page.test.tsx`
+- `src/pages/auth/tenant-selection-page.tsx`
+- `src/pages/profile/profile-page.test.tsx`
+- `src/pages/profile/profile-page.tsx`
+- `src/styles/base.css`
+- `src/styles/globals.css`
+- `src/styles/montserrat.css`
+- `tests/contract/catalogo-fora-do-pacote.test.ts`
+- `tests/contract/escalas-no-codigo.test.ts`
+- `tests/contract/icones-pwa.test.ts`
+- `tests/contract/no-external-assets.test.ts`
+- `tests/contract/retention-workflow.test.ts`
+- `tests/contract/tailwind-theme-poc.test.ts`
+- `tests/e2e/accessibility.spec.ts`
+- `tests/e2e/app-initialization.spec.ts`
+- `tests/e2e/app-shell.spec.ts`
+- `tests/e2e/audit-log.spec.ts`
+- `tests/e2e/auth-session.spec.ts`
+- `tests/e2e/catalogo.spec.ts`
+- `tests/e2e/cores-forcadas.spec.ts`
+- `tests/e2e/dispositivos.spec.ts`
+- `tests/e2e/escalas-no-navegador.spec.ts`
+- `tests/e2e/estados.spec.ts`
+- `tests/e2e/medicao-shell.spec.ts`
+- `tests/e2e/organizations.spec.ts`
+- `tests/e2e/pwa.spec.ts`
+- `tests/e2e/simbolo-16px.spec.ts`
+- `tests/e2e/support/medir-simbolo.ts`
+- `tests/e2e/support/mock-backend.ts`
+- `tests/e2e/support/telas.ts`
+- `tests/e2e/teclado-e-contraste-de-foco.spec.ts`
+- `tests/e2e/telas-transversais.spec.ts`
+- `tests/e2e/tenant-members.spec.ts`
+- `tests/e2e/tenant-selection.spec.ts`
+- `tests/e2e/visual/catalogo.visual.spec.ts`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-componentes-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-componentes-360-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-componentes-768-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-cores-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-cores-360-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-cores-768-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-excecoes-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-excecoes-360-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-excecoes-768-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-icones-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-icones-360-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-icones-768-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-inicio-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-inicio-360-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-inicio-768-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-layout-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-layout-360-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-layout-768-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-logotipo-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-logotipo-360-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-logotipo-768-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-tipografia-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-tipografia-360-visual-chromium-linux.png`
+- `tests/e2e/visual/catalogo.visual.spec.ts-snapshots/catalogo-tipografia-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-plataforma-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-plataforma-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-plataforma-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-do-tenant-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-do-tenant-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-do-tenant-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-erro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-erro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-vazio-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-vazio-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-vazio-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-erro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-erro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-offline-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-offline-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-offline-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/escolha-da-organizacao-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/escolha-da-organizacao-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/escolha-da-organizacao-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/inicio-autenticado-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/inicio-autenticado-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/inicio-autenticado-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/limite-de-sessoes-dialogo-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/limite-de-sessoes-dialogo-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/limite-de-sessoes-dialogo-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/organizacoes-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/organizacoes-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/organizacoes-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/papeis-e-permissoes-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/papeis-e-permissoes-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/papeis-e-permissoes-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-carregando-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-carregando-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-carregando-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/pessoas-do-tenant-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/pessoas-do-tenant-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/pessoas-do-tenant-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/recuperacao-nova-senha-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/recuperacao-nova-senha-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/recuperacao-nova-senha-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/recuperacao-solicitacao-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/recuperacao-solicitacao-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/recuperacao-solicitacao-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/verificacao-em-duas-etapas-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/verificacao-em-duas-etapas-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/verificacao-em-duas-etapas-principal-768-visual-chromium-linux.png`
+- `tsconfig.app.json`
+- `tsconfig.node.json`
+- `vite.catalogo.config.ts`
+- `vite.config.ts`
+
+## Testes e evidências
+
+- Comando(s): npm run lint; npm run typecheck; npm run test; npm run test:coverage; npm run test:e2e (5 projetos); npm run test:visual:atualizar (Linux, contêiner oficial do Playwright); npm run test:live (Supabase local); npm run build
+- Resultado: aprovado
+- Evidência: lint e typecheck sem erros; 102 arquivos e 1.386 testes unitários e de contrato aprovados; cobertura dentro dos limites (92,12% das instruções); E2E em 5 projetos: 699 aprovados, 20 ignorados, 0 falhas; 78 capturas visuais geradas no Linux e a segunda rodada de comparação aprovada por inteiro; 11 arquivos e 61 testes ao vivo aprovados com o Supabase local (rodada anterior à correção do segundo fator); build de produção sem o catálogo em dist/. Detalhes em specs/003-design-system-telas/validation.md e baseline-desempenho.md.
+
+## Decisões e dados pendentes
+
+Link de validação trocado pelo do pull request #7 em 01/10/2026. Confirmar, quando houver oportunidade, o teste em aparelho real (teclado virtual, rede móvel lenta, paisagem) e com leitor de tela nas tabelas em cartão, que não foram feitos. Registrar a duração da validação humana, se for conhecida.
+
+## Validação humana
+
+- Responsável pela revisão da equipe: Alisson Almeida
+- Data da validação humana: 01/10/2026
+- Observações: Depois de aberto o pull request, o CI reprovou um teste de foco da própria spec (lento no servidor, passava local); ele passou a aguardar o foco com waitFor, e o link do RIA foi trocado pelo do PR. A duração da validação humana não foi informada e não foi estimada. O desempenho do shell ficou dentro do limite de 20% (132 ms contra 114 ms; 694.916 contra 592.778 bytes), com pouca folga: o logotipo vertical e o negativo passam de 56 KB cada. Sem rede, salvar o perfil mostra Acesso negado em vez de uma mensagem de conexão; isso vem da camada de aplicação da Spec 002 e não foi alterado.
+
+## Regras de preenchimento
+
+- Registrar apenas interações relevantes para o projeto.
+- Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
+- Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
+- Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
+- Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
+- Evitar dados pessoais, sigilosos ou sensíveis.
+- Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
+
+## Checklist final
+
+- [x] Ferramentas de IA identificadas.
+- [x] Prompts relevantes registrados por síntese sanitizada.
+- [x] Respostas ou resultados documentados.
+- [x] Texto revisado para soar natural, claro e autêntico, sem alterar o sentido original.
+- [x] Quando houve geração de código, a resposta contém resumo e link para o repositório, branch ou, preferencialmente, pull request.
+- [x] Validação humana explicada.
+- [x] Fontes verificadas quando necessário.
+- [x] Decisão ou pendência registrada.
+- [x] O registro não contém segredos, credenciais ou tokens.
+- [x] Dados pessoais foram removidos ou minimizados.

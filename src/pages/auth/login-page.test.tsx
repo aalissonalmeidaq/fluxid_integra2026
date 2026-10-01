@@ -35,7 +35,7 @@ describe('LoginPage: formulário acessível', () => {
   it('usa alvo mínimo de 44 px nos controles principais', () => {
     renderLogin({ kind: 'authenticated' });
     for (const control of [screen.getByLabelText('E-mail'), screen.getByLabelText('Senha'), screen.getByRole('button', { name: 'Entrar' })]) {
-      expect(control.className).toMatch(/min-h-11/);
+      expect(control.className).toMatch(/min-h-(11|alvo)/);
     }
   });
 
@@ -194,5 +194,55 @@ describe('LoginPage: escopo da Spec 002', () => {
     expect(container.innerHTML).not.toMatch(/https?:\/\//i);
     expect(container.querySelector('main')).toBeNull();
     expect(container.querySelectorAll('input:not([type="hidden"])')).toHaveLength(2);
+  });
+});
+
+// Spec 003: apresentação no padrão do design system, sem mudar comportamento nem mensagens de segurança.
+describe('LoginPage: apresentação (Spec 003)', () => {
+  it('mostra o logotipo vertical, decorativo porque o título já diz FluxID', () => {
+    const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
+    const logo = container.querySelector('img');
+    expect(logo).not.toBeNull();
+    expect(logo).toHaveAttribute('alt', '');
+    expect(Number(logo?.getAttribute('width'))).toBeGreaterThanOrEqual(120);
+  });
+
+  it('anuncia a falha de credencial com o alerta do padrão, ícone e texto', async () => {
+    renderLogin({ kind: 'invalid_credentials' });
+    fill();
+    submit();
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveAttribute('data-variant', 'erro');
+    expect(alert.querySelector('svg')).not.toBeNull();
+  });
+
+  it('o diálogo de sessões fecha com Escape e devolve o foco ao botão de entrar', async () => {
+    const sessions = [
+      { session_id: 's1', started_at: '2026-09-29T10:00:00Z', last_seen_at: '2026-09-29T11:00:00Z', aal: 'aal1' },
+      { session_id: 's2', started_at: '2026-09-29T12:00:00Z', last_seen_at: '2026-09-29T12:30:00Z', aal: 'aal2' },
+    ];
+    const login = vi.fn().mockResolvedValue({ kind: 'session_limit', sessions });
+    render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login, logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
+    fill();
+    submit();
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    fireEvent.keyDown(dialog, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(login).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Entrar' })).toHaveFocus();
+  });
+
+  it('o foco fica preso no diálogo de sessões', async () => {
+    const login = vi.fn().mockResolvedValue({ kind: 'session_limit', sessions: [{ session_id: 's1', started_at: '2026-09-29T10:00:00Z', last_seen_at: '2026-09-29T11:00:00Z', aal: 'aal1' }] });
+    render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login, logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
+    fill();
+    submit();
+    const dialog = await screen.findByRole('dialog');
+    const cancelar = within(dialog).getByRole('button', { name: /cancelar/i });
+    cancelar.focus();
+    fireEvent.keyDown(cancelar, { key: 'Tab' });
+    // Com o encerramento desabilitado, o último controle focável é Cancelar e o foco volta ao primeiro.
+    expect(dialog.contains(document.activeElement)).toBe(true);
   });
 });

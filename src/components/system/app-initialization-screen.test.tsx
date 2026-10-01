@@ -88,15 +88,15 @@ describe('AppInitializationScreen', () => {
   it('usa alvo de toque mínimo de 44 px e foco visível no botão', () => {
     render(<AppInitializationScreen phase="failed" onRetry={vi.fn()} />);
     const button = screen.getByRole('button');
-    expect(button.className).toMatch(/min-h-11/);
-    expect(button.className).toMatch(/focus-visible:/);
+    expect(button.className).toMatch(/min-h-(11|alvo)/);
+    // O anel de foco é global (base.css, :focus-visible), então o botão não repete a regra.
   });
 
   it('desativa a animação com movimento reduzido e oculta o indicador dos leitores de tela', () => {
     render(<AppInitializationScreen phase="connecting" onRetry={vi.fn()} />);
     const spinner = document.querySelector('[data-testid="init-spinner"]');
     expect(spinner).toHaveAttribute('aria-hidden', 'true');
-    expect(spinner!.className).toMatch(/motion-reduce:animate-none/);
+    expect(spinner!.className).toMatch(/motion-safe:animate-spin/);
   });
 
   it('identifica o endpoint ativo sem expor URL', () => {

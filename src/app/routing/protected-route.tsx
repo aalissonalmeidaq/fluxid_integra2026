@@ -3,6 +3,7 @@ import { useAuth } from '@/app/auth/auth-context';
 import { isProtectedAccessAllowed } from '@/domain/identity/session';
 import { LoginPage } from '@/pages/auth/login-page';
 import { MfaPage } from '@/pages/auth/mfa-page';
+import { ErrorState, Loading } from '@/design-system';
 
 export interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -16,15 +17,13 @@ function AccessDenied(): React.JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { ref.current?.focus(); }, []);
   return (
-    <div
+    <ErrorState
       ref={ref}
-      role="alert"
       tabIndex={-1}
-      className="rounded-lg border border-rose-400 bg-rose-50 p-4 text-rose-950 outline-none focus-visible:ring-2 focus-visible:ring-rose-800"
-    >
-      <h2 className="text-lg font-semibold">Acesso negado</h2>
-      <p className="mt-1 text-sm">Você não tem autorização para ver esta área. Se precisar de acesso, fale com o administrador da sua organização.</p>
-    </div>
+      variant="sem-permissao"
+      title="Acesso negado"
+      message="Você não tem autorização para ver esta área. Se precisar de acesso, fale com o administrador da sua organização."
+    />
   );
 }
 
@@ -34,7 +33,7 @@ export function ProtectedRoute({ children, allowed = true, requireAal2 = false }
   const { state } = useAuth();
 
   if (state.status === 'checking') {
-    return <p role="status" aria-busy="true" aria-live="polite" className="p-4 text-sm">Verificando sua sessão…</p>;
+    return <Loading busy label="Verificando sua sessão…" />;
   }
   if (state.status === 'signed_out') return <LoginPage />;
   if (state.status === 'mfa_required') return <MfaPage />;

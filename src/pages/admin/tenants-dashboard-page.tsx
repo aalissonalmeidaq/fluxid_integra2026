@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { OrganizationService, type OrganizationOutcome } from '@/application/identity/organization-service';
 import { useConnectivity } from '@/app/connectivity-context';
 import { createOrganizationTransport } from '@/infrastructure/supabase/organization-adapter';
+import { Alert, Button, Card, DataTable, Field, FormSection, StatusBadge, TextField, type ColunaDaTabela } from '@/design-system';
+import { textareaClass } from '@/components/identity/confirmation-dialog';
 
 interface OrganizationSummary {
   id: string;
@@ -27,6 +29,15 @@ const errorMessages: Record<Exclude<OrganizationOutcome['kind'], 'success'>, str
   invalid: 'Revise os dados informados.',
   unavailable: 'Não foi possível acessar as organizações agora.',
 };
+
+const STATUS_LABELS = { active: 'Ativa', suspended: 'Suspensa', inactive: 'Inativa' } as const;
+const STATUS_VARIANTS = { active: 'ativo', suspended: 'pendente', inactive: 'bloqueado' } as const;
+
+const COLUNAS: readonly ColunaDaTabela<OrganizationSummary>[] = [
+  { id: 'nome', cabecalho: 'Organização', cabecalhoDaLinha: true, celula: (item) => item.display_name },
+  { id: 'razao', cabecalho: 'Razão social', celula: (item) => item.legal_name },
+  { id: 'situacao', cabecalho: 'Situação', celula: (item) => <StatusBadge variant={STATUS_VARIANTS[item.status] ?? 'bloqueado'}>{STATUS_LABELS[item.status] ?? 'Inativa'}</StatusBadge> },
+];
 
 export function TenantsDashboardPage(): React.JSX.Element {
   const { client, config, result } = useConnectivity();
@@ -83,52 +94,44 @@ export function TenantsDashboardPage(): React.JSX.Element {
   };
 
   return (
-    <section aria-labelledby="organizations-title" className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section aria-labelledby="organizations-title" className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#1766D9]">Administração global</p>
-          <h2 id="organizations-title" className="mt-1 text-2xl font-bold text-[#163B72]">Organizações</h2>
-          <p className="mt-1 text-sm">Cadastre e acompanhe os tenants autorizados no FluxID.</p>
+          <p className="text-legenda font-semibold uppercase text-azul-profundo">Administração global</p>
+          <h2 id="organizations-title" className="mt-1 text-h2 font-bold text-navy">Organizações</h2>
+          <p className="mt-1 text-corpo">Cadastre e acompanhe os tenants autorizados no FluxID.</p>
         </div>
-        <button type="button" onClick={() => setShowForm((visible) => !visible)}
-          className="min-h-11 rounded-lg bg-[#1766D9] px-4 py-2 text-sm font-semibold text-white hover:bg-[#163B72] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1766D9] focus-visible:ring-offset-2">
-          {showForm ? 'Cancelar' : 'Nova organização'}
-        </button>
+        <Button className="tablet:shrink-0 tablet:whitespace-nowrap" onClick={() => setShowForm((visible) => !visible)}>{showForm ? 'Cancelar' : 'Nova organização'}</Button>
       </div>
 
-      {feedback && <div ref={feedbackRef} tabIndex={-1} role={feedback.kind === 'error' ? 'alert' : 'status'}
-        className={`rounded-lg border p-3 text-sm outline-none focus-visible:ring-2 ${feedback.kind === 'error' ? 'border-rose-300 bg-rose-50 text-rose-950 focus-visible:ring-rose-800' : 'border-green-300 bg-green-50 text-green-950 focus-visible:ring-green-800'}`}>
-        {feedback.message}
-      </div>}
+      {feedback && <Alert ref={feedbackRef} tabIndex={-1} variant={feedback.kind === 'error' ? 'erro' : 'sucesso'}>{feedback.message}</Alert>}
 
-      {showForm && <form onSubmit={(event) => void submit(event)} className="rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm sm:p-6">
-        <h3 className="text-lg font-semibold text-[#163B72]">Nova organização</h3>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label className="text-sm font-medium">Razão social
-            <input name="legalName" required maxLength={160} className="mt-1 min-h-11 w-full rounded-lg border border-[#8CA2B8] px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1766D9]" />
-          </label>
-          <label className="text-sm font-medium">Nome de exibição
-            <input name="displayName" required maxLength={100} className="mt-1 min-h-11 w-full rounded-lg border border-[#8CA2B8] px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1766D9]" />
-          </label>
-          <label className="text-sm font-medium sm:col-span-2">Justificativa
-            <textarea name="justification" required minLength={10} maxLength={500} rows={3} className="mt-1 w-full rounded-lg border border-[#8CA2B8] px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1766D9]" />
-          </label>
-        </div>
-        <button disabled={submitting} className="mt-4 min-h-11 rounded-lg bg-[#159B19] px-4 py-2 text-sm font-semibold text-white hover:bg-[#117A14] disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1766D9] focus-visible:ring-offset-2">
-          {submitting ? 'Criando…' : 'Criar organização'}
-        </button>
-      </form>}
+      {showForm && (
+        <Card>
+          <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4">
+            <FormSection legend="Nova organização">
+              <div className="grid gap-4 tablet:grid-cols-2">
+                <TextField label="Razão social" name="legalName" required maxLength={160} />
+                <TextField label="Nome de exibição" name="displayName" required maxLength={100} />
+                <Field label="Justificativa" className="tablet:col-span-2">
+                  {(controle) => <textarea {...controle} name="justification" required minLength={10} maxLength={500} rows={3} className={textareaClass} />}
+                </Field>
+              </div>
+            </FormSection>
+            <Button type="submit" disabled={submitting} className="self-start">{submitting ? 'Criando…' : 'Criar organização'}</Button>
+          </form>
+        </Card>
+      )}
 
-      {loading ? <p role="status" aria-live="polite">Carregando organizações…</p> : organizations.length === 0 ?
-        <p className="rounded-xl border border-dashed border-[#8CA2B8] bg-white p-6 text-sm">Nenhuma organização cadastrada.</p> :
-        <ul className="grid gap-3 md:grid-cols-2" aria-label="Organizações cadastradas">
-          {organizations.map((organization) => <li key={organization.id} className="min-w-0 rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0"><h3 className="break-words font-semibold text-[#163B72]">{organization.display_name}</h3><p className="break-words text-sm">{organization.legal_name}</p></div>
-              <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-900">{organization.status === 'active' ? 'Ativa' : organization.status === 'suspended' ? 'Suspensa' : 'Inativa'}</span>
-            </div>
-          </li>)}
-        </ul>}
+      <DataTable
+        legenda="Organizações cadastradas"
+        colunas={COLUNAS}
+        linhas={organizations}
+        chaveDaLinha={(item) => item.id}
+        carregando={loading}
+        textoDeCarregamento="Carregando organizações…"
+        vazio={{ title: 'Nenhuma organização cadastrada.', description: 'Use o botão Nova organização para cadastrar a primeira. Ela aparece aqui com a situação atual.' }}
+      />
     </section>
   );
 }

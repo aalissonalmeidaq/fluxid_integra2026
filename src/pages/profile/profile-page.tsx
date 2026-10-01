@@ -8,8 +8,7 @@ import {
 import { useConnectivity } from '@/app/connectivity-context';
 import { createProfilePorts } from '@/infrastructure/supabase/profile-adapter';
 import { validateProfileUpdate } from '@/domain/identity/profile';
-import { FormField } from '@/components/identity/form-field';
-import { fieldClass, primaryButtonClass, secondaryButtonClass } from '@/components/identity/confirmation-dialog';
+import { Alert, Button, Card, FormSection, Loading, TextField } from '@/design-system';
 
 type Feedback = { kind: 'success' | 'error'; message: string };
 
@@ -125,54 +124,50 @@ export function ProfileView({ service }: ProfileViewProps): React.JSX.Element {
     if (outcome.kind === 'success') setProfile(outcome.value); else setImageFailed(true);
   };
 
-  if (loading) return <p role="status" aria-live="polite">Carregando perfil…</p>;
-  if (!profile) return <div role="alert" className="rounded-lg border border-rose-300 bg-rose-50 p-3 text-sm text-rose-950">{loadFailure}</div>;
+  if (loading) return <Loading variant="secao" label="Carregando perfil…" />;
+  if (!profile) return <Alert variant="erro">{loadFailure}</Alert>;
 
   const showImage = profile.avatarUrl !== null && !imageFailed;
   return (
-    <section aria-labelledby="profile-title" className="mx-auto w-full max-w-2xl space-y-6">
+    <section aria-labelledby="profile-title" className="mx-auto flex w-full max-w-padrao flex-col gap-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#1766D9]">Minha conta</p>
-        <h2 id="profile-title" className="mt-1 text-2xl font-bold text-[#163B72]">Meu perfil</h2>
-        <p className="mt-1 text-sm">Atualize seu nome e sua foto. E-mail, organizações e permissões são administrados pela sua organização.</p>
+        <p className="text-legenda font-semibold uppercase text-azul-profundo">Minha conta</p>
+        <h2 id="profile-title" className="mt-1 text-h2 font-bold text-navy">Meu perfil</h2>
+        <p className="mt-1 text-corpo">Atualize seu nome e sua foto. E-mail, organizações e permissões são administrados pela sua organização.</p>
       </div>
 
       {feedback && (
-        <div ref={feedbackRef} tabIndex={-1} role={feedback.kind === 'error' ? 'alert' : 'status'}
-          className={`rounded-lg border p-3 text-sm outline-none focus-visible:ring-2 ${feedback.kind === 'error' ? 'border-rose-300 bg-rose-50 text-rose-950 focus-visible:ring-rose-800' : 'border-green-300 bg-green-50 text-green-950 focus-visible:ring-green-800'}`}>
+        <Alert ref={feedbackRef} tabIndex={-1} variant={feedback.kind === 'error' ? 'erro' : 'sucesso'}>
           {feedback.message}
-        </div>
+        </Alert>
       )}
 
-      <div className="rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm sm:p-6">
-        <h3 className="text-lg font-semibold text-[#163B72]">Foto</h3>
-        <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center">
+      <Card>
+        <h3 className="text-h3 font-semibold text-navy">Foto</h3>
+        <div className="mt-4 flex flex-col gap-4 tablet:flex-row tablet:items-center">
           {showImage ? (
-            <img src={profile.avatarUrl ?? undefined} alt={`Foto de perfil de ${profile.displayName}`} onError={() => void imageError()} className="h-24 w-24 shrink-0 rounded-full border border-[#D7E2EE] object-cover" />
+            <img src={profile.avatarUrl ?? undefined} alt={`Foto de perfil de ${profile.displayName}`} width={64} height={64} onError={() => void imageError()} className="size-16 shrink-0 rounded-full border border-borda-suave object-cover" />
           ) : (
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-[#163B72] text-2xl font-bold text-white" aria-hidden="true">{initials(profile.displayName)}</div>
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-navy text-h3 font-bold text-branco" aria-hidden="true">{initials(profile.displayName)}</div>
           )}
-          <div className="min-w-0 space-y-3">
-            {!showImage && <p className="text-sm">Nenhuma foto definida.</p>}
-            <FormField label="Escolher nova foto">
-              {(control) => <input {...control} type="file" accept="image/jpeg,image/png,image/webp" disabled={busy || !service} onChange={(event) => void chooseFile(event)} className="mt-1 block min-h-11 w-full text-sm file:mr-3 file:min-h-11 file:rounded-lg file:border-0 file:bg-[#1766D9] file:px-4 file:font-semibold file:text-white" />}
-            </FormField>
-            <p className="text-sm">JPEG, PNG ou WebP, até 2 MB.</p>
-            {showImage && <button type="button" disabled={busy} onClick={() => void removeAvatar()} className={`${secondaryButtonClass} disabled:opacity-60`}>Remover foto</button>}
+          <div className="flex min-w-0 flex-col gap-4">
+            {!showImage && <p className="text-corpo">Nenhuma foto definida.</p>}
+            <TextField label="Escolher nova foto" type="file" accept="image/jpeg,image/png,image/webp" disabled={busy || !service} onChange={(event) => void chooseFile(event)} />
+            <p className="text-corpo">JPEG, PNG ou WebP, até 2 MB.</p>
+            {showImage && <Button variant="secundario" disabled={busy} onClick={() => void removeAvatar()} className="self-start">Remover foto</Button>}
           </div>
         </div>
-      </div>
+      </Card>
 
-      <form noValidate onSubmit={(event) => void saveName(event)} className="rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm sm:p-6">
-        <h3 className="text-lg font-semibold text-[#163B72]">Dados pessoais</h3>
-        <div className="mt-3 space-y-4">
-          <FormField label="Nome de exibição" error={nameError ?? undefined}>
-            {(control) => <input {...control} value={name} onChange={(event) => setName(event.target.value)} maxLength={120} autoComplete="name" className={fieldClass} />}
-          </FormField>
-          <p className="text-sm"><span className="font-medium">Idioma:</span> Português (Brasil)</p>
-        </div>
-        <button disabled={busy} className={`mt-4 ${primaryButtonClass} disabled:cursor-wait disabled:opacity-60`}>{busy ? 'Salvando…' : 'Salvar nome'}</button>
-      </form>
+      <Card>
+        <form noValidate onSubmit={(event) => void saveName(event)} className="flex flex-col gap-4">
+          <FormSection legend="Dados pessoais">
+            <TextField label="Nome de exibição" value={name} onChange={(event) => setName(event.target.value)} maxLength={120} autoComplete="name" error={nameError ?? undefined} />
+            <p className="text-corpo"><span className="font-medium">Idioma:</span> Português (Brasil)</p>
+          </FormSection>
+          <Button type="submit" disabled={busy} className="self-start">{busy ? 'Salvando…' : 'Salvar nome'}</Button>
+        </form>
+      </Card>
     </section>
   );
 }

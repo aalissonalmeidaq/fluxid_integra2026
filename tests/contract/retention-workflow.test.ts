@@ -5,7 +5,8 @@ import { describe, expect, it } from 'vitest';
 // O agendador que aciona retention-storage-cleanup (contracts/retention-cleanup.md). Sem ele, a rotina do banco só enfileira
 // e os avatares anonimizados permanecem no Storage (AUD-009). O teste vigia o que não pode regredir no workflow.
 const FILE = path.resolve(import.meta.dirname, '../../.github/workflows/retention-cleanup.yml');
-const workflow = fs.existsSync(FILE) ? fs.readFileSync(FILE, 'utf8') : '';
+// Normaliza CRLF para LF: no Windows o Git (core.autocrlf) entrega o YAML com CRLF e a regex dos blocos `run` não atravessa o \r.
+const workflow = fs.existsSync(FILE) ? fs.readFileSync(FILE, 'utf8').replace(/\r\n/g, '\n') : '';
 const runBlocks = [...workflow.matchAll(/^\s+run:\s*\|?\s*\n?((?:[ \t]+.*\n?)+)/gm)].map((match) => match[1] ?? '').join('\n');
 
 describe('Workflow agendado da limpeza de retenção', () => {

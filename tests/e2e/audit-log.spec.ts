@@ -25,16 +25,18 @@ async function enter(page: Page, backend: MockBackend, path = '/admin/auditoria'
 }
 
 test.describe('Consulta de auditoria', () => {
-  test('em 360 px mostra a lista de eventos, pagina por cursor e não gera rolagem horizontal', async ({ page }) => {
+  test('em 360 px mostra os eventos como cartões, pagina por cursor e não gera rolagem horizontal', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 740 });
     const backend = new MockBackend();
     await enter(page, backend);
     await expect(page.getByRole('heading', { level: 2, name: 'Auditoria do tenant' })).toBeVisible();
-    const list = page.getByRole('list', { name: 'Eventos em lista' });
-    await expect(list.getByRole('listitem')).toHaveCount(50);
+    const rows = page.getByRole('table', { name: 'Eventos de auditoria' }).getByRole('row');
+    // Uma única árvore: a linha de cabeçalho (só para tecnologia assistiva) mais os 50 eventos, apresentados como cartões.
+    await expect(rows).toHaveCount(51);
+    await expect(rows.nth(1)).toHaveCSS('display', 'block');
     await expect(page.getByRole('status').filter({ hasText: /50 eventos exibidos/ })).toBeVisible();
     await page.getByRole('button', { name: 'Carregar mais eventos' }).click();
-    await expect(list.getByRole('listitem')).toHaveCount(60);
+    await expect(rows).toHaveCount(61);
     await expect(page.getByRole('button', { name: 'Carregar mais eventos' })).toHaveCount(0);
     await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 360);
   });
@@ -49,7 +51,7 @@ test.describe('Consulta de auditoria', () => {
     await expect(table.getByRole('row')).toHaveCount(51);
     await expect(table.getByText('Negado').first()).toBeVisible();
     await expect(table.getByText('Sucesso').first()).toBeVisible();
-    await expect(page.getByRole('list', { name: 'Eventos em lista' })).toBeHidden();
+    await expect(page.getByRole('list', { name: 'Eventos em lista' })).toHaveCount(0);
   });
 
   test('filtra por resultado e por ação dentro do tenant', async ({ page }) => {
@@ -136,7 +138,7 @@ test.describe('Consulta de auditoria', () => {
     const backend = new MockBackend();
     await enter(page, backend);
     await expect(page.getByRole('heading', { level: 2, name: 'Auditoria do tenant' })).toBeVisible();
-    await expect(page.getByRole('list', { name: 'Eventos em lista' }).or(page.getByRole('table'))).toBeVisible();
+    await expect(page.getByRole('table', { name: 'Eventos de auditoria' })).toBeVisible();
     const blocking = async () => (await new AxeBuilder({ page }).analyze()).violations.filter((item) => ['critical', 'serious'].includes(item.impact ?? ''));
     expect(await blocking()).toEqual([]);
     await page.getByLabel('Ação').fill('ação inválida!');

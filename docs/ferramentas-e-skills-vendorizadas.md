@@ -35,3 +35,17 @@ Nenhuma dessas skills participa do runtime do navegador, do bundle de produção
 - Finalidade: permitir o fluxo obrigatório da metodologia (`docs/metodologia-desenvolvimento.md`) a quem usa o Claude Code.
 - Execução: somente desenvolvimento; não participa do bundle nem do runtime.
 - Cuidado: a pasta não deve receber configuração local (`settings.local.json`), segredos nem credenciais. Ao atualizar o Spec Kit, atualize as duas pastas juntas.
+
+## Fonte Montserrat hospedada no aplicativo (Spec 003)
+
+Dependência de runtime, diferente das ferramentas acima: a fonte entra no pacote de produção.
+
+| Item | Valor |
+|---|---|
+| Pacote | `@fontsource-variable/montserrat` |
+| Versão | 5.3.0 (versão exata, fixada em `package.json` e `package-lock.json`) |
+| Licença | OFL-1.1 (SIL Open Font License), que permite hospedar e redistribuir a fonte com o aplicativo |
+| Uso | somente o arquivo `montserrat-latin-wght-normal.woff2` (fonte variável, pesos 300 a 800, cobre o português do Brasil), declarado em `src/styles/globals.css`; os demais subconjuntos do pacote não são importados |
+| Motivo | atender RF-003, RNF-001 e RF-030: tipografia da identidade FluxID, funcionando offline e sem requisição a domínio de terceiros |
+| Verificação | `npm audit` sem vulnerabilidades em 01/10/2026; o teste `tests/contract/no-external-assets.test.ts` confirma que nenhuma URL externa é carregada |
+| Atualização | trocar a versão exata, rodar `npm audit`, as suítes de contrato e a comparação visual da Spec 003 |

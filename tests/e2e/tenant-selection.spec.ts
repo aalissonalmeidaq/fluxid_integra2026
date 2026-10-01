@@ -40,8 +40,8 @@ test.describe('Seleção e troca do tenant ativo', () => {
     expect(membersRequests(backend)).toEqual([]);
 
     await page.getByRole('button', { name: 'Entrar em Tenant B' }).click();
-    await expect(page.getByRole('heading', { name: 'Operador B' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Operador A' })).toHaveCount(0);
+    await expect(page.getByRole('rowheader', { name: 'Operador B' })).toBeVisible();
+    await expect(page.getByRole('rowheader', { name: 'Operador A' })).toHaveCount(0);
     await expect(page.getByText('Organização ativa:')).toBeVisible();
     await expect(page.getByText('Tenant B', { exact: true })).toBeVisible();
     expect(membersRequests(backend)).toEqual([B]);
@@ -52,16 +52,19 @@ test.describe('Seleção e troca do tenant ativo', () => {
     backend.tenantMemberships = [membership(A, 'Tenant A'), membership(B, 'Tenant B')];
     await enter(page, backend);
     await page.getByRole('button', { name: 'Entrar em Tenant A' }).click();
-    await expect(page.getByRole('heading', { name: 'Operador A' })).toBeVisible();
+    await expect(page.getByRole('rowheader', { name: 'Operador A' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Trocar organização' }).click();
     await expect(page.getByRole('heading', { name: 'Escolha a organização' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Operador A' })).toHaveCount(0);
+    await expect(page.getByRole('rowheader', { name: 'Operador A' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Entrar em Tenant A' })).toBeDisabled();
+    // Nenhum dado da organização anterior fica visível além da marcação de organização atual na lista de escolha (CA-007).
+    await expect(page.getByRole('main').getByText('Operador A')).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Entrar em Tenant B' }).click();
-    await expect(page.getByRole('heading', { name: 'Operador B' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Operador A' })).toHaveCount(0);
+    await expect(page.getByRole('rowheader', { name: 'Operador B' })).toBeVisible();
+    await expect(page.getByRole('rowheader', { name: 'Operador A' })).toHaveCount(0);
+    await expect(page.getByRole('main').getByText('Operador A')).toHaveCount(0);
     expect(membersRequests(backend)).toEqual([A, B]);
   });
 
@@ -72,13 +75,13 @@ test.describe('Seleção e troca do tenant ativo', () => {
     await page.getByRole('button', { name: 'Entrar em Tenant A' }).click();
     await page.getByRole('button', { name: 'Trocar organização' }).click();
     await page.getByRole('button', { name: 'Cancelar' }).click();
-    await expect(page.getByRole('heading', { name: 'Operador A' })).toBeVisible();
+    await expect(page.getByRole('rowheader', { name: 'Operador A' })).toBeVisible();
   });
 
   test('com um único vínculo seleciona sozinho e ignora o identificador da URL', async ({ page }) => {
     const backend = new MockBackend();
     await enter(page, backend, `/admin/membros?organization_id=${B}`);
-    await expect(page.getByRole('heading', { name: 'Operador A' })).toBeVisible();
+    await expect(page.getByRole('rowheader', { name: 'Operador A' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Escolha a organização' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Trocar organização' })).toHaveCount(0);
     expect(membersRequests(backend)).toEqual([A]);
@@ -101,7 +104,7 @@ test.describe('Seleção e troca do tenant ativo', () => {
     await expect(page.getByRole('heading', { name: 'Escolha a organização' })).toBeFocused();
     await page.getByRole('button', { name: 'Entrar em Tenant A' }).focus();
     await page.keyboard.press('Enter');
-    await expect(page.getByRole('heading', { name: 'Operador A' })).toBeVisible();
+    await expect(page.getByRole('rowheader', { name: 'Operador A' })).toBeVisible();
     await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 360);
   });
 

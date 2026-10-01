@@ -4,6 +4,9 @@ import type { Page, Route } from '@playwright/test';
 // sem depender de um Supabase em execução. Comportamento real de Auth, RLS e sessões é provado nas suítes
 // `.live.test.ts`.
 const ORIGIN = 'http://127.0.0.1:54321';
+// QR Code simulado, como o Auth real o envia: SVG puro (o supabase-js acrescenta o prefixo data:image/svg+xml). Sem "#", que
+// quebraria a URL de dados.
+const QR_SIMULADO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8" width="192" height="192"><rect width="8" height="8" fill="white"/><path d="M0 0h3v3H0zM5 0h3v3H5zM0 5h3v3H0zM4 4h1v1H4zM6 5h2v1H6zM5 7h1v1H5zM7 7h1v1H7z" fill="black"/></svg>';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
 
 const base64Url = (value: unknown): string => Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -79,6 +82,8 @@ export class MockBackend {
   factors: Array<{ id: string; factor_type: string; status: string }> = [];
   verifyOk = true;
   readonly calls: Array<{ path: string; body: unknown }> = [];
+  // Atraso em milissegundos por caminho, para exercitar os estados de carregamento.
+  delayByPath: Record<string, number> = {};
 
   session(aal: 'aal1' | 'aal2' = 'aal1') {
     return { access_token: fakeJwt({ aal }), refresh_token: 'refresh-simulado', expires_in: 3600, token_type: 'bearer' };
@@ -105,6 +110,8 @@ export class MockBackend {
     let body: unknown = null;
     try { body = raw ? JSON.parse(raw) : null; } catch { /* corpo não JSON */ }
     this.calls.push({ path: pathname, body });
+    const delay = this.delayByPath[pathname];
+    if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
     const respond = (status: number, json: unknown) => route.fulfill({ status, json, headers: CORS });
 
     if (pathname === '/auth/v1/health') return respond(200, { status: 'ok' });
@@ -189,7 +196,7 @@ export class MockBackend {
     }
     if (pathname === '/auth/v1/factors') {
       this.factors = [{ id: 'fator-1', factor_type: 'totp', status: 'unverified' }];
-      return respond(200, { id: 'fator-1', type: 'totp', totp: { qr_code: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"/>', secret: 'JBSWY3DPEHPK3PXP', uri: 'otpauth://totp/FluxID' } });
+      return respond(200, { id: 'fator-1', type: 'totp', totp: { qr_code: QR_SIMULADO, secret: 'JBSWY3DPEHPK3PXP', uri: 'otpauth://totp/FluxID' } });
     }
     if (/^\/auth\/v1\/factors\/[^/]+\/challenge$/.test(pathname)) return respond(200, { id: 'desafio-1', expires_at: Math.floor(Date.now() / 1000) + 300 });
     if (/^\/auth\/v1\/factors\/[^/]+\/verify$/.test(pathname)) {

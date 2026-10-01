@@ -9,7 +9,7 @@ test.describe('PWA e Funcionamento Offline (US4)', () => {
     await expect(manifestLink).toBeAttached();
 
     const themeColor = page.locator('meta[name="theme-color"]');
-    await expect(themeColor).toHaveAttribute('content', '#1249BB');
+    await expect(themeColor).toHaveAttribute('content', '#1249B8');
   });
 
   test('manifest webmanifest é acessível e contém metadados corretos', async ({ request }) => {
@@ -177,5 +177,35 @@ test.describe('PWA e dados protegidos (Spec 002)', () => {
     await context.setOffline(false);
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+  });
+});
+
+// Spec 003 (RNF-001, RF-030): a fonte, o logotipo e os ícones são do próprio aplicativo e ficam no precache do service worker.
+test.describe('PWA offline com a identidade visual (Spec 003)', () => {
+  test('sem rede o shell abre, a Montserrat vem do precache e nenhuma requisição externa é tentada', async ({ page, context, browserName }) => {
+    test.skip(browserName === 'webkit', 'O driver WebKit do Playwright no Windows apresenta falha de IPC ao combinar setOffline com service worker.');
+    await waitForControl(page);
+
+    const requisicoes: string[] = [];
+    page.on('request', (requisicao) => requisicoes.push(requisicao.url()));
+    await context.setOffline(true);
+    try {
+      await page.reload();
+      await expect(page.getByRole('heading', { level: 1, name: 'FluxID' })).toBeVisible();
+      await page.evaluate(async () => { await document.fonts.ready; });
+      const fonte = await page.evaluate(() => ({
+        disponivel: document.fonts.check('1em "Montserrat Variable"'),
+        carregadas: [...document.fonts].filter((face) => face.family.includes('Montserrat') && face.status === 'loaded').length,
+      }));
+      expect(fonte.disponivel, 'document.fonts.check da Montserrat').toBe(true);
+      expect(fonte.carregadas, 'Faces da Montserrat carregadas do precache').toBeGreaterThan(0);
+      const logotipo = page.getByRole('img', { name: 'FluxID' });
+      await expect(logotipo).toBeVisible();
+      expect(await logotipo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0), 'Logotipo carregado do precache').toBe(true);
+    } finally {
+      await context.setOffline(false);
+    }
+    const externas = requisicoes.filter((url) => { const { protocol, hostname } = new URL(url); return /^https?:$/.test(protocol) && hostname !== 'localhost' && hostname !== '127.0.0.1'; });
+    expect(externas, 'Requisições a domínios externos sem rede.').toEqual([]);
   });
 });

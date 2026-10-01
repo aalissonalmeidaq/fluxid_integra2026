@@ -12,16 +12,8 @@ import { useConnectivity } from '@/app/connectivity-context';
 import { useTenant } from '@/app/tenant/tenant-context';
 import { createFunctionTransport } from '@/infrastructure/supabase/function-transport';
 import { createMembershipTransport } from '@/infrastructure/supabase/membership-adapter';
-import {
-  ConfirmationDialog,
-  MAX_JUSTIFICATION,
-  MIN_JUSTIFICATION,
-  fieldClass,
-  primaryButtonClass,
-  secondaryButtonClass,
-  textareaClass,
-} from '@/components/identity/confirmation-dialog';
-import { FormField } from '@/components/identity/form-field';
+import { ConfirmationDialog, MAX_JUSTIFICATION, MIN_JUSTIFICATION, textareaClass } from '@/components/identity/confirmation-dialog';
+import { Alert, Button, Card, EmptyState, Field, FormSection, List, ListItem, Loading, Select, StatusBadge, TextField } from '@/design-system';
 
 type Feedback = { kind: 'success' | 'error'; message: string };
 type Pending =
@@ -165,117 +157,115 @@ export function TenantRolesView({ organizationId, rbac, members: membershipServi
     : [];
 
   return (
-    <section aria-labelledby="roles-title" className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section aria-labelledby="roles-title" className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#1766D9]">Administração do tenant</p>
-          <h2 id="roles-title" className="mt-1 text-2xl font-bold text-[#163B72]">Papéis e permissões</h2>
-          <p className="mt-1 text-sm">Papéis preestabelecidos são fixos. Crie papéis personalizados com permissões delegáveis.</p>
+          <p className="text-legenda font-semibold uppercase text-azul-profundo">Administração do tenant</p>
+          <h2 id="roles-title" className="mt-1 text-h2 font-bold text-navy">Papéis e permissões</h2>
+          <p className="mt-1 text-corpo">Papéis preestabelecidos são fixos. Crie papéis personalizados com permissões delegáveis.</p>
         </div>
-        <button type="button" disabled={!rbac || loading} aria-expanded={draft !== null} onClick={() => (draft ? setDraft(null) : openDraft(null))} className={`${primaryButtonClass} disabled:cursor-not-allowed disabled:opacity-60`}>
+        <Button className="tablet:shrink-0 tablet:whitespace-nowrap" disabled={!rbac || loading} aria-expanded={draft !== null} onClick={() => (draft ? setDraft(null) : openDraft(null))}>
           {draft ? 'Cancelar' : 'Novo papel'}
-        </button>
+        </Button>
       </div>
 
-      {feedback && (
-        <div ref={feedbackRef} tabIndex={-1} role={feedback.kind === 'error' ? 'alert' : 'status'}
-          className={`rounded-lg border p-3 text-sm outline-none focus-visible:ring-2 ${feedback.kind === 'error' ? 'border-rose-300 bg-rose-50 text-rose-950 focus-visible:ring-rose-800' : 'border-green-300 bg-green-50 text-green-950 focus-visible:ring-green-800'}`}>
-          {feedback.message}
-        </div>
-      )}
+      {feedback && <Alert ref={feedbackRef} tabIndex={-1} variant={feedback.kind === 'error' ? 'erro' : 'sucesso'}>{feedback.message}</Alert>}
 
       {draft && (
-        <form noValidate onSubmit={(event) => void submitDraft(event)} className="rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm sm:p-6">
-          <h3 className="text-lg font-semibold text-[#163B72]">{draft.role ? `Editar ${draft.role.name}` : 'Novo papel'}</h3>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <FormField label="Nome do papel" error={draftErrors.name}>
-              {(control) => <input {...control} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={80} className={fieldClass} />}
-            </FormField>
-            <FormField label="Descrição">
-              {(control) => <input {...control} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} maxLength={300} className={fieldClass} />}
-            </FormField>
-          </div>          <fieldset className="mt-4">
-            <legend className="text-sm font-medium">Permissões do papel</legend>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              {delegable.map((item) => (
-                <label key={item.code} className="flex min-h-11 items-start gap-2 rounded-lg border border-[#D7E2EE] p-2 text-sm">
-                  <input type="checkbox" checked={draft.permissions.includes(item.code)} onChange={() => togglePermission(item.code)} className="mt-1 h-5 w-5" />
-                  <span><span className="font-semibold">{item.code}</span> — {item.description}{item.critical && <span className="ml-1 rounded bg-amber-100 px-1 text-xs font-semibold text-amber-950">crítica: exige segundo fator</span>}</span>
-                </label>
-              ))}
-              {blocked.map((item) => (
-                <label key={item.code} className="flex min-h-11 items-start gap-2 rounded-lg border border-dashed border-[#8CA2B8] bg-slate-50 p-2 text-sm text-slate-800">
-                  <input type="checkbox" disabled checked={false} className="mt-1 h-5 w-5" />
-                  <span><span className="font-semibold">{item.code}</span> — {item.description} <span className="ml-1 rounded bg-slate-200 px-1 text-xs font-semibold">não delegável</span></span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          <FormField label="Justificativa do papel" error={draftErrors.justification} className="mt-4">
-            {(control) => <textarea {...control} name="justification" rows={3} maxLength={MAX_JUSTIFICATION} className={textareaClass} />}
-          </FormField>          <button disabled={saving} className={`mt-4 ${primaryButtonClass} disabled:cursor-wait disabled:opacity-60`}>{saving ? 'Salvando…' : 'Salvar papel'}</button>
-        </form>
+        <Card>
+          <form noValidate onSubmit={(event) => void submitDraft(event)} className="flex flex-col gap-6">
+            <h3 className="text-h3 font-semibold text-navy">{draft.role ? `Editar ${draft.role.name}` : 'Novo papel'}</h3>
+            <FormSection legend="Dados do papel">
+              <div className="grid gap-4 tablet:grid-cols-2">
+                <TextField label="Nome do papel" value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={80} error={draftErrors.name} />
+                <TextField label="Descrição" value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} maxLength={300} />
+              </div>
+            </FormSection>
+            <FormSection legend="Permissões do papel">
+              <div className="grid gap-2 tablet:grid-cols-2">
+                {delegable.map((item) => (
+                  <label key={item.code} className="flex min-h-alvo items-start gap-2 rounded-controle border border-borda-suave p-2 text-corpo">
+                    <input type="checkbox" checked={draft.permissions.includes(item.code)} onChange={() => togglePermission(item.code)} className="mt-1 size-6" />
+                    <span><span className="font-semibold">{item.code}</span> — {item.description}{item.critical && <span className="ml-1 rounded-controle bg-alerta-fundo px-1 text-legenda font-semibold text-alerta-texto">crítica: exige segundo fator</span>}</span>
+                  </label>
+                ))}
+                {blocked.map((item) => (
+                  <label key={item.code} className="flex min-h-alvo items-start gap-2 rounded-controle border border-dashed border-borda-controle bg-cinza-gelo p-2 text-corpo text-grafite">
+                    <input type="checkbox" disabled checked={false} className="mt-1 size-6" />
+                    <span><span className="font-semibold">{item.code}</span> — {item.description} <span className="ml-1 rounded-controle bg-borda-suave px-1 text-legenda font-semibold">não delegável</span></span>
+                  </label>
+                ))}
+              </div>
+            </FormSection>
+            <FormSection legend="Justificativa">
+              <Field label="Justificativa do papel" error={draftErrors.justification}>
+                {(control) => <textarea {...control} name="justification" rows={3} maxLength={MAX_JUSTIFICATION} className={textareaClass} />}
+              </Field>
+            </FormSection>
+            <Button type="submit" disabled={saving} className="self-start">{saving ? 'Salvando…' : 'Salvar papel'}</Button>
+          </form>
+        </Card>
       )}
 
-      {loading ? <p role="status" aria-live="polite">Carregando papéis…</p> : roles.length === 0 ? (
-        !feedback && <p className="rounded-xl border border-dashed border-[#8CA2B8] bg-white p-6 text-sm">Nenhum papel disponível neste tenant.</p>
+      {loading ? <Loading label="Carregando papéis…" /> : roles.length === 0 ? (
+        !feedback && <EmptyState title="Nenhum papel disponível neste tenant." description="Os papéis preestabelecidos aparecem aqui assim que o tenant estiver configurado. Papéis personalizados podem ser criados em Novo papel." />
       ) : (
         <>
-          <ul className="grid gap-3 md:grid-cols-2" aria-label="Papéis do tenant">
+          <List variant="cartoes" aria-label="Papéis do tenant" className="tablet:grid tablet:grid-cols-2">
             {roles.map((role) => (
-              <li key={role.id} className="min-w-0 rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm">
+              <ListItem key={role.id}>
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="break-words font-semibold text-[#163B72]">{role.name}</h3>
-                    {role.description && <p className="break-words text-sm">{role.description}</p>}
+                    <h3 className="break-words font-semibold text-navy">{role.name}</h3>
+                    {role.description && <p className="break-words text-corpo">{role.description}</p>}
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    <span className="rounded-full bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-900">{role.system ? 'Preestabelecido' : 'Personalizado'}</span>
-                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${role.active ? 'bg-green-100 text-green-900' : 'bg-rose-100 text-rose-900'}`}>{role.active ? 'Ativo' : 'Inativo'}</span>
+                    <StatusBadge variant="conectado">{role.system ? 'Preestabelecido' : 'Personalizado'}</StatusBadge>
+                    <StatusBadge variant={role.active ? 'ativo' : 'bloqueado'}>{role.active ? 'Ativo' : 'Inativo'}</StatusBadge>
                   </div>
                 </div>
-                <ul className="mt-3 flex flex-wrap gap-1" aria-label={`Permissões de ${role.name}`}>
-                  {role.permissions.length === 0 && <li className="text-sm">Sem permissões.</li>}
+                <ul className="mt-4 flex flex-wrap gap-1" aria-label={`Permissões de ${role.name}`}>
+                  {role.permissions.length === 0 && <li className="text-corpo">Sem permissões.</li>}
                   {role.permissions.map((code) => {
                     const info = permissions.find((item) => item.code === code);
-                    return <li key={code} className="rounded border border-[#D7E2EE] px-2 py-1 text-xs">{code}{info?.critical && <span className="ml-1 font-semibold">(crítica)</span>}</li>;
+                    return <li key={code} className="rounded-controle border border-borda-suave px-2 py-1 text-legenda">{code}{info?.critical && <span className="ml-1 font-semibold">(crítica)</span>}</li>;
                   })}
                 </ul>
-                {role.system ? <p className="mt-3 text-sm">Papel preestabelecido: não pode ser alterado.</p> : (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button type="button" onClick={() => openDraft(role)} className={secondaryButtonClass}>Editar {role.name}</button>
-                    <button type="button" onClick={(event) => setPending({ kind: 'toggle', role, trigger: event.currentTarget })} className={secondaryButtonClass}>{role.active ? 'Inativar' : 'Reativar'} {role.name}</button>
+                {role.system ? <p className="mt-4 text-corpo">Papel preestabelecido: não pode ser alterado.</p> : (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button variant="secundario" onClick={() => openDraft(role)}>Editar {role.name}</Button>
+                    <Button variant="secundario" onClick={(event) => setPending({ kind: 'toggle', role, trigger: event.currentTarget })}>{role.active ? 'Inativar' : 'Reativar'} {role.name}</Button>
                   </div>
                 )}
-              </li>
+              </ListItem>
             ))}
-          </ul>
+          </List>
 
-          <section aria-labelledby="assignments-title" className="space-y-3">
-            <h3 id="assignments-title" className="text-lg font-semibold text-[#163B72]">Papéis por pessoa</h3>
-            {people.length === 0 ? <p className="text-sm">Nenhuma pessoa ativa neste tenant.</p> : (
-              <ul className="grid gap-3 md:grid-cols-2" aria-label="Pessoas e seus papéis">
+          <section aria-labelledby="assignments-title" className="flex flex-col gap-4">
+            <h3 id="assignments-title" className="text-h3 font-semibold text-navy">Papéis por pessoa</h3>
+            {people.length === 0 ? <p className="text-corpo">Nenhuma pessoa ativa neste tenant.</p> : (
+              <List variant="cartoes" aria-label="Pessoas e seus papéis" className="tablet:grid tablet:grid-cols-2">
                 {people.map((member) => {
                   const name = member.display_name || member.email;
                   const assigned = rolesOf(member.id);
                   return (
-                    <li key={member.id} className="min-w-0 rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm">
-                      <p className="break-words font-semibold text-[#163B72]">{name}</p>
-                      <p className="break-words text-sm">{member.email}</p>
-                      <ul className="mt-2 space-y-2" aria-label={`Papéis de ${name}`}>
-                        {assigned.length === 0 && <li className="text-sm">Nenhum papel atribuído.</li>}
+                    <ListItem key={member.id}>
+                      <p className="break-words font-semibold text-navy">{name}</p>
+                      <p className="break-words text-corpo">{member.email}</p>
+                      <ul className="mt-2 flex flex-col gap-2" aria-label={`Papéis de ${name}`}>
+                        {assigned.length === 0 && <li className="text-corpo">Nenhum papel atribuído.</li>}
                         {assigned.map((role) => (
-                          <li key={role.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                          <li key={role.id} className="flex flex-wrap items-center justify-between gap-2 text-corpo">
                             <span>{role.name}{!role.active && ' (inativo)'}</span>
-                            <button type="button" onClick={(event) => setPending({ kind: 'remove', member, role, trigger: event.currentTarget })} className={secondaryButtonClass}>Remover {role.name} de {name}</button>
+                            <Button variant="secundario" onClick={(event) => setPending({ kind: 'remove', member, role, trigger: event.currentTarget })}>Remover {role.name} de {name}</Button>
                           </li>
                         ))}
                       </ul>
-                      <button type="button" onClick={(event) => setPending({ kind: 'assign', member, trigger: event.currentTarget })} className={`mt-3 ${secondaryButtonClass}`}>Atribuir papel a {name}</button>
-                    </li>
+                      <Button variant="secundario" className="mt-4" onClick={(event) => setPending({ kind: 'assign', member, trigger: event.currentTarget })}>Atribuir papel a {name}</Button>
+                    </ListItem>
                   );
                 })}
-              </ul>
+              </List>
             )}
           </section>
         </>
@@ -294,13 +284,10 @@ export function TenantRolesView({ organizationId, rbac, members: membershipServi
           onConfirm={(justification, form) => void confirm(justification, form)}
         >
           {pending.kind === 'assign' && assignable.length > 0 && (
-            <FormField label="Papel" className="mt-4">
-              {(control) => (
-                <select {...control} name="roleId" defaultValue={assignable[0]?.id} className={fieldClass}>
-                  {assignable.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
-                </select>
-              )}
-            </FormField>          )}
+            <Select label="Papel" name="roleId" defaultValue={assignable[0]?.id}>
+              {assignable.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
+            </Select>
+          )}
         </ConfirmationDialog>
       )}
     </section>

@@ -11,7 +11,13 @@ test.describe('Administração global de organizações',()=>{
     await expect(page.getByRole('button',{name:'Sair'})).toBeVisible();
     await page.goto('/admin/tenants');
     await expect(page.getByRole('heading',{name:'Organizações'})).toBeVisible();
-    await expect(page.getByRole('heading',{name:'Tenant A',exact:true})).toBeVisible();
+    await expect(page.getByRole('rowheader',{name:/Tenant A$/})).toBeVisible();
+    // Em 360 px a tabela vira cartões: nome longo sem estouro e ações de 44 px (CA-003, CA-005).
+    await expect(page.locator('html')).toHaveJSProperty('scrollWidth',360);
+    const linha=page.getByRole('row').nth(1);
+    await expect(linha).toHaveCSS('display','block');
+    const novo=await page.getByRole('button',{name:/nova organização/i}).boundingBox();
+    expect(novo?.height??0).toBeGreaterThanOrEqual(44);
     await page.getByRole('button',{name:/nova organização/i}).click();
     await page.getByLabel('Razão social').fill('Empresa Nova Ltda.');
     await page.getByLabel('Nome de exibição').fill('Empresa Nova');

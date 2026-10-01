@@ -26,7 +26,7 @@ describe('TenantMembersPage', () => {
   it('apresenta carregamento e depois a lista com nome, e-mail e estado em texto', async () => {
     renderView(fakeService());
     expect(screen.getByRole('status')).toHaveTextContent(/carregando/i);
-    expect(await screen.findByRole('heading', { name: 'Operador A' })).toBeInTheDocument();
+    expect(await screen.findByRole('rowheader', { name: 'Operador A' })).toBeInTheDocument();
     expect(screen.getByText('operador-a@example.invalid')).toBeInTheDocument();
     expect(screen.getByText('Ativo', { exact: true })).toBeInTheDocument();
     expect(screen.getByText('Bloqueado', { exact: true })).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe('TenantMembersPage', () => {
   ] as const)('anuncia erro de listagem %s como alerta sem exibir dados', async (kind, text) => {
     renderView(fakeService({ list: vi.fn(async () => ({ kind })) }));
     expect(await screen.findByRole('alert')).toHaveTextContent(text);
-    expect(screen.queryByRole('heading', { name: 'Operador A' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('rowheader', { name: 'Operador A' })).not.toBeInTheDocument();
   });
 
   it('sem conexão ativa informa indisponibilidade e não tenta operar', async () => {
@@ -54,7 +54,7 @@ describe('TenantMembersPage', () => {
   it('convida uma pessoa com papel e justificativa e anuncia o envio', async () => {
     const service = fakeService();
     renderView(service);
-    await screen.findByRole('heading', { name: 'Operador A' });
+    await screen.findByRole('rowheader', { name: 'Operador A' });
     fireEvent.click(screen.getByRole('button', { name: 'Convidar pessoa' }));
     fireEvent.change(screen.getByLabelText('E-mail do convite'), { target: { value: 'Nova@Example.Invalid' } });
     fireEvent.change(screen.getByLabelText('Papel inicial'), { target: { value: ROLE } });
@@ -71,7 +71,7 @@ describe('TenantMembersPage', () => {
     ['access_denied', /acesso negado/i],
   ] as const)('traduz %s no convite sem informar sucesso', async (kind, text) => {
     renderView(fakeService({ invite: vi.fn(async () => ({ kind })) }));
-    await screen.findByRole('heading', { name: 'Operador A' });
+    await screen.findByRole('rowheader', { name: 'Operador A' });
     fireEvent.click(screen.getByRole('button', { name: 'Convidar pessoa' }));
     fireEvent.change(screen.getByLabelText('E-mail do convite'), { target: { value: 'nova@example.invalid' } });
     fireEvent.change(screen.getByLabelText('Papel inicial'), { target: { value: ROLE } });
@@ -84,7 +84,7 @@ describe('TenantMembersPage', () => {
   it('bloqueia um vínculo com justificativa, versão esperada e atualiza o estado', async () => {
     const service = fakeService();
     renderView(service);
-    await screen.findByRole('heading', { name: 'Operador A' });
+    await screen.findByRole('rowheader', { name: 'Operador A' });
     fireEvent.click(screen.getByRole('button', { name: 'Bloquear Operador A' }));
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAccessibleName(/bloquear/i);
@@ -98,7 +98,7 @@ describe('TenantMembersPage', () => {
   it('exige justificativa antes de confirmar e permite cancelar devolvendo o foco', async () => {
     const service = fakeService();
     renderView(service);
-    await screen.findByRole('heading', { name: 'Operador A' });
+    await screen.findByRole('rowheader', { name: 'Operador A' });
     const trigger = screen.getByRole('button', { name: 'Bloquear Operador A' });
     fireEvent.click(trigger);
     const dialog = screen.getByRole('dialog');
@@ -112,7 +112,7 @@ describe('TenantMembersPage', () => {
   it('oferece reativação para vínculo bloqueado', async () => {
     const service = fakeService();
     renderView(service);
-    await screen.findByRole('heading', { name: 'Pessoa Bloqueada' });
+    await screen.findByRole('rowheader', { name: 'Pessoa Bloqueada' });
     fireEvent.click(screen.getByRole('button', { name: 'Reativar Pessoa Bloqueada' }));
     const dialog = screen.getByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Justificativa da alteração'), { target: { value: 'Retorno confirmado pelo gestor' } });
@@ -122,7 +122,7 @@ describe('TenantMembersPage', () => {
 
   it('não altera o estado exibido quando o último administrador é protegido', async () => {
     renderView(fakeService({ changeStatus: vi.fn(async () => ({ kind: 'last_admin' })) }));
-    await screen.findByRole('heading', { name: 'Operador A' });
+    await screen.findByRole('rowheader', { name: 'Operador A' });
     fireEvent.click(screen.getByRole('button', { name: 'Bloquear Operador A' }));
     const dialog = screen.getByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Justificativa da alteração'), { target: { value: 'Afastamento temporário aprovado' } });
@@ -133,9 +133,52 @@ describe('TenantMembersPage', () => {
 
   it('usa alvos de toque de 44 px nas ações', async () => {
     renderView(fakeService());
-    await screen.findByRole('heading', { name: 'Operador A' });
+    await screen.findByRole('rowheader', { name: 'Operador A' });
     for (const name of ['Convidar pessoa', 'Bloquear Operador A']) {
-      expect(screen.getByRole('button', { name }).className).toMatch(/min-h-11/);
+      expect(screen.getByRole('button', { name }).className).toMatch(/min-h-(11|alvo)/);
     }
+  });
+});
+
+// Spec 003: apresentação no padrão do design system, sem mudar permissões, ações nem a justificativa obrigatória.
+describe('TenantMembersPage: apresentação (Spec 003)', () => {
+  it('a lista vira cartão em 360 px sem perda de informação nem de ação', async () => {
+    renderView(fakeService());
+    const table = await screen.findByRole('table', { name: 'Pessoas vinculadas' });
+    const row = within(table).getAllByRole('row')[1]!;
+    const labels = Array.from(row.querySelectorAll('[data-label]')).map((cell) => cell.getAttribute('data-label'));
+    expect(labels).toEqual(['Pessoa', 'E-mail', 'Situação', 'Ações']);
+    expect(within(row).getByText('operador-a@example.invalid')).toBeInTheDocument();
+    expect(within(row).getByRole('button', { name: 'Bloquear Operador A' }).className).toMatch(/min-h-alvo/);
+  });
+
+  it('o estado vazio usa o EmptyState do padrão com orientação', async () => {
+    renderView(fakeService({ list: vi.fn(async () => ({ kind: 'success', value: { members: [], roles: [] } })) }));
+    expect(await screen.findByRole('heading', { name: /nenhuma pessoa vinculada/i })).toBeInTheDocument();
+    expect(screen.getByText(/primeira pessoa/i, { selector: 'p' })).toBeInTheDocument();
+  });
+
+  it('o carregamento usa o indicador do padrão e o acesso negado usa o alerta de erro', async () => {
+    renderView(fakeService({ list: vi.fn(async () => ({ kind: 'access_denied' })) }));
+    expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'secao');
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-variant', 'erro');
+  });
+
+  it('a situação aparece em texto com o indicador do padrão', async () => {
+    renderView(fakeService());
+    const badge = (await screen.findAllByText('Bloqueado', { exact: true }))[0]!.closest('[data-variant]');
+    expect(badge).toHaveAttribute('data-variant', 'bloqueado');
+  });
+
+  it('o convite agrupa os campos em uma seção e confirma pelo alerta de sucesso', async () => {
+    renderView(fakeService());
+    await screen.findByRole('rowheader', { name: 'Operador A' });
+    fireEvent.click(screen.getByRole('button', { name: 'Convidar pessoa' }));
+    expect(screen.getByRole('group', { name: 'Novo convite' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('E-mail do convite'), { target: { value: 'nova@example.invalid' } });
+    fireEvent.change(screen.getByLabelText('Papel inicial'), { target: { value: ROLE } });
+    fireEvent.change(screen.getByLabelText('Justificativa do convite'), { target: { value: 'Acesso aprovado pelo administrador' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar convite' }));
+    expect(await screen.findByRole('status')).toHaveAttribute('data-variant', 'sucesso');
   });
 });

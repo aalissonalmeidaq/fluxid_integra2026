@@ -1,0 +1,24 @@
+// Ponto único de importação do design system FluxID (Spec 003). Telas novas usam só estes componentes e os tokens.
+export { Alert } from './components/alert';
+export { Button } from './components/button';
+export { Card } from './components/card';
+export { DataTable } from './components/data-table';
+export { Dialog } from './components/dialog';
+export { EmptyState } from './components/empty-state';
+export { ErrorState } from './components/error-state';
+export { Field } from './components/field';
+export { FormSection } from './components/form-section';
+export { List, ListItem } from './components/list';
+export { Loading } from './components/loading';
+export { Select } from './components/select';
+export { SkipLink } from './components/skip-link';
+export { StatusBadge } from './components/status-badge';
+export { SyncStatus } from './components/sync-status';
+export { TextField } from './components/text-field';
+export { VisuallyHidden } from './components/visually-hidden';
+export { Icon } from './icons/icon';
+export { Logo } from './brand/logo';
+export { Simbolo } from './brand/symbol';
+export type { ColunaDaTabela } from './components/data-table';
+export type { StatusBadgeVariant } from './components/status-badge';
+export type { IconName, IconSize, IconState, IconVariant } from './icons/tipos';

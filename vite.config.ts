@@ -15,8 +15,8 @@ export default defineConfig({
         name: 'FluxID',
         short_name: 'FluxID',
         description: 'Plataforma de Identidade e Rastreabilidade',
-        theme_color: '#0f172a',
-        background_color: '#020617',
+        theme_color: '#1249B8',
+        background_color: '#F3F7FA',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -39,7 +39,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         navigateFallback: '/index.html',
         // Nenhuma rota do Supabase (Auth, Data, Storage, Functions, Realtime) recebe o app shell como resposta.
         navigateFallbackDenylist: [/^\/rest\/v1/, /^\/auth\/v1/, /^\/graphql\/v1/, /^\/storage\/v1/, /^\/functions\/v1/, /^\/realtime\/v1/],

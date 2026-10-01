@@ -1,0 +1,52 @@
+/*
+  Tabela que vira cartões em largura estreita (RF-020, D-010): uma única árvore DOM, sem duplicar conteúdo.
+  O ponto de quebra repete o do tablet em tokens.ts (768 px): media queries não aceitam variáveis CSS.
+*/
+@media (max-width: 767px) {
+  .tabela-de-dados,
+  .tabela-de-dados > tbody,
+  .tabela-de-dados tbody tr,
+  .tabela-de-dados td,
+  .tabela-de-dados tbody th {
+    display: block;
+  }
+
+  /* Cabeçalho de colunas só para tecnologia assistiva: cada célula já traz o próprio rótulo. */
+  .tabela-de-dados thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .tabela-de-dados tbody tr {
+    margin-bottom: var(--spacing-4);
+    padding: var(--spacing-4);
+    border: 1px solid var(--color-borda-suave);
+    border-radius: var(--radius-card);
+    background-color: var(--color-branco);
+    box-shadow: var(--shadow-card);
+  }
+
+  .tabela-de-dados td,
+  .tabela-de-dados tbody th {
+    padding-block: var(--spacing-2);
+  }
+
+  .tabela-de-dados td::before,
+  .tabela-de-dados tbody th::before {
+    content: attr(data-label);
+    display: block;
+    font-size: var(--text-legenda);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-texto-secundario);
+  }
+}
+
+/* Nomes, identificadores e datas longos quebram dentro da célula em qualquer largura, sem estourar a tabela (CA-005). */
+.tabela-de-dados td,
+.tabela-de-dados th {
+  overflow-wrap: anywhere;
+}

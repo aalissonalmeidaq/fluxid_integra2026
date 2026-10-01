@@ -1,8 +1,9 @@
 interface AuthResult<T> { data: T | null; error: { message: string } | null }
 
 export interface MfaClient {
-  listFactors(): Promise<AuthResult<{ totp: Array<{ id: string; status: string }> }>>;
-  enroll(): Promise<AuthResult<{ id: string; totp: { qr_code: string; secret: string; uri: string } }>>;
+  // O Auth devolve em totp só os fatores verificados; os abandonados (não verificados) vêm apenas em all.
+  listFactors(): Promise<AuthResult<{ totp: Array<{ id: string; status: string }>; all?: Array<{ id: string; status: string; factor_type: string }> }>>;
+  enroll(params?: { friendlyName?: string }): Promise<AuthResult<{ id: string; totp: { qr_code: string; secret: string; uri: string } }>>;
   challenge(params: { factorId: string }): Promise<AuthResult<{ id: string }>>;
   verify(params: { factorId: string; challengeId: string; code: string }): Promise<AuthResult<unknown>>;
   unenroll(params: { factorId: string }): Promise<{ error: { message: string } | null }>;
@@ -30,11 +31,13 @@ export class MfaService {
       if (verified) return { kind: 'challenge', factorId: verified.id };
 
       // Matrícula abandonada deixa fator não verificado; remove antes de criar outro para não acumular.
-      for (const stale of factors.data.totp.filter((factor) => factor.status !== 'verified')) {
+      const abandoned = [...factors.data.totp, ...(factors.data.all ?? []).filter((factor) => factor.factor_type === 'totp')].filter((factor) => factor.status !== 'verified');
+      for (const stale of new Map(abandoned.map((factor) => [factor.id, factor])).values()) {
         await this.client.unenroll({ factorId: stale.id });
       }
 
-      const enrolled = await this.client.enroll();
+      // Nome único: um fator esquecido com o mesmo nome faria o Auth recusar a matrícula (mfa_factor_name_conflict).
+      const enrolled = await this.client.enroll({ friendlyName: `FluxID ${crypto.randomUUID().slice(0, 8)}` });
       if (enrolled.error || !enrolled.data) return { kind: 'unavailable' };
       return { kind: 'enroll', factorId: enrolled.data.id, qrCode: enrolled.data.totp.qr_code, secret: enrolled.data.totp.secret };
     } catch {

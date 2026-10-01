@@ -1,3 +1,4 @@
+import { Button, Logo } from '@/design-system';
 import React, { useEffect, useRef, useState } from 'react';
 import type { EndpointKind } from '@/infrastructure/supabase/connection-state';
 
@@ -89,22 +90,25 @@ export function AppInitializationScreen({
     : { title: 'A inicialização está demorando', guidance: 'A operação passou do tempo esperado. Você pode tentar novamente.' };
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-8 text-slate-900">
-      <section className="w-full max-w-md rounded-xl border border-slate-300 bg-white p-6 shadow-sm" aria-labelledby="init-title">
-        <h1 id="init-title" className="text-lg font-semibold">FluxID</h1>
+    <main className="flex min-h-dvh items-center justify-center bg-cinza-gelo px-4 py-8 text-grafite">
+      <section className="w-full max-w-compacto rounded-card border border-borda-suave bg-branco p-6 shadow-card" aria-labelledby="init-title">
+        <div className="flex justify-center">
+          <Logo variant="vertical" width={120} decorative />
+        </div>
+        <h1 id="init-title" className="mt-4 text-center text-h3 font-semibold text-navy">FluxID</h1>
 
         {!blocking && (
-          <div role="status" aria-live="polite" className="mt-4 flex items-center gap-3">
+          <div role="status" aria-live="polite" className="mt-4 flex items-center gap-4">
             {inProgress && (
               <span
                 data-testid="init-spinner"
                 aria-hidden="true"
-                className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900 motion-reduce:animate-none"
+                className="size-4 shrink-0 rounded-full border-2 border-azul-royal border-t-transparent motion-safe:animate-spin"
               />
             )}
             <p>
               {PROGRESS_MESSAGES[phase as keyof typeof PROGRESS_MESSAGES]}
-              {endpointLabel && <span className="block text-sm text-slate-700">Destino: {endpointLabel}</span>}
+              {endpointLabel && <span className="block text-corpo text-texto-secundario">Destino: {endpointLabel}</span>}
             </p>
           </div>
         )}
@@ -114,17 +118,13 @@ export function AppInitializationScreen({
             ref={alertRef}
             role="alert"
             tabIndex={-1}
-            className="mt-4 rounded-lg border border-amber-400 bg-amber-50 p-4 text-amber-950 outline-none focus-visible:ring-2 focus-visible:ring-amber-800"
+            className="mt-4 rounded-card border border-alerta-faixa bg-alerta-fundo p-4 text-alerta-texto"
           >
             <p className="font-semibold">{alert.title}</p>
-            <p className="mt-1 text-sm">{alert.guidance}</p>
-            <button
-              type="button"
-              onClick={onRetry}
-              className="mt-3 inline-flex min-h-11 min-w-11 items-center rounded-lg bg-slate-900 px-4 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-900"
-            >
+            <p className="mt-1 text-corpo">{alert.guidance}</p>
+            <Button onClick={onRetry} className="mt-4">
               Tentar novamente
-            </button>
+            </Button>
           </div>
         )}
       </section>

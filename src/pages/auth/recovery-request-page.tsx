@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useConnectivity } from '@/app/connectivity-context';
 import { PasswordRecoveryService } from '@/application/identity/password-recovery-service';
+import { Alert, Button, Card, TextField } from '@/design-system';
 
 export function RecoveryRequestPage({ onBack }: { onBack: () => void }): React.JSX.Element {
   const { config, result } = useConnectivity();
@@ -8,7 +9,7 @@ export function RecoveryRequestPage({ onBack }: { onBack: () => void }): React.J
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const noticeRef = useRef<HTMLParagraphElement>(null);
+  const noticeRef = useRef<HTMLDivElement>(null);
   const endpoint = config?.endpoints.find((item) => item.kind === result.selectedEndpoint);
   const service = useMemo(() => endpoint ? new PasswordRecoveryService({
     async request(value) {
@@ -34,16 +35,17 @@ export function RecoveryRequestPage({ onBack }: { onBack: () => void }): React.J
     setMessage('Se existir uma conta para este e-mail, enviaremos as instruções de recuperação.');
   }
 
-  return <section className="mx-auto w-full max-w-md rounded-xl border border-slate-300 bg-white p-6" aria-labelledby="recovery-title">
-    <h2 id="recovery-title" className="text-xl font-semibold">Recuperar acesso</h2>
-    <p className="mt-2 text-sm">Informe seu e-mail. A resposta não confirma se a conta existe.</p>
-    <form className="mt-4 space-y-4" onSubmit={(event) => void submit(event)} noValidate>
-      <div><label htmlFor="recovery-email" className="block text-sm font-medium">E-mail</label>
-        <input id="recovery-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-slate-400 px-3" /></div>
-      {message && <p ref={noticeRef} tabIndex={-1} role="status" className="rounded-lg bg-emerald-50 p-3 outline-none">{message}</p>}
-      {error && <p role="alert" className="rounded-lg bg-rose-50 p-3">{error}</p>}
-      <button type="submit" disabled={pending} className="min-h-11 w-full rounded-lg bg-slate-900 px-4 text-white">{pending ? 'Enviando…' : 'Enviar instruções'}</button>
-      <button type="button" onClick={onBack} className="min-h-11 w-full rounded-lg border border-slate-500 px-4">Voltar para entrar</button>
-    </form>
-  </section>;
+  return (
+    <Card as="section" aria-labelledby="recovery-title" className="mx-auto flex w-full max-w-compacto flex-col gap-4">
+      <h2 id="recovery-title" className="text-h3 font-semibold text-navy">Recuperar acesso</h2>
+      <p className="text-corpo">Informe seu e-mail. A resposta não confirma se a conta existe.</p>
+      <form className="flex flex-col gap-4" onSubmit={(event) => void submit(event)} noValidate>
+        <TextField label="E-mail" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+        {message && <Alert ref={noticeRef} tabIndex={-1} variant="sucesso">{message}</Alert>}
+        {error && <Alert variant="erro">{error}</Alert>}
+        <Button type="submit" disabled={pending} className="w-full">{pending ? 'Enviando…' : 'Enviar instruções'}</Button>
+        <Button variant="secundario" onClick={onBack} className="w-full">Voltar para entrar</Button>
+      </form>
+    </Card>
+  );
 }

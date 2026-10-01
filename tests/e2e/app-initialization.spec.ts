@@ -212,12 +212,12 @@ test.describe('Inicialização da PWA: sincronização com outbox (US9)', () => 
     await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
     await page.goto('/admin/membros');
     await page.getByRole('button', { name: 'Entrar em Tenant A' }).click();
-    await expect(page.getByRole('heading', { name: 'Operador A' })).toBeVisible();
+    await expect(page.getByRole('rowheader', { name: 'Operador A' })).toBeVisible();
     expect(syncCalls(backend).map((call) => call.organization_id)).toEqual([TENANT_A]);
 
     await page.getByRole('button', { name: 'Trocar organização' }).click();
     await page.getByRole('button', { name: 'Entrar em Tenant B' }).click();
-    await expect(page.getByRole('heading', { name: 'Operador B' })).toBeVisible();
+    await expect(page.getByRole('rowheader', { name: 'Operador B' })).toBeVisible();
     expect(syncCalls(backend).map((call) => call.organization_id)).toEqual([TENANT_A, TENANT_B]);
     expect(await outboxState(page)).toEqual([
       expect.objectContaining({ id: 'item-a', status: 'synced' }),

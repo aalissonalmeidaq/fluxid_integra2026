@@ -45,7 +45,7 @@ export function createMfaClient(client: SupabaseClient): MfaClient {
   const mfa = client.auth.mfa;
   return {
     listFactors: () => mfa.listFactors() as unknown as ReturnType<MfaClient['listFactors']>,
-    enroll: () => mfa.enroll({ factorType: 'totp' }) as unknown as ReturnType<MfaClient['enroll']>,
+    enroll: (params) => mfa.enroll({ factorType: 'totp', ...(params?.friendlyName ? { friendlyName: params.friendlyName } : {}) }) as unknown as ReturnType<MfaClient['enroll']>,
     challenge: (params) => mfa.challenge(params) as unknown as ReturnType<MfaClient['challenge']>,
     verify: (params) => mfa.verify(params) as unknown as ReturnType<MfaClient['verify']>,
     unenroll: (params) => mfa.unenroll(params) as unknown as ReturnType<MfaClient['unenroll']>,

@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/* O catálogo usa o tema estrito: classe fora dos tokens não gera estilo, como nas telas novas (RNF-006). */
+@import "../src/design-system/tokens.css";
+@import "../src/styles/montserrat.css";
+@import "../src/styles/base.css";
+
+/* O Tailwind só varre a raiz do catálogo; os componentes do design system ficam em src/. */
+@source "../src";
+@source "./";
