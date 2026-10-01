@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: pedi para finalizar a Spec 004 conforme o fluxo, gerar o RIA e fazer o commit; durante o ciclo, a IA seguiu o plano e as tarefas da spec (specify, plan, tasks, implement e converge) com TDD.
 - Resposta gerada pela IA: código e testes do menu por permissão. No domínio, a regra de quais telas ficam visíveis (`src/domain/navigation`); na aplicação, o serviço e o cache de permissões e o provedor de permissões; na interface, o menu lateral/em gaveta, o botão de abrir e o gerenciamento de foco; no Supabase, a consulta de permissões do ator (migração, função de borda e teste SQL). Também gerou os testes unitários, de contrato, ao vivo e E2E, as capturas visuais do menu (geradas no Linux) e a documentação da spec.
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/004-navegacao-por-permissao
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/11
 - Análise crítica da equipe: a equipe conferiu os resultados dos testes automáticos e executou o roteiro manual do menu com os três perfis previstos. As capturas do Windows não foram versionadas, só as do Linux.
 - Validação humana realizada: Alisson Almeida executou o roteiro 6 do quickstart em Chrome no Windows, em 360 px e em desktop, com administrador de tenant, operador técnico e Master local, durante cerca de 15 minutos, e aprovou sem ressalvas.
 - Decisão final: utilizado
@@ -141,7 +141,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-- Obrigatória antes do merge: trocar o link da branch pelo link do pull request neste registro.
+- Resolvida: o link da branch foi trocado pelo do pull request #11 em 01/10/2026.
 - Herdada, fora do escopo da spec: teste em aparelho real. O leitor de tela foi dispensado por decisão do responsável.
 
 ## Validação humana
