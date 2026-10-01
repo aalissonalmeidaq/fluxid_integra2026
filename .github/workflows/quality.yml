@@ -66,6 +66,13 @@ jobs:
       - name: Instalação reproduzível de dependências
         run: npm ci
 
+      - name: Gerar o segredo local da limpeza de retenção (aleatório, mascarado e não versionado)
+        run: |
+          SECRET="$(openssl rand -hex 24)"
+          echo "::add-mask::$SECRET"
+          echo "RETENTION_JOB_SECRET=$SECRET" > supabase/.env
+          echo "RETENTION_JOB_SECRET=$SECRET" >> "$GITHUB_ENV"
+
       - name: Subir o Supabase local (migrations, seed sintético e Edge Functions)
         run: npx supabase start
 

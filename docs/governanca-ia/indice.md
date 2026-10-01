@@ -23,7 +23,7 @@
 
 | RIA-016 | 29/09/2026, 07:41:23 - America/Fortaleza | 001 | 03 | Correção do ambiente E2E e convergência do CI da Spec 001 | `registros/16_Correcao_do_Ambiente_E2E_e_Convergencia_do_CI_da_Spec_001.docx` (`RIA-016-correcao-do-ambiente-e2e-e-convergencia-do-ci-da-spec-001.md`) | utilizado |
 
-| RIA-017 | 30/09/2026, 20:14:48 - America/Fortaleza | 002 | 01 | Autenticação, multitenancy e RBAC | `registros/RIA-017-autenticacao-multitenancy-e-rbac.md` | adaptado |
+| RIA-017 | 30/09/2026, 20:14:48 - America/Fortaleza | 002 | 01 | Autenticação, multitenancy e RBAC | `registros/17_Autenticacao_Multitenancy_e_RBAC.docx` (`RIA-017-autenticacao-multitenancy-e-rbac.md`) | adaptado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
