@@ -1,0 +1,56 @@
+name: Limpeza de retenção (Storage)
+
+# Aciona a função retention-storage-cleanup do projeto cloud. A rotina do banco (public.run_identity_retention, 03:17 UTC)
+# só enfileira os avatares anonimizados; sem esta execução os arquivos permanecem no Storage (AUD-009).
+# Contrato: specs/002-autenticacao-multitenancy-rbac/contracts/retention-cleanup.md
+#
+# Configuração no repositório (Settings > Secrets and variables > Actions):
+#   variables: SUPABASE_CLOUD_URL e SUPABASE_CLOUD_PUBLISHABLE_KEY (valores públicos)
+#   secret:    RETENTION_JOB_SECRET (o mesmo configurado nos segredos das Edge Functions do projeto)
+# Instalações LAN precisam do próprio agendador com o mesmo contrato.
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: retention-cleanup
+  cancel-in-progress: false
+
+jobs:
+  limpar:
+    name: Remover avatares anonimizados do Storage
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Chamar a função de limpeza
+        env:
+          SUPABASE_CLOUD_URL: ${{ vars.SUPABASE_CLOUD_URL }}
+          SUPABASE_CLOUD_PUBLISHABLE_KEY: ${{ vars.SUPABASE_CLOUD_PUBLISHABLE_KEY }}
+          RETENTION_JOB_SECRET: ${{ secrets.RETENTION_JOB_SECRET }}
+        run: |
+          set +x
+          if [ -z "$SUPABASE_CLOUD_URL" ] || [ -z "$SUPABASE_CLOUD_PUBLISHABLE_KEY" ] || [ -z "$RETENTION_JOB_SECRET" ]; then
+            echo "::error::Configure SUPABASE_CLOUD_URL, SUPABASE_CLOUD_PUBLISHABLE_KEY e RETENTION_JOB_SECRET no repositório."
+            exit 1
+          fi
+          status=$(curl --silent --show-error --output response.json --write-out '%{http_code}' \
+            --request POST "$SUPABASE_CLOUD_URL/functions/v1/retention-storage-cleanup" \
+            --header "apikey: $SUPABASE_CLOUD_PUBLISHABLE_KEY" \
+            --header "x-retention-secret: $RETENTION_JOB_SECRET" \
+            --header 'content-type: application/json' \
+            --data '{"limit":500}')
+          if [ "$status" != "200" ] || [ "$(jq -r '.code' response.json)" != "CLEANUP_DONE" ]; then
+            echo "::error::A limpeza respondeu HTTP $status sem CLEANUP_DONE."
+            exit 1
+          fi
+          removed=$(jq -r '.removed' response.json)
+          failed=$(jq -r '.failed' response.json)
+          echo "Limpeza concluída: removed=$removed failed=$failed"
+          if [ "$failed" != "0" ]; then
+            echo "::warning::$failed item(ns) permaneceram na fila e serão tentados na próxima execução."
+          fi

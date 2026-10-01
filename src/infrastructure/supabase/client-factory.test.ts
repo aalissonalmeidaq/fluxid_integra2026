@@ -16,6 +16,7 @@ describe('Fábrica de Cliente Supabase (Client Factory)', () => {
   const config: AppConfig = {
     connectionMode: 'auto',
     probeTimeoutMs: 2000,
+    contractVersion: '1',
     endpoints: [
       { kind: 'local', url: MOCK_URLS.local, publishableKey: MOCK_KEYS.local },
       { kind: 'lan', url: MOCK_URLS.lan, publishableKey: MOCK_KEYS.lan },

@@ -3,6 +3,24 @@ import { render, screen, act } from '@testing-library/react';
 import { Providers } from './providers';
 import { useConnectivity } from './connectivity-context';
 import { createValidEnv } from '@/test/fixtures/environment';
+import { MOCK_URLS } from '@/test/fixtures/connectivity';
+
+type HostBehavior = 'ok' | 'down' | 'incompatible' | 'unauthorized';
+
+// Simula health e compatibilidade por destino; a versão esperada vem de createValidEnv.
+function serveHosts(hosts: Partial<Record<keyof typeof MOCK_URLS, HostBehavior>>): typeof fetch {
+  return vi.fn(async (input: RequestInfo | URL) => {
+    const url = String(input);
+    const kind = (Object.keys(MOCK_URLS) as Array<keyof typeof MOCK_URLS>).find((key) => url.startsWith(MOCK_URLS[key]));
+    const behavior = (kind && hosts[kind]) ?? 'down';
+    if (behavior === 'down') throw new TypeError('network');
+    if (behavior === 'unauthorized' && url.endsWith('/auth/v1/health')) return new Response(null, { status: 401 });
+    if (url.endsWith('/functions/v1/public-compatibility')) {
+      return Response.json({ contractVersion: behavior === 'incompatible' ? '0.0' : '002.1' });
+    }
+    return new Response(JSON.stringify({ status: 'ok' }), { status: 200 });
+  }) as unknown as typeof fetch;
+}
 
 function TestConsumer(): React.JSX.Element {
   const { result, client, reconnect, reportOperationalError } = useConnectivity();
@@ -31,9 +49,7 @@ function TestConsumer(): React.JSX.Element {
 describe('Providers & Estabilidade de Sessão (História 3)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    global.fetch = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ status: 'ok' }), { status: 200 })
-    );
+    global.fetch = serveHosts({ local: 'ok', lan: 'ok', cloud: 'ok' });
   });
 
   it('mantém a sessão estável e transita para blocked ao receber erro operacional, sem fallback automático', async () => {
@@ -113,11 +129,78 @@ describe('Providers & Estabilidade de Sessão (História 3)', () => {
     expect(screen.getByTestId('state')).toHaveTextContent('offline');
     expect(screen.getByTestId('client')).toHaveTextContent('none');
 
-    global.fetch = vi.fn(() => new Promise<Response>(() => undefined));
+    global.fetch = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+    })) as unknown as typeof fetch;
     act(() => {
       screen.getByText('Reconectar').click();
     });
     expect(screen.getByTestId('state')).toHaveTextContent('probing');
     expect(screen.getByTestId('client')).toHaveTextContent('none');
+  });
+
+  async function renderAuto(hosts: Parameters<typeof serveHosts>[0]) {
+    global.fetch = serveHosts(hosts);
+    render(
+      <Providers customEnv={createValidEnv('auto')}>
+        <TestConsumer />
+      </Providers>
+    );
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+  }
+
+  it('prioriza a cloud no modo automático e não sonda LAN nem local', async () => {
+    await renderAuto({ cloud: 'ok', lan: 'ok', local: 'ok' });
+    expect(screen.getByTestId('state')).toHaveTextContent('connected');
+    expect(screen.getByTestId('endpoint')).toHaveTextContent('cloud');
+    const urls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.map(([input]) => String(input));
+    expect(urls.some((url) => url.startsWith(MOCK_URLS.lan) || url.startsWith(MOCK_URLS.local))).toBe(false);
+  });
+
+  it('usa LAN em modo degradado quando a cloud está tecnicamente indisponível', async () => {
+    await renderAuto({ cloud: 'down', lan: 'ok', local: 'ok' });
+    expect(screen.getByTestId('state')).toHaveTextContent('degraded');
+    expect(screen.getByTestId('endpoint')).toHaveTextContent('lan');
+    expect(screen.getByTestId('client')).toHaveTextContent('active');
+  });
+
+  it('usa local somente depois de cloud e LAN indisponíveis', async () => {
+    await renderAuto({ cloud: 'down', lan: 'down', local: 'ok' });
+    expect(screen.getByTestId('state')).toHaveTextContent('degraded');
+    expect(screen.getByTestId('endpoint')).toHaveTextContent('local');
+  });
+
+  it('fica offline quando nenhum destino está disponível', async () => {
+    await renderAuto({});
+    expect(screen.getByTestId('state')).toHaveTextContent('offline');
+    expect(screen.getByTestId('client')).toHaveTextContent('none');
+  });
+
+  it('bloqueia sem fallback quando o contrato da cloud é incompatível', async () => {
+    await renderAuto({ cloud: 'incompatible', lan: 'ok', local: 'ok' });
+    expect(screen.getByTestId('state')).toHaveTextContent('blocked');
+    expect(screen.getByTestId('client')).toHaveTextContent('none');
+  });
+
+  it('bloqueia sem fallback quando a cloud recusa por autorização', async () => {
+    await renderAuto({ cloud: 'unauthorized', lan: 'ok', local: 'ok' });
+    expect(screen.getByTestId('state')).toHaveTextContent('blocked');
+    expect(screen.getByTestId('endpoint')).toHaveTextContent('none');
+  });
+
+  it('mantém modo explícito como conectado, sem sinalizar degradação', async () => {
+    global.fetch = serveHosts({ local: 'ok' });
+    render(
+      <Providers customEnv={createValidEnv('local')}>
+        <TestConsumer />
+      </Providers>
+    );
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    expect(screen.getByTestId('state')).toHaveTextContent('connected');
+    expect(screen.getByTestId('endpoint')).toHaveTextContent('local');
   });
 });

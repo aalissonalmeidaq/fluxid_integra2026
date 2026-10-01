@@ -1,0 +1,365 @@
+# Registro do uso de inteligência artificial e validação humana
+
+**FluxID | RIA-017 | Autenticação, multitenancy e RBAC**
+
+> Ponto de atenção: a IA apoia a equipe, mas a responsabilidade final é humana.
+
+## Registro da interação
+
+- Ferramenta de IA utilizada: Claude Code (Anthropic), modelo Claude Sonnet 5.5
+- Objetivo do uso: Implementar a Spec 002 (autenticação, multitenancy e RBAC): login com sessões governadas e MFA, recuperação de acesso, tenants e vínculos, papéis e permissões, tenant ativo, perfil com avatar privado, auditoria com retenção e a base local com sincronização para a PWA, com a prioridade cloud, LAN e local da ADR-001.
+- Prompt utilizado, em síntese sanitizada: O responsável pediu ao assistente, em várias rodadas: analisar spec, plano e tarefas e aplicar as correções apontadas; implementar as tarefas abertas com TDD; tratar as lacunas da convergência (limpeza de retenção, medição de desempenho, contratos e modelo de dados); e refatorar a tela de login para ficar dentro da spec, deixando o redesenho para a spec de telas e design. Nenhum pedido continha credencial, token ou dado pessoal.
+- Resposta gerada pela IA: A IA gerou o código, os testes, as migrations, as Edge Functions e a documentação do ciclo: domínio de identidade e autorização, serviços e adaptadores, telas de login, recuperação, membros, papéis, auditoria, tenants e perfil, funções de servidor, políticas RLS com testes pgTAP, suítes ao vivo contra o Supabase local, testes E2E em três projetos e um workflow agendado de limpeza de retenção. O histórico completo está no branch indicado abaixo.
+
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/3
+- Análise crítica da equipe: A revisão crítica da própria execução achou e corrigiu problemas que os testes verdes não mostravam: o service worker entregava o app shell para rotas de Storage e Functions quando estava offline; a função de limpeza de avatares anonimizados não tinha contrato, tarefa nem agendador; uma política de leitura duplicada em profiles pesava toda consulta; e o cabeçalho estourava 24 px em 360 px no WebKit. Uma alteração na tela de login feita fora desta sequência (botão "Entrar com Google" sem ação, imagem e fonte de terceiros, login fora do shell) derrubou o E2E; foi substituída por uma tela dentro da spec e virou teste de escopo. Os números de desempenho foram medidos só no cliente e no Supabase local, e isso está dito no validation.md. O gerador deste RIA também falhava com diffs acima de 1 MB e foi corrigido.
+- Validação humana realizada: Alisson Almeida validou os fluxos de acesso com usuários de teste no ambiente local, em uma sessão de cerca de 40 minutos: entrada, recuperação de senha, MFA, limite de sessões, troca de tenant, gestão de membros e papéis, perfil com foto e consulta de auditoria. Tudo funcionou como previsto.
+- Decisão final: adaptado
+- Justificativa: A entrega cumpria a Spec 002 e passou nos testes, mas durante o ciclo a tela de login saiu do escopo da spec (login social, recursos de terceiros, tela fora do shell). Pedi a refatoração e deixei o redesenho para a spec de telas e design.
+- Fontes verificadas: Nenhuma fonte externa consultada. As decisões partiram da spec, do plano, dos contratos, da constituição e do ADR-001 do repositório.
+- Identificador do registro: RIA-017
+- Data e hora da interação: 30/09/2026, 20:14:48 - America/Fortaleza
+
+## Rastreabilidade técnica do ciclo
+
+- Repositório: fluxid
+- Branch: feat/002-autenticacao-multitenancy-rbac
+- Spec: 002
+- Ciclo: 01
+- Commit-base: d89c3db71846bce1cc0deff3622d881c50e540a2
+- Hash do diff funcional preparado: 8518f9af6be66afc02089fb1c96ce1492c97f25cb66a27b356a7c0890569d19c
+- Arquivos e áreas afetadas:
+
+- `.env.example`
+- `.github/workflows/quality.yml`
+- `.github/workflows/retention-cleanup.yml`
+- `AGENTS.md`
+- `README.md`
+- `docs/arquitetura-conectividade-supabase.md`
+- `docs/decisoes-arquiteturais/ADR-001-prioridade-cloud-e-sincronizacao-segura.md`
+- `docs/prd.md`
+- `package-lock.json`
+- `package.json`
+- `playwright.config.ts`
+- `scripts/governanca-ia/gerar-registro-ia.mjs`
+- `specs/001-fundacao-tecnica/contracts/connectivity.md`
+- `specs/002-autenticacao-multitenancy-rbac/checklists/requirements.md`
+- `specs/002-autenticacao-multitenancy-rbac/contracts/auth-sessions.md`
+- `specs/002-autenticacao-multitenancy-rbac/contracts/connectivity.md`
+- `specs/002-autenticacao-multitenancy-rbac/contracts/identity-admin.md`
+- `specs/002-autenticacao-multitenancy-rbac/contracts/profile-avatar.md`
+- `specs/002-autenticacao-multitenancy-rbac/contracts/rbac-audit.md`
+- `specs/002-autenticacao-multitenancy-rbac/contracts/retention-cleanup.md`
+- `specs/002-autenticacao-multitenancy-rbac/contracts/synchronization.md`
+- `specs/002-autenticacao-multitenancy-rbac/data-model.md`
+- `specs/002-autenticacao-multitenancy-rbac/plan.md`
+- `specs/002-autenticacao-multitenancy-rbac/quickstart.md`
+- `specs/002-autenticacao-multitenancy-rbac/research.md`
+- `specs/002-autenticacao-multitenancy-rbac/spec.md`
+- `specs/002-autenticacao-multitenancy-rbac/tasks.md`
+- `specs/002-autenticacao-multitenancy-rbac/validation.md`
+- `src/app/App.tsx`
+- `src/app/auth/auth-context.ts`
+- `src/app/auth/auth-provider.test.tsx`
+- `src/app/auth/auth-provider.tsx`
+- `src/app/initialization-gate.test.tsx`
+- `src/app/initialization-gate.tsx`
+- `src/app/providers.test.tsx`
+- `src/app/providers.tsx`
+- `src/app/routing/protected-route.test.tsx`
+- `src/app/routing/protected-route.tsx`
+- `src/app/sync-context.ts`
+- `src/app/sync-gate.test.tsx`
+- `src/app/sync-gate.tsx`
+- `src/app/tenant/tenant-context.ts`
+- `src/app/tenant/tenant-gate.test.tsx`
+- `src/app/tenant/tenant-gate.tsx`
+- `src/app/tenant/tenant-indicator.tsx`
+- `src/app/tenant/tenant-provider.test.tsx`
+- `src/app/tenant/tenant-provider.tsx`
+- `src/application/identity/audit-service.test.ts`
+- `src/application/identity/audit-service.ts`
+- `src/application/identity/membership-service.test.ts`
+- `src/application/identity/membership-service.ts`
+- `src/application/identity/mfa-service.test.ts`
+- `src/application/identity/mfa-service.ts`
+- `src/application/identity/organization-service.test.ts`
+- `src/application/identity/organization-service.ts`
+- `src/application/identity/password-recovery-service.ts`
+- `src/application/identity/profile-service.test.ts`
+- `src/application/identity/profile-service.ts`
+- `src/application/identity/rbac-service.test.ts`
+- `src/application/identity/rbac-service.ts`
+- `src/application/identity/session-service.test.ts`
+- `src/application/identity/session-service.ts`
+- `src/application/identity/tenant-context-service.ts`
+- `src/application/identity/transactional-email-policy.ts`
+- `src/components/identity/confirmation-dialog.tsx`
+- `src/components/identity/form-field.tsx`
+- `src/components/system/ConnectivityStatus.tsx`
+- `src/components/system/app-initialization-screen.test.tsx`
+- `src/components/system/app-initialization-screen.tsx`
+- `src/components/system/connectivity-status.test.tsx`
+- `src/config/environment.ts`
+- `src/domain/identity/authorization.test.ts`
+- `src/domain/identity/authorization.ts`
+- `src/domain/identity/profile.test.ts`
+- `src/domain/identity/profile.ts`
+- `src/domain/identity/session.test.ts`
+- `src/domain/identity/session.ts`
+- `src/domain/identity/tenant-selection.test.ts`
+- `src/domain/identity/tenant-selection.ts`
+- `src/infrastructure/connectivity/cloud-first-connection-resolver.test.ts`
+- `src/infrastructure/connectivity/cloud-first-connection-resolver.ts`
+- `src/infrastructure/connectivity/connection-failure-classifier.test.ts`
+- `src/infrastructure/connectivity/connection-failure-classifier.ts`
+- `src/infrastructure/connectivity/endpoint-compatibility-check.test.ts`
+- `src/infrastructure/connectivity/endpoint-compatibility-check.ts`
+- `src/infrastructure/connectivity/endpoint-configuration.test.ts`
+- `src/infrastructure/connectivity/endpoint-configuration.ts`
+- `src/infrastructure/connectivity/endpoint-health-check.test.ts`
+- `src/infrastructure/connectivity/endpoint-health-check.ts`
+- `src/infrastructure/connectivity/retry-policy.test.ts`
+- `src/infrastructure/connectivity/retry-policy.ts`
+- `src/infrastructure/connectivity/supabase-client-manager.test.ts`
+- `src/infrastructure/connectivity/supabase-client-manager.ts`
+- `src/infrastructure/local-database/local-database.test.ts`
+- `src/infrastructure/local-database/local-database.ts`
+- `src/infrastructure/observability/audit-logger.test.ts`
+- `src/infrastructure/observability/audit-logger.ts`
+- `src/infrastructure/supabase/client-factory.test.ts`
+- `src/infrastructure/supabase/connection-resolver.test.ts`
+- `src/infrastructure/supabase/connection-resolver.ts`
+- `src/infrastructure/supabase/connection-state.ts`
+- `src/infrastructure/supabase/endpoint-health.test.ts`
+- `src/infrastructure/supabase/endpoint-health.ts`
+- `src/infrastructure/supabase/function-transport.test.ts`
+- `src/infrastructure/supabase/function-transport.ts`
+- `src/infrastructure/supabase/membership-adapter.ts`
+- `src/infrastructure/supabase/membership-source.test.ts`
+- `src/infrastructure/supabase/membership-source.ts`
+- `src/infrastructure/supabase/organization-adapter.ts`
+- `src/infrastructure/supabase/profile-adapter.test.ts`
+- `src/infrastructure/supabase/profile-adapter.ts`
+- `src/infrastructure/supabase/session-adapters.test.ts`
+- `src/infrastructure/supabase/session-adapters.ts`
+- `src/infrastructure/synchronization/conflict-resolver.test.ts`
+- `src/infrastructure/synchronization/conflict-resolver.ts`
+- `src/infrastructure/synchronization/endpoint-promotion-coordinator.test.ts`
+- `src/infrastructure/synchronization/endpoint-promotion-coordinator.ts`
+- `src/infrastructure/synchronization/offline-operation-policy.test.ts`
+- `src/infrastructure/synchronization/offline-operation-policy.ts`
+- `src/infrastructure/synchronization/pull-synchronizer.test.ts`
+- `src/infrastructure/synchronization/pull-synchronizer.ts`
+- `src/infrastructure/synchronization/push-synchronizer.test.ts`
+- `src/infrastructure/synchronization/push-synchronizer.ts`
+- `src/infrastructure/synchronization/sync-coordinator.test.ts`
+- `src/infrastructure/synchronization/sync-coordinator.ts`
+- `src/infrastructure/synchronization/sync-cursor.ts`
+- `src/infrastructure/synchronization/sync-outbox.test.ts`
+- `src/infrastructure/synchronization/sync-outbox.ts`
+- `src/infrastructure/synchronization/tenant-sync-runner.test.ts`
+- `src/infrastructure/synchronization/tenant-sync-runner.ts`
+- `src/main.tsx`
+- `src/pages/admin/tenant-audit-log-page.test.tsx`
+- `src/pages/admin/tenant-audit-log-page.tsx`
+- `src/pages/admin/tenant-members-page.test.tsx`
+- `src/pages/admin/tenant-members-page.tsx`
+- `src/pages/admin/tenant-roles-page.test.tsx`
+- `src/pages/admin/tenant-roles-page.tsx`
+- `src/pages/admin/tenants-dashboard-page.test.tsx`
+- `src/pages/admin/tenants-dashboard-page.tsx`
+- `src/pages/auth/active-sessions-dialog.tsx`
+- `src/pages/auth/login-page.test.tsx`
+- `src/pages/auth/login-page.tsx`
+- `src/pages/auth/mfa-page.test.tsx`
+- `src/pages/auth/mfa-page.tsx`
+- `src/pages/auth/recovery-confirm-page.tsx`
+- `src/pages/auth/recovery-pages.test.tsx`
+- `src/pages/auth/recovery-request-page.tsx`
+- `src/pages/auth/tenant-selection-page.test.tsx`
+- `src/pages/auth/tenant-selection-page.tsx`
+- `src/pages/profile/profile-page.test.tsx`
+- `src/pages/profile/profile-page.tsx`
+- `src/test/fixtures/environment.ts`
+- `supabase/config.toml`
+- `supabase/functions/_shared/gateways.ts`
+- `supabase/functions/_shared/http.ts`
+- `supabase/functions/_shared/profile-rules.ts`
+- `supabase/functions/invite-user/deno.json`
+- `supabase/functions/invite-user/handler.ts`
+- `supabase/functions/invite-user/index.ts`
+- `supabase/functions/manage-access/deno.json`
+- `supabase/functions/manage-access/handler.ts`
+- `supabase/functions/manage-access/index.ts`
+- `supabase/functions/manage-membership/deno.json`
+- `supabase/functions/manage-membership/handler.ts`
+- `supabase/functions/manage-membership/index.ts`
+- `supabase/functions/manage-organizations/deno.json`
+- `supabase/functions/manage-organizations/handler.ts`
+- `supabase/functions/manage-organizations/index.ts`
+- `supabase/functions/password-recovery/deno.json`
+- `supabase/functions/password-recovery/handler.ts`
+- `supabase/functions/password-recovery/index.ts`
+- `supabase/functions/profile-avatar/deno.json`
+- `supabase/functions/profile-avatar/handler.ts`
+- `supabase/functions/profile-avatar/index.ts`
+- `supabase/functions/public-compatibility/deno.json`
+- `supabase/functions/public-compatibility/index.ts`
+- `supabase/functions/query-audit/deno.json`
+- `supabase/functions/query-audit/handler.ts`
+- `supabase/functions/query-audit/index.ts`
+- `supabase/functions/retention-storage-cleanup/deno.json`
+- `supabase/functions/retention-storage-cleanup/handler.ts`
+- `supabase/functions/retention-storage-cleanup/index.ts`
+- `supabase/functions/session-login/deno.json`
+- `supabase/functions/session-login/handler.ts`
+- `supabase/functions/session-login/index.ts`
+- `supabase/functions/session-logout/deno.json`
+- `supabase/functions/session-logout/handler.ts`
+- `supabase/functions/session-logout/index.ts`
+- `supabase/functions/session-status/deno.json`
+- `supabase/functions/session-status/handler.ts`
+- `supabase/functions/session-status/index.ts`
+- `supabase/functions/sync-command/deno.json`
+- `supabase/functions/sync-command/index.ts`
+- `supabase/migrations/20260929161233_identity_rbac_schema.sql`
+- `supabase/migrations/20260929165011_sync_command_idempotency.sql`
+- `supabase/migrations/20260929230459_session_governance.sql`
+- `supabase/migrations/20260929231344_session_bound_policies.sql`
+- `supabase/migrations/20260930002009_password_recovery_governance.sql`
+- `supabase/migrations/20260930094555_organization_administration.sql`
+- `supabase/migrations/20260930141752_invitation_membership_management.sql`
+- `supabase/migrations/20260930145839_tenant_activation_requires_admin.sql`
+- `supabase/migrations/20260930150250_tenant_member_listing.sql`
+- `supabase/migrations/20260930152328_rbac_invariants_and_catalog.sql`
+- `supabase/migrations/20260930152652_rbac_management.sql`
+- `supabase/migrations/20260930161755_private_avatars.sql`
+- `supabase/migrations/20260930162213_rate_limit_tokens.sql`
+- `supabase/migrations/20260930164704_audit_access.sql`
+- `supabase/migrations/20260930165120_identity_retention.sql`
+- `supabase/migrations/20260930170930_storage_cleanup_queue_functions.sql`
+- `supabase/migrations/20260930172000_profiles_single_read_policy.sql`
+- `supabase/seed.sql`
+- `supabase/templates/invitation.html`
+- `supabase/templates/recovery.html`
+- `supabase/tests/002_audit_access.test.sql`
+- `supabase/tests/002_audit_logs.test.sql`
+- `supabase/tests/002_avatars.test.sql`
+- `supabase/tests/002_idempotency.test.sql`
+- `supabase/tests/002_invitation_membership_management.test.sql`
+- `supabase/tests/002_invitations.test.sql`
+- `supabase/tests/002_membership_listing.test.sql`
+- `supabase/tests/002_memberships.test.sql`
+- `supabase/tests/002_organization_admin.test.sql`
+- `supabase/tests/002_organizations.test.sql`
+- `supabase/tests/002_password_recovery.test.sql`
+- `supabase/tests/002_private_helpers.test.sql`
+- `supabase/tests/002_profiles.test.sql`
+- `supabase/tests/002_profiles_policies.test.sql`
+- `supabase/tests/002_rate_limit.test.sql`
+- `supabase/tests/002_rbac_invariants.test.sql`
+- `supabase/tests/002_rbac_management.test.sql`
+- `supabase/tests/002_rbac_rls.test.sql`
+- `supabase/tests/002_rbac_schema.test.sql`
+- `supabase/tests/002_retention.test.sql`
+- `supabase/tests/002_rls_behavior.test.sql`
+- `supabase/tests/002_rls_matrix.test.sql`
+- `supabase/tests/002_session_governance.test.sql`
+- `supabase/tests/002_storage_cleanup.test.sql`
+- `supabase/tests/002_tenant_activation.test.sql`
+- `supabase/tests/002_user_sessions.test.sql`
+- `tests/contract/audit-query.test.ts`
+- `tests/contract/auth-sessions.live.test.ts`
+- `tests/contract/client-secrets.test.ts`
+- `tests/contract/email-templates.test.ts`
+- `tests/contract/environment.test.ts`
+- `tests/contract/invitations.test.ts`
+- `tests/contract/no-external-assets.test.ts`
+- `tests/contract/organizations.test.ts`
+- `tests/contract/password-recovery.live.test.ts`
+- `tests/contract/password-recovery.test.ts`
+- `tests/contract/profile.test.ts`
+- `tests/contract/public-compatibility.live.test.ts`
+- `tests/contract/rbac.test.ts`
+- `tests/contract/retention-cleanup.live.test.ts`
+- `tests/contract/retention-cleanup.test.ts`
+- `tests/contract/retention-workflow.test.ts`
+- `tests/contract/session-boundary-handlers.test.ts`
+- `tests/contract/session-login-handler.test.ts`
+- `tests/contract/shared-http.test.ts`
+- `tests/contract/synchronization-idempotency.live.test.ts`
+- `tests/e2e/accessibility.spec.ts`
+- `tests/e2e/app-initialization.spec.ts`
+- `tests/e2e/audit-log.spec.ts`
+- `tests/e2e/auth-session.spec.ts`
+- `tests/e2e/organizations.spec.ts`
+- `tests/e2e/password-recovery.spec.ts`
+- `tests/e2e/performance.spec.ts`
+- `tests/e2e/profile.spec.ts`
+- `tests/e2e/pwa.spec.ts`
+- `tests/e2e/rbac.spec.ts`
+- `tests/e2e/responsive.spec.ts`
+- `tests/e2e/support/mock-backend.ts`
+- `tests/e2e/tenant-members.spec.ts`
+- `tests/e2e/tenant-selection.spec.ts`
+- `tests/integration/audit-access.live.test.ts`
+- `tests/integration/audit-events.test.ts`
+- `tests/integration/connectivity.test.ts`
+- `tests/integration/membership-management.test.ts`
+- `tests/integration/mfa.live.test.ts`
+- `tests/integration/organization-administration.test.ts`
+- `tests/integration/performance.live.test.ts`
+- `tests/integration/profile-avatar.live.test.ts`
+- `tests/integration/profile-avatar.test.ts`
+- `tests/integration/rbac-authorization.test.ts`
+- `tests/integration/session-lifecycle.live.test.ts`
+- `tests/integration/session-limit.live.test.ts`
+- `tests/integration/tenant-switch.test.ts`
+- `tests/integration/transactional-email.test.ts`
+- `tests/support/auth-harness.ts`
+- `tests/support/totp.ts`
+- `tsconfig.app.json`
+- `vite.config.ts`
+- `vitest.config.ts`
+- `vitest.live.config.ts`
+
+## Testes e evidências
+
+- Comando(s): npm run lint; npm run typecheck; npm run test:coverage; npm run test:live; npx supabase db reset; npx supabase test db; npx supabase db lint; npx supabase db advisors --local; npm run test:e2e; npm run build; npm audit
+- Resultado: aprovado
+- Evidência: Em 30/09/2026: lint e tipos sem erros; 84 arquivos e 1085 testes unitários aprovados (cobertura de 91,17% em instruções, 87,32% em ramos, 89,17% em funções e 94,75% em linhas); 26 arquivos e 383 asserts pgTAP; 11 arquivos e 61 testes ao vivo; E2E com 315 aprovados, 0 falhas e 9 pulados por limitação do WebKit no Windows; build sem erros; npm audit com 0 vulnerabilidades. Detalhes em specs/002-autenticacao-multitenancy-rbac/validation.md.
+
+## Decisões e dados pendentes
+
+1) Link já trocado pelo do pull request. 2) T149: configurar as variáveis e o segredo do workflow de retenção no GitHub e executá-lo uma vez; sem isso os avatares anonimizados ficam no Storage. 3) T146: provar a mesma versão de contrato e schema em um destino cloud ou LAN. 4) T147: repetir a medição de desempenho fora da máquina local. 5) A validação humana de MS-004 a MS-006 foi declarada conforme o esperado, mas amostra, ambiente, duração e resultados por critério não foram informados. 6) Parâmetro p_status sem uso em create_managed_organization. 7) Perda de digitação nos primeiros milissegundos de carga. 8) Redesenho da tela de login, que depende da spec de telas e design.
+
+## Validação humana
+
+- Responsável pela revisão da equipe: Alisson Almeida
+- Data da validação humana: 30/09/2026
+- Observações: Para a retenção de avatares valer em produção, falta configurar o workflow no GitHub (T149). Continuam abertas as provas em cloud ou LAN (T146 e T147). A validação foi feita só no ambiente local.
+
+## Regras de preenchimento
+
+- Registrar apenas interações relevantes para o projeto.
+- Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
+- Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
+- Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
+- Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
+- Evitar dados pessoais, sigilosos ou sensíveis.
+- Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
+
+## Checklist final
+
+- [x] Ferramentas de IA identificadas.
+- [x] Prompts relevantes registrados por síntese sanitizada.
+- [x] Respostas ou resultados documentados.
+- [x] Texto revisado para soar natural, claro e autêntico, sem alterar o sentido original.
+- [x] Quando houve geração de código, a resposta contém resumo e link para o repositório, branch ou, preferencialmente, pull request.
+- [x] Validação humana explicada.
+- [x] Fontes verificadas quando necessário.
+- [x] Decisão ou pendência registrada.
+- [x] O registro não contém segredos, credenciais ou tokens.
+- [x] Dados pessoais foram removidos ou minimizados.

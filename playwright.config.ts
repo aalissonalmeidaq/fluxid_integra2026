@@ -40,6 +40,7 @@ export default defineConfig({
       VITE_SUPABASE_CONNECTION_MODE: 'local',
       VITE_SUPABASE_LOCAL_URL: 'http://127.0.0.1:54321',
       VITE_SUPABASE_LOCAL_PUBLISHABLE_KEY: 'chave-publica-exclusiva-para-e2e',
+      VITE_SUPABASE_CONTRACT_VERSION: '002.1',
       VITE_SUPABASE_PROBE_TIMEOUT_MS: '500',
     },
   },

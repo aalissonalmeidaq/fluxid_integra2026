@@ -25,9 +25,9 @@ export function ConnectivityStatus({
       <div
         role="status"
         aria-live="polite"
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 text-amber-900 border border-amber-300"
+        className="inline-flex min-h-11 min-w-11 items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 text-amber-900 border border-amber-300"
       >
-        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" aria-hidden="true" />
+        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
         <span>Verificando conectividade...</span>
       </div>
     );
@@ -37,9 +37,9 @@ export function ConnectivityStatus({
     return (
       <div
         role="status"
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-300"
+        className="inline-flex min-h-11 min-w-11 items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-300"
       >
-        <span className="w-2 h-2 rounded-full bg-emerald-400" aria-hidden="true" />
+        <span data-testid="status-icon" aria-hidden="true">●</span>
         <span>Conectado: {endpointLabel}</span>
       </div>
     );
@@ -49,10 +49,11 @@ export function ConnectivityStatus({
     return (
       <div
         role="status"
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-900 border border-yellow-300"
+        className="inline-flex min-h-11 min-w-11 flex-wrap items-center gap-x-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-yellow-100 text-yellow-900 border border-yellow-400"
       >
-        <span className="w-2 h-2 rounded-full bg-yellow-400" aria-hidden="true" />
-        <span>Conectado via contingência: {endpointLabel}</span>
+        <span data-testid="status-icon" aria-hidden="true">⚠</span>
+        <span>Modo degradado: {endpointLabel}</span>
+        <span className="basis-full font-normal">Confirmação definitiva depende da nuvem.</span>
       </div>
     );
   }

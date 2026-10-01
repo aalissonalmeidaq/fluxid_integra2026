@@ -1,0 +1,10 @@
+begin;
+select plan(7);
+select has_table('public', 'audit_logs', 'audit_logs existe');
+select col_type_is('public', 'audit_logs', 'id', 'bigint', 'id bigint');
+select has_check('public', 'audit_logs', 'audit_logs_result_check');
+select has_check('public', 'audit_logs', 'audit_logs_justification_check');
+select has_check('public', 'audit_logs', 'audit_logs_metadata_check');
+select has_function('private', 'prevent_audit_mutation', array[]::text[]);
+select has_function('private', 'write_audit_event', array['uuid','uuid','uuid','text','text','text','text','text','text','jsonb']);
+select * from finish(); rollback;

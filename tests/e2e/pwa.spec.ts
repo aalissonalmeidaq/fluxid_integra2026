@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+import { MockBackend } from './support/mock-backend';
 
 test.describe('PWA e Funcionamento Offline (US4)', () => {
   test('inclui link para o manifest e tags essenciais de PWA no HTML', async ({ page }) => {
@@ -77,5 +78,104 @@ test.describe('PWA e Funcionamento Offline (US4)', () => {
 
     expect(remoteResult).toBe('failed');
     await expect(page.getByRole('main')).toBeVisible();
+  });
+});
+
+// Spec 002 (RNF-007, CA-011): a PWA guarda apenas o app shell. Nada de Auth, Data API, Storage ou Functions
+// pode ficar no cache do navegador, e uma falha de rede nunca pode virar confirmação de uma operação.
+const SUPABASE_PATHS = ['/auth/v1', '/rest/v1', '/storage/v1', '/functions/v1', '/graphql/v1', '/realtime/v1'];
+
+async function waitForControl(page: Page): Promise<void> {
+  await page.goto('/');
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+}
+
+test.describe('PWA e dados protegidos (Spec 002)', () => {
+  test('o cache do app shell não guarda nenhuma rota de Auth, Data, Storage ou Functions', async ({ page, browserName }) => {
+    test.skip(browserName === 'webkit', 'Com o service worker ativo o WebKit responde antes da interceptação de rede do Playwright, então o backend simulado não é garantido; o Chromium cobre o cenário.');
+    const backend = new MockBackend();
+    backend.loginResponses = [backend.authenticated()];
+    backend.statusResponse = backend.activeStatus('aal2');
+    await backend.install(page);
+    await waitForControl(page);
+
+    await page.getByLabel('E-mail').fill('admin-a@example.invalid');
+    await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await page.goto('/perfil');
+    await expect(page.getByRole('heading', { name: 'Meu perfil' })).toBeVisible();
+
+    const cached = await page.evaluate(async () => {
+      const urls: string[] = [];
+      for (const name of await caches.keys()) {
+        for (const request of await (await caches.open(name)).keys()) urls.push(new URL(request.url).pathname);
+      }
+      return urls;
+    });
+    expect(cached.length, 'o app shell precisa estar em cache').toBeGreaterThan(0);
+    expect(cached.filter((path) => SUPABASE_PATHS.some((prefix) => path.startsWith(prefix)))).toEqual([]);
+  });
+
+  test('uma navegação offline a rota de Auth, Data, Storage ou Functions não recebe o app shell', async ({ page, context, browserName }) => {
+    test.skip(browserName === 'webkit', 'O driver WebKit do Playwright no Windows apresenta falha de IPC ao combinar setOffline com service worker.');
+    await waitForControl(page);
+    await context.setOffline(true);
+    try {
+      // Controle positivo: uma rota interna continua abrindo o app shell offline.
+      const control = await page.goto('/perfil');
+      expect(control?.fromServiceWorker()).toBe(true);
+      // Uma página nova por rota: depois de uma navegação com erro a página atual não serve de referência.
+      for (const prefix of SUPABASE_PATHS) {
+        const probe = await context.newPage();
+        const result = await probe.goto(`${prefix}/recurso`).then((response) => response?.fromServiceWorker() ? 'shell' : 'network', () => 'falhou');
+        await probe.close();
+        expect(result, `${prefix} offline`).toBe('falhou');
+      }
+    } finally {
+      await context.setOffline(false);
+    }
+  });
+
+  test('offline, uma alteração sensível não é confirmada e a interface informa a falha', async ({ page, context, browserName }) => {
+    test.skip(browserName === 'webkit', 'O driver WebKit do Playwright no Windows apresenta falha de IPC ao combinar setOffline com service worker.');
+    const backend = new MockBackend();
+    backend.loginResponses = [backend.authenticated()];
+    backend.statusResponse = backend.activeStatus('aal1');
+    await backend.install(page);
+    await waitForControl(page);
+    await page.getByLabel('E-mail').fill('operador-a@example.invalid');
+    await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await page.goto('/perfil');
+    await expect(page.getByLabel('Nome de exibição')).toBeVisible();
+
+    const callsBeforeOffline = backend.calls.length;
+    await context.setOffline(true);
+    // page.route responde mesmo com a emulação offline; o corte de rede real é simulado abortando o Supabase.
+    await page.route(/\/(auth|rest|storage|functions)\/v1\//, (route) => route.abort('internetdisconnected'));
+    try {
+      await page.getByLabel('Nome de exibição').fill('Nome Alterado Offline');
+      await page.getByRole('button', { name: 'Salvar nome' }).click();
+      await expect(page.getByRole('alert')).toBeVisible();
+      await expect(page.getByRole('status').filter({ hasText: /perfil atualizado/i })).toHaveCount(0);
+    } finally {
+      await context.setOffline(false);
+    }
+    expect(backend.calls.slice(callsBeforeOffline)).toEqual([]);
+  });
+
+  test('retoma o app shell depois de voltar a rede', async ({ page, context, browserName }) => {
+    test.skip(browserName === 'webkit', 'O driver WebKit do Playwright no Windows apresenta falha de IPC ao combinar setOffline com service worker.');
+    await waitForControl(page);
+    await context.setOffline(true);
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1, name: 'FluxID' })).toBeVisible();
+    await context.setOffline(false);
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
   });
 });

@@ -10,7 +10,8 @@ const TEMPLATE = join(DIR, 'template-registro-ia.md');
 const INDICE = join(DIR, 'indice.md');
 
 function git(args, fallback = '') {
-  try { return execFileSync('git', args, { encoding: 'utf8' }).trim(); }
+  // maxBuffer alto: ciclos grandes passam de 1 MB de diff e o padrão do Node faria o erro virar "diff vazio".
+  try { return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 }).trim(); }
   catch { return fallback; }
 }
 

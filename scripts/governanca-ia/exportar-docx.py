@@ -6,6 +6,8 @@ preservando integralmente a formatação, paleta de cores corporativa, tabelas e
 dos registros existentes no repositório.
 """
 
+import re
+import copy
 import sys
 import argparse
 import os
@@ -89,12 +91,42 @@ def gerar_docx(source_md, base_docx, out_registros):
 
     with open(source_md, encoding='utf-8') as source:
         markdown = source.read()
-    titulo = markdown.split('\n', 3)[1].replace('**FluxID | ', '').replace('**', '')
+
+    # Cabeçalho: **FluxID | RIA-NNN | Título**
+    cabecalho = re.search(r'^\*\*FluxID \| (RIA-\d+) \| (.+?)\*\*\s*$', markdown, re.M)
+    if not cabecalho:
+        print('Cabeçalho "**FluxID | RIA-NNN | Título**" não encontrado no Markdown.')
+        sys.exit(1)
+    nome = cabecalho.group(2)
+    titulo = f'{cabecalho.group(1)} | {nome}'
+
     valores = {}
     for line in markdown.splitlines():
         if line.startswith('- ') and ': ' in line:
             chave, valor = line[2:].split(': ', 1)
             valores[chave] = valor
+
+    def valor(*prefixos):
+        for prefixo in prefixos:
+            for chave, conteudo in valores.items():
+                if chave.lower().startswith(prefixo.lower()):
+                    return conteudo
+        return 'Não informado no registro.'
+
+    def secao(titulo_secao):
+        achado = re.search(rf'^## {re.escape(titulo_secao)}\s*\n(.*?)(?=^## |\Z)', markdown, re.M | re.S)
+        return ' '.join(achado.group(1).split()) if achado else 'Não informado no registro.'
+
+    link = re.search(r'^Link para validação da equipe:\s*(\S+)', markdown, re.M)
+    resposta = valor('Resposta gerada pela IA')
+    if link:
+        resposta = f'{resposta} Link para validação da equipe: {link.group(1)}'
+
+    decisao = valor('Decisão final').strip().lower()
+    caixas = '   '.join(('☒ ' if decisao == opcao else '☐ ') + opcao for opcao in ('utilizado', 'adaptado', 'descartado'))
+
+    spec = valor('Spec')
+    ciclo = valor('Ciclo')
 
     # 1. Atualiza os parágrafos do cabeçalho
     for p in tree.findall('.//w:body/w:p', ns):
@@ -106,60 +138,37 @@ def gerar_docx(source_md, base_docx, out_registros):
         elif text.startswith('Este documento registra'):
             for t in p.findall('.//w:t', ns):
                 if t.text and 'Este documento registra' in t.text:
-                    t.text = ('Este documento registra a implementação e validação do ciclo 01 da '
-                              'Spec 001 (Fundação técnica do FluxID) com inteligência artificial, '
-                              'cobrindo o setup técnico, resolução determinística de conectividade Supabase, '
-                              'proteção de credenciais e validação PWA/acessibilidade.')
+                    t.text = (f'Este documento registra a implementação e validação do ciclo {ciclo} da '
+                              f'Spec {spec} ({nome}) com inteligência artificial.')
 
-    # 2. Mapeamento de campos da Tabela 2 (fallback histórico e valores da fonte Markdown)
+    # 2. Campos da Tabela 2: todos vêm do Markdown; nada é herdado de registros anteriores.
     campos = {
-        'Ferramenta de IA utilizada': 'Google Antigravity (Gemini 2.5 Pro)',
-        'Objetivo do uso': ('Implementar o ciclo 01 da Spec 001 (Fundação técnica do FluxID), abrangendo o '
-                            'setup do projeto React 19 + TypeScript 7 + Vite 8 + Tailwind 4, resolução '
-                            'determinística de conectividade Supabase (local, lan, cloud), estabilidade '
-                            'de sessão, isolamento de credenciais e validação PWA/acessibilidade.'),
-        'Prompt utilizado': ('Execução do fluxo /speckit-implement sobre a especificação técnica 001 '
-                             '(specs/001-fundacao-tecnica), cobrindo as quatro histórias de usuário: '
-                             'US1 (MVP técnico com shell vazio e sem regras de domínio), US2 (resolução '
-                             'determinística sequencial de conectividade local -> lan -> cloud), US3 '
-                             '(classificação arquitetural de falhas e estabilidade da sessão) e US4 '
-                             '(adaptação multi-dispositivo PWA com conformidade WCAG 2.2 AA).'),
-        'Resposta gerada pela IA': ('Implementação completa do shell web em TypeScript/React sem regras de negócio, '
-                                    'fábrica de cliente Supabase singleton por endpoint ativo, resolvedor '
-                                    'sequencial (local -> lan -> cloud) com probe leve de saúde em /auth/v1/health, '
-                                    'classificador arquitetural de falhas impedindo fallback em erros 4xx/RLS, '
-                                    'testes de contrato/unidade/integração/E2E e configuração PWA com isolamento '
-                                    'total do cache em relação ao Supabase. Código e testes disponíveis para revisão no Pull Request: '
-                                    'https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/2'),
-        'Análise crítica da equipe': ('A equipe acompanhou a execução em regime TDD rigoroso. A arquitetura de '
-                                      'conectividade implementada respeita todas as regras da constituição do '
-                                      'FluxID: credenciais secretas nunca são expostas ao cliente, nenhuma chave '
-                                      'secreta utiliza prefixo VITE_, e erros 401/403/RLS bloqueiam transições em '
-                                      'vez de acionar fallbacks inseguros. A compatibilidade de compilação do '
-                                      'TypeScript 7 com ESLint foi solucionada de forma isolada via hook de compatibilidade.'),
-        'Validação humana realizada': ('Execução completa dos gates automatizados: tsc --noEmit (0 erros), eslint . '
-                                       '(0 avisos), 69 testes Vitest aprovados (93.39% de cobertura de linhas e 95.55% '
-                                       'de funções), 24 testes Playwright E2E aprovados em Desktop, Tablet e Mobile '
-                                       '360px sem violações axe-core críticas ou graves, e npm run build gerando bundle de produção '
-                                       'em 840 ms. Resolução integral de todos os bloqueadores da PR #2. Relatório detalhado em specs/001-fundacao-tecnica/validation.md.'),
-        'Decisão final': ('☒ utilizado   ☐ adaptado   ☐ descartado',
-                          ('a implementação atendeu integralmente aos critérios de aceitação da Spec 001, '
-                           'respeitou os princípios da constituição do FluxID e obteve aprovação total em 100% dos testes '
-                           'e medições de desempenho.')),
-        'Fontes verificadas': ('Documentação oficial do Supabase CLI e Supabase JS v2, Diretrizes WCAG 2.2 AA '
-                               'do W3C e documentação do Vite PWA Workbox.'),
-        'Identificador do registro': 'RIA-014',
-        'Data e hora da interação': '28/09/2026, 16:25:00 - America/Fortaleza',
-        'Decisões e dados pendentes': 'Nenhuma pendência declarada. Pull Request #2 aberto e vinculado à issue #1.',
-        'Responsável pela revisão da equipe': 'Alisson Almeida (Líder Técnico / Equipe FluxID)',
-        'Data da validação humana': '28/09/2026   Assinatura ou rubrica: Alisson Almeida'
+        'Ferramenta de IA utilizada': valor('Ferramenta de IA utilizada'),
+        'Objetivo do uso': valor('Objetivo do uso'),
+        'Prompt utilizado': valor('Prompt utilizado'),
+        'Resposta gerada pela IA': resposta,
+        'Análise crítica da equipe': valor('Análise crítica da equipe'),
+        'Validação humana realizada': valor('Validação humana realizada'),
+        'Decisão final': (caixas, valor('Justificativa')),
+        'Fontes verificadas': valor('Fontes verificadas'),
+        'Identificador do registro': valor('Identificador do registro'),
+        'Data e hora da interação': valor('Data e hora da interação'),
+        'Decisões e dados pendentes': secao('Decisões e dados pendentes'),
+        'Responsável pela revisão da equipe': valor('Responsável pela revisão da equipe'),
+        'Data da validação humana': valor('Data da validação humana'),
     }
 
-    for campo in list(campos):
-        for chave, valor in valores.items():
-            if campo.lower() in chave.lower() or chave.lower() in campo.lower():
-                campos[campo] = valor
-                break
+    arquivos_afetados = len(re.findall(r'^- `', markdown, re.M))
+    linhas_extras = [
+        ('Rastreabilidade técnica',
+         f"Repositório {valor('Repositório')}; branch {valor('Branch')}; Spec {spec}, ciclo {ciclo}; "
+         f"commit-base {valor('Commit-base')}; hash do diff funcional {valor('Hash do diff funcional preparado')}."),
+        ('Testes e evidências',
+         f"Comandos: {valor('Comando(s)')}. Resultado: {valor('Resultado')}. Evidência: {valor('Evidência')}"),
+        ('Arquivos e áreas afetadas',
+         f'{arquivos_afetados} arquivos. A lista completa está no Markdown de apoio do registro.'),
+        ('Observações da validação humana', valor('Observações')),
+    ]
 
     tables = tree.findall('.//w:tbl', ns)
     if len(tables) >= 3:
@@ -170,14 +179,36 @@ def gerar_docx(source_md, base_docx, out_registros):
                 label = ''.join(cells[0].itertext()).strip()
                 for key, val in campos.items():
                     if key.lower() in label.lower():
-                        if key == 'Decisão final' and isinstance(val, tuple):
+                        if key == 'Decisão final':
                             set_cell_text(cells[1], val[0], ns, is_multiline_decision=True, justification=val[1])
                         else:
                             set_cell_text(cells[1], val, ns)
                         break
 
+        # Linhas novas, clonando a formatação da última linha da tabela.
+        modelo = tbl2.findall('./w:tr', ns)[-1]
+        for rotulo, conteudo in linhas_extras:
+            linha = copy.deepcopy(modelo)
+            celulas = linha.findall('.//w:tc', ns)
+            set_cell_text(celulas[0], rotulo, ns)
+            set_cell_text(celulas[1], conteudo, ns)
+            tbl2.append(linha)
+
+    # Checklist final: reflete o estado real do Markdown em vez de um texto fixo.
+    itens_md = [(m.group(2).strip(), m.group(1).lower() == 'x')
+                for m in re.finditer(r'^- \[([ xX])\] (.+)$', markdown, re.M)]
+    if len(tables) >= 4:
+        for tc in tables[3].findall('.//w:tc', ns):
+            rotulo = ''.join(tc.itertext()).strip().lstrip('☒☐').strip()
+            if not rotulo:
+                continue
+            marcado = any(item[:12].lower() == rotulo[:12].lower() and ok for item, ok in itens_md)
+            set_cell_text(tc, f"{'☒' if marcado else '☐'} {rotulo}", ns)
+
     # 3. Atualiza core.xml
     core_str = core_content.decode('utf-8')
+    # O título do modelo é "RIA-013 Gate de registro de IA por ciclo Spec Kit"; troca o conjunto para não duplicar o prefixo.
+    core_str = core_str.replace('RIA-013 Gate de registro de IA por ciclo Spec Kit', titulo)
     core_str = core_str.replace('Gate de registro de IA por ciclo Spec Kit', titulo)
     core_str = core_str.replace('RIA-013', titulo.split('|')[0].strip())
 

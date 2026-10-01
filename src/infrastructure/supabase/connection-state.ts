@@ -33,6 +33,10 @@ export type FailureKind =
   | 'validation'
   | 'isolation'
   | 'configuration'
+  | 'tenant'
+  | 'integrity'
+  | 'incompatible_contract'
+  | 'cancelled'
   | 'unknown';
 
 /**
