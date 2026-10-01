@@ -21,3 +21,11 @@ npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 *.tsbuildinfo
+
+# Bytecode do Python (scripts de skills e exportação de DOCX)
+__pycache__/
+*.pyc
+
+# Saídas temporárias dos scripts do Spec Kit (não são entrega)
+/setup.json
+/setup-utf8.json
