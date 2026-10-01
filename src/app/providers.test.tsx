@@ -203,4 +203,26 @@ describe('Providers & Estabilidade de Sessão (História 3)', () => {
     expect(screen.getByTestId('state')).toHaveTextContent('connected');
     expect(screen.getByTestId('endpoint')).toHaveTextContent('local');
   });
+
+  // Celular na mesma rede: o loopback do Supabase local apontaria para o próprio celular (só em desenvolvimento).
+  it('em desenvolvimento, sonda o Supabase local pelo servidor da própria página, quando aberta de outro aparelho', async () => {
+    const fetchSpy = serveHosts({});
+    global.fetch = fetchSpy;
+    vi.stubGlobal('location', { ...window.location, hostname: '10.113.14.8', origin: 'http://10.113.14.8:3000' });
+    try {
+      render(
+        <Providers customEnv={createValidEnv('local')}>
+          <TestConsumer />
+        </Providers>
+      );
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 50));
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    const urls = (fetchSpy as unknown as ReturnType<typeof vi.fn>).mock.calls.map(([input]) => String(input));
+    expect(urls.length).toBeGreaterThan(0);
+    expect(urls.every((url) => url.startsWith('http://10.113.14.8:3000/supabase-local'))).toBe(true);
+  });
 });

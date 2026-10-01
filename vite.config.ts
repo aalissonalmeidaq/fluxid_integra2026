@@ -1,8 +1,11 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
+
+// Destino do repasse de desenvolvimento: o Supabase CLI desta máquina (mesmo valor de VITE_SUPABASE_LOCAL_URL).
+const SUPABASE_LOCAL = loadEnv('development', process.cwd(), 'VITE_').VITE_SUPABASE_LOCAL_URL || 'http://127.0.0.1:54321';
 
 export default defineConfig({
   plugins: [
@@ -53,5 +56,14 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    // Só em desenvolvimento: um aparelho da rede (celular) acessa o Supabase local pela porta do Vite, sem abrir o
+    // Supabase CLI para a rede. O prefixo é o mesmo de LOCAL_SUPABASE_PROXY_PATH em src/config/dev-network.ts.
+    proxy: {
+      '/supabase-local': {
+        target: SUPABASE_LOCAL,
+        changeOrigin: true,
+        rewrite: (caminho) => caminho.replace(/^\/supabase-local/, ''),
+      },
+    },
   },
 });

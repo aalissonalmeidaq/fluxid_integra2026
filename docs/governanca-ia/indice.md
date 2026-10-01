@@ -27,6 +27,8 @@
 
 | RIA-018 | 01/10/2026, 15:02:31 - America/Fortaleza | 003 | 01 | Telas e design system do FluxID | `registros/18_Telas_e_Design_System_do_FluxID.docx` (`RIA-018-telas-e-design-system-do-fluxid.md`) | utilizado |
 
+| RIA-019 | 01/10/2026, 16:42:08 - America/Fortaleza | 003 | 02 | Acesso ao Supabase local por outro aparelho da rede | `registros/19_Acesso_ao_Supabase_Local_por_Outro_Aparelho.docx` (`RIA-019-acesso-ao-supabase-local-por-outro-aparelho-da-rede.md`) | adaptado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
