@@ -34,3 +34,5 @@
 > Atualização do RIA-017: o link de revisão foi trocado pelo do pull request #3 em 30/09/2026.
 
 > Atualização do RIA-018: o link de revisão foi trocado pelo do pull request #7 em 01/10/2026.
+
+> Atualização do RIA-018: em 01/10/2026 o teste ao vivo do MFA foi repetido e aprovado, e o leitor de tela foi dispensado por decisão do responsável (não será usado no projeto atual).

@@ -17,7 +17,7 @@ Este arquivo registra o que foi validado fora dos testes unitários e o que aind
 | Diálogo com conteúdo longo em paisagem (640 por 360 px) | mesmo diálogo | Idem: rolagem por dentro do diálogo, ações alcançáveis, sem rolagem horizontal |
 | Shell offline com a fonte do precache (T075A, RNF-001, RF-030) | `tests/e2e/pwa.spec.ts`: primeira visita com o service worker ativo, recarga sem rede | O shell abriu, `document.fonts.check` da Montserrat foi verdadeiro com a face carregada do precache, o logotipo carregou e nenhuma requisição saiu para domínio externo |
 
-**Fora do alcance desta validação** (precisa de aparelho real e fica a cargo de quem conduzir a validação humana, seção 3): o teclado virtual de verdade em iOS e Android, a fonte em rede móvel lenta real e o diálogo em um celular físico em paisagem.
+**Fora do alcance desta validação** (precisa de aparelho real e fica a cargo de quem conduzir a validação humana, seção 3): o teclado virtual de verdade em iOS e Android, a fonte em rede móvel lenta real e o diálogo em um celular físico em paisagem. O leitor de tela foi dispensado por decisão de 01/10/2026 (não será usado no projeto atual).
 
 ## 2. Verificações automáticas (referência)
 
@@ -31,7 +31,7 @@ Rodadas de 01/10/2026 (T081), no Windows 11 Pro com Node.js 24.21.0, salvo onde 
 | `npm run test:coverage` | passou, mantendo os limites de `vitest.config.ts` (92,12% das instruções, 88,16% dos ramos) |
 | `npm run test:e2e` (5 projetos: desktop-chromium, tablet-webkit, tablet-768, desktop-1920, mobile-360-chromium) | 699 passaram, 20 ignorados e 0 falharam (2,7 min) |
 | `npm run test:visual:atualizar` (Linux, contêiner oficial do Playwright; gera as capturas e roda de novo só comparando) | 78 capturas (54 de telas e 24 do catálogo); a segunda rodada passou por inteiro, então as capturas são reproduzíveis |
-| `npm run test:live` (Supabase local) | 11 arquivos e 61 testes passaram |
+| `npm run test:live` (Supabase local) | 11 arquivos e 61 testes passaram; repetido em 01/10/2026 depois da correção do segundo fator (removidos do banco local os fatores de teste dos usuários global e master) e aprovado de novo, com 61 testes |
 | `npm run build` | passou, PWA com 18 entradas no precache |
 | `dist/` sem o catálogo | confirmado (nenhum arquivo de `dist/` contém o catálogo) |
 
@@ -70,7 +70,7 @@ Observação sem correção: o campo de data e hora dos filtros da auditoria apa
 | Fidelidade das telas às pranchas de [referencias/](./referencias/) | aprovado (declarado em 01/10/2026) | |
 | Fidelidade do logotipo e dos ícones às pranchas | aprovado (declarado em 01/10/2026) | Os arquivos oficiais do logotipo e do símbolo (01/10/2026) substituíram o redesenho; as versões derivadas (horizontal sem slogan, wordmark, monocromática azul e escala de cinza) dependem da aprovação da marca |
 | Legibilidade do símbolo de 16 px | aprovado (declarado em 01/10/2026) | O teste automático `tests/e2e/simbolo-16px.spec.ts` verifica formas, cobertura e largura mínima, mas não substitui o olhar humano |
-| Leitura das tabelas em cartão com leitor de tela | aprovado (declarado em 01/10/2026) | |
+| Leitura das tabelas em cartão com leitor de tela | **dispensado** | Decisão de 01/10/2026: leitor de tela não será usado no projeto atual. A estrutura de tabela (`caption`, `th scope`, rótulo por célula) continua coberta por axe e por testes de papéis; a leitura real fica fora do escopo |
 | Nenhum elemento pisca mais de três vezes por segundo em qualquer tela (RA-007) | aprovado (declarado em 01/10/2026) | A verificação automática garante que, com movimento reduzido, nenhuma animação roda; sem essa preferência, os únicos movimentos contínuos são os giros dos indicadores de carregamento e de sincronização |
 | Aprovação da linha de base visual (T078) | aprovado (declarado em 01/10/2026) | As capturas de referência só passam a bloquear regressões depois desta aprovação |
 | Teste em aparelho real (teclado virtual, rede móvel lenta, paisagem) | aprovado, sem detalhe (declarado em 01/10/2026); confirmar se foi feito em aparelho real | Ver o fim da seção 1 |
