@@ -27,3 +27,11 @@ Nenhuma dessas skills participa do runtime do navegador, do bundle de produção
 - Um conteúdo vendorizado pode ficar desatualizado ou divergir da origem. Toda atualização precisa registrar origem, revisão e hash em `skills-lock.json`.
 - Dependências de ferramentas não devem ser tratadas como dependências de runtime. O pacote de produção continua definido por `package.json` e `package-lock.json`.
 - Nenhum arquivo de terceiros deve ser removido sem confirmar consumidores e sem revisão humana.
+
+## Skills do Spec Kit para o Claude Code
+
+`.claude/skills/` guarda as dez skills do fluxo Spec Kit (`speckit-specify`, `speckit-clarify`, `speckit-plan`, `speckit-tasks`, `speckit-analyze`, `speckit-implement`, `speckit-converge`, `speckit-checklist`, `speckit-constitution` e `speckit-taskstoissues`) na versão para o Claude Code. O conteúdo é o mesmo de `.agents/skills/`; muda apenas a sintaxe de invocação dos comandos (`/speckit-...` aqui, `$speckit-...` lá).
+
+- Finalidade: permitir o fluxo obrigatório da metodologia (`docs/metodologia-desenvolvimento.md`) a quem usa o Claude Code.
+- Execução: somente desenvolvimento; não participa do bundle nem do runtime.
+- Cuidado: a pasta não deve receber configuração local (`settings.local.json`), segredos nem credenciais. Ao atualizar o Spec Kit, atualize as duas pastas juntas.
