@@ -25,7 +25,7 @@
 
 | RIA-017 | 30/09/2026, 20:14:48 - America/Fortaleza | 002 | 01 | Autenticação, multitenancy e RBAC | `registros/17_Autenticacao_Multitenancy_e_RBAC.docx` (`RIA-017-autenticacao-multitenancy-e-rbac.md`) | adaptado |
 
-| RIA-018 | 01/10/2026, 15:02:31 - America/Fortaleza | 003 | 01 | Telas e design system do FluxID | `registros/RIA-018-telas-e-design-system-do-fluxid.md` | utilizado |
+| RIA-018 | 01/10/2026, 15:02:31 - America/Fortaleza | 003 | 01 | Telas e design system do FluxID | `registros/18_Telas_e_Design_System_do_FluxID.docx` (`RIA-018-telas-e-design-system-do-fluxid.md`) | utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
@@ -34,3 +34,5 @@
 > Atualização do RIA-017: o link de revisão foi trocado pelo do pull request #3 em 30/09/2026.
 
 > Atualização do RIA-018: o link de revisão foi trocado pelo do pull request #7 em 01/10/2026.
+
+> Atualização do RIA-018: em 01/10/2026 o teste ao vivo do MFA foi repetido e aprovado, e o leitor de tela foi dispensado por decisão do responsável (não será usado no projeto atual).
