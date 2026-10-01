@@ -28,3 +28,5 @@
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
+
+> Atualização do RIA-017: o link de revisão foi trocado pelo do pull request #3 em 30/09/2026.

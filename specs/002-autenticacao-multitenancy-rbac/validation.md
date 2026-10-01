@@ -204,8 +204,8 @@ em `scripts/governanca-ia/gerar-registro-ia.mjs` com um `maxBuffer` maior, sem m
 **T141 — concluído (30/09/2026).** O responsável, Alisson Almeida, preencheu e conferiu o RIA-017: validação humana
 em ambiente local, cerca de 40 minutos, resultado conforme o esperado; decisão `adaptado`; justificativa; data; observações; e
 o checklist final, inclusive a revisão do texto. A decisão também consta no `docs/governanca-ia/indice.md`. A validação
-humana foi só no ambiente local; o link do RIA aponta para o branch e a troca pelo link do pull request continua sendo
-pendência obrigatória antes do merge.
+humana foi só no ambiente local; o link do RIA, que apontava para o branch, foi trocado pelo do pull request
+(https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/3).
 
 **T142 — gate executado.** `npm run ia:validar` rodou duas vezes. A primeira **reprovou** por dois motivos: checklist final
 incompleto (item de revisão do texto, do responsável) e decisão ausente no índice. O responsável concluiu o checklist e a

@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: O responsável pediu ao assistente, em várias rodadas: analisar spec, plano e tarefas e aplicar as correções apontadas; implementar as tarefas abertas com TDD; tratar as lacunas da convergência (limpeza de retenção, medição de desempenho, contratos e modelo de dados); e refatorar a tela de login para ficar dentro da spec, deixando o redesenho para a spec de telas e design. Nenhum pedido continha credencial, token ou dado pessoal.
 - Resposta gerada pela IA: A IA gerou o código, os testes, as migrations, as Edge Functions e a documentação do ciclo: domínio de identidade e autorização, serviços e adaptadores, telas de login, recuperação, membros, papéis, auditoria, tenants e perfil, funções de servidor, políticas RLS com testes pgTAP, suítes ao vivo contra o Supabase local, testes E2E em três projetos e um workflow agendado de limpeza de retenção. O histórico completo está no branch indicado abaixo.
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/002-autenticacao-multitenancy-rbac
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/3
 - Análise crítica da equipe: A revisão crítica da própria execução achou e corrigiu problemas que os testes verdes não mostravam: o service worker entregava o app shell para rotas de Storage e Functions quando estava offline; a função de limpeza de avatares anonimizados não tinha contrato, tarefa nem agendador; uma política de leitura duplicada em profiles pesava toda consulta; e o cabeçalho estourava 24 px em 360 px no WebKit. Uma alteração na tela de login feita fora desta sequência (botão "Entrar com Google" sem ação, imagem e fonte de terceiros, login fora do shell) derrubou o E2E; foi substituída por uma tela dentro da spec e virou teste de escopo. Os números de desempenho foram medidos só no cliente e no Supabase local, e isso está dito no validation.md. O gerador deste RIA também falhava com diffs acima de 1 MB e foi corrigido.
 - Validação humana realizada: Alisson Almeida validou os fluxos de acesso com usuários de teste no ambiente local, em uma sessão de cerca de 40 minutos: entrada, recuperação de senha, MFA, limite de sessões, troca de tenant, gestão de membros e papéis, perfil com foto e consulta de auditoria. Tudo funcionou como previsto.
 - Decisão final: adaptado
@@ -332,13 +332,13 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-1) Trocar o link do branch pelo link do pull request antes do merge. 2) T149: configurar as variáveis e o segredo do workflow de retenção no GitHub e executá-lo uma vez; sem isso os avatares anonimizados ficam no Storage. 3) T146: provar a mesma versão de contrato e schema em um destino cloud ou LAN. 4) T147: repetir a medição de desempenho fora da máquina local. 5) A validação humana de MS-004 a MS-006 foi declarada conforme o esperado, mas amostra, ambiente, duração e resultados por critério não foram informados. 6) Parâmetro p_status sem uso em create_managed_organization. 7) Perda de digitação nos primeiros milissegundos de carga. 8) Redesenho da tela de login, que depende da spec de telas e design.
+1) Link já trocado pelo do pull request. 2) T149: configurar as variáveis e o segredo do workflow de retenção no GitHub e executá-lo uma vez; sem isso os avatares anonimizados ficam no Storage. 3) T146: provar a mesma versão de contrato e schema em um destino cloud ou LAN. 4) T147: repetir a medição de desempenho fora da máquina local. 5) A validação humana de MS-004 a MS-006 foi declarada conforme o esperado, mas amostra, ambiente, duração e resultados por critério não foram informados. 6) Parâmetro p_status sem uso em create_managed_organization. 7) Perda de digitação nos primeiros milissegundos de carga. 8) Redesenho da tela de login, que depende da spec de telas e design.
 
 ## Validação humana
 
 - Responsável pela revisão da equipe: Alisson Almeida
 - Data da validação humana: 30/09/2026
-- Observações: Antes do merge, trocar o link do branch pelo do pull request. Para a retenção de avatares valer em produção, falta configurar o workflow no GitHub (T149). Continuam abertas as provas em cloud ou LAN (T146 e T147). A validação foi feita só no ambiente local.
+- Observações: Para a retenção de avatares valer em produção, falta configurar o workflow no GitHub (T149). Continuam abertas as provas em cloud ou LAN (T146 e T147). A validação foi feita só no ambiente local.
 
 ## Regras de preenchimento
 
