@@ -42,11 +42,56 @@ jobs:
       - name: Instalar binários do Playwright (Chromium e WebKit)
         run: npx playwright install --with-deps chromium webkit
 
-      - name: Testes E2E, responsividade, acessibilidade e PWA (Playwright)
+      - name: Testes E2E, responsividade, acessibilidade e PWA (Playwright, larguras de 360, 768 e 1920 px)
         run: npm run test:e2e
 
       - name: Build de produção da aplicação e PWA
         run: npm run build
+
+      - name: Build do catálogo do design system (fora do pacote de produção)
+        run: npm run catalogo:build
+
+      - name: Confirmar que o pacote de produção não contém o catálogo
+        run: |
+          if grep -rIl "Catálogo do design system" dist; then
+            echo "O catálogo não pode estar em dist/." >&2
+            exit 1
+          fi
+
+  visual:
+    name: Regressão visual (Spec 003, somente Chromium no Linux)
+    runs-on: ubuntu-latest
+    # Linha de base aprovada em 01/10/2026 (T078 da Spec 003): a comparação das capturas bloqueia regressões.
+
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Instalação reproduzível de dependências
+        run: npm ci
+
+      - name: Instalar só o Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Comparar as capturas de referência (telas e catálogo)
+        run: npm run test:visual
+
+      - name: Guardar o relatório e as capturas geradas para revisão
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regressao-visual
+          path: |
+            playwright-report/
+            test-results/
+            tests/e2e/visual/**/*-snapshots/
+          if-no-files-found: ignore
 
   supabase:
     name: Banco, RLS e Edge Functions (Supabase local)

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { ConnectivityContext, initialResult, type ConnectivityContextValue } from '@/app/connectivity-context';
 import type { AppConfig } from '@/config/environment';
 import { TenantsDashboardPage } from './tenants-dashboard-page';
@@ -28,8 +28,8 @@ describe('TenantsDashboardPage', () => {
   it('lista as organizações com o estado em português e ignora itens malformados', async () => {
     call.mockResolvedValue({ status: 200, body: { organizations: [organization('1', 'Alfa'), organization('2', 'Beta', 'suspended'), organization('3', 'Gama', 'inactive'), { id: 4 }] } });
     renderPage();
-    const list = await screen.findByRole('list', { name: 'Organizações cadastradas' });
-    expect(list.querySelectorAll('li')).toHaveLength(3);
+    const table = await screen.findByRole('table', { name: 'Organizações cadastradas' });
+    expect(within(table).getAllByRole('row')).toHaveLength(4);
     expect(screen.getByText('Ativa')).toBeInTheDocument();
     expect(screen.getByText('Suspensa')).toBeInTheDocument();
     expect(screen.getByText('Inativa')).toBeInTheDocument();
@@ -71,7 +71,7 @@ describe('TenantsDashboardPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Criar organização' }));
 
     await screen.findByText('Organização criada com sucesso.');
-    expect(screen.getByRole('list', { name: 'Organizações cadastradas' })).toHaveTextContent('Delta');
+    expect(screen.getByRole('table', { name: 'Organizações cadastradas' })).toHaveTextContent('Delta');
     expect(call).toHaveBeenLastCalledWith({ operation: 'create', legal_name: 'Delta Ltda', display_name: 'Delta', justification: 'Cadastro inicial do cliente' });
     expect(screen.queryByRole('button', { name: 'Criar organização' })).not.toBeInTheDocument();
   });
@@ -89,5 +89,46 @@ describe('TenantsDashboardPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('foi alterada por outra pessoa');
     expect(screen.getByRole('button', { name: 'Criar organização' })).toBeEnabled();
     expect(screen.queryByText('Nenhuma organização cadastrada.')).toBeInTheDocument();
+  });
+});
+
+// Spec 003: apresentação no padrão do design system, sem mudar permissões nem ações.
+describe('TenantsDashboardPage: apresentação (Spec 003)', () => {
+  it('a lista vira cartão em 360 px sem perda de informação: cada célula leva o próprio rótulo', async () => {
+    call.mockResolvedValue({ status: 200, body: { organizations: [organization('1', 'Alfa')] } });
+    renderPage();
+    const table = await screen.findByRole('table', { name: 'Organizações cadastradas' });
+    const labels = Array.from(table.querySelectorAll('tbody [data-label]')).map((cell) => cell.getAttribute('data-label'));
+    expect(labels).toEqual(['Organização', 'Razão social', 'Situação']);
+    expect(within(table).getByRole('rowheader', { name: 'Alfa' })).toBeInTheDocument();
+    expect(within(table).getByText('Ativa')).toBeInTheDocument();
+  });
+
+  it('o estado vazio usa o EmptyState do padrão com orientação', async () => {
+    call.mockResolvedValue({ status: 200, body: { organizations: [] } });
+    renderPage();
+    expect(await screen.findByRole('heading', { name: 'Nenhuma organização cadastrada.' })).toBeInTheDocument();
+    expect(screen.getByText(/nova organização/i, { selector: 'p' })).toBeInTheDocument();
+  });
+
+  it('o carregamento usa o indicador do padrão e o acesso negado usa o alerta de erro', async () => {
+    call.mockResolvedValue({ status: 403, body: { code: 'ACCESS_DENIED' } });
+    renderPage();
+    expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'secao');
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-variant', 'erro');
+  });
+
+  it('a criação confirmada pelo servidor usa o alerta de sucesso e o formulário agrupa os dados', async () => {
+    call.mockResolvedValueOnce({ status: 200, body: { organizations: [] } });
+    renderPage();
+    await screen.findByRole('heading', { name: 'Nenhuma organização cadastrada.' });
+    fireEvent.click(screen.getByRole('button', { name: 'Nova organização' }));
+    expect(screen.getByRole('group', { name: 'Nova organização' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Razão social'), { target: { value: 'Delta Ltda' } });
+    fireEvent.change(screen.getByLabelText('Nome de exibição'), { target: { value: 'Delta' } });
+    fireEvent.change(screen.getByLabelText('Justificativa'), { target: { value: 'Cadastro inicial do cliente' } });
+    call.mockResolvedValueOnce({ status: 201, body: { organization: organization('9', 'Delta') } });
+    fireEvent.click(screen.getByRole('button', { name: 'Criar organização' }));
+    expect(await screen.findByRole('status')).toHaveAttribute('data-variant', 'sucesso');
   });
 });

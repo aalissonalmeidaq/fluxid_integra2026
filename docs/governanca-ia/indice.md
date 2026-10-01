@@ -25,6 +25,8 @@
 
 | RIA-017 | 30/09/2026, 20:14:48 - America/Fortaleza | 002 | 01 | Autenticação, multitenancy e RBAC | `registros/17_Autenticacao_Multitenancy_e_RBAC.docx` (`RIA-017-autenticacao-multitenancy-e-rbac.md`) | adaptado |
 
+| RIA-018 | 01/10/2026, 15:02:31 - America/Fortaleza | 003 | 01 | Telas e design system do FluxID | `registros/RIA-018-telas-e-design-system-do-fluxid.md` | utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

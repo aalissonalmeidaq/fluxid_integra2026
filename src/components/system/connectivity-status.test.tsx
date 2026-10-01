@@ -43,7 +43,7 @@ describe('ConnectivityStatus: endpoint ativo e modo degradado (T040)', () => {
     ['probing', undefined],
   ] as const)('mantém área mínima de 44 × 44 px no estado %s', (state, endpoint) => {
     render(<ConnectivityStatus result={resultFor(state, endpoint)} />);
-    expect(screen.getByRole('status').className).toMatch(/min-h-11/);
+    expect(screen.getByRole('status').className).toMatch(/min-h-(11|alvo)/);
   });
 
   it('usa ícone distinto por severidade para não depender apenas de cor', () => {

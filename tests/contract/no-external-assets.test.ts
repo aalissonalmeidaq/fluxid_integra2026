@@ -14,8 +14,12 @@ function walk(dir: string): string[] {
   });
 }
 
+const CATALOGO = path.join(ROOT, 'catalogo');
+
 const FILES = [
   path.join(ROOT, 'index.html'),
+  // O catálogo de componentes (Spec 003) também não carrega nada de terceiros.
+  ...(fs.existsSync(CATALOGO) ? walk(CATALOGO).filter((file) => /\.(tsx?|css|html)$/.test(file)) : []),
   // src/test guarda fixtures de teste, que não chegam ao navegador.
   ...walk(path.join(ROOT, 'src')).filter(
     (file) => /\.(tsx?|css|html)$/.test(file) && !/\.test\.tsx?$/.test(file) && !file.includes(path.join('src', 'test')),
@@ -35,5 +39,12 @@ describe('Recursos de terceiros no cliente', () => {
         .map((url) => `${path.relative(ROOT, file)}: ${url}`),
     );
     expect(offenders).toEqual([]);
+  });
+
+  it('a fonte Montserrat vem de arquivo local empacotado, sem folha de estilo ou fonte remota (RF-003, RF-030)', () => {
+    const css = fs.readFileSync(path.join(ROOT, 'src', 'styles', 'montserrat.css'), 'utf8');
+    expect(css).toMatch(/montserrat-latin-wght-normal\.woff2/);
+    expect(css).not.toMatch(/fonts\.(googleapis|gstatic)\.com/);
+    expect(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8')).not.toMatch(/<link[^>]+rel=["']stylesheet["']/);
   });
 });

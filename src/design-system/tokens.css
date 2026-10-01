@@ -1,0 +1,78 @@
+/* tokens.css: gerado por scripts/design-system/gerar-tokens-css.mjs a partir de src/design-system/tokens.ts. Não edite. */
+@theme static {
+  --color-*: initial;
+  --spacing: initial;
+  --spacing-*: initial;
+  --text-*: initial;
+  --font-weight-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --breakpoint-*: initial;
+  --container-*: initial;
+  --font-serif: initial;
+  --font-mono: initial;
+  --color-azul-profundo: #1249B8;
+  --color-azul-royal: #1766D9;
+  --color-azul-ciano: #23AFE5;
+  --color-ciano-acessivel: #08709C;
+  --color-verde-vivo: #37D20A;
+  --color-verde-escuro: #159B19;
+  --color-verde-acessivel: #0F7A14;
+  --color-navy: #163B72;
+  --color-grafite: #26384A;
+  --color-branco: #FFFFFF;
+  --color-cinza-gelo: #F3F7FA;
+  --color-texto-secundario: #5B6F84;
+  --color-borda-controle: #6B7F94;
+  --color-borda-suave: #D7E2EE;
+  --color-erro: #B42318;
+  --color-erro-fundo: #FDECEA;
+  --color-alerta-texto: #7A4B00;
+  --color-alerta-fundo: #FFF4D6;
+  --color-alerta-faixa: #F5B301;
+  --color-sucesso-fundo: #E7F6EA;
+  --color-info-fundo: #E8F1FC;
+  --spacing-0: 0px;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-alvo: 44px;
+  --text-display: 64px;
+  --text-display--line-height: 1;
+  --text-h1: 48px;
+  --text-h1--line-height: 1;
+  --text-h2: 36px;
+  --text-h2--line-height: 1;
+  --text-h3: 24px;
+  --text-h3--line-height: 1.25;
+  --text-corpo: 16px;
+  --text-corpo--line-height: 1.5;
+  --text-legenda: 12px;
+  --text-legenda--line-height: 1.5;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-sans: 'Montserrat Variable', Montserrat, Arial, sans-serif;
+  --radius-controle: 8px;
+  --radius-card: 12px;
+  --shadow-card: 0 1px 2px rgba(22, 59, 114, 0.08), 0 1px 3px rgba(22, 59, 114, 0.06);
+  --shadow-dialogo: 0 8px 24px rgba(22, 59, 114, 0.16);
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+  --container-compacto: 720px;
+  --container-padrao: 960px;
+  --container-largo: 1200px;
+}
+
+:root {
+  --gradiente-azul-digital: linear-gradient(135deg, #1249B8, #23AFE5);
+  --gradiente-conexao-segura: linear-gradient(135deg, #37D20A, #1766D9);
+  --gradiente-profundidade: linear-gradient(135deg, #163B72, #1249B8);
+}

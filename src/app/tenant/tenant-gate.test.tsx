@@ -99,7 +99,7 @@ describe('TenantIndicator', () => {
     const ctx = value({ options: [optionA, optionB] });
     renderIndicator(ctx);
     const button = screen.getByRole('button', { name: /trocar organização/i });
-    expect(button.className).toMatch(/min-h-11/);
+    expect(button.className).toMatch(/min-h-(11|alvo)/);
     fireEvent.click(button);
     expect(ctx.beginSwitch).toHaveBeenCalledTimes(1);
   });

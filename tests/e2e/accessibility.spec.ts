@@ -142,7 +142,7 @@ test.describe('Acessibilidade das telas de identidade (Spec 002)', () => {
     test.skip(browserName === 'webkit', 'O driver WebKit do Playwright no Windows não encaminha Tab ao foco da página neste cenário automatizado.');
     await signIn(page, new MockBackend());
     await page.goto('/admin/membros');
-    const trigger = page.getByRole('list', { name: 'Pessoas vinculadas' }).getByRole('button').first();
+    const trigger = page.getByRole('table', { name: 'Pessoas vinculadas' }).getByRole('button').first();
     await trigger.focus();
     await page.keyboard.press('Enter');
 

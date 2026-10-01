@@ -47,7 +47,7 @@ describe('MfaPage', () => {
     const input = await screen.findByLabelText(/código de 6 dígitos/i);
     expect(input).toHaveAttribute('autocomplete', 'one-time-code');
     expect(input).toHaveAttribute('inputmode', 'numeric');
-    expect(input.className).toMatch(/min-h-11/);
+    expect(input.className).toMatch(/min-h-(11|alvo)/);
   });
 
   it('libera o acesso somente depois da confirmação da fronteira confiável', async () => {
@@ -97,5 +97,39 @@ describe('MfaPage', () => {
     await screen.findByLabelText(/código de 6 dígitos/i);
     fireEvent.click(screen.getByRole('button', { name: /sair/i }));
     expect(logout).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Spec 003: apresentação no padrão do design system, sem mudar o comportamento da verificação.
+describe('MfaPage: apresentação (Spec 003)', () => {
+  it('o carregamento usa o indicador do padrão, anunciado como status', async () => {
+    renderMfa(CHALLENGE);
+    expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'secao');
+    await screen.findByLabelText(/código de 6 dígitos/i);
+  });
+
+  it('o código incorreto usa o alerta de erro do padrão, com ícone e texto', async () => {
+    renderMfa(CHALLENGE, 'invalid_code');
+    await screen.findByLabelText(/código de 6 dígitos/i);
+    enterCode('000000');
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveAttribute('data-variant', 'erro');
+    expect(alert.querySelector('svg')).not.toBeNull();
+  });
+
+  it('o erro do campo vazio fica ligado ao campo por aria-describedby, com texto e ícone', async () => {
+    renderMfa(CHALLENGE);
+    await screen.findByLabelText(/código de 6 dígitos/i);
+    fireEvent.click(screen.getByRole('button', { name: 'Verificar' }));
+    const input = screen.getByLabelText(/código de 6 dígitos/i);
+    const error = document.getElementById(input.getAttribute('aria-describedby')!.split(' ')[0]!);
+    expect(error).toHaveTextContent(/informe o código/i);
+    expect(error?.querySelector('svg')).not.toBeNull();
+  });
+
+  it('a indisponibilidade usa o alerta de erro e a ação de tentar de novo do padrão', async () => {
+    renderMfa({ kind: 'unavailable' });
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-variant', 'erro');
+    expect(screen.getByRole('button', { name: /tentar novamente/i }).className).toMatch(/min-h-alvo/);
   });
 });

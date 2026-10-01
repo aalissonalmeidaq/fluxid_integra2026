@@ -165,16 +165,16 @@ Frontend React, TypeScript, Vite e Tailwind. Aplicativo de campo com PWA e Capac
 
 ## 13 Requisitos UX UI
 
-- identidade visual FluxID;
+- identidade visual FluxID (Montserrat, paleta oficial, logotipo e 30 ícones), hospedada no próprio aplicativo e sem recursos de terceiros (Spec 003);
 - desktop eficiente para operação densa;
 - mobile orientado à tarefa;
 - navegação acessível e consistente;
 - alvos de toque mínimos de 44 px;
 - feedback para offline, sincronização e comando pendente;
 - nenhuma confirmação física otimista;
-- formulários longos divididos em etapas;
+- formulários longos divididos em seções na mesma página, com um único envio e sem etapas que alterem o fluxo (Spec 003, RF-020);
 - tabelas adaptadas para listas no mobile;
-- design system versionado e Storybook.
+- design system versionado em `src/design-system/` (tokens com contraste e escalas verificados por teste, componentes, ativos de marca e ícones), documentado em um catálogo navegável próprio (`catalogo/`, fora do pacote de produção), sem Storybook (Spec 003).
 
 ## 14 Métricas de sucesso
 

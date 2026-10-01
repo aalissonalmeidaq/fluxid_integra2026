@@ -12,7 +12,11 @@ async function enter(page: import('@playwright/test').Page, backend: MockBackend
 test.describe('Convites e vínculos do tenant',()=>{
   test('convida e bloqueia vínculo em 360 px',async({page})=>{
     await page.setViewportSize({width:360,height:740});const backend=new MockBackend();await enter(page,backend);
-    await expect(page.getByRole('heading',{name:'Pessoas do tenant'})).toBeVisible();await expect(page.getByRole('heading',{name:'Operador A'})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'Pessoas do tenant'})).toBeVisible();await expect(page.getByRole('rowheader',{name:'Operador A'})).toBeVisible();
+    // Em 360 px a tabela vira cartões, com nomes longos sem estouro e ações de 44 px (CA-003, CA-005).
+    await expect(page.getByRole('row').nth(1)).toHaveCSS('display','block');
+    for (const acao of await page.getByRole('button',{name:/^(Bloquear|Inativar|Reativar) /}).all()) { const caixa=await acao.boundingBox(); expect(caixa?.height??0).toBeGreaterThanOrEqual(44); }
+    await expect(page.locator('html')).toHaveJSProperty('scrollWidth',360);
     await page.getByRole('button',{name:'Convidar pessoa'}).click();await page.getByLabel('E-mail do convite').fill('nova@example.invalid');await page.getByLabel('Papel inicial').selectOption('50000000-0000-0000-0000-000000000004');await page.getByLabel('Justificativa do convite').fill('Acesso aprovado pelo administrador');await page.getByRole('button',{name:'Enviar convite'}).click();await expect(page.getByRole('status').filter({hasText:/convite enviado/i})).toBeVisible();
     await page.getByRole('button',{name:'Bloquear Operador A'}).click();await page.getByLabel('Justificativa da alteração').fill('Afastamento temporário aprovado');await page.getByRole('button',{name:'Confirmar bloqueio'}).click();await expect(page.getByText('Bloqueado',{exact:true})).toBeVisible();
     await expect(page.locator('html')).toHaveJSProperty('scrollWidth',360);

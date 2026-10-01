@@ -1,5 +1,7 @@
 import React from 'react';
 import { ResolutionResult, EndpointKind } from '@/infrastructure/supabase/connection-state';
+import { Button } from '@/design-system/components/button';
+import { Icon } from '@/design-system/icons/icon';
 
 export interface ConnectivityStatusProps {
   result: ResolutionResult;
@@ -12,6 +14,8 @@ const ENDPOINT_LABELS: Record<EndpointKind, string> = {
   cloud: 'Nuvem (Cloud)',
 };
 
+const BASE = 'inline-flex min-h-alvo min-w-alvo items-center gap-2 rounded-controle border px-4 text-legenda font-medium';
+
 export function ConnectivityStatus({
   result,
   onReconnect,
@@ -22,12 +26,8 @@ export function ConnectivityStatus({
 
   if (state === 'probing') {
     return (
-      <div
-        role="status"
-        aria-live="polite"
-        className="inline-flex min-h-11 min-w-11 items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 text-amber-900 border border-amber-300"
-      >
-        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+      <div role="status" aria-live="polite" className={`${BASE} border-alerta-faixa bg-alerta-fundo text-alerta-texto`}>
+        <Icon name="sincronizar" size={16} variant="monocromatica" className="motion-safe:animate-spin" />
         <span>Verificando conectividade...</span>
       </div>
     );
@@ -35,10 +35,7 @@ export function ConnectivityStatus({
 
   if (state === 'connected') {
     return (
-      <div
-        role="status"
-        className="inline-flex min-h-11 min-w-11 items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-300"
-      >
+      <div role="status" className={`${BASE} border-verde-escuro bg-sucesso-fundo text-verde-acessivel`}>
         <span data-testid="status-icon" aria-hidden="true">●</span>
         <span>Conectado: {endpointLabel}</span>
       </div>
@@ -47,10 +44,7 @@ export function ConnectivityStatus({
 
   if (state === 'degraded') {
     return (
-      <div
-        role="status"
-        className="inline-flex min-h-11 min-w-11 flex-wrap items-center gap-x-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-yellow-100 text-yellow-900 border border-yellow-400"
-      >
+      <div role="status" className={`${BASE} flex-wrap gap-x-2 border-alerta-faixa bg-alerta-fundo text-alerta-texto`}>
         <span data-testid="status-icon" aria-hidden="true">⚠</span>
         <span>Modo degradado: {endpointLabel}</span>
         <span className="basis-full font-normal">Confirmação definitiva depende da nuvem.</span>
@@ -60,20 +54,12 @@ export function ConnectivityStatus({
 
   if (state === 'blocked') {
     return (
-      <div
-        role="alert"
-        className="inline-flex flex-wrap items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-100 text-rose-900 border border-rose-300"
-      >
-        <span className="w-2 h-2 rounded-full bg-rose-400" aria-hidden="true" />
+      <div role="alert" className={`${BASE} flex-wrap border-erro bg-erro-fundo text-erro`}>
         <span>Conexão bloqueada por erro de configuração ou autorização</span>
         {onReconnect && (
-          <button
-            type="button"
-            onClick={onReconnect}
-            className="ml-2 inline-flex min-h-11 items-center underline text-rose-900 hover:text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-700 rounded px-1"
-          >
+          <Button variant="secundario" onClick={onReconnect}>
             Tentar reconectar
-          </button>
+          </Button>
         )}
       </div>
     );
@@ -81,27 +67,19 @@ export function ConnectivityStatus({
 
   if (state === 'offline') {
     return (
-      <div
-        role="alert"
-        className="inline-flex flex-wrap items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-800 border border-slate-300"
-      >
-        <span className="w-2 h-2 rounded-full bg-slate-400" aria-hidden="true" />
+      <div role="alert" className={`${BASE} flex-wrap border-borda-controle bg-branco text-grafite`}>
         <span>Sem conexão (Offline)</span>
         {onReconnect && (
-          <button
-            type="button"
-            onClick={onReconnect}
-            className="ml-2 inline-flex min-h-11 items-center underline text-slate-900 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-700 rounded px-1"
-          >
+          <Button variant="secundario" onClick={onReconnect}>
             Reconectar
-          </button>
+          </Button>
         )}
       </div>
     );
   }
 
   return (
-    <div role="status" className="text-xs text-slate-500">
+    <div role="status" className="text-legenda text-texto-secundario">
       Inicializando...
     </div>
   );

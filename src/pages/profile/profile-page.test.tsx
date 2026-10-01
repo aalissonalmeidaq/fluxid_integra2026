@@ -189,7 +189,33 @@ describe('ProfilePage: avatar', () => {
   it('usa alvos de toque de 44 px e rótulos visíveis', async () => {
     renderScreen();
     await screen.findByLabelText('Nome de exibição');
-    for (const name of ['Salvar nome', 'Remover foto']) expect(screen.getByRole('button', { name }).className).toMatch(/min-h-11/);
-    expect(screen.getByLabelText('Nome de exibição').className).toMatch(/min-h-11/);
+    for (const name of ['Salvar nome', 'Remover foto']) expect(screen.getByRole('button', { name }).className).toMatch(/min-h-(11|alvo)/);
+    expect(screen.getByLabelText('Nome de exibição').className).toMatch(/min-h-(11|alvo)/);
+  });
+});
+
+// Spec 003: apresentação no padrão do design system, sem mudar validações nem o fluxo de envio do avatar.
+describe('ProfilePage: apresentação (Spec 003)', () => {
+  it('o carregamento usa o indicador do padrão', () => {
+    renderScreen();
+    expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'secao');
+  });
+
+  it('a falha de carregamento usa o alerta de erro do padrão', async () => {
+    renderScreen(null);
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-variant', 'erro');
+  });
+
+  it('agrupa os dados pessoais em uma seção de formulário com legenda', async () => {
+    renderScreen();
+    expect(await screen.findByRole('group', { name: 'Dados pessoais' })).toBeInTheDocument();
+  });
+
+  it('o sucesso usa o alerta de sucesso do padrão e o foco vai até ele', async () => {
+    renderScreen();
+    fireEvent.click(await screen.findByRole('button', { name: 'Salvar nome' }));
+    const status = await screen.findByRole('status');
+    expect(status).toHaveAttribute('data-variant', 'sucesso');
+    expect(status).toHaveFocus();
   });
 });

@@ -211,7 +211,52 @@ describe('TenantRolesPage: ativação e atribuição', () => {
     renderView();
     await screen.findByRole('heading', { name: 'Auditor interno' });
     for (const name of ['Novo papel', 'Editar Auditor interno', 'Inativar Auditor interno', 'Atribuir papel a Beto Operador']) {
-      expect(screen.getByRole('button', { name }).className).toMatch(/min-h-11/);
+      expect(screen.getByRole('button', { name }).className).toMatch(/min-h-(11|alvo)/);
     }
+  });
+});
+
+// Spec 003: apresentação no padrão do design system, sem mudar permissões, ações nem a justificativa obrigatória.
+describe('TenantRolesPage: apresentação (Spec 003)', () => {
+  it('papéis em cartões da lista do padrão, com tipo e estado nos indicadores', async () => {
+    renderView();
+    const list = await screen.findByRole('list', { name: 'Papéis do tenant' });
+    expect(list).toHaveAttribute('data-variant', 'cartoes');
+    const custom = screen.getByRole('heading', { name: 'Auditor interno' }).closest('li')!;
+    expect(within(custom).getByText('Personalizado').closest('[data-variant]')).not.toBeNull();
+    expect(within(custom).getByText('Ativo').closest('[data-variant]')).toHaveAttribute('data-variant', 'ativo');
+  });
+
+  it('o formulário longo vira seções na mesma página com um único envio, sem etapas', async () => {
+    renderView();
+    await screen.findByRole('heading', { name: 'Auditor interno' });
+    fireEvent.click(screen.getByRole('button', { name: 'Novo papel' }));
+    const form = screen.getByRole('group', { name: 'Dados do papel' }).closest('form')!;
+    expect(within(form).getByRole('group', { name: 'Permissões do papel' })).toBeInTheDocument();
+    expect(within(form).getByRole('group', { name: 'Justificativa' })).toBeInTheDocument();
+    expect(within(form).getAllByRole('button')).toHaveLength(1);
+    expect(within(form).getByRole('button', { name: 'Salvar papel' })).toHaveAttribute('type', 'submit');
+  });
+
+  it('o carregamento usa o indicador do padrão e o acesso negado usa o alerta de erro', async () => {
+    renderView(fakeServices({ list: vi.fn(async () => ({ kind: 'access_denied' })) }));
+    expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'secao');
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-variant', 'erro');
+  });
+
+  it('o estado vazio usa o EmptyState do padrão', async () => {
+    renderView(fakeServices({ list: vi.fn(async () => ({ kind: 'success', value: { roles: [], permissions: [], assignments: [] } })) }));
+    expect(await screen.findByRole('heading', { name: /nenhum papel disponível/i })).toBeInTheDocument();
+  });
+
+  it('as ações têm alvo de 44 px e o sucesso usa o alerta de sucesso', async () => {
+    renderView();
+    await screen.findByRole('heading', { name: 'Auditor interno' });
+    expect(screen.getByRole('button', { name: 'Editar Auditor interno' }).className).toMatch(/min-h-alvo/);
+    fireEvent.click(screen.getByRole('button', { name: 'Novo papel' }));
+    fill('Nome do papel', 'Conferente');
+    fill('Justificativa do papel', JUSTIFICATION);
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar papel' }));
+    expect(await screen.findByRole('status')).toHaveAttribute('data-variant', 'sucesso');
   });
 });

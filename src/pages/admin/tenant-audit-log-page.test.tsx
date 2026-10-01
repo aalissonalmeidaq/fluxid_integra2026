@@ -50,11 +50,13 @@ describe('AuditLogPage: leitura', () => {
     expect(time.textContent).toMatch(/\d{2}\/\d{2}\/\d{4}/);
   });
 
-  it('usa legenda na tabela, cabeçalhos de coluna e uma lista equivalente para telas pequenas', async () => {
+  it('usa legenda na tabela e cabeçalhos de coluna, em uma única árvore que vira cartões em telas pequenas', async () => {
     renderView();
     await within(await findTable()).findAllByRole('row');
     expect(within(table()).getAllByRole('columnheader').map((header) => header.textContent)).toEqual(['Data e hora', 'Ator', 'Ação', 'Alvo', 'Resultado', 'Detalhes']);
-    expect(screen.getByRole('list', { name: /eventos em lista/i })).toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: /eventos em lista/i })).not.toBeInTheDocument();
+    const cells = Array.from(table().querySelectorAll('tbody tr:first-child [data-label]')).map((cell) => cell.getAttribute('data-label'));
+    expect(cells).toEqual(['Data e hora', 'Ator', 'Ação', 'Alvo', 'Resultado', 'Detalhes']);
   });
 
   it('mostra metadados permitidos como texto legível e nunca JSON bruto', async () => {
@@ -203,13 +205,51 @@ describe('AuditLogPage: acessibilidade', () => {
   it('usa rótulos visíveis e alvos de toque de 44 px', async () => {
     renderView();
     await within(await findTable()).findAllByRole('row');
-    for (const label of ['De', 'Até', 'Ação', 'Resultado', 'Tipo de alvo']) expect(screen.getByLabelText(label).className).toMatch(/min-h-11/);
-    for (const name of ['Filtrar', 'Limpar filtros']) expect(screen.getByRole('button', { name }).className).toMatch(/min-h-11/);
+    for (const label of ['De', 'Até', 'Ação', 'Resultado', 'Tipo de alvo']) expect(screen.getByLabelText(label).className).toMatch(/min-h-(11|alvo)/);
+    for (const name of ['Filtrar', 'Limpar filtros']) expect(screen.getByRole('button', { name }).className).toMatch(/min-h-(11|alvo)/);
   });
 
   it('anuncia a quantidade de eventos exibidos em uma região de status', async () => {
     renderView();
     await within(await findTable()).findAllByRole('row');
     expect(screen.getByRole('status')).toHaveTextContent(/3 eventos/i);
+  });
+});
+
+// Spec 003: apresentação no padrão do design system, sem alterar filtros, paginação nem consultas.
+describe('AuditLogPage: apresentação (Spec 003)', () => {
+  it('o carregamento usa o indicador do padrão', () => {
+    renderView();
+    expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'secao');
+  });
+
+  it('a consulta sem eventos mostra o EmptyState do padrão com orientação', async () => {
+    renderView(fakeService([page([])]));
+    expect(await screen.findByRole('heading', { name: /nenhum evento encontrado/i })).toBeInTheDocument();
+    expect(screen.getByText(/ajuste os filtros/i)).toBeInTheDocument();
+  });
+
+  it('o resultado de cada evento usa o indicador do padrão, sempre com texto', async () => {
+    renderView();
+    const row = (await within(await findTable()).findAllByRole('row'))[2]!;
+    expect(within(row).getByText('Negado').closest('[data-variant]')).toHaveAttribute('data-variant', 'pendente');
+  });
+
+  it('filtro inválido gera erro com texto e ícone associado ao campo e não consulta', async () => {
+    const service = renderView()!;
+    await within(await findTable()).findAllByRole('row');
+    fireEvent.change(screen.getByLabelText('Ação'), { target: { value: 'ação inválida!' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Filtrar' }));
+    const field = screen.getByLabelText('Ação');
+    const error = document.getElementById(field.getAttribute('aria-describedby')!.split(' ')[0]!);
+    expect(error).toHaveTextContent(/letras minúsculas/i);
+    expect(error?.querySelector('svg')).not.toBeNull();
+    expect(service.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('as falhas usam o alerta de erro do padrão e os filtros ficam em uma seção de formulário', async () => {
+    renderView(fakeService([{ kind: 'access_denied' }]));
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-variant', 'erro');
+    expect(screen.getByRole('group', { name: 'Filtros' })).toBeInTheDocument();
   });
 });

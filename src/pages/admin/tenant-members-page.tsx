@@ -8,16 +8,8 @@ import {
 import { useConnectivity } from '@/app/connectivity-context';
 import { useTenant } from '@/app/tenant/tenant-context';
 import { createMembershipTransport } from '@/infrastructure/supabase/membership-adapter';
-import {
-  ConfirmationDialog,
-  MAX_JUSTIFICATION,
-  MIN_JUSTIFICATION,
-  fieldClass,
-  primaryButtonClass,
-  secondaryButtonClass,
-  textareaClass,
-} from '@/components/identity/confirmation-dialog';
-import { FormField } from '@/components/identity/form-field';
+import { ConfirmationDialog, MAX_JUSTIFICATION, MIN_JUSTIFICATION, textareaClass } from '@/components/identity/confirmation-dialog';
+import { Alert, Button, Card, DataTable, Field, FormSection, Select, StatusBadge, TextField, type ColunaDaTabela, type StatusBadgeVariant } from '@/design-system';
 
 type TargetStatus = 'active' | 'blocked' | 'inactive';
 type Feedback = { kind: 'success' | 'error'; message: string };
@@ -27,12 +19,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const STATUS_LABELS: Record<string, string> = { active: 'Ativo', blocked: 'Bloqueado', inactive: 'Inativo', invited: 'Convidado' };
-const STATUS_STYLES: Record<string, string> = {
-  active: 'bg-green-100 text-green-900',
-  blocked: 'bg-rose-100 text-rose-900',
-  inactive: 'bg-slate-200 text-slate-900',
-  invited: 'bg-amber-100 text-amber-950',
-};
+const STATUS_VARIANTS: Record<string, StatusBadgeVariant> = { active: 'ativo', blocked: 'bloqueado', inactive: 'bloqueado', invited: 'pendente' };
 
 const ACTION_COPY: Record<TargetStatus, { verb: string; confirm: string }> = {
   blocked: { verb: 'Bloquear', confirm: 'Confirmar bloqueio' },
@@ -137,76 +124,73 @@ export function TenantMembersView({ organizationId, service }: TenantMembersView
     setFeedback({ kind: 'success', message: `${target.member.display_name || target.member.email}: vínculo atualizado para ${STATUS_LABELS[status] ?? status}.` });
   };
 
+  const columns: readonly ColunaDaTabela<MemberSummary>[] = [
+    { id: 'pessoa', cabecalho: 'Pessoa', cabecalhoDaLinha: true, celula: (member) => member.display_name || member.email },
+    { id: 'email', cabecalho: 'E-mail', celula: (member) => member.email },
+    { id: 'situacao', cabecalho: 'Situação', celula: (member) => <StatusBadge variant={STATUS_VARIANTS[member.status] ?? 'bloqueado'}>{STATUS_LABELS[member.status] ?? member.status}</StatusBadge> },
+    {
+      id: 'acoes',
+      cabecalho: 'Ações',
+      celula: (member) => {
+        const name = member.display_name || member.email;
+        return (
+          <div className="flex flex-wrap gap-2">
+            {actionsFor(member.status).map((next) => (
+              <Button key={next} variant="secundario" onClick={(event) => setChange({ member, next, trigger: event.currentTarget })}>
+                {ACTION_COPY[next].verb} {name}
+              </Button>
+            ))}
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
-    <section aria-labelledby="members-title" className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section aria-labelledby="members-title" className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#1766D9]">Administração do tenant</p>
-          <h2 id="members-title" className="mt-1 text-2xl font-bold text-[#163B72]">Pessoas do tenant</h2>
-          <p className="mt-1 text-sm">Convide pessoas e gerencie o acesso delas apenas nesta organização.</p>
+          <p className="text-legenda font-semibold uppercase text-azul-profundo">Administração do tenant</p>
+          <h2 id="members-title" className="mt-1 text-h2 font-bold text-navy">Pessoas do tenant</h2>
+          <p className="mt-1 text-corpo">Convide pessoas e gerencie o acesso delas apenas nesta organização.</p>
         </div>
-        <button type="button" disabled={!service} aria-expanded={showInvite} onClick={() => setShowInvite((visible) => !visible)} className={`${primaryButtonClass} disabled:cursor-not-allowed disabled:opacity-60`}>
+        <Button className="tablet:shrink-0 tablet:whitespace-nowrap" disabled={!service} aria-expanded={showInvite} onClick={() => setShowInvite((visible) => !visible)}>
           Convidar pessoa
-        </button>
+        </Button>
       </div>
 
-      {feedback && (
-        <div ref={feedbackRef} tabIndex={-1} role={feedback.kind === 'error' ? 'alert' : 'status'}
-          className={`rounded-lg border p-3 text-sm outline-none focus-visible:ring-2 ${feedback.kind === 'error' ? 'border-rose-300 bg-rose-50 text-rose-950 focus-visible:ring-rose-800' : 'border-green-300 bg-green-50 text-green-950 focus-visible:ring-green-800'}`}>
-          {feedback.message}
-        </div>
-      )}
+      {feedback && <Alert ref={feedbackRef} tabIndex={-1} variant={feedback.kind === 'error' ? 'erro' : 'sucesso'}>{feedback.message}</Alert>}
 
       {showInvite && (
-        <form noValidate onSubmit={(event) => void submitInvite(event)} className="rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm sm:p-6">
-          <h3 className="text-lg font-semibold text-[#163B72]">Novo convite</h3>
-          <p className="mt-1 text-sm">O convite vale por 72 horas e só concede acesso depois de aceito.</p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <FormField label="E-mail do convite" error={inviteErrors.email}>
-              {(control) => <input {...control} name="email" type="email" autoComplete="off" maxLength={254} className={fieldClass} />}
-            </FormField>
-            <FormField label="Papel inicial" error={inviteErrors.roleId}>
-              {(control) => (
-                <select {...control} name="roleId" defaultValue="" className={fieldClass}>
+        <Card>
+          <form noValidate onSubmit={(event) => void submitInvite(event)} className="flex flex-col gap-4">
+            <FormSection legend="Novo convite" description="O convite vale por 72 horas e só concede acesso depois de aceito.">
+              <div className="grid gap-4 tablet:grid-cols-2">
+                <TextField label="E-mail do convite" name="email" type="email" autoComplete="off" maxLength={254} error={inviteErrors.email} />
+                <Select label="Papel inicial" name="roleId" defaultValue="" error={inviteErrors.roleId}>
                   <option value="" disabled>Selecione um papel</option>
                   {roles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
-                </select>
-              )}
-            </FormField>
-            <FormField label="Justificativa do convite" error={inviteErrors.justification} className="sm:col-span-2">
-              {(control) => <textarea {...control} name="justification" rows={3} maxLength={MAX_JUSTIFICATION} className={textareaClass} />}
-            </FormField>
-          </div>
-          <button disabled={sending} className={`mt-4 ${primaryButtonClass} disabled:cursor-wait disabled:opacity-60`}>{sending ? 'Enviando…' : 'Enviar convite'}</button>
-        </form>
+                </Select>
+                <Field label="Justificativa do convite" error={inviteErrors.justification} className="tablet:col-span-2">
+                  {(control) => <textarea {...control} name="justification" rows={3} maxLength={MAX_JUSTIFICATION} className={textareaClass} />}
+                </Field>
+              </div>
+            </FormSection>
+            <Button type="submit" disabled={sending} className="self-start">{sending ? 'Enviando…' : 'Enviar convite'}</Button>
+          </form>
+        </Card>
       )}
 
-      {loading ? <p role="status" aria-live="polite">Carregando pessoas…</p> : members.length === 0 ? (
-        !feedback && <p className="rounded-xl border border-dashed border-[#8CA2B8] bg-white p-6 text-sm">Nenhuma pessoa vinculada a este tenant.</p>
-      ) : (
-        <ul className="grid gap-3 md:grid-cols-2" aria-label="Pessoas vinculadas">
-          {members.map((member) => {
-            const name = member.display_name || member.email;
-            return (
-              <li key={member.id} className="min-w-0 rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <h3 className="break-words font-semibold text-[#163B72]">{name}</h3>
-                    <p className="break-words text-sm">{member.email}</p>
-                  </div>
-                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${STATUS_STYLES[member.status] ?? STATUS_STYLES.inactive}`}>{STATUS_LABELS[member.status] ?? member.status}</span>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {actionsFor(member.status).map((next) => (
-                    <button key={next} type="button" onClick={(event) => setChange({ member, next, trigger: event.currentTarget })} className={secondaryButtonClass}>
-                      {ACTION_COPY[next].verb} {name}
-                    </button>
-                  ))}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+      {!(feedback && !loading && members.length === 0) && (
+        <DataTable
+          legenda="Pessoas vinculadas"
+          colunas={columns}
+          linhas={members}
+          chaveDaLinha={(member) => member.id}
+          carregando={loading}
+          textoDeCarregamento="Carregando pessoas…"
+          vazio={{ title: 'Nenhuma pessoa vinculada a este tenant.', description: 'Convide a primeira pessoa com o botão Convidar pessoa. O acesso só vale depois de o convite ser aceito.' }}
+        />
       )}
 
       {change && (

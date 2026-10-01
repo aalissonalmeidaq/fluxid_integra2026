@@ -12,18 +12,22 @@ import {
 import { useConnectivity } from '@/app/connectivity-context';
 import { useTenant } from '@/app/tenant/tenant-context';
 import { createFunctionTransport } from '@/infrastructure/supabase/function-transport';
-import { FormField } from '@/components/identity/form-field';
-import { fieldClass, primaryButtonClass, secondaryButtonClass } from '@/components/identity/confirmation-dialog';
+import { Alert, Button, Card, DataTable, FormSection, Select, StatusBadge, TextField, type ColunaDaTabela, type StatusBadgeVariant } from '@/design-system';
 
 const PAGE_SIZE = 50;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const RESULT_LABELS: Record<AuditResult, string> = { success: 'Sucesso', denied: 'Negado', failed: 'Falha' };
-const RESULT_STYLES: Record<AuditResult, string> = {
-  success: 'bg-green-100 text-green-900',
-  denied: 'bg-amber-100 text-amber-950',
-  failed: 'bg-rose-100 text-rose-900',
-};
+const RESULT_VARIANTS: Record<AuditResult, StatusBadgeVariant> = { success: 'ativo', denied: 'pendente', failed: 'erro' };
+
+const COLUNAS: readonly ColunaDaTabela<AuditEventView>[] = [
+  { id: 'data', cabecalho: 'Data e hora', celula: (item) => <time dateTime={item.occurredAt}>{formatDate(item.occurredAt)}</time> },
+  { id: 'ator', cabecalho: 'Ator', celula: (item) => item.actor.displayName ?? 'Sistema' },
+  { id: 'acao', cabecalho: 'Ação', celula: (item) => <code>{item.action}</code> },
+  { id: 'alvo', cabecalho: 'Alvo', celula: (item) => `${item.targetType}${item.targetId ? ` · ${item.targetId}` : ''}` },
+  { id: 'resultado', cabecalho: 'Resultado', celula: (item) => <StatusBadge variant={RESULT_VARIANTS[item.result]}>{RESULT_LABELS[item.result]}</StatusBadge> },
+  { id: 'detalhes', cabecalho: 'Detalhes', celula: (item) => describe(item).map((line) => <p key={line} className="break-words">{line}</p>) },
+];
 
 const LOAD_FAILURES: Record<AuditFailure, string> = {
   access_denied: 'Acesso negado. Você precisa da permissão de consulta de auditoria.',
@@ -156,86 +160,54 @@ export function AuditLogView({ scope, organizationId, service }: AuditLogViewPro
   const summary = loadingMore ? 'Carregando mais eventos…' : `${events.length} ${events.length === 1 ? 'evento exibido' : 'eventos exibidos'}.`;
 
   return (
-    <section aria-labelledby="audit-title" className="space-y-5">
+    <section aria-labelledby="audit-title" className="flex flex-col gap-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#1766D9]">{scope === 'global' ? 'Administração global' : 'Administração do tenant'}</p>
-        <h2 id="audit-title" className="mt-1 text-2xl font-bold text-[#163B72]">{title}</h2>
-        <p className="mt-1 text-sm">Somente leitura: a trilha de auditoria não pode ser alterada nem excluída.</p>
+        <p className="text-legenda font-semibold uppercase text-azul-profundo">{scope === 'global' ? 'Administração global' : 'Administração do tenant'}</p>
+        <h2 id="audit-title" className="mt-1 text-h2 font-bold text-navy">{title}</h2>
+        <p className="mt-1 text-corpo">Somente leitura: a trilha de auditoria não pode ser alterada nem excluída.</p>
       </div>
 
-      <form noValidate onSubmit={submit} className="rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm sm:p-6">
-        <h3 className="text-lg font-semibold text-[#163B72]">Filtros</h3>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <FormField label="De" error={errors.from}>{(control) => <input {...control} type="datetime-local" value={draft.from} onChange={(event) => set('from', event.target.value)} className={fieldClass} />}</FormField>
-          <FormField label="Até" error={errors.to}>{(control) => <input {...control} type="datetime-local" value={draft.to} onChange={(event) => set('to', event.target.value)} className={fieldClass} />}</FormField>
-          <FormField label="Ação" error={errors.action}>{(control) => <input {...control} value={draft.action} maxLength={64} placeholder="role.create" onChange={(event) => set('action', event.target.value)} className={fieldClass} />}</FormField>
-          <FormField label="Resultado">
-            {(control) => (
-              <select {...control} value={draft.result} onChange={(event) => set('result', event.target.value as Draft['result'])} className={fieldClass}>
+      <Card>
+        <form noValidate onSubmit={submit} className="flex flex-col gap-4">
+          <FormSection legend="Filtros">
+            <div className="grid gap-4 tablet:grid-cols-2 desktop:grid-cols-3">
+              <TextField label="De" type="datetime-local" value={draft.from} onChange={(event) => set('from', event.target.value)} error={errors.from} />
+              <TextField label="Até" type="datetime-local" value={draft.to} onChange={(event) => set('to', event.target.value)} error={errors.to} />
+              <TextField label="Ação" value={draft.action} maxLength={64} placeholder="role.create" onChange={(event) => set('action', event.target.value)} error={errors.action} />
+              <Select label="Resultado" value={draft.result} onChange={(event) => set('result', event.target.value as Draft['result'])}>
                 <option value="">Todos</option>
                 <option value="success">Sucesso</option>
                 <option value="denied">Negado</option>
                 <option value="failed">Falha</option>
-              </select>
-            )}
-          </FormField>
-          <FormField label="Tipo de alvo" error={errors.targetType}>{(control) => <input {...control} value={draft.targetType} maxLength={40} placeholder="role" onChange={(event) => set('targetType', event.target.value)} className={fieldClass} />}</FormField>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button className={primaryButtonClass}>Filtrar</button>
-          <button type="button" onClick={clear} className={secondaryButtonClass}>Limpar filtros</button>
-        </div>
-      </form>
-
-      {message && (
-        <div ref={alertRef} role="alert" tabIndex={-1} className="rounded-lg border border-rose-300 bg-rose-50 p-3 text-sm text-rose-950 outline-none focus-visible:ring-2 focus-visible:ring-rose-800">{message}</div>
-      )}
-
-      {loading && !unavailable ? <p role="status" aria-live="polite">Carregando eventos…</p> : (events.length === 0 && message === null) ? (
-        <p className="rounded-xl border border-dashed border-[#8CA2B8] bg-white p-6 text-sm">Nenhum evento encontrado para os filtros informados.</p>
-      ) : events.length > 0 ? (
-        <>
-          <p role="status" aria-live="polite" className="text-sm">{summary}</p>
-
-          <div className="hidden md:block">
-            <table className="w-full border-collapse overflow-hidden rounded-xl border border-[#D7E2EE] bg-white text-left text-sm">
-              <caption className="sr-only">Eventos de auditoria</caption>
-              <thead className="bg-[#F3F7FA] text-[#163B72]">
-                <tr>{['Data e hora', 'Ator', 'Ação', 'Alvo', 'Resultado', 'Detalhes'].map((heading) => <th key={heading} scope="col" className="px-3 py-2 font-semibold">{heading}</th>)}</tr>
-              </thead>
-              <tbody>
-                {events.map((item) => (
-                  <tr key={item.id} className="border-t border-[#D7E2EE] align-top">
-                    <td className="px-3 py-2"><time dateTime={item.occurredAt}>{formatDate(item.occurredAt)}</time></td>
-                    <td className="px-3 py-2">{item.actor.displayName ?? 'Sistema'}</td>
-                    <td className="px-3 py-2"><code>{item.action}</code></td>
-                    <td className="px-3 py-2 break-words">{item.targetType}{item.targetId ? ` · ${item.targetId}` : ''}</td>
-                    <td className="px-3 py-2"><span className={`rounded-full px-2 py-1 text-xs font-semibold ${RESULT_STYLES[item.result]}`}>{RESULT_LABELS[item.result]}</span></td>
-                    <td className="px-3 py-2">{describe(item).map((line) => <p key={line} className="break-words">{line}</p>)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              </Select>
+              <TextField label="Tipo de alvo" value={draft.targetType} maxLength={40} placeholder="role" onChange={(event) => set('targetType', event.target.value)} error={errors.targetType} />
+            </div>
+          </FormSection>
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit">Filtrar</Button>
+            <Button variant="secundario" onClick={clear}>Limpar filtros</Button>
           </div>
+        </form>
+      </Card>
 
-          <ul aria-label="Eventos em lista" className="space-y-3 md:hidden">
-            {events.map((item) => (
-              <li key={item.id} className="min-w-0 rounded-xl border border-[#D7E2EE] bg-white p-4 shadow-sm">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <p className="font-semibold text-[#163B72]"><code>{item.action}</code></p>
-                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${RESULT_STYLES[item.result]}`}>{RESULT_LABELS[item.result]}</span>
-                </div>
-                <p className="mt-1 text-sm"><time dateTime={item.occurredAt}>{formatDate(item.occurredAt)}</time> · {item.actor.displayName ?? 'Sistema'}</p>
-                <p className="break-words text-sm">{item.targetType}{item.targetId ? ` · ${item.targetId}` : ''}</p>
-                <div className="mt-1 text-sm">{describe(item).map((line) => <p key={line} className="break-words">{line}</p>)}</div>
-              </li>
-            ))}
-          </ul>
+      {message && <Alert ref={alertRef} tabIndex={-1} variant="erro">{message}</Alert>}
 
-          {next && (
-            <button type="button" disabled={loadingMore} onClick={() => void loadMore()} className={`${secondaryButtonClass} disabled:cursor-wait disabled:opacity-60`}>
+      {message === null || events.length > 0 || (loading && !unavailable) ? (
+        <>
+          {events.length > 0 && !loading && <p role="status" aria-live="polite" className="text-corpo">{summary}</p>}
+          <DataTable
+            legenda="Eventos de auditoria"
+            colunas={COLUNAS}
+            linhas={events}
+            chaveDaLinha={(item) => String(item.id)}
+            carregando={loading && !unavailable}
+            textoDeCarregamento="Carregando eventos…"
+            vazio={{ title: 'Nenhum evento encontrado para os filtros informados.', description: 'Ajuste os filtros ou amplie o período e consulte de novo.' }}
+          />
+          {events.length > 0 && next && (
+            <Button variant="secundario" disabled={loadingMore} onClick={() => void loadMore()} className="self-start">
               {loadingMore ? 'Carregando mais eventos…' : 'Carregar mais eventos'}
-            </button>
+            </Button>
           )}
         </>
       ) : null}

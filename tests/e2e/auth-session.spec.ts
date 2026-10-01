@@ -175,4 +175,40 @@ test.describe('Autenticação e sessão (US1)', () => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
   });
+
+  // CA-006 e MS-004: o percurso de entrada e de recuperação opera só pelo teclado, em qualquer largura de referência.
+  test('entra e abre a recuperação só pelo teclado, com o link de pular como primeiro item', async ({ page, browserName }) => {
+    test.skip(browserName === 'webkit', 'O WebKit não encaminha Tab no Windows.');
+    const backend = new MockBackend();
+    backend.loginResponses = [backend.authenticated()];
+    backend.statusResponse = backend.activeStatus();
+    await open(page, backend);
+    await page.getByRole('heading', { name: 'Entrar no FluxID' }).waitFor();
+
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Pular para o conteúdo principal' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('main')).toBeFocused();
+
+    await page.keyboard.press('Tab');
+    await expect(page.getByLabel('E-mail')).toBeFocused();
+    await page.keyboard.type('ana@e2e.invalid');
+    await page.keyboard.press('Tab');
+    await expect(page.getByLabel('Senha', { exact: true })).toBeFocused();
+    await page.keyboard.type('Senha-E2E-Forte-1');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { name: 'Fundação Técnica Ativa' })).toBeVisible();
+  });
+
+  test('chega à recuperação de acesso e volta só pelo teclado', async ({ page, browserName }) => {
+    test.skip(browserName === 'webkit', 'O WebKit não encaminha Tab no Windows.');
+    await open(page, new MockBackend());
+    await page.getByRole('heading', { name: 'Entrar no FluxID' }).waitFor();
+    await page.getByRole('button', { name: 'Esqueci minha senha' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { name: 'Recuperar acesso' })).toBeVisible();
+    await page.getByRole('button', { name: 'Voltar para entrar' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+  });
 });

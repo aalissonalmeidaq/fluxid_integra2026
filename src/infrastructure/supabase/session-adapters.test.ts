@@ -87,9 +87,9 @@ describe('createMfaClient', () => {
       unenroll: vi.fn(async () => ({ error: null })),
     };
     const adapter = createMfaClient({ auth: { mfa } } as unknown as SupabaseClient);
-    await adapter.enroll();
+    await adapter.enroll({ friendlyName: 'FluxID teste' });
     await adapter.verify({ factorId: 'f', challengeId: 'c', code: '123456' });
-    expect(mfa.enroll).toHaveBeenCalledWith({ factorType: 'totp' });
+    expect(mfa.enroll).toHaveBeenCalledWith({ factorType: 'totp', friendlyName: 'FluxID teste' });
     expect(mfa.verify).toHaveBeenCalledWith({ factorId: 'f', challengeId: 'c', code: '123456' });
   });
 });

@@ -144,3 +144,46 @@ describe('RecoveryConfirmPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 });
+
+// Spec 003: apresentação no padrão do design system, sem mudar mensagens nem comportamento.
+describe('Recuperação de acesso: apresentação (Spec 003)', () => {
+  it('a confirmação da solicitação usa o alerta de sucesso do padrão, com foco e a mensagem genérica', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ code: 'RECOVERY_REQUEST_ACCEPTED' }), { status: 202 })));
+    renderWithConnectivity(<RecoveryRequestPage onBack={() => {}} />);
+    fireEvent.change(screen.getByLabelText('E-mail'), { target: { value: 'ana@example.invalid' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar instruções' }));
+    const notice = await screen.findByRole('status');
+    expect(notice).toHaveAttribute('data-variant', 'sucesso');
+    expect(notice.querySelector('svg')).not.toBeNull();
+    await waitFor(() => expect(notice).toHaveFocus());
+  });
+
+  it('o erro da solicitação usa o alerta de erro do padrão', async () => {
+    renderWithConnectivity(<RecoveryRequestPage onBack={() => {}} />);
+    fireEvent.change(screen.getByLabelText('E-mail'), { target: { value: 'isto-nao-e-email' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar instruções' }));
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-variant', 'erro');
+  });
+
+  it('durante o envio o botão informa o andamento, fica bloqueado e nenhum status é anunciado antes do resultado', async () => {
+    let release!: (value: Response) => void;
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>((resolve) => { release = resolve; })));
+    renderWithConnectivity(<RecoveryRequestPage onBack={() => {}} />);
+    fireEvent.change(screen.getByLabelText('E-mail'), { target: { value: 'ana@example.invalid' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar instruções' }));
+    expect(await screen.findByRole('button', { name: /enviando/i })).toBeDisabled();
+    expect(screen.queryAllByRole('status')).toHaveLength(0);
+    release(new Response(JSON.stringify({ code: 'RECOVERY_REQUEST_ACCEPTED' }), { status: 202 }));
+    await waitFor(() => expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'sucesso'));
+  });
+
+  it('o erro da nova senha usa o alerta de erro do padrão e leva o foco até ele', async () => {
+    renderWithConnectivity(<RecoveryConfirmPage />, { client: null });
+    fireEvent.change(screen.getByLabelText('Nova senha'), { target: { value: 'curta' } });
+    fireEvent.change(screen.getByLabelText('Confirmar nova senha'), { target: { value: 'curta' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Definir nova senha' }));
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveAttribute('data-variant', 'erro');
+    await waitFor(() => expect(alert).toHaveFocus());
+  });
+});

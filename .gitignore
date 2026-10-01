@@ -29,3 +29,5 @@ __pycache__/
 # Saídas temporárias dos scripts do Spec Kit (não são entrega)
 /setup.json
 /setup-utf8.json
+
+dist-catalogo/

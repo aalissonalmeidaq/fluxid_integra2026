@@ -1,0 +1,63 @@
+/* Estilos globais do design system FluxID, compartilhados pelo aplicativo e pelo catálogo (Spec 003). */
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background-color: var(--color-cinza-gelo);
+  color: var(--color-grafite);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco visível acessível em conformidade com WCAG 2.2 AA */
+:focus-visible,
+/* O campo de data e hora recebe o foco nos segmentos internos (dia, mês, hora): o anel vai no campo inteiro. */
+input[type="datetime-local"]:focus {
+  outline: 3px solid var(--color-azul-royal);
+  outline-offset: 2px;
+}
+
+/* Alvos de toque ergonômicos para mobile (mínimo 44x44 px) */
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Movimento reduzido desativa toda animação e transição contínuas (RF-023, CA-009) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Cores forçadas (alto contraste): controles continuam visíveis e distinguíveis (CA-011) */
+@media (forced-colors: active) {
+  button,
+  input,
+  select,
+  textarea {
+    border: 1px solid ButtonBorder;
+  }
+
+  :focus-visible,
+  input[type="datetime-local"]:focus {
+    outline-color: Highlight;
+  }
+}

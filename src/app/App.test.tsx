@@ -7,7 +7,7 @@ describe('App Shell (História 1)', () => {
     render(<App />);
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();
-    expect(heading).toHaveTextContent('FluxID');
+    expect(heading).toHaveAccessibleName('FluxID');
   });
 
   it('possui região principal semântica', () => {
