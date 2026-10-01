@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { ResolutionResult } from '@/infrastructure/supabase/connection-state';
 import { validateEnvironment, AppConfig } from '@/config/environment';
+import { adaptLocalEndpointToDevice } from '@/config/dev-network';
 import { resolveCloudFirst } from '@/infrastructure/connectivity/cloud-first-connection-resolver';
 import { createSelectedClient } from '@/infrastructure/supabase/client-factory';
 import {
@@ -28,7 +29,13 @@ export function Providers({ children, customEnv }: ProvidersProps): React.JSX.El
 
   const initConnection = useCallback(async () => {
     const envSource = customEnv ?? (typeof import.meta !== 'undefined' ? import.meta.env : {});
-    const validation = validateEnvironment(envSource as Record<string, string | undefined>);
+    // Em desenvolvimento, aberto de outro aparelho da rede, o Supabase local é o da máquina que serve a página.
+    const validation = validateEnvironment(
+      adaptLocalEndpointToDevice(envSource as Record<string, string | undefined>, {
+        pageOrigin: window.location.origin,
+        isDevelopment: import.meta.env.DEV === true,
+      }),
+    );
 
     if (!isMountedRef.current) return;
 

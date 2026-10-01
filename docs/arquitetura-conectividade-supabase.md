@@ -74,6 +74,10 @@ O modo degradado somente libera capacidades explicitamente classificadas como `o
 
 O contrato completo e sem valores reais está em `.env.example`. Cada endpoint possui URL e chave publicável próprias.
 
+## Teste em outro aparelho da rede (somente desenvolvimento)
+
+Com `npm run dev:rede`, o servidor do Vite aceita conexões da rede local. Quando a página é aberta por um endereço que não é a própria máquina (por exemplo, um celular), o destino `local` passa a apontar para a mesma origem da página, no caminho `/supabase-local`, e o próprio Vite repassa essas chamadas ao Supabase CLI desta máquina (`server.proxy` em `vite.config.ts`). Assim o Supabase CLI **não é exposto à rede**: só a porta 3000 precisa estar liberada no firewall. A troca só acontece em desenvolvimento (`import.meta.env.DEV`), nunca no build de produção, e não altera a chave publicável. Não use esta pilha como servidor de produção na rede local.
+
 ## Critérios de aceitação futuros
 
 - selecionar corretamente cada modo explícito;
