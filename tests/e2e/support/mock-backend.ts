@@ -44,6 +44,20 @@ export interface SessionSummary { session_id: string; started_at: string; last_s
 
 export type LoginScript = { status: number; body: Record<string, unknown> };
 
+const TENANT_A = '20000000-0000-0000-0000-00000000000a';
+const TENANT_B = '20000000-0000-0000-0000-00000000000b';
+
+// Perfis da consulta de permissões (`query-permissions`), como o servidor os devolveria (Spec 004, contrato da consulta).
+export type PermissionProfile = 'administrador' | 'operador' | 'master' | 'admin-fluxid' | 'dois-tenants' | 'sem-vinculo';
+const PROFILES: Record<PermissionProfile, { byOrganization: Record<string, string[]>; global: string[] }> = {
+  administrador: { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage'] }, global: [] },
+  operador: { byOrganization: { [TENANT_A]: [] }, global: [] },
+  master: { byOrganization: {}, global: ['audit.read', 'platform.manage', 'profile.read', 'tenant.manage'] },
+  'admin-fluxid': { byOrganization: {}, global: ['audit.read', 'platform.manage'] },
+  'dois-tenants': { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage'], [TENANT_B]: [] }, global: [] },
+  'sem-vinculo': { byOrganization: {}, global: [] },
+};
+
 export class MockBackend {
   organizations = [{ id:'20000000-0000-0000-0000-00000000000a',legal_name:'Tenant A Sintético',display_name:'Tenant A',status:'active',version:1 }];
   members = [{ id:'30000000-0000-0000-0000-000000000099',display_name:'Operador A',email:'operador-a@example.invalid',status:'active',version:1 }];
@@ -52,7 +66,7 @@ export class MockBackend {
   tenantMemberships: Array<{ id: string; organization_id: string; status: string; organizations: { id: string; kind: string; status: string; display_name: string } | null }> = [
     { id: '30000000-0000-0000-0000-00000000000a', organization_id: '20000000-0000-0000-0000-00000000000a', status: 'active', organizations: { id: '20000000-0000-0000-0000-00000000000a', kind: 'tenant', status: 'active', display_name: 'Tenant A' } },
   ];
-  // Estado de RBAC do tenant simulado; `accessDenied` faz a fronteira negar a listagem (403).
+  // Estado de RBAC do tenant simulado; `accessDenied` faz a fronteira negar organizações, pessoas e papéis (403).
   accessDenied = false;
   accessRoles: Array<{ id: string; code: string; name: string; description: string; system: boolean; active: boolean; version: number; permissions: string[] }> = [
     { id: '50000000-0000-0000-0000-000000000003', code: 'tenant_admin', name: 'Administrador do tenant', description: 'Administra o tenant', system: true, active: true, version: 1, permissions: ['audit.read', 'tenant.manage'] },
@@ -74,6 +88,11 @@ export class MockBackend {
   // Auditoria simulada: 60 eventos no Tenant A e 3 no Tenant B; uditDenied faz a fronteira negar a consulta.
   auditDenied = false;
   auditEvents: RawAuditEvent[] = [...makeAuditEvents('20000000-0000-0000-0000-00000000000a', 60, 1), ...makeAuditEvents('20000000-0000-0000-0000-00000000000b', 3, 100)];
+  // Permissões devolvidas por `query-permissions`: por tenant ativo e globais. Padrão: administrador do Tenant A.
+  // `permissionsStatus` diferente de 200 simula falha da consulta; o atraso usa `delayByPath['/functions/v1/query-permissions']`.
+  permissionsByOrganization: Record<string, string[]> = { ...PROFILES.administrador.byOrganization };
+  globalPermissions: string[] = [];
+  permissionsStatus = 200;
   recoveryUpdateOk = true;
   loginResponses: LoginScript[] = [];
   statusResponse: LoginScript = { status: 401, body: { code: 'SESSION_INVALID' } };
@@ -84,6 +103,12 @@ export class MockBackend {
   readonly calls: Array<{ path: string; body: unknown }> = [];
   // Atraso em milissegundos por caminho, para exercitar os estados de carregamento.
   delayByPath: Record<string, number> = {};
+
+  asProfile(profile: PermissionProfile): this {
+    this.permissionsByOrganization = { ...PROFILES[profile].byOrganization };
+    this.globalPermissions = [...PROFILES[profile].global];
+    return this;
+  }
 
   session(aal: 'aal1' | 'aal2' = 'aal1') {
     return { access_token: fakeJwt({ aal }), refresh_token: 'refresh-simulado', expires_in: 3600, token_type: 'bearer' };
@@ -121,6 +146,11 @@ export class MockBackend {
       return next ? respond(next.status, next.body) : respond(500, { code: 'INTERNAL_ERROR' });
     }
     if (pathname === '/functions/v1/session-status') return respond(this.statusResponse.status, this.statusResponse.body);
+    if (pathname === '/functions/v1/query-permissions') {
+      if (this.permissionsStatus !== 200) return respond(this.permissionsStatus, { code: 'INTERNAL_ERROR' });
+      const organizationId = (body as { organization_id?: string } | null)?.organization_id;
+      return respond(200, { code: 'PERMISSIONS_LISTED', tenant: organizationId ? this.permissionsByOrganization[organizationId] ?? [] : [], global: this.globalPermissions });
+    }
     if (pathname === '/functions/v1/query-audit') {
       if (this.auditDenied) return respond(403, { code: 'ACCESS_DENIED' });
       const input = body as { scope: string; organization_id?: string; action?: string; result?: string; target_type?: string; before?: { id: number }; limit?: number };
@@ -162,11 +192,13 @@ export class MockBackend {
     if (pathname === '/functions/v1/password-recovery') return respond(202, { code: 'RECOVERY_REQUEST_ACCEPTED' });
     if(pathname==='/functions/v1/manage-organizations'){
       const input=body as Record<string,unknown>;
+      if(this.accessDenied)return respond(403,{code:'ACCESS_DENIED'});
       if(input.operation==='list')return respond(200,{code:'ORGANIZATIONS_LISTED',organizations:this.organizations});
       if(input.operation==='create'){const organization={id:'20000000-0000-0000-0000-000000000099',legal_name:input.legal_name,display_name:input.display_name,status:'inactive',version:1};this.organizations.push(organization as typeof this.organizations[number]);return respond(201,{code:'ORGANIZATION_CREATED',organization});}
     }
     if(pathname==='/functions/v1/manage-membership'){
       const input=body as Record<string,unknown>;
+      if(this.accessDenied)return respond(403,{code:'ACCESS_DENIED'});
       if(input.operation==='list')return respond(200,{code:'MEMBERS_LISTED',members:input.organization_id==='20000000-0000-0000-0000-00000000000b'?this.membersB:this.members,roles:[{id:'50000000-0000-0000-0000-000000000004',name:'Operador técnico'}]});
       const member=this.members.find(item=>item.id===input.membership_id);if(member){member.status=String(input.status);member.version+=1;return respond(200,{code:'MEMBERSHIP_STATUS_CHANGED',membership:member});}
     }

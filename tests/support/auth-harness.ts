@@ -23,6 +23,11 @@ export const USERS = {
   tenantBAdmin: { email: 'admin-b@example.invalid', password: 'Local-only-003!' },
   // Membro do Tenant B sem papéis, dedicado à medição de desempenho (suíte performance.live).
   perf: { email: 'perf@example.invalid', password: 'Local-only-013!' },
+  // Spec 004 (suíte de permissões do menu): administrador do Tenant C e operador técnico no Tenant D; operador técnico no C;
+  // Administrador FluxID na organização proprietária. Cada suíte tem usuário próprio porque as sessões são limitadas por usuário.
+  navAdmin: { email: 'nav-admin@example.invalid', password: 'Local-only-014!' },
+  navOperator: { email: 'nav-operator@example.invalid', password: 'Local-only-015!' },
+  navFluxid: { email: 'nav-fluxid@example.invalid', password: 'Local-only-016!' },
 } as const;
 
 export interface FunctionResponse {
