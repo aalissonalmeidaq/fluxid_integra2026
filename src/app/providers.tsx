@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { ResolutionResult } from '@/infrastructure/supabase/connection-state';
 import { validateEnvironment, AppConfig } from '@/config/environment';
-import { resolveConnection } from '@/infrastructure/supabase/connection-resolver';
+import { resolveCloudFirst } from '@/infrastructure/connectivity/cloud-first-connection-resolver';
 import { createSelectedClient } from '@/infrastructure/supabase/client-factory';
 import {
   classifyOperationalError,
@@ -24,6 +24,7 @@ export function Providers({ children, customEnv }: ProvidersProps): React.JSX.El
   const [client, setClient] = useState<SupabaseClient | null>(null);
   const [config, setConfig] = useState<AppConfig | null>(null);
   const isMountedRef = useRef(true);
+  const resolutionAbortRef = useRef<AbortController | null>(null);
 
   const initConnection = useCallback(async () => {
     const envSource = customEnv ?? (typeof import.meta !== 'undefined' ? import.meta.env : {});
@@ -47,7 +48,31 @@ export function Providers({ children, customEnv }: ProvidersProps): React.JSX.El
     setResult({ state: 'probing', attempts: [] });
 
     try {
-      const res = await resolveConnection(appConfig);
+      // Uma nova resolução cancela a anterior; o resolvedor garante exclusão mútua.
+      resolutionAbortRef.current?.abort();
+      const controller = new AbortController();
+      resolutionAbortRef.current = controller;
+      const resolved = await resolveCloudFirst({
+        mode: appConfig.connectionMode,
+        contractVersion: appConfig.contractVersion,
+        probeTimeoutMs: appConfig.probeTimeoutMs,
+        endpoints: appConfig.endpoints,
+      }, { signal: controller.signal });
+      if (controller.signal.aborted) return;
+      const timestamp = Date.now();
+      const res: ResolutionResult = {
+        // Em modo explícito o destino escolhido é o esperado; degradação só existe no automático.
+        state: resolved.state === 'cancelled'
+          ? 'offline'
+          : resolved.state === 'degraded' && appConfig.connectionMode !== 'auto' ? 'connected' : resolved.state,
+        ...('selectedEndpoint' in resolved ? { selectedEndpoint: resolved.selectedEndpoint } : {}),
+        attempts: resolved.attempts.map((attempt) => ({
+          endpoint: attempt.endpoint,
+          startedAt: timestamp,
+          durationMs: 0,
+          outcome: attempt.outcome,
+        })),
+      };
       if (!isMountedRef.current) return;
 
       setResult(res);
@@ -102,6 +127,7 @@ export function Providers({ children, customEnv }: ProvidersProps): React.JSX.El
 
     return () => {
       isMountedRef.current = false;
+      resolutionAbortRef.current?.abort();
       clearTimeout(timer);
     };
   }, [initConnection]);

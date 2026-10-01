@@ -104,7 +104,7 @@ Registros em papel e planilhas dificultam a leitura do número gravado no casco,
 | RNF008 | Observabilidade | Logs, métricas e trace ID |
 | RNF009 | Testabilidade | TDD e pipeline obrigatório |
 | RNF010 | Privacidade | Minimização e retenção configurável |
-| RNF011 | Resiliência de backend | Seleção local → LAN → cloud sem fallback em erros de autenticação, autorização ou RLS |
+| RNF011 | Resiliência de backend | Seleção cloud → LAN → local sem fallback em erros de autenticação, autorização ou RLS; retorno à cloud somente após sincronização segura |
 
 ## 8 Histórias e critérios de aceitação
 

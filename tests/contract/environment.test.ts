@@ -10,8 +10,9 @@ describe('Contrato de Ambiente (Environment Contract)', () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.config.connectionMode).toBe('auto');
-      expect(result.config.probeTimeoutMs).toBe(2000);
-      expect(result.config.endpoints.length).toBeGreaterThanOrEqual(1);
+      expect(result.config.probeTimeoutMs).toBe(3000);
+      expect(result.config.contractVersion).toBe('002.1');
+      expect(result.config.endpoints.map(({ kind }) => kind)).toEqual(['cloud', 'lan', 'local']);
     }
   });
 
@@ -79,13 +80,46 @@ describe('Contrato de Ambiente (Environment Contract)', () => {
     }
   });
 
-  it('valida timeout entre 250 e 10000 ms e usa padrão 2000 quando omitido', () => {
+  it('rejeita chaves privilegiadas mesmo quando o par URL/chave está completo', () => {
+    for (const privilegedKey of ['service_role.test', 'sb_secret_test']) {
+      const env = {
+        ...createValidEnv('cloud'),
+        VITE_SUPABASE_CLOUD_PUBLISHABLE_KEY: privilegedKey,
+      };
+
+      const result = validateEnvironment(env);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors).toContainEqual(expect.objectContaining({
+          variable: 'VITE_SUPABASE_CLOUD_PUBLISHABLE_KEY',
+        }));
+        expect(JSON.stringify(result.errors)).not.toContain(privilegedKey);
+      }
+    }
+  });
+
+  it('exige versão pública esperada do contrato/schema', () => {
+    const env = createValidEnv('auto');
+    delete env.VITE_SUPABASE_CONTRACT_VERSION;
+
+    const result = validateEnvironment(env);
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.errors).toContainEqual(expect.objectContaining({
+        variable: 'VITE_SUPABASE_CONTRACT_VERSION',
+      }));
+    }
+  });
+
+  it('valida timeout entre 250 e 10000 ms e usa padrão 3000 quando omitido', () => {
     const envWithoutTimeout = createValidEnv('local');
     delete envWithoutTimeout.VITE_SUPABASE_PROBE_TIMEOUT_MS;
     const resDefault = validateEnvironment(envWithoutTimeout);
     expect(resDefault.success).toBe(true);
     if (resDefault.success) {
-      expect(resDefault.config.probeTimeoutMs).toBe(2000);
+      expect(resDefault.config.probeTimeoutMs).toBe(3000);
     }
 
     const envLow = { ...createValidEnv('local'), VITE_SUPABASE_PROBE_TIMEOUT_MS: '200' };

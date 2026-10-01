@@ -1,5 +1,7 @@
 # Contrato do resolvedor de conectividade
 
+> **Nota histórica (Spec 001)**: Este contrato registra a prioridade `local → LAN → cloud` implementada na Spec 001. A partir da Spec 002, a ordem foi alterada para `CLOUD → LAN → LOCAL` conforme [ADR-001](../../docs/decisoes-arquiteturais/ADR-001-prioridade-cloud-e-sincronizacao-segura.md). O contrato vigente está em [`specs/002-autenticacao-multitenancy-rbac/contracts/connectivity.md`](../../specs/002-autenticacao-multitenancy-rbac/contracts/connectivity.md). Este arquivo é preservado como registro histórico e não deve ser editado retroativamente.
+
 ## Entrada
 
 - modo validado;

@@ -19,6 +19,7 @@ export interface ValidatedEndpoint {
  */
 export interface AppConfig {
   connectionMode: ConnectionMode;
+  contractVersion: string;
   probeTimeoutMs: number;
   endpoints: ValidatedEndpoint[];
 }
@@ -38,7 +39,7 @@ export type ValidationResult =
   | { success: true; config: AppConfig }
   | { success: false; errors: ValidationError[] };
 
-const DEFAULT_TIMEOUT_MS = 2000;
+const DEFAULT_TIMEOUT_MS = 3000;
 const MIN_TIMEOUT_MS = 250;
 const MAX_TIMEOUT_MS = 10000;
 
@@ -49,6 +50,13 @@ const MAX_TIMEOUT_MS = 10000;
  */
 export function validateEnvironment(env: Record<string, string | undefined>): ValidationResult {
   const errors: ValidationError[] = [];
+  const contractVersion = env.VITE_SUPABASE_CONTRACT_VERSION?.trim();
+  if (!contractVersion) {
+    errors.push({
+      variable: 'VITE_SUPABASE_CONTRACT_VERSION',
+      message: 'Versão pública do contrato é obrigatória',
+    });
+  }
 
   const rawMode = env.VITE_SUPABASE_CONNECTION_MODE;
   if (!rawMode || !['auto', 'local', 'lan', 'cloud'].includes(rawMode)) {
@@ -77,9 +85,9 @@ export function validateEnvironment(env: Record<string, string | undefined>): Va
     urlVar: string;
     keyVar: string;
   }> = [
-    { kind: 'local', urlVar: 'VITE_SUPABASE_LOCAL_URL', keyVar: 'VITE_SUPABASE_LOCAL_PUBLISHABLE_KEY' },
-    { kind: 'lan', urlVar: 'VITE_SUPABASE_LAN_URL', keyVar: 'VITE_SUPABASE_LAN_PUBLISHABLE_KEY' },
     { kind: 'cloud', urlVar: 'VITE_SUPABASE_CLOUD_URL', keyVar: 'VITE_SUPABASE_CLOUD_PUBLISHABLE_KEY' },
+    { kind: 'lan', urlVar: 'VITE_SUPABASE_LAN_URL', keyVar: 'VITE_SUPABASE_LAN_PUBLISHABLE_KEY' },
+    { kind: 'local', urlVar: 'VITE_SUPABASE_LOCAL_URL', keyVar: 'VITE_SUPABASE_LOCAL_PUBLISHABLE_KEY' },
   ];
 
   const endpoints: ValidatedEndpoint[] = [];
@@ -99,7 +107,11 @@ export function validateEnvironment(env: Record<string, string | undefined>): Va
         message: `URL obrigatória para o endpoint ${kind}`,
       });
     } else if (url && key) {
-      endpoints.push({ kind, url, publishableKey: key });
+      if (/^(service_role\.|sb_secret_)/i.test(key)) {
+        errors.push({ variable: keyVar, message: `Chave privilegiada não é permitida no cliente (${kind})` });
+      } else {
+        endpoints.push({ kind, url, publishableKey: key });
+      }
     }
   }
 
@@ -117,7 +129,7 @@ export function validateEnvironment(env: Record<string, string | undefined>): Va
       }
     }
   } else if (mode === 'auto') {
-    if (endpoints.length === 0 && errors.length === 0) {
+    if (endpoints.length === 0) {
       errors.push({
         variable: 'VITE_SUPABASE_CONNECTION_MODE',
         message: 'Modo auto exige pelo menos um endpoint configurado com par URL/chave completo',
@@ -129,14 +141,15 @@ export function validateEnvironment(env: Record<string, string | undefined>): Va
     return { success: false, errors };
   }
 
-  // Ordena por prioridade: local < lan < cloud
-  const priorityOrder: Record<EndpointKind, number> = { local: 1, lan: 2, cloud: 3 };
+  // Ordena por prioridade: cloud < lan < local
+  const priorityOrder: Record<EndpointKind, number> = { cloud: 1, lan: 2, local: 3 };
   endpoints.sort((a, b) => priorityOrder[a.kind] - priorityOrder[b.kind]);
 
   return {
     success: true,
     config: {
       connectionMode: mode,
+      contractVersion: contractVersion!,
       probeTimeoutMs,
       endpoints: mode === 'auto' ? endpoints : endpoints.filter((e) => e.kind === mode),
     },

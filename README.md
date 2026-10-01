@@ -32,6 +32,8 @@ cp .env.example .env.local
 ```
 Edite `.env.local` conforme o modo desejado (`auto`, `local`, `lan` ou `cloud`). Nunca versione segredos nem chaves privadas.
 
+As variáveis sem o prefixo `VITE_` (`INVITATION_REDIRECT_URL`, `AVATAR_UPLOADS_PER_HOUR`, `RETENTION_JOB_SECRET`, credenciais de SMTP) são exclusivas das Edge Functions: configure-as nos segredos do Supabase, nunca no cliente. O `.env.example` traz apenas os nomes, sem valores.
+
 ### 3. Iniciar Supabase local (opcional/desenvolvimento)
 ```bash
 supabase start
@@ -89,4 +91,4 @@ Interações que não encerram um ciclo Spec Kit não geram RIA automaticamente.
 
 ## Conectividade do Supabase
 
-O sistema possui modos `local`, `lan`, `cloud` e `auto`. No modo automático, a ordem de prioridade é local, rede local e nuvem. As restrições de segurança, autenticação e consistência estão documentadas em `docs/arquitetura-conectividade-supabase.md`.
+O sistema possui modos `local`, `lan`, `cloud` e `auto`. No modo automático, a ordem de prioridade vigente é nuvem, rede local e dispositivo local. As restrições de fallback, autenticação, promoção e sincronização estão documentadas em `docs/arquitetura-conectividade-supabase.md`.

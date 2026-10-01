@@ -23,9 +23,10 @@
 ## Conectividade do Supabase
 
 - Siga `docs/arquitetura-conectividade-supabase.md` para selecionar Supabase local, LAN ou cloud.
-- No modo automático, priorize local, depois LAN e somente então cloud.
+- No modo automático, priorize cloud, depois LAN e somente então local.
 - Não trate erro de autenticação, autorização, validação ou RLS como motivo para fallback.
 - Não implemente escrita simultânea em duas instâncias. Sincronização exige operações idempotentes, auditoria e tratamento explícito de conflitos.
+- Ao promover uma conexão LAN ou local para cloud, conclua a sincronização segura antes de trocar o cliente ativo; não transfira sessões entre projetos Supabase por simples troca de URL.
 - Use somente chaves publicáveis no frontend. Chaves secretas e `service_role` permanecem exclusivamente no servidor.
 - Não exponha a pilha de desenvolvimento do Supabase CLI como servidor de produção na rede local.
 

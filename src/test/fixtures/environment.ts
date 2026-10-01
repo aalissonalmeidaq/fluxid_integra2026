@@ -3,7 +3,8 @@ import { MOCK_URLS, MOCK_KEYS } from './connectivity';
 export function createValidEnv(mode: 'auto' | 'local' | 'lan' | 'cloud' = 'auto'): Record<string, string | undefined> {
   const env: Record<string, string | undefined> = {
     VITE_SUPABASE_CONNECTION_MODE: mode,
-    VITE_SUPABASE_PROBE_TIMEOUT_MS: '2000',
+    VITE_SUPABASE_PROBE_TIMEOUT_MS: '3000',
+    VITE_SUPABASE_CONTRACT_VERSION: '002.1',
   };
 
   if (mode === 'local' || mode === 'auto') {

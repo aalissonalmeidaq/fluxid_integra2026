@@ -47,3 +47,40 @@ jobs:
 
       - name: Build de produção da aplicação e PWA
         run: npm run build
+
+  supabase:
+    name: Banco, RLS e Edge Functions (Supabase local)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Instalação reproduzível de dependências
+        run: npm ci
+
+      - name: Subir o Supabase local (migrations, seed sintético e Edge Functions)
+        run: npx supabase start
+
+      - name: Testes SQL e políticas RLS com dois tenants (pgTAP)
+        run: npx supabase test db
+
+      - name: Expor somente URL e chave publicável locais aos testes
+        run: |
+          STATUS="$(npx supabase status -o json)"
+          echo "VITE_SUPABASE_LOCAL_URL=$(echo "$STATUS" | jq -r .API_URL)" >> "$GITHUB_ENV"
+          echo "VITE_SUPABASE_LOCAL_PUBLISHABLE_KEY=$(echo "$STATUS" | jq -r .PUBLISHABLE_KEY)" >> "$GITHUB_ENV"
+
+      - name: Testes de contrato e integração ao vivo (Auth, sessões, MFA, RLS e Edge Functions)
+        run: npm run test:live
+
+      - name: Encerrar o Supabase local
+        if: always()
+        run: npx supabase stop --no-backup

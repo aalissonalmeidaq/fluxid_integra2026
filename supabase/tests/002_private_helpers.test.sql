@@ -1,0 +1,10 @@
+begin;
+select plan(7);
+select has_schema('private');
+select has_function('private', 'is_active_member', array['uuid']);
+select has_function('private', 'has_permission', array['uuid','text']);
+select has_function('private', 'has_active_session', array[]::text[]);
+select has_function('private', 'has_aal2', array[]::text[]);
+select ok(coalesce(not has_function_privilege('public', to_regprocedure('private.is_active_member(uuid)'), 'EXECUTE'), false), 'PUBLIC sem EXECUTE');
+select ok(not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proconfig is null), 'search_path fixo');
+select * from finish(); rollback;

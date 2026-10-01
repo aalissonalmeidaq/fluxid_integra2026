@@ -1,0 +1,10 @@
+begin;
+select plan(7);
+select has_table('public', 'user_sessions', 'user_sessions existe');
+select has_pk('public', 'user_sessions', 'user_sessions possui PK');
+select has_fk('public', 'user_sessions', 'user_sessions possui FK');
+select has_check('public', 'user_sessions', 'user_sessions_status_check');
+select has_check('public', 'user_sessions', 'user_sessions_aal_check');
+select has_check('public', 'user_sessions', 'user_sessions_timebox_check');
+select has_index('public', 'user_sessions', 'user_sessions_active_idx', 'índice parcial de sessões');
+select * from finish(); rollback;

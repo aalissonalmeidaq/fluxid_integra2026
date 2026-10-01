@@ -1,0 +1,13 @@
+begin;
+select plan(10);
+select has_table('public', 'permissions', 'permissions existe');
+select has_table('public', 'roles', 'roles existe');
+select has_table('public', 'role_permissions', 'role_permissions existe');
+select has_table('public', 'membership_roles', 'membership_roles existe');
+select has_check('public', 'permissions', 'permissions_code_check');
+select has_check('public', 'permissions', 'permissions_scope_check');
+select has_check('public', 'permissions', 'permissions_delegability_check');
+select has_check('public', 'roles', 'roles_name_check');
+select has_function('private', 'validate_role_permission_scope', array[]::text[]);
+select has_function('private', 'prevent_system_role_mutation', array[]::text[]);
+select * from finish(); rollback;
