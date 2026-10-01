@@ -54,6 +54,8 @@ Não ignore o hook com `--no-verify`. O GitHub Actions repetirá a validação n
 
 Os novos registros seguem o padrão de conteúdo dos DOCX históricos, usam identificador sequencial `RIA-NNN` e registram a decisão humana como `utilizado`, `adaptado` ou `descartado`. Não gere RIA para uma interação isolada que não encerra um ciclo Spec Kit.
 
+Assim que o pull request do ciclo for aprovado e mergeado, entregue o DOCX do RIA: em uma branch `docs/ria-NNN-docx`, execute `python scripts/governanca-ia/exportar-docx.py --source docs/governanca-ia/registros/RIA-NNN-<slug>.md --output docs/governanca-ia/registros/NN_<Titulo>.docx`, aponte o índice para o DOCX no formato `` `registros/NN_<Titulo>.docx` (`RIA-NNN-<slug>.md`) `` e abra um pull request só de documentação. Qualquer correção posterior do RIA exige regenerar o DOCX.
+
 Ao preencher um RIA, escreva de forma natural e autêntica. Preserve o sentido original, elimine palavras robóticas, repetições e formalidade excessiva, mas nunca invente fatos, resultados, fontes, validações ou decisões humanas.
 
 Se a IA gerar código, o campo `Resposta gerada pela IA` deve conter um resumo e um link para revisão pela equipe. Prefira o pull request; enquanto ele não existir, use o repositório ou a branch e registre a troca pelo link do PR como pendência obrigatória antes do merge.

@@ -44,7 +44,8 @@ Um ciclo somente pode ser encerrado quando a implementação convergiu, os teste
 5. revisar o novo arquivo em `docs/governanca-ia/registros/` e completar a validação humana;
 6. preparar o índice e o registro com `git add docs/governanca-ia`;
 7. executar `npm run ia:validar`;
-8. criar o commit de encerramento e abrir o pull request.
+8. criar o commit de encerramento e abrir o pull request;
+9. depois do merge do pull request, entregar o DOCX do RIA com `scripts/governanca-ia/exportar-docx.py`, apontar o índice para ele e abrir um pull request só de documentação.
 
 O registro usa o SHA do commit-base e o hash do diff funcional preparado, pois o commit de encerramento ainda não existe. O conteúdo deve ser sanitizado: segredos, credenciais, dados pessoais e informações confidenciais não podem ser copiados para o documento.
 
