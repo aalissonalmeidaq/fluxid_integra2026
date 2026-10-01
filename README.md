@@ -74,6 +74,16 @@ npm run build
 
 ---
 
+## Navegação por permissão (Spec 004)
+
+O shell tem um menu de navegação que mostra só as telas que a pessoa autenticada pode usar: Início e Meu perfil para todos; Pessoas do tenant, Papéis e permissões e Auditoria do tenant conforme as permissões no tenant ativo; Organizações e Auditoria da plataforma conforme as permissões globais. O menu é conveniência de interface: esconder um item não protege nada, e o servidor decide o acesso a cada tela.
+
+Para isso o servidor ganhou uma consulta somente leitura das próprias permissões: a Edge Function `query-permissions` (`supabase/functions/query-permissions/`), que chama a função de banco `public.get_actor_permissions` (só `service_role`) e devolve apenas códigos de permissão (`tenant` e `global`), sem auditoria e sem dados de outros tenants. Nenhuma regra de acesso, papel ou permissão mudou.
+
+Como a lista de funções servidas é fixada na inicialização, depois de atualizar a branch rode `npx supabase stop` e `npx supabase start` para a função nova ser servida. O catálogo de telas e as regras do menu estão em `src/domain/navigation/`, e o estado do menu em `src/app/navigation/`.
+
+---
+
 ## Governança de IA por ciclo
 
 Ao final de cada ciclo Spec Kit, depois dos testes e antes do commit, gere e valide o Registro de Uso de IA:

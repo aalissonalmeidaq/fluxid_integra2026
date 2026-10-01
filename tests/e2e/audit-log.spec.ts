@@ -66,7 +66,7 @@ test.describe('Consulta de auditoria', () => {
 
     await page.getByRole('button', { name: 'Limpar filtros' }).click();
     await expect(rows).toHaveCount(51);
-    await page.getByLabel('Ação').fill('role.create');
+    await page.getByLabel('Ação', { exact: true }).fill('role.create');
     await page.getByRole('button', { name: 'Filtrar' }).click();
     await expect(page.getByRole('table').getByText('invitation.send')).toHaveCount(0);
     await expect(page.getByRole('status').filter({ hasText: /eventos? exibidos?/ })).toBeVisible();
@@ -81,9 +81,9 @@ test.describe('Consulta de auditoria', () => {
     await expect.poll(queries).toBeGreaterThan(0);
     await expect(page.getByRole('status').filter({ hasText: /carregando/i })).toHaveCount(0);
     const before = queries();
-    await page.getByLabel('Ação').fill('ação inválida!');
+    await page.getByLabel('Ação', { exact: true }).fill('ação inválida!');
     await page.getByRole('button', { name: 'Filtrar' }).click();
-    await expect(page.getByLabel('Ação')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByLabel('Ação', { exact: true })).toHaveAttribute('aria-invalid', 'true');
     await expect(page.getByText(/letras minúsculas, números, ponto ou sublinhado/i)).toBeVisible();
     expect(backend.calls.filter((call) => call.path === '/functions/v1/query-audit').length).toBe(before);
   });
@@ -141,9 +141,9 @@ test.describe('Consulta de auditoria', () => {
     await expect(page.getByRole('table', { name: 'Eventos de auditoria' })).toBeVisible();
     const blocking = async () => (await new AxeBuilder({ page }).analyze()).violations.filter((item) => ['critical', 'serious'].includes(item.impact ?? ''));
     expect(await blocking()).toEqual([]);
-    await page.getByLabel('Ação').fill('ação inválida!');
+    await page.getByLabel('Ação', { exact: true }).fill('ação inválida!');
     await page.getByRole('button', { name: 'Filtrar' }).click();
-    await expect(page.getByLabel('Ação')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByLabel('Ação', { exact: true })).toHaveAttribute('aria-invalid', 'true');
     expect(await blocking()).toEqual([]);
   });
 

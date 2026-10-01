@@ -150,3 +150,49 @@ insert into public.profiles(user_id,display_name) values
 
 insert into public.memberships(id,organization_id,user_id,status,activated_at) values
 ('30000000-0000-0000-0000-000000000013','20000000-0000-0000-0000-00000000000b','10000000-0000-0000-0000-000000000013','active',now()) on conflict do nothing;
+
+-- Spec 004 (navegação por permissão): massa dedicada à suíte ao vivo, isolada em dois tenants próprios (C e D) para não alterar
+-- contagens das demais suítes. `nav-admin` administra o Tenant C e é operador técnico no Tenant D; `nav-operator` é operador técnico
+-- no C; `nav-fluxid` tem o papel global Administrador FluxID na organização proprietária.
+insert into public.organizations(id,kind,legal_name,display_name,status) values
+('20000000-0000-0000-0000-00000000000c','tenant','Tenant C Sintético','Tenant C','active'),
+('20000000-0000-0000-0000-00000000000d','tenant','Tenant D Sintético','Tenant D','active')
+on conflict (id) do nothing;
+select private.bootstrap_tenant_roles('20000000-0000-0000-0000-00000000000c');
+select private.bootstrap_tenant_roles('20000000-0000-0000-0000-00000000000d');
+
+insert into auth.users (
+  instance_id,id,aud,role,email,encrypted_password,email_confirmed_at,
+  confirmation_token,recovery_token,email_change_token_new,email_change,phone,phone_change,
+  phone_change_token,email_change_token_current,reauthentication_token,
+  raw_app_meta_data,raw_user_meta_data,created_at,updated_at
+)
+values
+('00000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000014','authenticated','authenticated','nav-admin@example.invalid',crypt('Local-only-014!',gen_salt('bf')),now(),'', '', '', '', null, '', '', '', '', '{"provider":"email","providers":["email"]}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000015','authenticated','authenticated','nav-operator@example.invalid',crypt('Local-only-015!',gen_salt('bf')),now(),'', '', '', '', null, '', '', '', '', '{"provider":"email","providers":["email"]}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000016','authenticated','authenticated','nav-fluxid@example.invalid',crypt('Local-only-016!',gen_salt('bf')),now(),'', '', '', '', null, '', '', '', '', '{"provider":"email","providers":["email"]}','{}',now(),now())
+on conflict (id) do nothing;
+
+insert into public.profiles(user_id,display_name) values
+('10000000-0000-0000-0000-000000000014','Navegação Administrador'),
+('10000000-0000-0000-0000-000000000015','Navegação Operador'),
+('10000000-0000-0000-0000-000000000016','Navegação FluxID') on conflict do nothing;
+
+insert into public.memberships(id,organization_id,user_id,status,activated_at) values
+('30000000-0000-0000-0000-000000000014','20000000-0000-0000-0000-00000000000c','10000000-0000-0000-0000-000000000014','active',now()),
+('30000000-0000-0000-0000-000000000114','20000000-0000-0000-0000-00000000000d','10000000-0000-0000-0000-000000000014','active',now()),
+('30000000-0000-0000-0000-000000000015','20000000-0000-0000-0000-00000000000c','10000000-0000-0000-0000-000000000015','active',now()),
+('30000000-0000-0000-0000-000000000016','20000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000016','active',now()) on conflict do nothing;
+
+insert into public.membership_roles(membership_id,role_id,assigned_by)
+select '30000000-0000-0000-0000-000000000014', r.id, '10000000-0000-0000-0000-000000000001' from public.roles r
+  where r.organization_id='20000000-0000-0000-0000-00000000000c' and r.code='tenant_admin'
+union all
+select '30000000-0000-0000-0000-000000000114'::uuid, r.id, '10000000-0000-0000-0000-000000000001'::uuid from public.roles r
+  where r.organization_id='20000000-0000-0000-0000-00000000000d' and r.code='technical_operator'
+union all
+select '30000000-0000-0000-0000-000000000015', r.id, '10000000-0000-0000-0000-000000000001' from public.roles r
+  where r.organization_id='20000000-0000-0000-0000-00000000000c' and r.code='technical_operator'
+union all
+select '30000000-0000-0000-0000-000000000016'::uuid, '50000000-0000-0000-0000-000000000002'::uuid, '10000000-0000-0000-0000-000000000001'::uuid
+on conflict do nothing;

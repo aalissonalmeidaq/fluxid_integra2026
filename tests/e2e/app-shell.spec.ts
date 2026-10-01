@@ -14,6 +14,12 @@ async function enter(page: Page, backend: MockBackend): Promise<void> {
   await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
 }
 
+// Abaixo de 768 px o menu fica recolhido atrás do botão "Menu"; a partir de 768 px ele já está visível.
+async function abrirMenuSeRecolhido(page: Page): Promise<void> {
+  const botao = page.getByRole('button', { name: 'Menu' });
+  if (await botao.isVisible()) await botao.click();
+}
+
 const semRolagemHorizontal = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
 
 test.describe('App Shell: responsividade e desempenho (US4 e Spec 003)', () => {
@@ -41,6 +47,7 @@ test.describe('App Shell: responsividade e desempenho (US4 e Spec 003)', () => {
 
   test('autenticado: perfil e sair acessíveis sem rolagem horizontal', async ({ page }) => {
     await enter(page, new MockBackend());
+    await abrirMenuSeRecolhido(page);
     const perfil = page.getByRole('link', { name: 'Meu perfil' });
     const sair = page.getByRole('button', { name: 'Sair' });
     for (const controle of [perfil, sair]) {
@@ -78,6 +85,7 @@ test.describe('App Shell: responsividade e desempenho (US4 e Spec 003)', () => {
   test('reflow a 320 px: sem rolagem horizontal e com o cabeçalho acessível', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 640 });
     await enter(page, new MockBackend());
+    await abrirMenuSeRecolhido(page);
     await expect(page.getByRole('link', { name: 'Meu perfil' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
     expect(await semRolagemHorizontal(page)).toBe(true);

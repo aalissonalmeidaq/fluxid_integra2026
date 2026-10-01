@@ -76,20 +76,78 @@ describe('AppShell', () => {
     expect(screen.getByRole('contentinfo')).toHaveTextContent('FluxID');
   });
 
-  it('deslogado não mostra organização, perfil nem sair', () => {
+  it('deslogado não mostra organização, menu nem sair', () => {
     renderShell();
     expect(screen.queryByText(/organização ativa/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Meu perfil' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { hidden: true, name: 'Meu perfil' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { hidden: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Menu' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Sair' })).not.toBeInTheDocument();
   });
 
-  it('autenticado mostra organização ativa, perfil e sair', async () => {
+  it('autenticado mostra organização ativa e sair; o perfil fica no menu, não no cabeçalho', async () => {
     const logout = vi.fn(async () => undefined);
     renderShell({ authState: { status: 'authenticated', aal: 'aal2' }, logout });
     expect(screen.getByText('Gases Norte')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Meu perfil' })).toHaveAttribute('href', '/perfil');
+    expect(within(screen.getByRole('banner')).queryByRole('link', { hidden: true, name: 'Meu perfil' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { hidden: true, name: 'Meu perfil' })).toHaveAttribute('href', '/perfil');
     fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
     expect(logout).toHaveBeenCalledTimes(1);
+  });
+
+  it('com sessão limitada à verificação em duas etapas não há menu', () => {
+    renderShell({ authState: { status: 'mfa_required' } });
+    expect(screen.queryByRole('navigation', { hidden: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Menu' })).not.toBeInTheDocument();
+  });
+
+  it('o menu começa fechado e o botão do menu vem depois do link de pular na ordem de Tab', () => {
+    renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
+    const focusable = [...document.body.querySelectorAll<HTMLElement>('a[href], button')].filter((element) => !element.closest('[hidden]'));
+    expect(focusable[0]).toBe(screen.getByRole('link', { name: 'Pular para o conteúdo principal' }));
+    expect(focusable[1]).toBe(screen.getByRole('button', { name: 'Menu' }));
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('navigation', { name: 'Navegação principal' })).not.toBeInTheDocument();
+  });
+
+  it('o botão abre o menu com o foco no primeiro item, e Escape fecha devolvendo o foco ao botão', () => {
+    renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
+    const toggle = screen.getByRole('button', { name: 'Menu' });
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(toggle).toHaveAttribute('aria-controls', screen.getByRole('navigation', { name: 'Navegação principal' }).id);
+    expect(within(screen.getByRole('navigation')).getAllByRole('link')[0]).toHaveFocus();
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveFocus();
+  });
+
+  it('ativar um item do menu deixa o aviso para a próxima tela, que leva o foco ao título (RF-013)', () => {
+    sessionStorage.clear();
+    const view = renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    const link = screen.getByRole('link', { name: /Meu perfil/ });
+    link.addEventListener('click', (event) => event.preventDefault());
+    fireEvent.click(link);
+    expect(sessionStorage.getItem('fluxid.menu-navegacao')).not.toBeNull();
+    view.unmount();
+
+    renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
+    expect(screen.getByRole('heading', { name: 'Conteúdo da rota' })).toHaveFocus();
+    expect(sessionStorage.getItem('fluxid.menu-navegacao')).toBeNull();
+  });
+
+  it('carregar a tela sem passar pelo menu não move o foco', () => {
+    sessionStorage.clear();
+    renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
+    expect(document.body).toHaveFocus();
+  });
+
+  it('o menu fica ao lado do único main, fora dele', () => {
+    renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
+    const nav = screen.getByRole('navigation', { hidden: true });
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+    expect(screen.getByRole('main').contains(nav)).toBe(false);
   });
 
   it('offline mostra o botão de reconectar na barra de conexão, inclusive deslogado', () => {

@@ -6,6 +6,7 @@ import { InitializationGate } from './app/initialization-gate';
 import { AuthProvider } from './app/auth/auth-provider';
 import { SyncGate } from './app/sync-gate';
 import { TenantProvider } from './app/tenant/tenant-provider';
+import { PermissionsProvider } from './app/navigation/permissions-provider';
 import './styles/globals.css';
 
 const rootElement = document.getElementById('root');
@@ -17,9 +18,11 @@ if (rootElement) {
         <InitializationGate>
           <AuthProvider>
             <TenantProvider>
-              <SyncGate>
-                <App />
-              </SyncGate>
+              <PermissionsProvider>
+                <SyncGate>
+                  <App />
+                </SyncGate>
+              </PermissionsProvider>
             </TenantProvider>
           </AuthProvider>
         </InitializationGate>
