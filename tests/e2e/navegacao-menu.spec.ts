@@ -27,7 +27,7 @@ async function entrar(page: Page, backend: MockBackend, { aal = 'aal2', caminho 
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
   if (caminho !== '/') await page.goto(caminho);
 }
 
@@ -39,13 +39,15 @@ const semRolagemHorizontal = (page: Page) => page.evaluate(() => document.docume
 
 async function abrirMenuSeRecolhido(page: Page): Promise<void> {
   const botao = page.getByRole('button', { name: 'Menu' });
+  // A disposição troca por JavaScript ao cruzar 768 px (Spec 005); espera o botão aparecer abaixo disso antes de agir.
+  if ((page.viewportSize()?.width ?? 0) < 768) await expect(botao).toBeVisible();
   if (await botao.isVisible()) {
     if ((await botao.getAttribute('aria-expanded')) !== 'true') await botao.click();
   }
   await expect(menu(page)).toBeVisible();
 }
 
-const BASE = ['Início', 'Meu perfil'];
+const BASE = ['Visão geral', 'Meu perfil'];
 const ADMINISTRADOR = [...BASE, 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant'];
 const GLOBAL = [...BASE, 'Organizações', 'Auditoria da plataforma'];
 
@@ -73,7 +75,7 @@ test.describe('US1: só as telas que a pessoa pode usar (CA-001, MS-001)', () =>
     const backend = new MockBackend();
     await backend.install(page);
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
     await expect(page.getByRole('navigation')).toHaveCount(0);
     expect(consultas(backend)).toHaveLength(0);
   });
@@ -118,7 +120,8 @@ test.describe('US2: celular e desktop, só com teclado (CA-004, CA-005, MS-003, 
     await page.setViewportSize({ width: 360, height: 740 });
     await entrar(page, new MockBackend());
     await abrirMenuSeRecolhido(page);
-    await page.getByRole('contentinfo').click();
+    // A gaveta abre à direita; o fundo escurecido cobre o resto da tela e o toque nele fecha o painel.
+    await page.locator('[data-menu-backdrop]').click({ position: { x: 10, y: 300 } });
     await expect(menu(page)).toBeHidden();
     await expect(page.getByRole('button', { name: 'Menu' })).toBeFocused();
   });
@@ -300,7 +303,7 @@ test.describe('US3: o servidor continua decidindo (CA-003, MS-002)', () => {
 
     await page.getByLabel(/código de 6 dígitos/i).fill('123456');
     await page.getByRole('button', { name: 'Verificar' }).click();
-    await expect(page.getByRole('heading', { name: 'Fundação Técnica Ativa' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
     await expect(menu(page)).toBeVisible();
     await expect.poll(() => itens(page)).toEqual(GLOBAL);
   });
@@ -323,7 +326,7 @@ test.describe('US4: trocar de organização e ver o menu certo (CA-002, MS-005)'
     return backend;
   };
 
-  test('a troca de A para B remove os itens do tenant anterior, mostra o carregamento e termina só com Início e Meu perfil', async ({ page }) => {
+  test('a troca de A para B remove os itens do tenant anterior, mostra o carregamento e termina só com Visão geral e Meu perfil', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     const backend = doisTenants(new MockBackend().asProfile('dois-tenants'));
     await entrar(page, backend, { caminho: '/admin/membros' });
@@ -355,7 +358,7 @@ test.describe('US4: trocar de organização e ver o menu certo (CA-002, MS-005)'
     await expect.poll(() => itens(page)).toEqual(GLOBAL);
   });
 
-  test('pessoa sem vínculo ativo vê só Início e Meu perfil e a consulta é feita sem organization_id', async ({ page }) => {
+  test('pessoa sem vínculo ativo vê só Visão geral e Meu perfil e a consulta é feita sem organization_id', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     const backend = new MockBackend().asProfile('sem-vinculo');
     backend.tenantMemberships = [];
@@ -388,7 +391,7 @@ test.describe('US5: carregamento, erro e offline (CA-006)', () => {
     expect(violations.filter((violacao) => violacao.impact === 'critical' || violacao.impact === 'serious')).toEqual([]);
   };
 
-  test('consulta lenta: só Início e Meu perfil, carregamento anunciado uma vez, sem mover o foco', async ({ page }) => {
+  test('consulta lenta: só Visão geral e Meu perfil, carregamento anunciado uma vez, sem mover o foco', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     const backend = new MockBackend();
     backend.delayByPath[PERMISSIONS_PATH] = 1_500;
@@ -461,7 +464,7 @@ test.describe('US5: carregamento, erro e offline (CA-006)', () => {
 test.describe('US5: aplicativo instalado, recarregando offline (RNF-002)', () => {
   test.use({ serviceWorkers: 'allow' });
 
-  test('o menu abre offline com Início e Meu perfil e, havendo cache da mesma sessão e tenant, com as últimas telas', async ({ page, context, browserName }) => {
+  test('o menu abre offline com Visão geral e Meu perfil e, havendo cache da mesma sessão e tenant, com as últimas telas', async ({ page, context, browserName }) => {
     test.skip(browserName === 'webkit', 'O driver WebKit do Playwright no Windows apresenta falha de IPC ao combinar setOffline com service worker.');
     await page.setViewportSize({ width: 1920, height: 1080 });
     const backend = new MockBackend();

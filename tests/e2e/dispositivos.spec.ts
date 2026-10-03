@@ -16,7 +16,7 @@ test.describe('Fonte indisponível ou lenta no primeiro acesso', () => {
     await page.route(/\.woff2?(\?.*)?$/, (rota) => rota.abort('failed'));
     await new MockBackend().install(page);
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
     await page.evaluate(async () => { await document.fonts.ready; });
     const carregadas = await page.evaluate(() => [...document.fonts].filter((face) => face.status === 'loaded').length);
     expect(carregadas, 'Nenhuma face da fonte carregou').toBe(0);
@@ -37,7 +37,7 @@ test.describe('Fonte indisponível ou lenta no primeiro acesso', () => {
     });
     await new MockBackend().install(page);
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible({ timeout: 2000 });
+    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible({ timeout: 2000 });
     await page.getByLabel('E-mail').fill('ana@e2e.invalid');
     await expect(page.getByLabel('E-mail')).toHaveValue('ana@e2e.invalid');
   });

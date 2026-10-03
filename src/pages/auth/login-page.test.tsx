@@ -29,7 +29,7 @@ describe('LoginPage: formulário acessível', () => {
     expect(password).toHaveAttribute('type', 'password');
     expect(password).toHaveAttribute('autocomplete', 'current-password');
     expect(password).not.toHaveAttribute('onpaste');
-    expect(screen.getByRole('heading', { level: 2, name: /entrar/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /bem-vindo de volta/i })).toBeInTheDocument();
   });
 
   it('usa alvo mínimo de 44 px nos controles principais', () => {
@@ -185,13 +185,13 @@ describe('LoginPage: escopo da Spec 002', () => {
   it('oferece somente e-mail e senha, sem login social, SSO nem ações sem efeito', () => {
     const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
     const names = screen.getAllByRole('button').map((button) => button.textContent?.trim());
-    expect(names).toEqual(['Entrar', 'Esqueci minha senha']);
+    expect(names).toEqual(['Mostrar', 'Esqueci minha senha', 'Entrar']);
     expect(container.textContent).not.toMatch(/google|microsoft|apple|sso|lembrar de mim|cadastre-se|criar conta/i);
   });
 
   it('não carrega recursos externos e não cria um segundo landmark principal', () => {
     const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
-    expect(container.innerHTML).not.toMatch(/https?:\/\//i);
+    expect(container.innerHTML).not.toMatch(/(src|href)="https?:/i);
     expect(container.querySelector('main')).toBeNull();
     expect(container.querySelectorAll('input:not([type="hidden"])')).toHaveLength(2);
   });
@@ -199,11 +199,13 @@ describe('LoginPage: escopo da Spec 002', () => {
 
 // Spec 003: apresentação no padrão do design system, sem mudar comportamento nem mensagens de segurança.
 describe('LoginPage: apresentação (Spec 003)', () => {
-  it('mostra o logotipo vertical, decorativo porque o título já diz FluxID', () => {
+  it('mostra o logotipo oficial no painel de marca, com o nome FluxID, e nenhum outro logotipo no formulário', () => {
     const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
-    const logo = container.querySelector('img');
+    // Duas imagens: o logotipo do painel (h1, com o nome) e o do cartão (decorativo, sem nome).
+    expect(container.querySelectorAll('img')).toHaveLength(2);
+    const logo = container.querySelector('img[alt="FluxID"]');
     expect(logo).not.toBeNull();
-    expect(logo).toHaveAttribute('alt', '');
+    expect(logo).toHaveAttribute('alt', 'FluxID');
     expect(Number(logo?.getAttribute('width'))).toBeGreaterThanOrEqual(120);
   });
 
@@ -244,5 +246,45 @@ describe('LoginPage: apresentação (Spec 003)', () => {
     fireEvent.keyDown(cancelar, { key: 'Tab' });
     // Com o encerramento desabilitado, o último controle focável é Cancelar e o foco volta ao primeiro.
     expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+});
+
+// Spec 005: a entrada ganha a moldura de marca e o botão mostrar/ocultar senha, sem mudar o comportamento da Spec 002.
+describe('LoginPage: moldura renovada (Spec 005)', () => {
+  it('fica dentro da moldura com painel de marca e um só h1 (o logotipo)', () => {
+    renderLogin({ kind: 'authenticated' });
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByText('Controle seus ativos.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Bem-vindo de volta' })).toBeInTheDocument();
+  });
+
+  it('não oferece login social, "Lembrar de mim", cadastro público nem canal de suporte', () => {
+    renderLogin({ kind: 'authenticated' });
+    expect(screen.queryByText(/google|microsoft|apple|facebook|github|sso/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/lembrar de mim/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.queryByText(/criar conta|cadastre-se|cadastrar/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/suporte|ajuda|fale conosco/i)).not.toBeInTheDocument();
+  });
+
+  it('mantém o link "Esqueci minha senha"', () => {
+    renderLogin({ kind: 'authenticated' });
+    expect(screen.getByRole('button', { name: 'Esqueci minha senha' })).toBeInTheDocument();
+  });
+
+  it('oculta a senha por padrão e alterna pelo botão sem enviar o formulário', () => {
+    const { login } = renderLogin({ kind: 'authenticated' });
+    fill();
+    const senha = screen.getByLabelText('Senha');
+    expect(senha).toHaveAttribute('type', 'password');
+    fireEvent.click(screen.getByRole('button', { name: 'Mostrar senha' }));
+    expect(senha).toHaveAttribute('type', 'text');
+    expect(login).not.toHaveBeenCalled();
+  });
+
+  it('a ordem de foco no formulário é e-mail, senha, mostrar senha, esqueci minha senha', () => {
+    renderLogin({ kind: 'authenticated' });
+    const ordem = Array.from(document.body.querySelectorAll<HTMLElement>('input, button')).map((elemento) => (elemento.tagName === 'INPUT' ? (elemento as HTMLInputElement).type : elemento.textContent?.trim()));
+    expect(ordem.slice(0, 4)).toEqual(['email', 'password', 'Mostrar', 'Esqueci minha senha']);
   });
 });

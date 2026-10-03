@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useConnectivity } from '@/app/connectivity-context';
 import { PasswordRecoveryService } from '@/application/identity/password-recovery-service';
-import { Alert, Button, Card, TextField } from '@/design-system';
+import { Alert, Button, TextField } from '@/design-system';
 
 export function RecoveryRequestPage({ onBack }: { onBack: () => void }): React.JSX.Element {
   const { config, result } = useConnectivity();
@@ -36,7 +36,7 @@ export function RecoveryRequestPage({ onBack }: { onBack: () => void }): React.J
   }
 
   return (
-    <Card as="section" aria-labelledby="recovery-title" className="mx-auto flex w-full max-w-compacto flex-col gap-4">
+    <section aria-labelledby="recovery-title" className="mx-auto flex w-full max-w-compacto flex-col gap-4">
       <h2 id="recovery-title" className="text-h3 font-semibold text-navy">Recuperar acesso</h2>
       <p className="text-corpo">Informe seu e-mail. A resposta não confirma se a conta existe.</p>
       <form className="flex flex-col gap-4" onSubmit={(event) => void submit(event)} noValidate>
@@ -46,6 +46,6 @@ export function RecoveryRequestPage({ onBack }: { onBack: () => void }): React.J
         <Button type="submit" disabled={pending} className="w-full">{pending ? 'Enviando…' : 'Enviar instruções'}</Button>
         <Button variant="secundario" onClick={onBack} className="w-full">Voltar para entrar</Button>
       </form>
-    </Card>
+    </section>
   );
 }

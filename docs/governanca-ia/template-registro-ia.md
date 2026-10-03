@@ -44,10 +44,17 @@
 
 - Responsável pela revisão da equipe: {{REVISOR}}
 - Data da validação humana: {{DATA_VALIDACAO}}
+- Amostra validada: {{VAL_AMOSTRA}}
+- Ambiente da validação: {{VAL_AMBIENTE}}
+- Duração da validação: {{VAL_DURACAO}}
+- Resultado da validação humana: {{VAL_RESULTADO}}
+- Itens a corrigir apontados pela pessoa responsável: {{VAL_CORRECOES}}
+- Confirmação do responsável: {{VAL_CONFIRMACAO}}
 - Observações: {{OBSERVACOES}}
 
 ## Regras de preenchimento
 
+- A validação humana é obrigatória para encerrar a spec. As respostas da seção acima vêm da pessoa responsável, em entrevista conduzida pelo agente de IA, e nunca são inventadas nem presumidas.
 - Registrar apenas interações relevantes para o projeto.
 - Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
 - Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.

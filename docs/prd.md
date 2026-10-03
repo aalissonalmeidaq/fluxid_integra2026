@@ -169,6 +169,7 @@ Frontend React, TypeScript, Vite e Tailwind. Aplicativo de campo com PWA e Capac
 - desktop eficiente para operação densa;
 - mobile orientado à tarefa;
 - navegação acessível e consistente, com menu que mostra só as telas que a pessoa pode usar: coluna fixa a partir de 768 px e painel recolhido abaixo disso, operável só pelo teclado. O menu é conveniência de interface e nunca barreira; o servidor decide o acesso a cada tela e informa as próprias permissões da pessoa pela consulta somente leitura `query-permissions` (função de banco `get_actor_permissions`), sem alterar papel, permissão nem regra de acesso (Spec 004);
+- entrada renovada (painel de marca, mostrar e ocultar senha) e página inicial **Visão geral** com blocos no domínio de cilindros (indicadores, mapa reservado, movimentação, situação, alertas, cilindros recentes e medidas), barra superior e menu da pessoa. Os dados são só de exemplo, marcados "Exemplo" e vindos de uma fonte única substituível; nenhum dado real é lido, e nenhuma permissão ou regra de acesso muda (Spec 005);
 - alvos de toque mínimos de 44 px;
 - feedback para offline, sincronização e comando pendente;
 - nenhuma confirmação física otimista;

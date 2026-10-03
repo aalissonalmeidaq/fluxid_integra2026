@@ -27,7 +27,7 @@ async function entrar(page: Page, backend: MockBackend, aal: 'aal1' | 'aal2'): P
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
 }
 
 const autenticada = (caminho: string, titulo: string, aal: 'aal1' | 'aal2' = 'aal2') =>
@@ -45,7 +45,7 @@ const publica = (caminho: string, titulo: string) =>
   };
 
 export const TELAS: readonly Tela[] = [
-  { nome: 'entrada', titulo: 'Entrar no FluxID', abrir: publica('/', 'Entrar no FluxID') },
+  { nome: 'entrada', titulo: 'Bem-vindo de volta', abrir: publica('/', 'Bem-vindo de volta') },
   { nome: 'recuperação: solicitação', titulo: 'Recuperar acesso', abrir: publica('/?recovery=1', 'Recuperar acesso') },
   { nome: 'recuperação: nova senha', titulo: 'Definir nova senha', abrir: publica('/recuperar-senha/confirmar', 'Definir nova senha') },
   {
@@ -90,7 +90,7 @@ export const TELAS: readonly Tela[] = [
       await expect(page.getByRole('heading', { name: 'Escolha a organização' })).toBeVisible();
     },
   },
-  { nome: 'início autenticado', titulo: 'Fundação Técnica Ativa', abrir: autenticada('/', 'Fundação Técnica Ativa', 'aal1') },
+  { nome: 'visão geral', titulo: 'Visão geral', abrir: autenticada('/', 'Visão geral', 'aal1') },
   { nome: 'perfil', titulo: 'Meu perfil', abrir: autenticada('/perfil', 'Meu perfil', 'aal1') },
   { nome: 'organizações', titulo: 'Organizações', abrir: autenticada('/admin/tenants', 'Organizações') },
   { nome: 'pessoas do tenant', titulo: 'Pessoas do tenant', abrir: autenticada('/admin/membros', 'Pessoas do tenant') },

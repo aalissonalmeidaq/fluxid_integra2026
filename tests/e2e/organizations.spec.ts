@@ -8,7 +8,7 @@ test.describe('Administração global de organizações',()=>{
     await page.setViewportSize({width:360,height:740});
     const backend=new MockBackend(); backend.loginResponses=[backend.authenticated()]; backend.statusResponse=backend.activeStatus('aal2'); await backend.install(page);
     await page.goto('/'); await page.getByLabel('E-mail').fill('master@example.invalid'); await page.getByLabel('Senha', { exact: true }).fill('Local-only-001!'); await page.getByRole('button',{name:'Entrar'}).click();
-    await expect(page.getByRole('button',{name:'Sair'})).toBeVisible();
+    await expect(page.getByRole('button',{name:'Minha conta'})).toBeVisible();
     await page.goto('/admin/tenants');
     await expect(page.getByRole('heading',{name:'Organizações'})).toBeVisible();
     await expect(page.getByRole('rowheader',{name:/Tenant A$/})).toBeVisible();
@@ -28,7 +28,7 @@ test.describe('Administração global de organizações',()=>{
   });
   test('dashboard não possui violações críticas ou graves',async({page})=>{
     const backend=new MockBackend();backend.loginResponses=[backend.authenticated()];backend.statusResponse=backend.activeStatus('aal2');await backend.install(page);
-    await page.goto('/');await page.getByLabel('E-mail').fill('master@example.invalid');await page.getByLabel('Senha', { exact: true }).fill('Local-only-001!');await page.getByRole('button',{name:'Entrar'}).click();await expect(page.getByRole('button',{name:'Sair'})).toBeVisible();await page.goto('/admin/tenants');await expect(page.getByRole('heading',{name:'Organizações'})).toBeVisible();
+    await page.goto('/');await page.getByLabel('E-mail').fill('master@example.invalid');await page.getByLabel('Senha', { exact: true }).fill('Local-only-001!');await page.getByRole('button',{name:'Entrar'}).click();await expect(page.getByRole('button',{name:'Minha conta'})).toBeVisible();await page.goto('/admin/tenants');await expect(page.getByRole('heading',{name:'Organizações'})).toBeVisible();
     const scan=await new AxeBuilder({page}).analyze();expect(scan.violations.filter(v=>['critical','serious'].includes(v.impact??''))).toEqual([]);
   });
 });

@@ -36,6 +36,12 @@ for (const path of novos) {
   if (!/- Resultado:\s*aprovado\b/im.test(texto)) erros.push(`${path}: resultado dos testes deve ser aprovado`);
   if (!/- Decisão final:\s*(?:utilizado|adaptado|descartado)\b/im.test(texto)) erros.push(`${path}: decisão humana deve ser utilizado, adaptado ou descartado`);
   if ((texto.match(/- \[x\]/gi) ?? []).length < 10) erros.push(`${path}: conclua o checklist final de uso responsável, incluindo linguagem natural e link de revisão quando houver código`);
+  // Validação humana obrigatória: a pessoa responsável responde às perguntas do agente e confirma antes do commit.
+  for (const campo of ['Responsável pela revisão da equipe', 'Data da validação humana', 'Amostra validada', 'Ambiente da validação', 'Duração da validação', 'Resultado da validação humana', 'Itens a corrigir apontados pela pessoa responsável']) {
+    const valor = texto.match(new RegExp(`- ${campo}:[ \t]*(.*)`, 'i'))?.[1]?.trim() ?? '';
+    if (!valor) erros.push(`${path}: validação humana sem o campo "${campo}"`);
+  }
+  if (!/- Confirmação do responsável:[ 	]*sim\b/i.test(texto)) erros.push(`${path}: a pessoa responsável precisa confirmar a validação humana ("Confirmação do responsável: sim, confirmado por NOME em DATA")`);
   const resposta = texto.match(/- Resposta gerada pela IA:\s*([\s\S]*?)(?=\n- Análise crítica da equipe:)/i)?.[1] ?? '';
   if (relevantes.length && !/https?:\/\/[^\s)>]+/i.test(resposta)) erros.push(`${path}: a resposta deve conter link para o PR, repositório ou branch`);
   const linhaIndice = indice.split('\n').find((linha) => id && linha.includes(`| ${id} |`));

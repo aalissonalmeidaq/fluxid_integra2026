@@ -12,7 +12,6 @@ const ENTRELINHAS = [1, 1.25, 1.5];
 const ESPACOS = [0, 4, 8, 16, 24, 32, 48, 64];
 // Margens laterais da grade por faixa de largura: 16 px no celular, 24 no tablet e 32 no desktop.
 const MARGEM_DA_GRADE = (largura: number): number => (largura < 768 ? 16 : largura < 1024 ? 24 : 32);
-const CONTAINER_MAXIMO = 1200;
 
 for (const tela of TELAS) {
   test(`${tela.nome}: estilos computados nas escalas dos tokens`, async ({ page }) => {
@@ -69,6 +68,7 @@ for (const tela of TELAS) {
     });
     expect(principal.esquerda, 'Margem esquerda da grade').toBe(MARGEM_DA_GRADE(largura));
     expect(principal.direita, 'Margem direita da grade').toBe(MARGEM_DA_GRADE(largura));
-    expect(principal.maximo, 'Container máximo').toBeLessThanOrEqual(CONTAINER_MAXIMO);
+    // O conteúdo ocupa toda a largura da tela (decisão da Spec 005); não há mais container máximo.
+    expect(principal.maximo, 'Largura do conteúdo').toBeGreaterThan(0);
   });
 }

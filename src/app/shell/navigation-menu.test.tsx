@@ -47,24 +47,24 @@ describe('NavigationMenu: estrutura e itens por perfil (RF-005, RF-006, RF-009, 
     const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
     expect(within(nav).getByRole('list')).toBeInTheDocument();
     expect(within(nav).getAllByRole('listitem').length).toBeGreaterThan(0);
-    expect(within(nav).getByRole('link', { name: /^Início/ })).toHaveAttribute('href', '/');
+    expect(within(nav).getByRole('link', { name: /^Visão geral/ })).toHaveAttribute('href', '/');
     expect(within(nav).getByRole('link', { name: 'Meu perfil' })).toHaveAttribute('href', '/perfil');
     expect(within(nav).getByRole('link', { name: 'Papéis e permissões' })).toHaveAttribute('href', '/admin/papeis');
   });
 
   it('administrador de tenant vê as telas do tenant', () => {
     renderMenu({ permissions: { permissions: ADMIN } });
-    expect(itemLabels()).toEqual(['Início', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
   });
 
-  it('operador vê só Início e Meu perfil', () => {
+  it('operador vê só Visão geral e Meu perfil', () => {
     renderMenu({ permissions: { permissions: OPERATOR } });
-    expect(itemLabels()).toEqual(['Início', 'Meu perfil']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil']);
   });
 
   it('Master vê as telas globais e nenhuma do tenant', () => {
     renderMenu({ permissions: { permissions: MASTER } });
-    expect(itemLabels()).toEqual(['Início', 'Meu perfil', 'Organizações', 'Auditoria da plataforma']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Organizações', 'Auditoria da plataforma']);
   });
 
   it('o item atual tem aria-current="page" e o texto "(página atual)"', () => {
@@ -72,7 +72,7 @@ describe('NavigationMenu: estrutura e itens por perfil (RF-005, RF-006, RF-009, 
     renderMenu();
     const atual = screen.getByRole('link', { name: 'Papéis e permissões (página atual)' });
     expect(atual).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: /^Início/ })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: /^Visão geral/ })).not.toHaveAttribute('aria-current');
   });
 
   it('cada link tem alvo mínimo de 44 px e quebra texto longo dentro do item', () => {
@@ -98,9 +98,9 @@ describe('NavigationMenu: sessão (RN-004)', () => {
 });
 
 describe('NavigationMenu: estados (RF-007, RF-018 a RF-020, CA-006)', () => {
-  it('carregando mostra só Início e Meu perfil e uma região de status anunciada', () => {
+  it('carregando mostra só Visão geral e Meu perfil e uma região de status anunciada', () => {
     renderMenu({ permissions: { status: 'loading', permissions: null } });
-    expect(itemLabels()).toEqual(['Início', 'Meu perfil']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil']);
     const status = screen.getAllByRole('status');
     expect(status).toHaveLength(1);
     expect(status[0]).toHaveTextContent('Carregando telas…');
@@ -108,10 +108,10 @@ describe('NavigationMenu: estados (RF-007, RF-018 a RF-020, CA-006)', () => {
 
   it('nunca mostra item restrito em loading ou error, mesmo que o contexto traga permissões', () => {
     const { unmount } = renderMenu({ permissions: { status: 'loading', permissions: ADMIN } });
-    expect(itemLabels()).toEqual(['Início', 'Meu perfil']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil']);
     unmount();
     renderMenu({ permissions: { status: 'error', permissions: ADMIN } });
-    expect(itemLabels()).toEqual(['Início', 'Meu perfil']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil']);
   });
 
   it('a tela restrita atual também não aparece antes da confirmação', () => {
@@ -123,7 +123,7 @@ describe('NavigationMenu: estados (RF-007, RF-018 a RF-020, CA-006)', () => {
   it('erro mostra o aviso e "Tentar de novo", que refaz a consulta', () => {
     const retry = vi.fn();
     renderMenu({ permissions: { status: 'error', permissions: null, retry } });
-    expect(itemLabels()).toEqual(['Início', 'Meu perfil']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil']);
     expect(screen.getByRole('alert')).toHaveTextContent('Parte das telas não pôde ser listada.');
     fireEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }));
     expect(retry).toHaveBeenCalledTimes(1);
@@ -131,13 +131,13 @@ describe('NavigationMenu: estados (RF-007, RF-018 a RF-020, CA-006)', () => {
 
   it('offline com cache mostra as últimas telas e avisa que podem estar desatualizadas', () => {
     renderMenu({ permissions: { status: 'offline', permissions: ADMIN } });
-    expect(itemLabels()).toEqual(['Início', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
     expect(screen.getByRole('status')).toHaveTextContent('Sem conexão. As telas podem estar desatualizadas.');
   });
 
-  it('offline sem cache mostra só Início e Meu perfil e o mesmo aviso', () => {
+  it('offline sem cache mostra só Visão geral e Meu perfil e o mesmo aviso', () => {
     renderMenu({ permissions: { status: 'offline', permissions: null } });
-    expect(itemLabels()).toEqual(['Início', 'Meu perfil']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil']);
     expect(screen.getByRole('status')).toHaveTextContent('Sem conexão. As telas podem estar desatualizadas.');
   });
 
@@ -161,10 +161,10 @@ describe('NavigationMenu: painel recolhido (RF-012 a RF-014, RA-005, RA-006)', (
     const { setOpen } = renderMenu({ open: false });
     const nav = document.querySelector('nav');
     expect(nav).toHaveAttribute('hidden');
-    expect(screen.queryByRole('link', { name: /^Início/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /^Visão geral/ })).not.toBeInTheDocument();
     setOpen(true);
     expect(nav).not.toHaveAttribute('hidden');
-    expect(screen.getByRole('link', { name: /^Início/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Visão geral/ })).toBeInTheDocument();
   });
 
   it('a partir de 768 px o menu é uma coluna sempre visível, mesmo fechado', () => {
@@ -177,7 +177,7 @@ describe('NavigationMenu: painel recolhido (RF-012 a RF-014, RA-005, RA-006)', (
     try {
       renderMenu({ open: false });
       expect(document.querySelector('nav')).not.toHaveAttribute('hidden');
-      expect(screen.getByRole('link', { name: /^Início/ })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /^Visão geral/ })).toBeInTheDocument();
     } finally {
       vi.unstubAllGlobals();
     }
@@ -186,7 +186,7 @@ describe('NavigationMenu: painel recolhido (RF-012 a RF-014, RA-005, RA-006)', (
   it('abrir leva o foco ao primeiro item', () => {
     const { setOpen } = renderMenu({ open: false });
     setOpen(true);
-    expect(screen.getByRole('link', { name: /^Início/ })).toHaveFocus();
+    expect(screen.getByRole('link', { name: /^Visão geral/ })).toHaveFocus();
   });
 
   it('já iniciar aberto não rouba o foco da página', () => {
@@ -198,7 +198,7 @@ describe('NavigationMenu: painel recolhido (RF-012 a RF-014, RA-005, RA-006)', (
     const toggle = { current: null } as React.RefObject<HTMLButtonElement | null>;
     const { onClose, setOpen } = renderMenu({ open: false, toggle });
     setOpen(true);
-    fireEvent.keyDown(screen.getByRole('link', { name: /^Início/ }), { key: 'Escape' });
+    fireEvent.keyDown(screen.getByRole('link', { name: /^Visão geral/ }), { key: 'Escape' });
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(toggle.current).toHaveFocus();
   });

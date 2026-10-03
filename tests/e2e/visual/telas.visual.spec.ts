@@ -32,7 +32,7 @@ async function entrarComoAdministrador(page: Page, backend: MockBackend, aal: 'a
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
 }
 
 for (const { nome: larguraNome, largura, altura } of LARGURAS) {
@@ -88,7 +88,7 @@ for (const { nome: larguraNome, largura, altura } of LARGURAS) {
     test('entrada: offline', async ({ page, context }) => {
       await new MockBackend().install(page);
       await page.goto('/');
-      await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
       await context.setOffline(true);
       await expect(page.getByText(/modo offline em operação/i)).toBeVisible();
       await capturar(page, `entrada-offline-${larguraNome}`);

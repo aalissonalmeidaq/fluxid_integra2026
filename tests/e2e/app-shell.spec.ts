@@ -11,7 +11,7 @@ async function enter(page: Page, backend: MockBackend): Promise<void> {
   await page.getByLabel('E-mail').fill('operador-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
 }
 
 // Abaixo de 768 px o menu fica recolhido atrás do botão "Menu"; a partir de 768 px ele já está visível.
@@ -48,20 +48,25 @@ test.describe('App Shell: responsividade e desempenho (US4 e Spec 003)', () => {
   test('autenticado: perfil e sair acessíveis sem rolagem horizontal', async ({ page }) => {
     await enter(page, new MockBackend());
     await abrirMenuSeRecolhido(page);
-    const perfil = page.getByRole('link', { name: 'Meu perfil' });
-    const sair = page.getByRole('button', { name: 'Sair' });
-    for (const controle of [perfil, sair]) {
+    const perfil = page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Meu perfil' });
+    const alvoGrande = async (controle: typeof perfil) => {
       await expect(controle).toBeVisible();
       const caixa = await controle.boundingBox();
       expect(caixa?.height ?? 0).toBeGreaterThanOrEqual(44);
       expect(caixa?.width ?? 0).toBeGreaterThanOrEqual(44);
-    }
+    };
+    await alvoGrande(perfil);
+    // Abaixo de 768 px o menu é uma gaveta que cobre a barra superior; fecha pelo ícone antes de abrir o menu da pessoa.
+    const alternar = page.getByRole('button', { name: 'Menu' });
+    if (await alternar.isVisible()) await alternar.click();
+    await page.getByRole('button', { name: 'Minha conta' }).click();
+    await alvoGrande(page.getByRole('button', { name: 'Sair' }));
     expect(await semRolagemHorizontal(page)).toBe(true);
   });
 
   test('o botão de instalar o PWA tem alvo de 44 px e contraste do botão do padrão', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
     await page.evaluate(() => {
       const evento = new Event('beforeinstallprompt') as Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
       evento.prompt = async () => undefined;
@@ -87,7 +92,7 @@ test.describe('App Shell: responsividade e desempenho (US4 e Spec 003)', () => {
     await enter(page, new MockBackend());
     await abrirMenuSeRecolhido(page);
     await expect(page.getByRole('link', { name: 'Meu perfil' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
     expect(await semRolagemHorizontal(page)).toBe(true);
   });
 });

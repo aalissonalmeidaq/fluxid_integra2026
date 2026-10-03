@@ -29,7 +29,7 @@ test.describe('Acessibilidade e Navegação por Teclado (US4)', () => {
       'O driver WebKit do Playwright no Windows não encaminha Tab ao foco da página neste cenário automatizado.'
     );
     await page.goto('/');
-    await page.getByRole('heading', { name: 'Entrar no FluxID' }).waitFor();
+    await page.getByRole('heading', { name: 'Bem-vindo de volta' }).waitFor();
 
     const skipLink = page.getByRole('link', { name: 'Pular para o conteúdo principal' });
     const main = page.getByRole('main');
@@ -63,14 +63,15 @@ test.describe('Acessibilidade e Navegação por Teclado (US4)', () => {
       return route.abort('failed');
     });
     await page.goto('/');
-    await page.getByRole('heading', { name: 'Entrar no FluxID' }).waitFor();
+    await page.getByRole('heading', { name: 'Bem-vindo de volta' }).waitFor();
 
     const reconnectBtn = page.getByRole('button', { name: /reconectar|tentar reconectar/i });
     await expect(reconnectBtn).toBeVisible({ timeout: 10000 });
 
-    // Navega: Skip Link -> Botão Reconectar
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
+    // Navega com Tab até o botão Reconectar: no alto da página em telas largas, no fim dela no celular (ordem do DOM).
+    for (let i = 0; i < 15 && !(await reconnectBtn.evaluate((el) => el === document.activeElement)); i += 1) {
+      await page.keyboard.press('Tab');
+    }
 
     await expect(reconnectBtn).toBeFocused();
 
@@ -81,7 +82,7 @@ test.describe('Acessibilidade e Navegação por Teclado (US4)', () => {
 
     // Valida ausência de armadilhas de foco recuando com Shift+Tab
     await page.keyboard.press('Shift+Tab');
-    await expect(page.getByRole('link', { name: 'Pular para o conteúdo principal' })).toBeFocused();
+    await expect(reconnectBtn).not.toBeFocused();
   });
 });
 
@@ -103,7 +104,7 @@ async function signIn(page: Page, backend: MockBackend): Promise<void> {
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
 }
 
 async function expectNoBlockingViolations(page: Page): Promise<void> {
@@ -121,7 +122,7 @@ test.describe('Acessibilidade das telas de identidade (Spec 002)', () => {
   test('entrada e recuperação de senha', async ({ page }) => {
     await new MockBackend().install(page);
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
     await expectNoBlockingViolations(page);
     await page.getByRole('link', { name: /esqueci minha senha/i }).or(page.getByRole('button', { name: /esqueci minha senha/i })).click();
     await expect(page.getByRole('heading', { name: 'Recuperar acesso' })).toBeVisible();

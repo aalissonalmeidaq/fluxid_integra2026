@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/app/auth/auth-context';
 import type { ActiveSessionSummary, LoginOutcome } from '@/application/identity/session-service';
-import { Alert, Button, Card, Loading, Logo, TextField } from '@/design-system';
+import { PasswordField } from '@/components/identity/password-field';
+import { Alert, Button, Loading, TextField } from '@/design-system';
+import { AuthLayout } from './auth-layout';
 import { ActiveSessionsDialog } from './active-sessions-dialog';
+import { ArrowRightIcon, LockIcon, MailIcon } from './login-icons';
 import { RecoveryRequestPage } from './recovery-request-page';
 
 const OUTCOME_MESSAGES: Partial<Record<LoginOutcome['kind'], string>> = {
@@ -51,7 +54,7 @@ export function LoginPage(): React.JSX.Element {
     hadLimit.current = limit !== null;
   }, [limit]);
 
-  if (recovering) return <RecoveryRequestPage onBack={() => setRecovering(false)} />;
+  if (recovering) return <AuthLayout><RecoveryRequestPage onBack={() => setRecovering(false)} /></AuthLayout>;
 
   async function attempt(revokeSessionId?: string): Promise<void> {
     if (pendingRef.current) return;
@@ -95,11 +98,12 @@ export function LoginPage(): React.JSX.Element {
   }
 
   return (
-    <Card as="section" aria-labelledby="login-title" className="mx-auto flex w-full max-w-compacto flex-col gap-4">
-      <div className="flex justify-center">
-        <Logo variant="vertical" width={120} decorative />
-      </div>
-      <h2 id="login-title" className="text-h3 font-semibold text-navy">Entrar no FluxID</h2>
+    <AuthLayout>
+    <section aria-labelledby="login-title" className="mx-auto flex w-full max-w-compacto flex-col gap-4">
+      <header className="flex flex-col gap-1 text-center">
+        <h2 id="login-title" className="m-0 text-h3 font-semibold text-navy">Bem-vindo de volta</h2>
+        <p className="m-0 text-corpo text-texto-secundario">Acesse sua conta para continuar</p>
+      </header>
 
       {alertNotice && (
         <Alert ref={noticeRef} tabIndex={-1} variant="erro">
@@ -113,21 +117,35 @@ export function LoginPage(): React.JSX.Element {
         <TextField
           ref={emailRef}
           label="E-mail"
+          leading={<MailIcon />}
+          placeholder="Digite seu e-mail"
           type="email"
           autoComplete="username"
+          inputMode="email"
+          autoCapitalize="none"
+          spellCheck={false}
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           error={fieldErrors.email}
         />
-        <TextField
+        <PasswordField
           ref={passwordRef}
           label="Senha"
-          type="password"
+          leading={<LockIcon />}
+          placeholder="Digite sua senha"
           autoComplete="current-password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           error={fieldErrors.password}
         />
+
+        <button
+          type="button"
+          onClick={() => setRecovering(true)}
+          className="-mt-2 inline-flex min-h-alvo items-center self-end rounded-controle px-2 text-corpo font-semibold text-azul-profundo hover:underline"
+        >
+          Esqueci minha senha
+        </button>
 
         {formError && <Alert variant="erro">{formError}</Alert>}
 
@@ -135,10 +153,7 @@ export function LoginPage(): React.JSX.Element {
 
         <Button ref={submitRef} type="submit" disabled={pending} className="w-full">
           {pending ? 'Entrando…' : 'Entrar'}
-        </Button>
-
-        <Button variant="secundario" onClick={() => setRecovering(true)} className="w-full">
-          Esqueci minha senha
+          {!pending && <ArrowRightIcon />}
         </Button>
       </form>
 
@@ -153,6 +168,7 @@ export function LoginPage(): React.JSX.Element {
           }}
         />
       )}
-    </Card>
+    </section>
+    </AuthLayout>
   );
 }

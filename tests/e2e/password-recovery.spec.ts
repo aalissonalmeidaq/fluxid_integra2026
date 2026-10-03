@@ -46,11 +46,11 @@ test.describe('Recuperação de acesso (US2)', () => {
     await page.getByLabel('E-mail').fill('admin-a@fluxid.local');
     await page.getByLabel('Senha', { exact: true }).fill('Senha-E2E-Forte-1!');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Fundação Técnica Ativa' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
 
     await page.goto('/recuperar-senha/confirmar');
     // Com a página recarregada, a sessão é restaurada e o formulário pode ser remontado; preencher antes disso perde o campo.
-    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Definir nova senha' })).toBeVisible();
     await page.getByLabel('Nova senha', { exact: true }).fill('Senha-Nova-Forte-1!');
     await page.getByLabel('Confirmar nova senha').fill('Senha-Nova-Forte-1!');

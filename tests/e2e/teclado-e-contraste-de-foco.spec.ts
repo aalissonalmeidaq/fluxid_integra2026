@@ -110,7 +110,7 @@ async function entrarComoAdministrador(page: Page, caminho: string): Promise<voi
   await page.keyboard.press('Tab');
   await page.keyboard.type('Local-only-002!');
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
   await page.goto(caminho);
 }
 
