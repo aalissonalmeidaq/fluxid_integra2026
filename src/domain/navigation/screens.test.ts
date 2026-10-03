@@ -11,7 +11,7 @@ describe('catálogo de telas', () => {
     expect(new Set(SCREENS.map((screen) => screen.path)).size).toBe(SCREENS.length);
   });
 
-  it('Início e Meu perfil não exigem permissão (RN-003)', () => {
+  it('Visão geral e Meu perfil não exigem permissão (RN-003)', () => {
     expect(SCREENS.filter((screen) => !screen.requires).map((screen) => screen.id)).toEqual(['inicio', 'perfil']);
   });
 

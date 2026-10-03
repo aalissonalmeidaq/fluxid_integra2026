@@ -28,7 +28,7 @@ test.describe('Medição do carregamento do shell (RNF-004 da Spec 003)', () => 
       await new MockBackend().install(page);
       const startedAt = Date.now();
       await page.goto('/');
-      await page.getByRole('heading', { name: 'Entrar no FluxID' }).waitFor();
+      await page.getByRole('heading', { name: 'Bem-vindo de volta' }).waitFor();
       visible.push(Date.now() - startedAt);
       await page.waitForLoadState('networkidle');
       bytes.push(transferred);
@@ -40,7 +40,7 @@ test.describe('Medição do carregamento do shell (RNF-004 da Spec 003)', () => 
   });
 
   // Spec 004 (RNF-001, MS-006): o shell autenticado, que é onde o menu existe, não pode piorar mais de 20% em relação à linha
-  // de base de 132 ms da Spec 003 (limite de 158 ms). Mede, ao recarregar com a sessão ativa, o tempo até o botão "Sair" estar
+  // de base de 132 ms da Spec 003 (limite de 158 ms). Mede, ao recarregar com a sessão ativa, o tempo até o botão "Minha conta" estar
   // visível (presente antes e depois do menu, para a comparação ser justa) e, quando existe, até o menu estar visível, além
   // da duração da consulta de permissões no navegador (p95 de até 1 s com o backend simulado). Só mede e anota.
   test('mede o shell autenticado com o menu e a consulta de permissões', async ({ browser }, testInfo) => {
@@ -60,14 +60,14 @@ test.describe('Medição do carregamento do shell (RNF-004 da Spec 003)', () => 
       await page.getByLabel('E-mail').fill('admin-a@example.invalid');
       await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
       await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-      await page.getByRole('button', { name: 'Sair' }).waitFor();
+      await page.getByRole('button', { name: 'Minha conta' }).waitFor();
       await page.waitForLoadState('networkidle');
 
       const startedAt = Date.now();
       await page.reload();
-      await page.getByRole('button', { name: 'Sair' }).waitFor();
+      await page.getByRole('button', { name: 'Minha conta' }).waitFor();
       shell.push(Date.now() - startedAt);
-      const menuLink = page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: /Início/ });
+      const menuLink = page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: /Visão geral/ });
       if (await menuLink.waitFor({ timeout: 1_500 }).then(() => true, () => false)) menu.push(Date.now() - startedAt);
       await page.waitForLoadState('networkidle');
       consulta.push(...await page.evaluate(() => performance.getEntriesByType('resource')

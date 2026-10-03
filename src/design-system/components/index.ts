@@ -4,6 +4,7 @@ export { Card } from './card';
 export { DataTable } from './data-table';
 export { Dialog } from './dialog';
 export { EmptyState } from './empty-state';
+export { ExampleBadge } from './example-badge';
 export { ErrorState } from './error-state';
 export { Field } from './field';
 export { FormSection } from './form-section';

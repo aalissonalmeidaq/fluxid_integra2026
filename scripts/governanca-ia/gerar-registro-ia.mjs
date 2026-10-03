@@ -104,6 +104,12 @@ const valores = {
   REVISOR: a.revisor ?? 'PREENCHER antes do commit.',
   DECISAO: a.decisao ?? 'PREENCHER com: utilizado, adaptado ou descartado',
   DATA_VALIDACAO: a['data-validacao'] ?? 'PREENCHER antes do commit.',
+  VAL_AMOSTRA: a.amostra ?? 'PREENCHER com as respostas da pessoa responsável (perfis, telas e larguras validadas).',
+  VAL_AMBIENTE: a.ambiente ?? 'PREENCHER com as respostas da pessoa responsável (navegador, sistema e dispositivo).',
+  VAL_DURACAO: a.duracao ?? 'PREENCHER com as respostas da pessoa responsável.',
+  VAL_RESULTADO: a['resultado-validacao'] ?? 'PREENCHER com as respostas da pessoa responsável (aprovado, aprovado com ajustes ou reprovado).',
+  VAL_CORRECOES: a.correcoes ?? 'PREENCHER com as respostas da pessoa responsável ou escrever: nenhum.',
+  VAL_CONFIRMACAO: a.confirmacao ?? 'PREENCHER somente depois que a pessoa responsável confirmar, com: sim, confirmado por NOME em DATA.',
   OBSERVACOES: a.observacoes ?? 'PREENCHER antes do commit.',
   PENDENCIAS: a.pendencias ?? 'Nenhuma pendência declarada.'
 };

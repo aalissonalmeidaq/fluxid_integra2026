@@ -1,9 +1,9 @@
 import React from 'react';
 import { Card } from '@/design-system';
-import { documentacao as documentacaoDosComponentes, documentacaoDoShell } from '@/design-system/docs';
+import { documentacao as documentacaoDosComponentes, documentacaoDoShell, documentacaoDosGraficos } from '@/design-system/docs';
 import { EXEMPLOS } from './exemplos';
 
-const documentacao = [...documentacaoDosComponentes, ...documentacaoDoShell];
+const documentacao = [...documentacaoDosComponentes, ...documentacaoDoShell, ...documentacaoDosGraficos];
 
 const Lista = ({ titulo, itens }: { titulo: string; itens: readonly string[] }): React.JSX.Element => (
   <div className="flex flex-col gap-1">

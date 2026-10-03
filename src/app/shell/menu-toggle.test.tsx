@@ -27,6 +27,8 @@ describe('MenuToggle (RF-012, RF-014)', () => {
     render(<MenuToggle expanded={false} controls="menu-principal" onToggle={vi.fn()} />);
     const button = screen.getByRole('button', { name: 'Menu' });
     expect(button.className).toContain('min-h-alvo');
+    expect(button.className).toContain('fixed');
+    expect(button.className).toContain('end-2');
     expect(button.className).toContain('min-w-alvo');
     expect(button.className).toContain('tablet:hidden');
   });
@@ -35,5 +37,17 @@ describe('MenuToggle (RF-012, RF-014)', () => {
     const ref = { current: null } as React.RefObject<HTMLButtonElement | null>;
     render(<MenuToggle ref={ref} expanded={false} controls="menu-principal" onToggle={vi.fn()} />);
     expect(ref.current).toBe(screen.getByRole('button', { name: 'Menu' }));
+  });
+});
+
+describe('MenuToggle: ícone fixado à direita (Spec 005)', () => {
+  it('é só o ícone, sem texto visível, e vira "X" quando aberto', () => {
+    const { rerender, container } = render(<MenuToggle expanded={false} controls="menu-principal" onToggle={vi.fn()} />);
+    const botao = screen.getByRole('button', { name: 'Menu' });
+    expect(botao.textContent).toBe('');
+    expect(container.querySelectorAll('svg line')).toHaveLength(3);
+    rerender(<MenuToggle expanded controls="menu-principal" onToggle={vi.fn()} />);
+    expect(container.querySelectorAll('svg line')).toHaveLength(2);
+    expect(botao.className).not.toMatch(/(^|\s)border(\s|$)/);
   });
 });

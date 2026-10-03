@@ -68,6 +68,17 @@ export const documentacaoDosComponentes: readonly DocumentacaoDeComponente[] = [
     ],
   },
   {
+    nome: 'ExampleBadge',
+    descricao: 'Marca "Exemplo" que identifica dados de demonstração, reaproveitando o StatusBadge.',
+    variantes: ['exemplo'],
+    estados: ['padrao'],
+    orientacaoDeUso: 'Use em todo bloco que mostra dados de exemplo, para ninguém confundir a demonstração com informação real. Remova só quando o bloco ler dados reais.',
+    acessibilidade: [
+      'Sempre o texto "Exemplo" visível: a marca nunca depende só de cor ou ícone.',
+      'Texto sobre o fundo com 4,5:1 ou mais, herdado do StatusBadge.',
+    ],
+  },
+  {
     nome: 'Alert',
     descricao: 'Mensagem de informação, sucesso, alerta ou erro, com ícone e texto.',
     variantes: ['informacao', 'sucesso', 'alerta', 'erro'],

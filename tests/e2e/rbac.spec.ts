@@ -14,7 +14,7 @@ async function enter(page: Page, backend: MockBackend): Promise<void> {
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
   await page.goto(`/admin/papeis?organization_id=${TENANT}`);
 }
 

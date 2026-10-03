@@ -104,7 +104,7 @@ test.describe('PWA e dados protegidos (Spec 002)', () => {
     await page.getByLabel('E-mail').fill('admin-a@example.invalid');
     await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
     await page.goto('/perfil');
     await expect(page.getByRole('heading', { name: 'Meu perfil' })).toBeVisible();
 
@@ -149,7 +149,7 @@ test.describe('PWA e dados protegidos (Spec 002)', () => {
     await page.getByLabel('E-mail').fill('operador-a@example.invalid');
     await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
     await page.goto('/perfil');
     await expect(page.getByLabel('Nome de exibição')).toBeVisible();
 
@@ -176,7 +176,7 @@ test.describe('PWA e dados protegidos (Spec 002)', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'FluxID' })).toBeVisible();
     await context.setOffline(false);
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
   });
 });
 

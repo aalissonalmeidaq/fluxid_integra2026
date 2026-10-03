@@ -37,7 +37,7 @@ test.describe('Inicialização da PWA: conexão (US9)', () => {
     await mockSupabase(page, 'slow', 300);
     await page.goto('/');
     await expect(page.getByRole('status').filter({ hasText: /conectando/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible({ timeout: 10_000 });
   });
 
   test('mantém o shell com indicador de offline quando nenhum destino responde', async ({ page }) => {
@@ -122,7 +122,7 @@ test.describe('Inicialização da PWA: sincronização com outbox (US9)', () => 
   test('sem pendência libera a área sem chamar o endpoint de sincronização', async ({ page }) => {
     const backend = new MockBackend();
     await login(page, backend);
-    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
     expect(syncCalls(backend)).toEqual([]);
   });
 
@@ -130,7 +130,7 @@ test.describe('Inicialização da PWA: sincronização com outbox (US9)', () => 
     const backend = new MockBackend();
     await seedOutbox(page, [outboxItem('item-1', TENANT_A)]);
     await login(page, backend);
-    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
     expect(syncCalls(backend)).toEqual([expect.objectContaining({ organization_id: TENANT_A, idempotency_key: 'key-item-1' })]);
     expect(await outboxState(page)).toEqual([expect.objectContaining({ id: 'item-1', status: 'synced' })]);
   });
@@ -139,7 +139,7 @@ test.describe('Inicialização da PWA: sincronização com outbox (US9)', () => 
     const backend = new MockBackend();
     await seedOutbox(page, [outboxItem('item-a', TENANT_A), outboxItem('item-b', TENANT_B)]);
     await login(page, backend);
-    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
     expect(syncCalls(backend).map((call) => call.organization_id)).toEqual([TENANT_A]);
     expect(await outboxState(page)).toEqual([
       expect.objectContaining({ id: 'item-a', status: 'synced' }),
@@ -153,13 +153,13 @@ test.describe('Inicialização da PWA: sincronização com outbox (US9)', () => 
     await seedOutbox(page, [outboxItem('item-1', TENANT_A)]);
     await login(page, backend);
     await expect(page.getByRole('alert').filter({ hasText: /falha de conexão/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Sair' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toHaveCount(0);
     expect(await outboxState(page)).toEqual([expect.objectContaining({ id: 'item-1', status: 'pending', attempt_count: 1 })]);
     expect(syncCalls(backend)).toHaveLength(1);
 
     backend.syncBehavior = 'ok';
     await page.getByRole('button', { name: /tentar novamente/i }).click();
-    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
     expect(syncCalls(backend).map((call) => call.idempotency_key)).toEqual(['key-item-1', 'key-item-1']);
     expect(await outboxState(page)).toEqual([expect.objectContaining({ id: 'item-1', status: 'synced' })]);
   });
@@ -180,7 +180,7 @@ test.describe('Inicialização da PWA: sincronização com outbox (US9)', () => 
     await seedOutbox(page, [outboxItem('item-1', TENANT_A)]);
     await login(page, backend);
     await expect(page.getByRole('alert').filter({ hasText: /conflito encontrado/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Sair' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toHaveCount(0);
     expect(await outboxState(page)).toEqual([expect.objectContaining({ id: 'item-1', status: 'conflict' })]);
   });
 
@@ -188,7 +188,7 @@ test.describe('Inicialização da PWA: sincronização com outbox (US9)', () => 
     const backend = new MockBackend();
     await seedOutbox(page, [outboxItem('item-1', TENANT_A, { status: 'syncing', attempt_count: 1 })]);
     await login(page, backend);
-    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
     expect(syncCalls(backend)).toHaveLength(1);
     expect(await outboxState(page)).toEqual([expect.objectContaining({ id: 'item-1', status: 'synced' })]);
   });
@@ -209,7 +209,7 @@ test.describe('Inicialização da PWA: sincronização com outbox (US9)', () => 
     backend.tenantMemberships = [tenantMembership(TENANT_A, 'Tenant A'), tenantMembership(TENANT_B, 'Tenant B')];
     await seedOutbox(page, [outboxItem('item-a', TENANT_A), outboxItem('item-b', TENANT_B)]);
     await login(page, backend, 'aal2');
-    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
     await page.goto('/admin/membros');
     await page.getByRole('button', { name: 'Entrar em Tenant A' }).click();
     await expect(page.getByRole('rowheader', { name: 'Operador A' })).toBeVisible();

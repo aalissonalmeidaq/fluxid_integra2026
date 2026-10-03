@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const LARGURAS_DE_REFERENCIA =
-  /(app-shell|auth-session|telas-transversais|teclado-e-contraste-de-foco|cores-forcadas|escalas-no-navegador|estados|navegacao-menu)\.spec\.ts$/;
+  /(app-shell|auth-session|telas-transversais|teclado-e-contraste-de-foco|cores-forcadas|escalas-no-navegador|estados|navegacao-menu|entrada-renovada|visao-geral)\.spec\.ts$/;
 
 export default defineConfig({
   testDir: './tests/e2e',

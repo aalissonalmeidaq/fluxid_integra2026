@@ -5,6 +5,7 @@ export { Card } from './components/card';
 export { DataTable } from './components/data-table';
 export { Dialog } from './components/dialog';
 export { EmptyState } from './components/empty-state';
+export { ExampleBadge } from './components/example-badge';
 export { ErrorState } from './components/error-state';
 export { Field } from './components/field';
 export { FormSection } from './components/form-section';

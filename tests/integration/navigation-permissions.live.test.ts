@@ -88,20 +88,20 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     expect(result.status).toBe(200);
     expect(Object.keys(result.body!).sort()).toEqual(['code', 'global', 'tenant']);
     expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: ['audit.read', 'tenant.manage'], global: [] });
-    expect(labels(actor(result))).toEqual(['Início', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
+    expect(labels(actor(result))).toEqual(['Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
   });
 
   it('o operador técnico recebe só as permissões do papel e o menu básico', async () => {
     const result = await permissions(operator, { organization_id: TENANT_C });
     expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: [], global: [] });
-    expect(labels(actor(result))).toEqual(['Início', 'Meu perfil']);
+    expect(labels(actor(result))).toEqual(['Visão geral', 'Meu perfil']);
   });
 
   it('o Administrador FluxID recebe permissões globais e nenhuma do tenant, com ou sem tenant ativo', async () => {
     for (const body of [{}, { organization_id: TENANT_C }]) {
       const result = await permissions(fluxid, body);
       expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: [], global: ['audit.read', 'platform.manage', 'profile.read'] });
-      expect(labels(actor(result))).toEqual(['Início', 'Meu perfil', 'Organizações', 'Auditoria da plataforma']);
+      expect(labels(actor(result))).toEqual(['Visão geral', 'Meu perfil', 'Organizações', 'Auditoria da plataforma']);
     }
   });
 
@@ -110,7 +110,7 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     const inD = await permissions(admin, { organization_id: TENANT_D });
     expect(inC.body?.tenant).toEqual(['audit.read', 'tenant.manage']);
     expect(inD.body?.tenant).toEqual([]);
-    expect(labels(actor(inD))).toEqual(['Início', 'Meu perfil']);
+    expect(labels(actor(inD))).toEqual(['Visão geral', 'Meu perfil']);
   });
 
   it('um tenant sem vínculo ativo devolve listas vazias, sem código nem identificador do outro tenant', async () => {

@@ -27,7 +27,7 @@ describe('ProtectedRoute', () => {
   it('conduz ao login quando não há sessão, sem exibir dados', () => {
     renderRoute({ status: 'signed_out' });
     expect(screen.queryByText('Conteúdo protegido')).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /entrar no fluxid/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /bem-vindo de volta/i })).toBeInTheDocument();
   });
 
   it.each([
@@ -45,6 +45,19 @@ describe('ProtectedRoute', () => {
     renderRoute({ status: 'mfa_required' });
     expect(screen.queryByText('Conteúdo protegido')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /verificação em duas etapas/i })).toBeInTheDocument();
+  });
+
+  it('em mfa_required a verificação usa a moldura pública: painel de marca, um só h1 e nenhum menu', () => {
+    renderRoute({ status: 'mfa_required' });
+    expect(screen.getByText('Controle seus ativos.')).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('a verificação exigida de quem já entrou continua sem o painel de marca (dentro do shell autenticado)', () => {
+    renderRoute({ status: 'authenticated', aal: 'aal1' } as AuthState, { requireAal2: true });
+    expect(screen.getByRole('heading', { name: /verificação em duas etapas/i })).toBeInTheDocument();
+    expect(screen.queryByText('Controle seus ativos.')).not.toBeInTheDocument();
   });
 
   it('libera o conteúdo para sessão autenticada autorizada', () => {

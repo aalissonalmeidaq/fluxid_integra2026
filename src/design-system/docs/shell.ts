@@ -5,17 +5,37 @@ import type { DocumentacaoDeComponente } from './tipos';
 export const documentacaoDoShell: readonly DocumentacaoDeComponente[] = [
   {
     nome: 'AppShell',
-    descricao: 'Estrutura única de toda tela: link de pular, cabeçalho, barra de conexão, menu de navegação, conteúdo principal e rodapé.',
-    variantes: ['deslogado', 'autenticado', 'menu recolhido (menos de 768 px)', 'menu fixo (768 px ou mais)'],
+    descricao: 'Estrutura única de toda tela: link de pular, barra superior, barra de conexão, menu de navegação, conteúdo principal e rodapé.',
+    variantes: ['público (entrada e verificação em duas etapas, sem barra superior nem menu)', 'autenticado com barra superior e menu recolhido (menos de 768 px)', 'autenticado com coluna lateral e barra superior (768 px ou mais)'],
     estados: ['online', 'offline', 'sincronizando'],
     orientacaoDeUso:
-      'Envolve a rota já decidida e nunca decide permissão. Deslogado não mostra dado de organização nem menu; autenticado mostra organização ativa, sair e o menu (o perfil fica no menu). Em 360 px o cabeçalho quebra em linhas sem rolagem horizontal.',
+      'Envolve a rota já decidida e nunca decide permissão. Sem sessão plena a tela usa a moldura de marca e não mostra dado de organização nem menu; autenticado mostra a organização ativa e o menu da pessoa na barra superior, e o menu lateral. Em 360 px a barra superior quebra em linhas sem rolagem horizontal.',
     acessibilidade: [
       'O link "Pular para o conteúdo principal" é o primeiro item da ordem de Tab e leva o foco ao main.',
-      'Um único landmark main, com id main-content e tabindex -1, e um único h1 (o logotipo no cabeçalho).',
+      'Um único landmark main, com id main-content e tabindex -1, e um único h1 (o logotipo: na barra superior abaixo de 768 px, no topo da coluna lateral a partir daí, ou no painel de marca nas telas públicas).',
       'A barra de conexão anuncia a perda de rede como status e oferece o botão de reconectar também na entrada.',
       'O idioma do documento é pt-BR.',
       'O menu fica ao lado do main, fora dele, e o botão do menu entra depois do link de pular na ordem de Tab.',
+    ],
+  },
+  {
+    nome: 'TopBar',
+    descricao: 'Barra superior da sessão autenticada: botão do menu e logotipo abaixo de 768 px, organização ativa, instalar PWA e menu da pessoa.',
+    variantes: ['abaixo de 768 px (com logotipo e botão do menu)', '768 px ou mais (sem logotipo)'],
+    estados: ['uma organização', 'várias organizações com "Trocar organização"', 'perfil global sem organização ativa', 'app instalável'],
+    orientacaoDeUso: 'Reúne só o que pertence à pessoa e ao contexto. Não repete o logotipo quando a coluna lateral já o mostra, para haver um só h1.',
+    acessibilidade: ['Landmark banner único.', 'Todos os controles com alvo de 44 por 44 px e quebra em linhas em 360 px.'],
+  },
+  {
+    nome: 'UserMenu',
+    descricao: 'Menu da pessoa: nome de exibição, organização ativa, "Meu perfil" e "Sair".',
+    variantes: ['fechado', 'aberto'],
+    estados: ['carregando o nome', 'nome indisponível ("Minha conta")', 'sem organização ativa'],
+    orientacaoDeUso: 'Padrão de botão de divulgação, não role="menu". O nome é lido só ao abrir; falha ou demora nunca bloqueia "Meu perfil" nem "Sair".',
+    acessibilidade: [
+      'Botão com aria-expanded e aria-controls; Tab percorre os itens na ordem.',
+      'Escape e clique fora fecham e devolvem o foco ao botão.',
+      'Nome longo trunca com reticências e mantém o nome completo acessível.',
     ],
   },
   {
@@ -24,7 +44,7 @@ export const documentacaoDoShell: readonly DocumentacaoDeComponente[] = [
     variantes: ['coluna fixa (768 px ou mais)', 'painel recolhido sob o cabeçalho (menos de 768 px)'],
     estados: ['pronto', 'carregando', 'erro com "Tentar de novo"', 'offline com as últimas telas', 'offline sem cache', 'item atual', 'foco'],
     orientacaoDeUso:
-      'É conveniência de interface, nunca barreira: esconder um item não protege nada, e o servidor decide o acesso a cada tela. Início e Meu perfil aparecem sempre que há sessão; os demais só depois da confirmação do servidor. Sem sessão, ou com a sessão limitada à verificação em duas etapas, o menu não existe. Ao trocar de organização ou de pessoa, os itens anteriores somem antes do novo contexto aparecer.',
+      'É conveniência de interface, nunca barreira: esconder um item não protege nada, e o servidor decide o acesso a cada tela. Visão geral e Meu perfil aparecem sempre que há sessão; os demais só depois da confirmação do servidor. Sem sessão, ou com a sessão limitada à verificação em duas etapas, o menu não existe. Ao trocar de organização ou de pessoa, os itens anteriores somem antes do novo contexto aparecer.',
     acessibilidade: [
       'É um nav com o nome acessível "Navegação principal", com lista, itens e links; um só landmark main na página.',
       'O item atual usa aria-current="page", o texto "(página atual)" para tecnologia assistiva e uma barra lateral com peso de fonte, nunca só a cor.',

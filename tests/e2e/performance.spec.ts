@@ -32,7 +32,7 @@ test.describe('Desempenho percebido (RNF-003, RNF-004)', () => {
       await submit.waitFor();
       const startedAt = Date.now();
       await submit.click();
-      await page.getByRole('button', { name: 'Sair' }).waitFor();
+      await page.getByRole('button', { name: 'Minha conta' }).waitFor();
       samples.push(Date.now() - startedAt);
       await context.close();
     }

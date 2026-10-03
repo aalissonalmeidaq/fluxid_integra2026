@@ -21,7 +21,7 @@ async function signIn(page: Page, backend: MockBackend): Promise<void> {
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
 }
 
 async function expectAdaptiveLayout(page: Page, width: number): Promise<void> {
@@ -59,7 +59,7 @@ for (const viewport of VIEWPORTS) {
       const backend = new MockBackend();
       await backend.install(page);
       await page.goto('/');
-      await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
       await expectAdaptiveLayout(page, viewport.width);
 
       await page.getByRole('link', { name: /esqueci minha senha/i }).or(page.getByRole('button', { name: /esqueci minha senha/i })).click();
@@ -87,7 +87,7 @@ for (const viewport of VIEWPORTS) {
     test('o conteúdo não fica escondido atrás do cabeçalho e o menu continua alcançável', async ({ page }) => {
       const backend = new MockBackend();
       await signIn(page, backend);
-      await expect(page.getByRole('button', { name: 'Sair' })).toBeInViewport();
+      await expect(page.getByRole('button', { name: 'Minha conta' })).toBeInViewport();
     });
   });
 }

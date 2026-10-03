@@ -6,6 +6,8 @@ import { Icon } from '@/design-system/icons/icon';
 export interface ConnectivityStatusProps {
   result: ResolutionResult;
   onReconnect?: () => void;
+  // Versão discreta para a barra superior: quando conectado, só um ponto e o texto curto, sem caixa nem borda.
+  compact?: boolean;
 }
 
 const ENDPOINT_LABELS: Record<EndpointKind, string> = {
@@ -19,6 +21,7 @@ const BASE = 'inline-flex min-h-alvo min-w-alvo items-center gap-2 rounded-contr
 export function ConnectivityStatus({
   result,
   onReconnect,
+  compact = false,
 }: ConnectivityStatusProps): React.JSX.Element {
   const { state, selectedEndpoint } = result;
 
@@ -29,6 +32,15 @@ export function ConnectivityStatus({
       <div role="status" aria-live="polite" className={`${BASE} border-alerta-faixa bg-alerta-fundo text-alerta-texto`}>
         <Icon name="sincronizar" size={16} variant="monocromatica" className="motion-safe:animate-spin" />
         <span>Verificando conectividade...</span>
+      </div>
+    );
+  }
+
+  if (state === 'connected' && compact) {
+    return (
+      <div role="status" className="inline-flex items-center gap-2 text-legenda text-verde-acessivel">
+        <span data-testid="status-icon" aria-hidden="true">●</span>
+        <span>Conectado: {endpointLabel}</span>
       </div>
     );
   }

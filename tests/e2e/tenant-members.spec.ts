@@ -5,7 +5,7 @@ test.use({ serviceWorkers: 'block' });
 
 async function enter(page: import('@playwright/test').Page, backend: MockBackend): Promise<void> {
   backend.loginResponses=[backend.authenticated()];backend.statusResponse=backend.activeStatus('aal2');await backend.install(page);
-  await page.goto('/');await page.getByLabel('E-mail').fill('admin-a@example.invalid');await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');await page.getByRole('button',{name:'Entrar'}).click();await expect(page.getByRole('button',{name:'Sair'})).toBeVisible();
+  await page.goto('/');await page.getByLabel('E-mail').fill('admin-a@example.invalid');await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');await page.getByRole('button',{name:'Entrar'}).click();await expect(page.getByRole('button',{name:'Minha conta'})).toBeVisible();
   await page.goto('/admin/membros?organization_id=20000000-0000-0000-0000-00000000000a');
 }
 
