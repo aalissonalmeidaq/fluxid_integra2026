@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: Execução do ciclo da Spec 005 pelo fluxo Spec Kit (implementação por tarefas, com TDD), seguida de pedidos de ajuste visual feitos durante a sessão: indicador de conexão discreto na barra do topo, conteúdo em largura total, menu do celular só com ícone de sanduíche e gaveta à direita com a logo, cores diferentes por tipo de KPI e área de alertas com destaque para os novos e página de detalhe, além do registro obrigatório da validação humana na documentação.
 - Resposta gerada pela IA: A IA implementou a entrada com painel de marca e mostrar/ocultar senha, a Visão geral com sete blocos de exemplo marcados como Exemplo, os gráficos de linha e rosca em SVG próprio com tabela equivalente, a barra superior, o menu da pessoa, a gaveta do menu no celular, a página de alertas com detalhe, a fonte de dados substituível, as capturas visuais no Linux e a nova regra de validação humana por entrevista na metodologia e no validador.
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/005-login-e-visao-geral
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/14
 - Análise crítica da equipe: O resultado foi conferido por testes automatizados e por revisão visual. Alguns ajustes de layout vieram de pedidos durante a sessão. Houve edições paralelas de interface que quebraram o teste de tokens e o contraste do foco, e elas foram corrigidas antes do commit. A parte de alertas por organização em tempo real ficou de fora, porque depende de backend e de uma spec própria.
 - Validação humana realizada: Alisson Almeida validou a entrada e a Visão geral em celular e desktop, conforme as capturas de tela enviadas por ele, e confirmou o resultado ao agente.
 - Decisão final: utilizado
@@ -249,7 +249,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Trocar o link da branch pelo link do pull request antes do merge. Entregar o DOCX do RIA em pull request de documentação depois do merge. Alertas reais por organização em tempo real ficam para a spec dos alertas.
+O link do pull request já foi trocado no registro. Entregar o DOCX do RIA em pull request de documentação depois do merge. Alertas reais por organização em tempo real ficam para a spec dos alertas.
 
 ## Validação humana
 
