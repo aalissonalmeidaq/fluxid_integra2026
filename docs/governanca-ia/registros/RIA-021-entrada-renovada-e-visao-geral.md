@@ -263,7 +263,7 @@ Hash da correção (diff funcional preparado deste commit, sobre o commit 43f050
 
 ## Decisões e dados pendentes
 
-O link do pull request já foi trocado no registro. Entregar o DOCX do RIA em pull request de documentação depois do merge, regenerando-o a partir deste registro atualizado. Alertas reais por organização em tempo real ficam para a spec dos alertas.
+O link do pull request já foi trocado no registro. O DOCX (`registros/21_Entrada_Renovada_e_Visao_Geral.docx`) foi gerado a partir deste registro e vai no mesmo pull request das correções, por pedido da equipe; qualquer correção posterior do registro exige regenerá-lo. Alertas reais por organização em tempo real ficam para a spec dos alertas.
 
 Riscos residuais:
 
