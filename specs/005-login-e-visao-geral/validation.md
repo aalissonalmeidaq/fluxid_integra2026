@@ -70,4 +70,6 @@ Sem a divisão por rota, a ponta anterior media 145 ms (entrada) e 143 ms (shell
 
 ## Validação humana (T046)
 
-Aprovada por Alisson Almeida em 03/10/2026: 40 minutos, Chrome no Windows 11 com emulação de dispositivos e celular pela rede, entrada e Visão geral conferidas conforme as capturas enviadas, sem itens a corrigir. Detalhes no RIA-021. As correções de 05/10/2026 não mudam o visual aprovado: as capturas ficaram idênticas. A única diferença perceptível é o indicador "Carregando a página…" por uma fração de segundo na primeira abertura da Visão geral e dos alertas.
+Aprovada por Alisson Almeida em 03/10/2026: 40 minutos, Chrome no Windows 11 com emulação de dispositivos e celular pela rede, entrada e Visão geral conferidas conforme as capturas enviadas, sem itens a corrigir. Detalhes no RIA-021. As correções de 05/10/2026 não mudam o visual aprovado: as capturas ficaram idênticas. A única diferença perceptível, aceita na nova validação abaixo, é o indicador "Carregando a página…" por uma fração de segundo na primeira abertura da Visão geral e dos alertas.
+
+Nova validação humana em 05/10/2026, depois das correções: Alisson Almeida, 35 minutos, Chrome (última versão) no Windows, em notebook e em celular Android, com admin-a@example.invalid e master@example.invalid em todas as telas. Resultado aprovado, sem itens a corrigir, com aceite do indicador "Carregando a página…". Decisão: utilizado. Confirmou a gravação das respostas em seu nome.
