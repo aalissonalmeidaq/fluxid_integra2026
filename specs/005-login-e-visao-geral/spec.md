@@ -87,7 +87,7 @@ A Visão geral se reorganiza de 360 px a desktop amplo e é operável só pelo t
 
 1. **Dado** 360 px, **quando** a pessoa vê a Visão geral, **então** os cartões e os blocos ficam em uma coluna, o menu fica recolhido atrás do botão da Spec 004 e não há rolagem horizontal.
 2. **Dado** 768 px, **quando** a pessoa vê a página, **então** os cartões ficam em duas colunas e o menu lateral fica fixo.
-3. **Dado** 1920 px, **quando** a pessoa vê a página, **então** os quatro cartões ficam na mesma linha e os blocos seguem a disposição das referências, sem esticar além da largura máxima de leitura do shell.
+3. **Dado** 1920 px, **quando** a pessoa vê a página, **então** os quatro cartões ficam na mesma linha e os blocos seguem a disposição das referências, com o contêiner principal ocupando toda a largura disponível do conteúdo, respeitadas as margens e os espaçamentos responsivos; só o texto corrido de apoio mantém largura própria de leitura.
 4. **Dado** um gráfico, **quando** a pessoa usa leitor de tela ou só o teclado, **então** encontra os mesmos dados em texto ou tabela, e a informação nunca depende só da cor.
 5. **Dado** os controles da página, **quando** a pessoa usa o teclado, **então** cada um tem alvo de 44 por 44 px e anel de foco visível de 3:1 ou mais.
 

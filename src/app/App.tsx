@@ -1,12 +1,20 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { ProtectedRoute } from './routing/protected-route';
 import { RecoveryConfirmPage } from '@/pages/auth/recovery-confirm-page';
 import { ProfilePage } from '@/pages/profile/profile-page';
-import { AlertsPage } from '@/pages/alerts/alerts-page';
-import { OverviewPage } from '@/pages/overview/overview-page';
+import { Loading } from '@/design-system/components/loading';
 import { TenantGate } from './tenant/tenant-gate';
 import { AppShell } from './shell/app-shell';
 import { ADMIN_ROUTES } from './admin-routes';
+
+// Rotas da área autenticada carregadas sob demanda (RNF-003): o pacote de entrada não carrega a Visão geral nem os alertas.
+// Os chunks entram no precache do service worker, então a navegação continua funcionando offline.
+const OverviewPage = lazy(() => import('@/pages/overview/overview-page').then((m) => ({ default: m.OverviewPage })));
+const AlertsPage = lazy(() => import('@/pages/alerts/alerts-page').then((m) => ({ default: m.AlertsPage })));
+
+export function RouteFallback(): React.JSX.Element {
+  return <Loading variant="pagina" busy label="Carregando a página…" />;
+}
 
 export function App(): React.JSX.Element {
   const pathname = window.location.pathname;
@@ -16,9 +24,9 @@ export function App(): React.JSX.Element {
   // e o estado de conexão precisam existir para quem ainda não entrou.
   return (
     <AppShell>
-      {pathname === '/recuperar-senha/confirmar' ? <RecoveryConfirmPage /> : pathname === '/perfil' ? <ProtectedRoute><ProfilePage /></ProtectedRoute> : pathname === '/alertas' ? <ProtectedRoute><AlertsPage /></ProtectedRoute> : adminRoute ? <ProtectedRoute requireAal2={adminRoute.requireAal2}>
+      {pathname === '/recuperar-senha/confirmar' ? <RecoveryConfirmPage /> : pathname === '/perfil' ? <ProtectedRoute><ProfilePage /></ProtectedRoute> : pathname === '/alertas' ? <ProtectedRoute><Suspense fallback={<RouteFallback />}><AlertsPage /></Suspense></ProtectedRoute> : adminRoute ? <ProtectedRoute requireAal2={adminRoute.requireAal2}>
         {adminRoute.tenantScoped ? <TenantGate><adminRoute.Page /></TenantGate> : <adminRoute.Page />}
-      </ProtectedRoute> : <ProtectedRoute><OverviewPage /></ProtectedRoute>}
+      </ProtectedRoute> : <ProtectedRoute><Suspense fallback={<RouteFallback />}><OverviewPage /></Suspense></ProtectedRoute>}
     </AppShell>
   );
 }

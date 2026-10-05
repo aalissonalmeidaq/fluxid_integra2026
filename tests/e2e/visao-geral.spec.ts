@@ -141,6 +141,12 @@ test.describe('US3: qualquer largura, só com teclado', () => {
     else expect(naMesmaLinha).toBe(4);
     const principal = await page.getByRole('main').boundingBox();
     expect(principal).not.toBeNull();
+    // Decisão final: o contêiner da Visão geral ocupa a largura disponível do conteúdo principal (sem limite de 1200 px),
+    // respeitando as margens responsivas do shell. Só o texto de apoio tem largura de leitura própria.
+    const raiz = await page.getByRole('heading', { name: 'Visão geral', level: 2 }).locator('xpath=../..').boundingBox();
+    expect(raiz).not.toBeNull();
+    expect(raiz!.width).toBeGreaterThanOrEqual(principal!.width * 0.85);
+    if (largura >= 1920) expect(raiz!.width).toBeGreaterThan(1200);
     expect(await semRolagemHorizontal(page)).toBe(true);
     if (largura < 768) await expect(menu(page)).toBeHidden();
     else await expect(menu(page)).toBeVisible();
@@ -229,7 +235,12 @@ test.describe('US4: aplicativo instalado, recarregando offline (RF-030)', () => 
       for (const nome of await caches.keys()) for (const pedido of await (await caches.open(nome)).keys()) urls.push(new URL(pedido.url).pathname);
       return urls;
     });
-    expect(cacheado.filter((caminho) => /cilindro|alerta|lacre|viagem|overview|visao/i.test(caminho))).toEqual([]);
+    // Os chunks de código das rotas (RNF-003) entram no precache de propósito, para a página abrir offline; o que não pode ser
+    // cacheado são dados, então só arquivos de código em /assets/ ficam fora da verificação.
+    const ehChunkDeCodigo = (caminho: string): boolean => /^\/assets\/[^/]+\.js$/.test(caminho);
+    expect(cacheado.filter((caminho) => !ehChunkDeCodigo(caminho) && /cilindro|alerta|lacre|viagem|overview|visao/i.test(caminho))).toEqual([]);
+    // O chunk da Visão geral está no precache: sem ele a página não abriria offline.
+    expect(cacheado.some((caminho) => /^\/assets\/overview-page-[^/]+\.js$/.test(caminho))).toBe(true);
 
     // A rota simulada continua respondendo offline, como no teste do menu da Spec 004: a sessão é restaurada e a estrutura abre.
     await context.setOffline(true);

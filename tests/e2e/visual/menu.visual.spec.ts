@@ -23,6 +23,8 @@ async function entrar(page: Page, backend: MockBackend): Promise<void> {
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
+  // A Visão geral é carregada sob demanda (RNF-003): sem esperar o chunk, a captura pegaria o fallback "Carregando a página…".
+  await expect(page.getByRole('heading', { name: 'Visão geral', level: 2 })).toBeVisible();
 }
 
 async function abrirSeRecolhido(page: Page): Promise<void> {

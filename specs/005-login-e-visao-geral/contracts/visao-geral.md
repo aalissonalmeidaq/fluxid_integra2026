@@ -29,7 +29,7 @@
 |---|---|---|
 | 360 px | 1 coluna | Uma coluna; menu recolhido atrás do botão |
 | 768 px | 2 colunas | Menu fixo; blocos em uma ou duas colunas conforme a largura útil |
-| 1920 px | 4 na mesma linha | Mapa e movimentação lado a lado, depois situação, alertas e cilindros; sem esticar além de `containers.largo` |
+| 1920 px | 4 na mesma linha | Mapa e movimentação lado a lado, depois situação, alertas e cilindros; contêiner principal em largura disponível (sem limite de 1200 px); só o texto de apoio tem largura própria de leitura; margens responsivas mantidas |
 
 Sem rolagem horizontal de 320 a 1920 px nem com zoom de 200%; tabelas e texto longo rolam ou quebram dentro do bloco.
 

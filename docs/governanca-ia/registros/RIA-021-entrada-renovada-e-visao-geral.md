@@ -51,6 +51,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `specs/005-login-e-visao-geral/spec.md`
 - `specs/005-login-e-visao-geral/tasks.md`
 - `specs/005-login-e-visao-geral/validation.md`
+- `src/app/App.lazy.test.tsx`
 - `src/app/App.tsx`
 - `src/app/overview/overview-source-context.tsx`
 - `src/app/routing/protected-route.test.tsx`
@@ -243,13 +244,32 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Testes e evidências
 
-- Comando(s): npm run lint; npm run typecheck; npm test; npm run test:coverage; npm run test:e2e; npm run build; npm run test:visual:atualizar
-- Resultado: aprovado
-- Evidência: 1620 testes unitários aprovados com cobertura acima dos limites; E2E com 1034 aprovados e 30 ignorados, e as falhas intermitentes do WebKit repetidas isoladamente e aprovadas; 105 capturas visuais aprovadas no Linux. Medições em specs/005-login-e-visao-geral/validation.md.
+- Comando(s): npm run lint; npm run typecheck; npm test; npm run test:coverage; npm run build; npm run test:e2e; npm run test:visual:atualizar; npm run test:live
+- Resultado: aprovado, com uma pendência de medição de tempo (veja os riscos residuais)
+- Evidência (rodada final, 05/10/2026): lint e typecheck sem erros; 1622 testes unitários aprovados em 127 arquivos, com cobertura acima dos limites (instruções 92,5%, ramos 88,5%, funções 91%, linhas 95,49%); E2E com 1036 aprovados e 31 ignorados, sem falhas; 105 capturas visuais aprovadas no Linux na geração e na segunda rodada; 12 arquivos e 75 testes live aprovados no Supabase local. Medições e método em specs/005-login-e-visao-geral/validation.md.
+
+## Correções da revisão do PR #14
+
+A revisão do PR #14 apontou quatro bloqueadores, resolvidos neste ciclo de correção:
+
+- **Pacote (RNF-003):** a entrada estava em 598,65 kB, acima do limite de 593,95 kB (+5% sobre 565,67 kB). `src/app/App.tsx` passou a carregar `OverviewPage` e `AlertsPage` com `React.lazy` e `Suspense`, com o `Loading` do design system como fallback acessível (região de status com `aria-busy`). A entrada ficou em 578,36 kB (+2,24%); os chunks são `overview-page` (13,29 kB), `alerts-page` (3,59 kB) e `use-overview-block` (5,71 kB, compartilhado); o JavaScript total em `dist/assets` é de 600.954 bytes. Autenticação, redirecionamentos e PWA offline seguem iguais, porque os chunks entram no precache. Testes novos: `src/app/App.lazy.test.tsx` (fallback e página carregada em `/` e `/alertas`).
+- **Largura:** `spec.md`, `plan.md`, `contracts/visao-geral.md` e as tarefas T031 e T034 agora descrevem o contêiner principal em largura disponível, sem o limite de 1200 px, com largura própria só para o texto de apoio. O teste `tests/e2e/visao-geral.spec.ts` passou a verificar essa largura.
+- **T053:** o procedimento oficial (`npm run test:visual:atualizar`) foi executado; nenhuma imagem Linux versionada mudou, e a tarefa foi marcada como concluída. O teste `tests/e2e/visual/menu.visual.spec.ts` agora espera a Visão geral carregar antes de capturar, porque a divisão por rota fazia a captura "menu: carregando" pegar o fallback. O teste de offline em `tests/e2e/visao-geral.spec.ts` deixou de tratar o chunk de código no cache como dado e passou a exigir que ele esteja no precache.
+- **Evidências:** `validation.md` e este registro foram reescritos com os números da rodada final; os valores antigos (1607 testes, 1026 E2E com uma falha intermitente e pacote de 589,82 kB) foram removidos.
+
+Nenhuma dependência, migration, Edge Function ou política RLS foi criada ou alterada.
+
+Hash da correção (diff funcional preparado deste commit, sobre o commit 1b9205f): 90c80ea11812db13ec459feb0bd633bf4b5bae68eda4326318c82c17d22e65f2.
 
 ## Decisões e dados pendentes
 
-O link do pull request já foi trocado no registro. Entregar o DOCX do RIA em pull request de documentação depois do merge. Alertas reais por organização em tempo real ficam para a spec dos alertas.
+O link do pull request já foi trocado no registro. Entregar o DOCX do RIA em pull request de documentação depois do merge, regenerando-o a partir deste registro atualizado. Alertas reais por organização em tempo real ficam para a spec dos alertas.
+
+Riscos residuais:
+
+- **Tempo de carga do shell:** hoje, nesta máquina, o shell autenticado mede 143 ms de mediana, acima do limite de 107 ms, tanto com quanto sem a divisão por rota (a linha de base mediu 83 ms em 01/10). Não houve comparação com o commit `1fab73e` na mesma hora. Repetir `medicao-shell.spec.ts` em máquina descarregada antes do merge.
+- **Indicador de carregamento:** a primeira abertura da Visão geral e dos alertas mostra "Carregando a página…" por uma fração de segundo. A validação humana de 03/10 não viu esse estado; as capturas aprovadas ficaram idênticas. A pessoa responsável pode confirmar na nova revisão se aceita o indicador.
+- **Banco local:** a suíte live falhou uma vez por um fator TOTP de seed de 03/10 que sobrou no banco local; o fator foi removido e a rodada seguinte passou. O CI não é afetado.
 
 ## Validação humana
 
