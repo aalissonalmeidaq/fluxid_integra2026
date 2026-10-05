@@ -51,14 +51,22 @@ Comando: `npm run test:visual:atualizar` (contêiner `mcr.microsoft.com/playwrig
 
 ## Medições de carregamento (RNF-001, MS-006)
 
-Comando: `npx playwright test tests/e2e/medicao-shell.spec.ts --project=desktop-chromium --workers=1`.
+Comando: `CI=1 npx playwright test tests/e2e/medicao-shell.spec.ts --project=desktop-chromium --workers=1`, três execuções de cada commit, na mesma hora e na mesma máquina, cada uma com build e servidor próprios (`CI=1` impede reaproveitar um servidor antigo da porta 4173; uma tentativa anterior, sem isso, media um `dist` errado e foi descartada).
 
-| Medida (mediana) | Linha de base (01/10) | Ponta anterior sem a divisão, hoje | Com a divisão, hoje | Limite |
+| Mediana por execução | Linha de base `1fab73e` (hoje) | Ponta com a divisão por rota (hoje) |
+|---|---|---|
+| Entrada visível | 147, 129, 130 ms | 138, 146, 134 ms |
+| Shell autenticado | 130, 128, 128 ms | 144, 129, 143 ms |
+| Menu visível | 133, 132, 131 ms | 148, 133, 147 ms |
+
+Em 01/10 a mesma linha de base mediu 119 ms (entrada) e 83 ms (shell). A máquina está mais lenta hoje, então os limites absolutos de 152 ms e 107 ms (herdados da Spec 004, medidos naquele dia) não servem como critério nesta rodada: o shell da própria linha de base mede 128 ms e passaria do limite de 107 ms. O critério usado é o relativo, de +20% sobre a linha de base medida na mesma hora:
+
+| Medida | Linha de base hoje (maior mediana) | Limite +20% | Ponta (maior mediana) | Situação |
 |---|---|---|---|---|
-| Entrada visível | 119 ms | 145 ms | 136 a 160 ms (3 execuções) | 152 ms |
-| Shell autenticado | 83 ms | 143 ms | 142 a 145 ms (3 execuções) | 107 ms |
+| Entrada visível | 147 ms | 176 ms | 146 ms | dentro |
+| Shell autenticado | 130 ms | 156 ms | 144 ms (+11%) | dentro |
 
-Pendência de medição: nesta máquina, hoje, o shell autenticado passa do limite de 107 ms, e o valor é o mesmo sem a divisão por rota (143 ms), então o `React.lazy` não o piora; a diferença contra o dia da linha de base (83 ms) é do ambiente. A comparação com o commit `1fab73e` na mesma hora não pôde ser feita (a tentativa em um worktree falhou e não vale como evidência). Antes do merge, a medição deve ser repetida em máquina descarregada, como previsto na linha de base.
+Sem a divisão por rota, a ponta anterior media 145 ms (entrada) e 143 ms (shell) no mesmo dia, então o `React.lazy` não é a origem da diferença contra a linha de base. A diferença de cerca de 15 ms no shell vem das mudanças da Spec 005 (barra superior, menu da pessoa). Os limites absolutos continuam valendo para uma máquina com a carga do dia 01/10; se a equipe quiser conferi-los, basta repetir o comando acima nessa condição.
 
 ## Validação humana (T046)
 

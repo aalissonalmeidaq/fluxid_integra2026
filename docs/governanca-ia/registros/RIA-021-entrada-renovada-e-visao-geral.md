@@ -245,7 +245,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 ## Testes e evidências
 
 - Comando(s): npm run lint; npm run typecheck; npm test; npm run test:coverage; npm run build; npm run test:e2e; npm run test:visual:atualizar; npm run test:live
-- Resultado: aprovado, com uma pendência de medição de tempo (veja os riscos residuais)
+- Resultado: aprovado, com a ressalva de tempo descrita nos riscos residuais
 - Evidência (rodada final, 05/10/2026): lint e typecheck sem erros; 1622 testes unitários aprovados em 127 arquivos, com cobertura acima dos limites (instruções 92,5%, ramos 88,5%, funções 91%, linhas 95,49%); E2E com 1036 aprovados e 31 ignorados, sem falhas; 105 capturas visuais aprovadas no Linux na geração e na segunda rodada; 12 arquivos e 75 testes live aprovados no Supabase local. Medições e método em specs/005-login-e-visao-geral/validation.md.
 
 ## Correções da revisão do PR #14
@@ -259,7 +259,7 @@ A revisão do PR #14 apontou quatro bloqueadores, resolvidos neste ciclo de corr
 
 Nenhuma dependência, migration, Edge Function ou política RLS foi criada ou alterada.
 
-Hash da correção (diff funcional preparado deste commit, sobre o commit 1b9205f): 90c80ea11812db13ec459feb0bd633bf4b5bae68eda4326318c82c17d22e65f2.
+Hash da correção (diff funcional preparado deste commit, sobre o commit 5185358, que corrigiu a revisão do PR #14; o primeiro hash da correção, sobre 1b9205f, é 90c80ea11812db13ec459feb0bd633bf4b5bae68eda4326318c82c17d22e65f2): fac8d0bb687d45cced560d8a289e2436458b554add095bcb18644eb120c2bfe6.
 
 ## Decisões e dados pendentes
 
@@ -267,7 +267,7 @@ O link do pull request já foi trocado no registro. Entregar o DOCX do RIA em pu
 
 Riscos residuais:
 
-- **Tempo de carga do shell:** hoje, nesta máquina, o shell autenticado mede 143 ms de mediana, acima do limite de 107 ms, tanto com quanto sem a divisão por rota (a linha de base mediu 83 ms em 01/10). Não houve comparação com o commit `1fab73e` na mesma hora. Repetir `medicao-shell.spec.ts` em máquina descarregada antes do merge.
+- **Tempo de carga do shell:** em 05/10/2026 a máquina estava mais lenta que em 01/10 (a própria linha de base `1fab73e` mediu 128 a 130 ms no shell, contra 83 ms). Na mesma hora, a ponta mede até 144 ms (+11% sobre a linha de base, dentro do critério de +20%) e a entrada 146 ms contra 147 ms. Os limites absolutos de 107 ms e 152 ms não foram reconferidos em máquina com a carga de 01/10.
 - **Indicador de carregamento:** a primeira abertura da Visão geral e dos alertas mostra "Carregando a página…" por uma fração de segundo. A validação humana de 03/10 não viu esse estado; as capturas aprovadas ficaram idênticas. A pessoa responsável pode confirmar na nova revisão se aceita o indicador.
 - **Banco local:** a suíte live falhou uma vez por um fator TOTP de seed de 03/10 que sobrou no banco local; o fator foi removido e a rodada seguinte passou. O CI não é afetado.
 
