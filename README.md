@@ -76,7 +76,9 @@ npm run build
 
 ## Navegação por permissão (Spec 004)
 
-O shell tem um menu de navegação que mostra só as telas que a pessoa autenticada pode usar: Início e Meu perfil para todos; Pessoas do tenant, Papéis e permissões e Auditoria do tenant conforme as permissões no tenant ativo; Organizações e Auditoria da plataforma conforme as permissões globais. O menu é conveniência de interface: esconder um item não protege nada, e o servidor decide o acesso a cada tela.
+O shell tem um menu de navegação que mostra só as telas que a pessoa autenticada pode usar: Visão geral e Meu perfil para todos; Pessoas do tenant, Papéis e permissões e Auditoria do tenant conforme as permissões no tenant ativo; Organizações e Auditoria da plataforma conforme as permissões globais. O menu é conveniência de interface: esconder um item não protege nada, e o servidor decide o acesso a cada tela.
+
+A entrada tem painel de marca (logotipo, assinatura e três destaques), mostrar e ocultar a senha e a mesma moldura nas telas de recuperação e de verificação em duas etapas. A página inicial é a **Visão geral**, com indicadores, mapa reservado, gráficos de movimentação e de situação, alertas, cilindros recentes e medidas operacionais. Todos os números são **dados de exemplo**, marcados "Exemplo" em cada bloco, vindos de uma fonte única substituível, e a página não lê dado real de nenhuma organização. A barra superior reúne a organização ativa e o menu da pessoa ("Meu perfil" e "Sair").
 
 Para isso o servidor ganhou uma consulta somente leitura das próprias permissões: a Edge Function `query-permissions` (`supabase/functions/query-permissions/`), que chama a função de banco `public.get_actor_permissions` (só `service_role`) e devolve apenas códigos de permissão (`tenant` e `global`), sem auditoria e sem dados de outros tenants. Nenhuma regra de acesso, papel ou permissão mudou.
 

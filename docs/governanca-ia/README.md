@@ -29,6 +29,14 @@ As decisões de utilização, adaptação ou descarte são registradas como deci
 
 O Markdown é a fonte versionável de apoio. O DOCX é o formato obrigatório de apresentação e entrega de cada RIA e deve reproduzir o mesmo conteúdo, sem substituir silenciosamente o arquivo-fonte.
 
+## Validação humana obrigatória (entrevista do agente)
+
+Antes de gerar o RIA e finalizar a spec, o agente de IA **precisa** perguntar à pessoa responsável pela validação e gravar as respostas dela no registro. A validação não pode ser presumida, inferida dos testes automatizados nem preenchida em nome de ninguém.
+
+Perguntas mínimas: quem validou; amostra (perfis, telas, larguras e fluxos); ambiente (navegador, sistema, dispositivo); duração; resultado (aprovado, aprovado com ajustes ou reprovado) e itens a corrigir; decisão (`utilizado`, `adaptado` ou `descartado`) com justificativa; e a confirmação de que as respostas podem ser gravadas em nome da pessoa.
+
+Os campos correspondentes do template (`Amostra validada`, `Ambiente da validação`, `Duração da validação`, `Resultado da validação humana`, `Itens a corrigir apontados pela pessoa responsável` e `Confirmação do responsável`) são obrigatórios. O `npm run ia:validar` reprova o commit quando faltam, quando restar `PREENCHER` ou quando a confirmação não começar com `sim`. O DOCX do RIA é gerado a partir do registro preenchido com essas respostas. O procedimento completo está em `docs/metodologia-desenvolvimento.md`.
+
 ## Quando gerar um registro
 
 Cada ciclo Spec Kit concluído gera exatamente um novo RIA, depois da aprovação dos testes e antes do commit que encerra o ciclo. Conversas exploratórias, auditorias e manutenções que não encerram um ciclo Spec Kit não geram um RIA automaticamente.
@@ -46,7 +54,7 @@ O mesmo commit de encerramento deve conter implementação, testes, novo registr
 
 ```bash
 git add src tests specs
-npm run ia:registro -- --spec 001 --ciclo 01 --titulo "Cadastro de cilindros" --link-validacao "https://github.com/organizacao/repositorio/pull/123"
+npm run ia:registro -- --spec 001 --ciclo 01 --titulo "Cadastro de cilindros" --link-validacao "https://github.com/organizacao/repositorio/pull/123" --revisor "NOME" --data-validacao "AAAA-MM-DD" --amostra "..." --ambiente "..." --duracao "..." --resultado-validacao "aprovado" --correcoes "nenhum" --confirmacao "sim, confirmado por NOME em AAAA-MM-DD" --decisao "utilizado"
 git add docs/governanca-ia
 npm run ia:validar
 git commit -m "feat(ativos): conclui cadastro de cilindros"

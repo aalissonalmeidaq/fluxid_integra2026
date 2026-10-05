@@ -31,6 +31,8 @@
 
 | RIA-020 | 01/10/2026, 19:48:14 - America/Fortaleza | 004 | 01 | Navegação por permissão | `registros/20_Navegacao_por_Permissao.docx` (`RIA-020-navegacao-por-permissao.md`) | utilizado |
 
+| RIA-021 | 03/10/2026, 11:23:52 - America/Fortaleza | 005 | 01 | Entrada renovada e Visão geral (atualizado em 05/10/2026 após a revisão do PR #14, medições refeitas e nova validação humana e dimensões das telas) | `registros/21_Entrada_Renovada_e_Visao_Geral.docx` (`RIA-021-entrada-renovada-e-visao-geral.md`) | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

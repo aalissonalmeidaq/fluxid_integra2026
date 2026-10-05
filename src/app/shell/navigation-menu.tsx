@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Alert } from '@/design-system/components/alert';
 import { Button } from '@/design-system/components/button';
+import { Logo } from '@/design-system/brand/logo';
 import { Loading } from '@/design-system/components/loading';
 import { VisuallyHidden } from '@/design-system/components/visually-hidden';
 import { Icon } from '@/design-system/icons/icon';
@@ -81,13 +82,21 @@ export function NavigationMenu({ open, onClose, toggleRef }: NavigationMenuProps
   const currentPath = window.location.pathname;
 
   return (
+    <>
+    {/* Abaixo de 768 px o menu é uma gaveta sobre a página; o fundo escurecido a fecha (o clique fora já fecha). */}
+    {open && !wide && <div aria-hidden="true" data-menu-backdrop className="fixed inset-0 z-10 bg-navy/50" />}
     <nav
       ref={navRef}
       id={MENU_ID}
       aria-label="Navegação principal"
       hidden={!open && !wide}
-      className="max-h-screen w-full overflow-y-auto border-b border-borda-suave bg-branco p-2 tablet:w-1/4 tablet:shrink-0 tablet:self-start tablet:border-b-0 tablet:border-r"
+      className="fixed inset-y-0 end-0 z-20 w-4/5 max-w-compacto overflow-y-auto bg-branco p-2 shadow-dialogo tablet:static tablet:z-auto tablet:max-h-screen tablet:w-full tablet:shadow-none"
     >
+      {!wide && (
+        <div className="px-4 pb-4 pt-2">
+          <Logo variant="horizontal" width={152} decorative />
+        </div>
+      )}
       <ul className="m-0 flex list-none flex-col gap-1 p-0">
         {screens.map((screen) => {
           const current = screen.path === currentPath;
@@ -110,5 +119,6 @@ export function NavigationMenu({ open, onClose, toggleRef }: NavigationMenuProps
       )}
       {status === 'offline' && <Alert variant="alerta" className="mt-2">Sem conexão. As telas podem estar desatualizadas.</Alert>}
     </nav>
+    </>
   );
 }

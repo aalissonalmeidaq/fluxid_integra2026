@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { AppShell } from './app-shell';
 import { AuthContext, type AuthContextValue } from '../auth/auth-context';
@@ -64,10 +64,26 @@ describe('AppShell', () => {
     expect(within(mains[0]!).getByRole('heading', { name: 'Conteúdo da rota' })).toBeInTheDocument();
   });
 
-  it('o cabeçalho exibe o logotipo horizontal como título principal', () => {
+  it('o shell público (entrada e verificação em duas etapas) não tem cabeçalho nem menu', () => {
     renderShell();
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).toBeInTheDocument();
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Pular para o conteúdo principal' })).toBeInTheDocument();
+    expect(screen.getByTestId('connection-bar')).toBeInTheDocument();
+  });
+
+  it('o shell público também vale com a sessão em mfa_required', () => {
+    renderShell({ authState: { status: 'mfa_required' } });
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('o cabeçalho exibe o logotipo horizontal como título principal', () => {
+    renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
     const banner = screen.getByRole('banner');
-    const h1 = within(banner).getByRole('heading', { level: 1, name: 'FluxID' });
+    const h1 = within(banner).getByRole('heading', { level: 1, name: /FluxID/ });
     expect(within(h1).getByRole('img', { name: 'FluxID' })).toBeInTheDocument();
   });
 
@@ -85,12 +101,14 @@ describe('AppShell', () => {
     expect(screen.queryByRole('button', { name: 'Sair' })).not.toBeInTheDocument();
   });
 
-  it('autenticado mostra organização ativa e sair; o perfil fica no menu, não no cabeçalho', async () => {
+  it('autenticado mostra a organização ativa na barra superior e "Sair" no menu da pessoa; o perfil também está no menu lateral', async () => {
     const logout = vi.fn(async () => undefined);
     renderShell({ authState: { status: 'authenticated', aal: 'aal2' }, logout });
     expect(screen.getByText('Gases Norte')).toBeInTheDocument();
     expect(within(screen.getByRole('banner')).queryByRole('link', { hidden: true, name: 'Meu perfil' })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { hidden: true, name: 'Meu perfil' })).toHaveAttribute('href', '/perfil');
+    expect(screen.queryByRole('button', { name: 'Sair' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Minha conta' }));
     fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
     expect(logout).toHaveBeenCalledTimes(1);
   });
@@ -174,5 +192,43 @@ describe('AppShell', () => {
   it('o idioma do documento é pt-BR', () => {
     renderShell();
     expect(document.documentElement.lang).toBe('pt-BR');
+  });
+
+  describe('a partir de 768 px, autenticado', () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('põe o logotipo (o único h1) no topo da coluna lateral, com o menu, e a barra superior não o repete', () => {
+      vi.stubGlobal('matchMedia', (query: string) => ({ matches: /min-width/.test(query), media: query, addEventListener: () => undefined, removeEventListener: () => undefined }));
+      renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
+      const titulos = screen.getAllByRole('heading', { level: 1 });
+      expect(titulos).toHaveLength(1);
+      const navegacao = screen.getByRole('navigation', { name: 'Navegação principal' });
+      expect(titulos[0]?.parentElement?.parentElement?.contains(navegacao)).toBe(true);
+      expect(within(screen.getByRole('banner')).queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Menu' })).toBeNull();
+      expect(screen.getAllByRole('main')).toHaveLength(1);
+    });
+
+    it('o logotipo é um link para a Visão geral e continua como o nome do h1', () => {
+      vi.stubGlobal('matchMedia', (query: string) => ({ matches: /min-width/.test(query), media: query, addEventListener: () => undefined, removeEventListener: () => undefined }));
+      renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
+      const titulo = screen.getByRole('heading', { level: 1, name: 'FluxID' });
+      expect(within(titulo).getByRole('link', { name: 'FluxID' })).toHaveAttribute('href', '/');
+      expect(within(titulo).getByRole('img', { name: 'FluxID' })).toHaveAttribute('width', '192');
+    });
+  });
+
+  describe('abaixo de 768 px, autenticado', () => {
+    it('o logotipo da barra superior leva à Visão geral', () => {
+      renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
+      expect(within(screen.getByRole('banner')).getByRole('link', { name: 'FluxID' })).toHaveAttribute('href', '/');
+    });
+
+    it('tem a barra superior com o botão do menu e o logotipo (h1), e o menu como painel', () => {
+      renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
+      expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+      expect(within(screen.getByRole('banner')).getByRole('heading', { level: 1 })).toBeInTheDocument();
+      expect(within(screen.getByRole('banner')).getByRole('button', { name: 'Menu' })).toBeInTheDocument();
+    });
   });
 });

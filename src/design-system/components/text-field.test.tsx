@@ -105,3 +105,17 @@ describe('Field (compatível com o FormField da Spec 002)', () => {
     expect(campo).toHaveAccessibleDescription('Obrigatório');
   });
 });
+
+describe('TextField: controle ao final do campo (Spec 005)', () => {
+  it('mostra o controle ao final dentro do campo e reserva espaço para ele', () => {
+    render(<TextField label="Senha" type="password" trailing={<button type="button">Mostrar senha</button>} />);
+    expect(screen.getByRole('button', { name: 'Mostrar senha' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Senha').className).toMatch(/pe-/);
+  });
+
+  it('sem o controle, a estrutura e as classes não mudam', () => {
+    const { container } = render(<TextField label="Nome" />);
+    expect(container.querySelector('.relative')).toBeNull();
+    expect(screen.getByLabelText('Nome').className).not.toMatch(/pe-/);
+  });
+});

@@ -18,6 +18,8 @@ body {
 input[type="datetime-local"]:focus {
   outline: 3px solid var(--color-azul-royal);
   outline-offset: 2px;
+  /* O anel de foco aparece de imediato: a transição de cores dos controles não pode atrasar o contraste do anel (WCAG 2.4.7). */
+  transition-property: background-color, border-color !important;
 }
 
 /* Alvos de toque ergonômicos para mobile (mínimo 44x44 px) */
@@ -27,6 +29,13 @@ input,
 select,
 textarea {
   touch-action: manipulation;
+}
+
+/* Títulos quebram em linhas equilibradas, sem palavra órfã */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 #root {

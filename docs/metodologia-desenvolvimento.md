@@ -41,11 +41,29 @@ Um ciclo somente pode ser encerrado quando a implementação convergiu, os teste
 2. executar a suíte de testes e registrar o resultado;
 3. preparar com `git add` a implementação e os testes aprovados, sem criar o commit;
 4. executar `npm run ia:registro -- --spec NNN --ciclo NN --titulo "Título"`;
-5. revisar o novo arquivo em `docs/governanca-ia/registros/` e completar a validação humana;
+5. conduzir a entrevista de validação humana com a pessoa responsável (veja a seção abaixo) e só então gerar e completar o novo arquivo em `docs/governanca-ia/registros/` com as respostas dela;
 6. preparar o índice e o registro com `git add docs/governanca-ia`;
 7. executar `npm run ia:validar`;
 8. criar o commit de encerramento e abrir o pull request;
 9. depois do merge do pull request, entregar o DOCX do RIA com `scripts/governanca-ia/exportar-docx.py`, apontar o índice para ele e abrir um pull request só de documentação.
+
+### Validação humana obrigatória antes de finalizar a spec
+
+Nenhuma spec é finalizada sem validação humana real. Depois de implementar, convergir e testar, e **antes** de gerar o RIA, o agente de IA deve entrevistar a pessoa responsável pela validação. É proibido preencher a validação com suposições, com o resultado dos testes automatizados ou em nome da pessoa.
+
+1. O agente pede à pessoa responsável que execute o roteiro de validação da spec (por exemplo, o roteiro do `quickstart.md`) e conduz a entrevista com estas perguntas, no mínimo:
+   - **Quem** validou (nome da pessoa responsável pela revisão)?
+   - **Amostra**: quais perfis, telas, larguras e fluxos foram conferidos?
+   - **Ambiente**: navegador, sistema operacional e dispositivo (real ou emulado)?
+   - **Duração** da validação?
+   - **Resultado**: aprovado, aprovado com ajustes ou reprovado? Houve itens a corrigir?
+   - **Decisão** sobre o que a IA produziu: `utilizado`, `adaptado` ou `descartado`, com a justificativa.
+   - A pessoa **confirma** que as respostas acima podem ser gravadas no RIA em seu nome?
+2. Se houver itens a corrigir, o agente corrige, repete os testes e refaz a pergunta de resultado. Sem aprovação, a spec não é finalizada.
+3. Só com as respostas e a confirmação, o agente gera o RIA (`npm run ia:registro`) passando os dados pelos parâmetros `--revisor`, `--data-validacao`, `--amostra`, `--ambiente`, `--duracao`, `--resultado-validacao`, `--correcoes`, `--confirmacao`, `--decisao` e `--justificativa`, e escreve o texto de forma natural, sem alterar o sentido das respostas.
+4. O validador (`npm run ia:validar`) reprova o commit se qualquer campo de validação humana estiver vazio ou com `PREENCHER`, ou se a linha `Confirmação do responsável` não começar com `sim`.
+5. O DOCX do RIA é gerado a partir do registro já preenchido com essas respostas (depois do merge, como já previsto) e reproduz o mesmo conteúdo.
+6. Se a pessoa responsável não estiver disponível ou não responder, o agente interrompe o encerramento e registra a pendência. Não cria o commit.
 
 O registro usa o SHA do commit-base e o hash do diff funcional preparado, pois o commit de encerramento ainda não existe. O conteúdo deve ser sanitizado: segredos, credenciais, dados pessoais e informações confidenciais não podem ser copiados para o documento.
 
@@ -70,6 +88,7 @@ O ciclo obrigatório é RED, GREEN e REFACTOR. As tarefas devem colocar testes d
 | Plano | Arquitetura, dados, segurança, UX e testes definidos |
 | Tarefas | Dependências e sequência RED GREEN REFACTOR explícitas |
 | Implementação | Testes automatizados aprovados |
+| Validação humana | Entrevista feita pelo agente, respostas e confirmação da pessoa responsável gravadas no RIA, sem preenchimento presumido |
 | Registro de IA | Novo RIA criado, índice atualizado e validação humana preenchida |
 | Pull request | CI, revisão humana, acessibilidade e documentação aprovadas |
 

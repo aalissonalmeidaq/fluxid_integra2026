@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useAuth } from '@/app/auth/auth-context';
 import { isProtectedAccessAllowed } from '@/domain/identity/session';
 import { LoginPage } from '@/pages/auth/login-page';
+import { AuthLayout } from '@/pages/auth/auth-layout';
 import { MfaPage } from '@/pages/auth/mfa-page';
 import { ErrorState, Loading } from '@/design-system';
 
@@ -36,7 +37,8 @@ export function ProtectedRoute({ children, allowed = true, requireAal2 = false }
     return <Loading busy label="Verificando sua sessão…" />;
   }
   if (state.status === 'signed_out') return <LoginPage />;
-  if (state.status === 'mfa_required') return <MfaPage />;
+  // Sem sessão plena, a verificação usa a moldura pública; para quem já entrou, ela continua dentro do shell autenticado.
+  if (state.status === 'mfa_required') return <AuthLayout><MfaPage /></AuthLayout>;
   if (requireAal2 && !isProtectedAccessAllowed(state, { requireAal2: true })) return <MfaPage />;
   if (!allowed) return <AccessDenied />;
   return <>{children}</>;

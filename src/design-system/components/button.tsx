@@ -28,7 +28,7 @@ export function Button({
   ...props
 }: ButtonProps): React.JSX.Element {
   const classes = [
-    'inline-flex min-h-alvo min-w-alvo items-center justify-center gap-2 rounded-controle border px-4 text-corpo font-semibold',
+    'inline-flex min-h-alvo min-w-alvo items-center justify-center gap-2 rounded-controle border px-4 text-corpo font-semibold cursor-pointer transition-colors motion-reduce:transition-none duration-150 active:brightness-90',
     VARIANTES[variant],
     'disabled:cursor-not-allowed disabled:border-dashed disabled:opacity-60 aria-busy:cursor-progress',
     className,

@@ -187,3 +187,13 @@ describe('Recuperação de acesso: apresentação (Spec 003)', () => {
     await waitFor(() => expect(alert).toHaveFocus());
   });
 });
+
+// Spec 005 (RF-001, RF-007): as telas públicas de recuperação usam a mesma moldura de marca, com um só h1 e sem menu.
+describe('Recuperação de senha: moldura renovada', () => {
+  it('a tela de nova senha tem o painel de marca e um só h1', () => {
+    renderWithConnectivity(<RecoveryConfirmPage />);
+    expect(screen.getByText('Controle seus ativos.')).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+});

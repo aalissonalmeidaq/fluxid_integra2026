@@ -26,16 +26,17 @@ test.describe('Autenticação e sessão (US1)', () => {
     backend.statusResponse = backend.activeStatus();
     await open(page, backend);
 
-    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
-    await expect(page.getByText('Fundação Técnica Ativa')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toHaveCount(0);
 
     await signIn(page);
-    await expect(page.getByRole('heading', { name: 'Fundação Técnica Ativa' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
 
+    await page.getByRole('button', { name: 'Minha conta' }).click();
     await page.getByRole('button', { name: 'Sair' }).click();
-    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
     await expect(page.getByRole('status').filter({ hasText: /você saiu/i })).toBeVisible();
-    await expect(page.getByText('Fundação Técnica Ativa')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toHaveCount(0);
   });
 
   test('credenciais inválidas mostram mensagem genérica e devolvem o foco à senha', async ({ page }) => {
@@ -47,7 +48,7 @@ test.describe('Autenticação e sessão (US1)', () => {
     await expect(page.getByRole('alert')).toContainText(/e-mail ou senha incorretos/i);
     await expect(page.getByLabel('Senha', { exact: true })).toBeFocused();
     await expect(page.getByLabel('Senha', { exact: true })).toHaveValue('');
-    await expect(page.getByText('Fundação Técnica Ativa')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toHaveCount(0);
   });
 
   test('perfil global conclui a verificação em duas etapas antes de acessar', async ({ page }) => {
@@ -60,11 +61,11 @@ test.describe('Autenticação e sessão (US1)', () => {
     await expect(page.getByRole('heading', { name: 'Verificação em duas etapas' })).toBeVisible();
     await expect(page.getByRole('img', { name: /qr code/i })).toBeVisible();
     await expect(page.getByText('JBSWY3DPEHPK3PXP')).toBeVisible();
-    await expect(page.getByText('Fundação Técnica Ativa')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toHaveCount(0);
 
     await page.getByLabel(/código de 6 dígitos/i).fill('123456');
     await page.getByRole('button', { name: 'Verificar' }).click();
-    await expect(page.getByRole('heading', { name: 'Fundação Técnica Ativa' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
   });
 
   test('código MFA incorreto não libera o acesso e mantém mensagem genérica', async ({ page }) => {
@@ -78,7 +79,7 @@ test.describe('Autenticação e sessão (US1)', () => {
     await page.getByRole('button', { name: 'Verificar' }).click();
     await expect(page.getByRole('alert')).toContainText(/código incorreto/i);
     await expect(page.getByLabel(/código de 6 dígitos/i)).toBeFocused();
-    await expect(page.getByText('Fundação Técnica Ativa')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toHaveCount(0);
   });
 
   test('quarta sessão lista as três ativas e só entra após encerramento explícito', async ({ page }) => {
@@ -94,14 +95,14 @@ test.describe('Autenticação e sessão (US1)', () => {
     const dialog = page.getByRole('dialog', { name: /limite de sessões/i });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('radio')).toHaveCount(3);
-    await expect(page.getByText('Fundação Técnica Ativa')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toHaveCount(0);
 
     const confirm = dialog.getByRole('button', { name: /encerrar sessão selecionada/i });
     await expect(confirm).toBeDisabled();
     await dialog.getByRole('radio').nth(1).check();
     await confirm.click();
 
-    await expect(page.getByRole('heading', { name: 'Fundação Técnica Ativa' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
     const retry = backend.calls.filter((call) => call.path === '/functions/v1/session-login').at(-1)?.body as Record<string, string>;
     expect(retry.revoke_session_id).toBe(threeSessions[1]!.session_id);
   });
@@ -126,7 +127,7 @@ test.describe('Autenticação e sessão (US1)', () => {
     backend.statusResponse = backend.activeStatus();
     await open(page, backend);
     await signIn(page);
-    await expect(page.getByRole('heading', { name: 'Fundação Técnica Ativa' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
 
     backend.statusResponse = { status: 401, body: { code: 'SESSION_EXPIRED', reason: 'inactivity' } };
     await page.reload();
@@ -135,7 +136,7 @@ test.describe('Autenticação e sessão (US1)', () => {
     await expect(alert).toContainText(/inatividade/i);
     await expect(alert).toContainText(/entre novamente/i);
     await expect(alert).toBeFocused();
-    await expect(page.getByText('Fundação Técnica Ativa')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toHaveCount(0);
   });
 
   test('sessão restaurada e ativa mantém o acesso após recarregar', async ({ page }) => {
@@ -144,16 +145,16 @@ test.describe('Autenticação e sessão (US1)', () => {
     backend.statusResponse = backend.activeStatus();
     await open(page, backend);
     await signIn(page);
-    await expect(page.getByRole('heading', { name: 'Fundação Técnica Ativa' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'Fundação Técnica Ativa' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
   });
 
   test('não há violações críticas ou graves de acessibilidade no login, no MFA e no diálogo', async ({ page }) => {
     const backend = new MockBackend();
     backend.loginResponses = [{ status: 409, body: { code: 'SESSION_LIMIT_REACHED', sessions: threeSessions } }];
     await open(page, backend);
-    await page.getByRole('heading', { name: 'Entrar no FluxID' }).waitFor();
+    await page.getByRole('heading', { name: 'Bem-vindo de volta' }).waitFor();
 
     const scan = async (label: string) => {
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag22aa']).analyze();
@@ -171,7 +172,7 @@ test.describe('Autenticação e sessão (US1)', () => {
     await page.setViewportSize({ width: 360, height: 640 });
     const backend = new MockBackend();
     await open(page, backend);
-    await page.getByRole('heading', { name: 'Entrar no FluxID' }).waitFor();
+    await page.getByRole('heading', { name: 'Bem-vindo de volta' }).waitFor();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
   });
@@ -183,7 +184,7 @@ test.describe('Autenticação e sessão (US1)', () => {
     backend.loginResponses = [backend.authenticated()];
     backend.statusResponse = backend.activeStatus();
     await open(page, backend);
-    await page.getByRole('heading', { name: 'Entrar no FluxID' }).waitFor();
+    await page.getByRole('heading', { name: 'Bem-vindo de volta' }).waitFor();
 
     await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: 'Pular para o conteúdo principal' })).toBeFocused();
@@ -197,18 +198,18 @@ test.describe('Autenticação e sessão (US1)', () => {
     await expect(page.getByLabel('Senha', { exact: true })).toBeFocused();
     await page.keyboard.type('Senha-E2E-Forte-1');
     await page.keyboard.press('Enter');
-    await expect(page.getByRole('heading', { name: 'Fundação Técnica Ativa' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
   });
 
   test('chega à recuperação de acesso e volta só pelo teclado', async ({ page, browserName }) => {
     test.skip(browserName === 'webkit', 'O WebKit não encaminha Tab no Windows.');
     await open(page, new MockBackend());
-    await page.getByRole('heading', { name: 'Entrar no FluxID' }).waitFor();
+    await page.getByRole('heading', { name: 'Bem-vindo de volta' }).waitFor();
     await page.getByRole('button', { name: 'Esqueci minha senha' }).focus();
     await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { name: 'Recuperar acesso' })).toBeVisible();
     await page.getByRole('button', { name: 'Voltar para entrar' }).focus();
     await page.keyboard.press('Enter');
-    await expect(page.getByRole('heading', { name: 'Entrar no FluxID' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
   });
 });

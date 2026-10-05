@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useConnectivity } from '@/app/connectivity-context';
 import { PasswordRecoveryService } from '@/application/identity/password-recovery-service';
-import { Alert, Button, Card, TextField } from '@/design-system';
+import { Alert, Button, TextField } from '@/design-system';
+import { AuthLayout } from './auth-layout';
 
 export function RecoveryConfirmPage(): React.JSX.Element {
   const { client } = useConnectivity();
@@ -29,7 +30,8 @@ export function RecoveryConfirmPage(): React.JSX.Element {
   }
 
   return (
-    <Card as="section" aria-labelledby="confirm-title" className="mx-auto flex w-full max-w-compacto flex-col gap-4">
+    <AuthLayout>
+    <section aria-labelledby="confirm-title" className="mx-auto flex w-full max-w-compacto flex-col gap-4">
       <h2 id="confirm-title" className="text-h3 font-semibold text-navy">Definir nova senha</h2>
       <form className="flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
         <TextField label="Nova senha" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} />
@@ -39,6 +41,7 @@ export function RecoveryConfirmPage(): React.JSX.Element {
         <Button type="submit" className="w-full">Definir nova senha</Button>
         {error && <Button variant="secundario" onClick={() => { window.location.href = '/?recovery=1'; }} className="w-full">Solicitar novo link</Button>}
       </form>
-    </Card>
+    </section>
+    </AuthLayout>
   );
 }
