@@ -259,7 +259,7 @@ A revisão do PR #14 apontou quatro bloqueadores, resolvidos neste ciclo de corr
 
 Nenhuma dependência, migration, Edge Function ou política RLS foi criada ou alterada.
 
-Hash da correção (diff funcional preparado deste commit, sobre o commit efba717 (a correção da revisão do PR #14 está em 5185358); o primeiro hash da correção, sobre 1b9205f, é 90c80ea11812db13ec459feb0bd633bf4b5bae68eda4326318c82c17d22e65f2): 070469e5a1b7408dc4bc1484f2e5655902e0ed8dd1b0e97b60238bdb625ca2e4.
+Hash da correção (diff funcional preparado deste commit, sobre o commit 43f0502 (a correção da revisão do PR #14 está em 5185358); o primeiro hash da correção, sobre 1b9205f, é 90c80ea11812db13ec459feb0bd633bf4b5bae68eda4326318c82c17d22e65f2): 245773e6fd633b53df38692f91f1b3b021b4ef96a27378052f12ea1292370ab9.
 
 ## Decisões e dados pendentes
 
@@ -288,6 +288,7 @@ Riscos residuais:
 - Responsável pela revisão da equipe: Alisson Almeida
 - Data da validação humana: 05/10/2026
 - Amostra validada: usuários admin-a@example.invalid e master@example.invalid, em todas as telas.
+- Dimensões das telas testadas, conforme a imagem enviada pela pessoa responsável: iPhone 14 Pro (393 por 852), Pixel 7 Pro (480 por 1040), iPhone 14 Pro Max (430 por 932), iPad Air 5 (820 por 1180) e MacBook Air (1559 por 975).
 - Ambiente da validação: Windows, navegador Chrome na última versão, em notebook e em celular Android.
 - Duração da validação: 35 minutos
 - Resultado da validação humana: aprovado
@@ -295,7 +296,7 @@ Riscos residuais:
 - Aceite do indicador "Carregando a página…" na primeira abertura da Visão geral e dos alertas: sim
 - Decisão: utilizado
 - Confirmação do responsável: sim, confirmado por Alisson Almeida em 05/10/2026 para gravar estas respostas em seu nome
-- Observações: respostas dadas pela própria pessoa responsável, em entrevista conduzida pelo agente; a pessoa não detalhou as larguras de tela nem os fluxos conferidos, e isso não foi presumido.
+- Observações: respostas dadas pela própria pessoa responsável, em entrevista conduzida pelo agente; a pessoa enviou depois as dimensões das telas testadas (registradas acima) e não detalhou os fluxos conferidos, o que não foi presumido.
 
 ## Regras de preenchimento
 
