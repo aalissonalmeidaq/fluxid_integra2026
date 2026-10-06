@@ -33,6 +33,8 @@
 
 | RIA-021 | 03/10/2026, 11:23:52 - America/Fortaleza | 005 | 01 | Entrada renovada e Visão geral (atualizado em 05/10/2026 após a revisão do PR #14, medições refeitas e nova validação humana e dimensões das telas) | `registros/21_Entrada_Renovada_e_Visao_Geral.docx` (`RIA-021-entrada-renovada-e-visao-geral.md`) | Utilizado |
 
+| RIA-022 | 05/10/2026, 21:04:27 - America/Fortaleza | 006 | 01 | Cilindros, identificadores, estoque e histórico | `registros/RIA-022-cilindros-identificadores-estoque-e-historico.md` | adaptado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

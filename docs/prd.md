@@ -205,6 +205,9 @@ Frontend React, TypeScript, Vite e Tailwind. Aplicativo de campo com PWA e Capac
 | 8 | Integração com hardware validado |
 | 9 | Piloto e estabilização |
 
+> **Situação da Fase 2 (Spec 006).** Entregue: cadastro e inativação de cilindros sem exclusão física (RF004), identificadores (QR Code, Data Matrix, etiqueta NFC e número do casco) com histórico imutável (RF005), testes hidrostáticos com situação calculada (RF006), entrada no estoque sem duplicar a operação (US002) e consulta do histórico de custódia dos cilindros (US008, na parte de cilindros). Ficam para specs futuras: locais físicos de estoque, leitura por câmera ou NFC nativo e fila offline (Fase 5), fotos, importação em massa e exportação de relatórios (RF020).
+
+
 ## 16 Critérios de pronto
 
 - spec, plano e tarefas aprovados;

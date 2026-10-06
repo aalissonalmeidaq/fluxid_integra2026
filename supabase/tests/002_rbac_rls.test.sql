@@ -28,7 +28,7 @@ select public.tap_act_as('10000000-0000-0000-0000-000000000002', '60000000-0000-
 
 -- Tenant A: permitido no prÃ³prio tenant, bloqueado no Tenant B.
 select is((select count(*)::int from public.role_permissions where role_id = '50000000-0000-0000-0000-0000000000f1'), 1, 'A lÃª as permissÃµes do prÃ³prio papel personalizado');
-select is((select count(*)::int from public.role_permissions where role_id = '50000000-0000-0000-0000-000000000003'), 2, 'A lÃª as permissÃµes do papel administrativo do prÃ³prio tenant');
+select is((select count(*)::int from public.role_permissions where role_id = '50000000-0000-0000-0000-000000000003'), 9, 'A lÃª as permissÃµes do papel administrativo do prÃ³prio tenant');
 select is((select count(*)::int from public.role_permissions where role_id = '50000000-0000-0000-0000-0000000000f2'), 0, 'A nÃ£o lÃª permissÃµes de papÃ©is do Tenant B');
 select is((select count(*)::int from public.roles where id = '50000000-0000-0000-0000-0000000000f2'), 0, 'A nÃ£o lÃª papÃ©is do Tenant B');
 select ok((select count(*)::int from public.role_permissions rp join public.roles r on r.id = rp.role_id where r.organization_id = '20000000-0000-0000-0000-00000000000b') = 0, 'nenhuma permissÃ£o de papel do Tenant B Ã© visÃ­vel a A');

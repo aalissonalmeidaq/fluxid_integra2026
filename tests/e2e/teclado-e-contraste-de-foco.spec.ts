@@ -43,7 +43,7 @@ function lerFoco(page: Page): Promise<FocoLido> {
       return { rotulo: 'fora da página', larguraDoAnel: 0, contraste: 0, naPagina: false, internoDoNavegador: false };
     }
     // O botão do seletor de data e hora é um controle interno do navegador, que desenha o próprio indicador de foco.
-    const internoDoNavegador = elemento.matches('input[type="datetime-local"]') && !elemento.matches(':focus');
+    const internoDoNavegador = elemento.matches('input[type="datetime-local"], input[type="date"]') && !elemento.matches(':focus');
     const estilo = getComputedStyle(elemento);
     const largura = estilo.outlineStyle === 'none' ? 0 : parseFloat(estilo.outlineWidth);
     const cor = analisar(estilo.outlineColor) ?? [0, 0, 0, 1];
@@ -83,7 +83,7 @@ for (const tela of TELAS) {
       }
       repeticoes = foco.rotulo === anterior ? repeticoes + 1 : 0;
       // O campo de data e hora tem um segmento focável por parte (dia, mês, ano, hora, minuto): o mesmo elemento repete.
-      const limite = foco.rotulo.includes('[datetime-local]') ? 10 : 2;
+      const limite = (foco.rotulo.includes('[datetime-local]') || foco.rotulo.includes('[date]')) ? 10 : 2;
       expect(repeticoes, `Armadilha de foco em ${foco.rotulo}`).toBeLessThan(limite);
       anterior = foco.rotulo;
       if (visitados.includes(foco.rotulo) && visitados[0] === foco.rotulo) break;

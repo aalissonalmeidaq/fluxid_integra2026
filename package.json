@@ -21,11 +21,13 @@
     "test:visual:atualizar": "node scripts/design-system/atualizar-capturas-visuais.mjs",
     "ia:registro": "node scripts/governanca-ia/gerar-registro-ia.mjs",
     "ia:validar": "node scripts/governanca-ia/validar-registro-ia.mjs --staged",
-    "ia:hooks": "node scripts/governanca-ia/instalar-hooks.mjs"
+    "ia:hooks": "node scripts/governanca-ia/instalar-hooks.mjs",
+    "test:desempenho:cilindros": "node scripts/cilindros/medir-desempenho-4g.mjs"
   },
   "dependencies": {
     "@fontsource-variable/montserrat": "5.3.0",
     "@supabase/supabase-js": "2.117.2",
+    "bwip-js": "^4.11.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "vite-plugin-pwa": "1.3.0",

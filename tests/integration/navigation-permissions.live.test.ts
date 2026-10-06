@@ -87,14 +87,14 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     const result = await permissions(admin, { organization_id: TENANT_C });
     expect(result.status).toBe(200);
     expect(Object.keys(result.body!).sort()).toEqual(['code', 'global', 'tenant']);
-    expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: ['audit.read', 'tenant.manage'], global: [] });
-    expect(labels(actor(result))).toEqual(['Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
+    expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: ['audit.read', 'cylinder.deactivate', 'cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.stock_in', 'cylinder.test', 'cylinder.write', 'tenant.manage'], global: [] });
+    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Entrada no estoque', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
   });
 
   it('o operador técnico recebe só as permissões do papel e o menu básico', async () => {
     const result = await permissions(operator, { organization_id: TENANT_C });
-    expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: [], global: [] });
-    expect(labels(actor(result))).toEqual(['Visão geral', 'Meu perfil']);
+    expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: ['cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.test'], global: [] });
+    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Meu perfil']);
   });
 
   it('o Administrador FluxID recebe permissões globais e nenhuma do tenant, com ou sem tenant ativo', async () => {
@@ -108,9 +108,9 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
   it('com dois tenants a mesma sessão recebe conjuntos distintos por organização (CA-002)', async () => {
     const inC = await permissions(admin, { organization_id: TENANT_C });
     const inD = await permissions(admin, { organization_id: TENANT_D });
-    expect(inC.body?.tenant).toEqual(['audit.read', 'tenant.manage']);
-    expect(inD.body?.tenant).toEqual([]);
-    expect(labels(actor(inD))).toEqual(['Visão geral', 'Meu perfil']);
+    expect(inC.body?.tenant).toEqual(['audit.read', 'cylinder.deactivate', 'cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.stock_in', 'cylinder.test', 'cylinder.write', 'tenant.manage']);
+    expect(inD.body?.tenant).toEqual(['cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.test']);
+    expect(labels(actor(inD))).toEqual(['Visão geral', 'Cilindros', 'Meu perfil']);
   });
 
   it('um tenant sem vínculo ativo devolve listas vazias, sem código nem identificador do outro tenant', async () => {

@@ -4,6 +4,7 @@ import { AuthContext, type AuthContextValue } from '../auth/auth-context';
 import { PermissionsContext, type PermissionsContextValue } from '../navigation/permissions-context';
 import type { AuthState } from '@/domain/identity/session';
 import type { ActorPermissions } from '@/domain/navigation/visible-screens';
+import { Icon } from '@/design-system/icons/icon';
 import { NavigationMenu } from './navigation-menu';
 
 const authValue = (state: AuthState): AuthContextValue => ({
@@ -55,6 +56,14 @@ describe('NavigationMenu: estrutura e itens por perfil (RF-005, RF-006, RF-009, 
   it('administrador de tenant vê as telas do tenant', () => {
     renderMenu({ permissions: { permissions: ADMIN } });
     expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
+  });
+
+  it('Cilindros e Entrada no estoque usam os ícones oficiais "cilindro" e "inventario", não o ícone genérico', () => {
+    renderMenu({ permissions: { permissions: { tenant: ['cylinder.read', 'cylinder.stock_in'], global: [] } } });
+    const svgDe = (nome: string) => screen.getByRole('link', { name: new RegExp(nome) }).querySelector('svg')?.innerHTML;
+    const oficial = (name: 'cilindro' | 'inventario') => render(<Icon name={name} size={24} />).container.querySelector('svg')?.innerHTML;
+    expect(svgDe('Cilindros')).toBe(oficial('cilindro'));
+    expect(svgDe('Entrada no estoque')).toBe(oficial('inventario'));
   });
 
   it('operador vê só Visão geral e Meu perfil', () => {

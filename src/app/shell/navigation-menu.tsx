@@ -18,6 +18,8 @@ export const MENU_ID = 'menu-principal';
 // Ícones do catálogo da Spec 003; nenhum ícone novo (RF-010).
 const ICONS: Record<string, IconName> = {
   inicio: 'dashboard',
+  cilindros: 'cilindro',
+  'entrada-estoque': 'inventario',
   perfil: 'usuario',
   membros: 'rede',
   papeis: 'escudo',
