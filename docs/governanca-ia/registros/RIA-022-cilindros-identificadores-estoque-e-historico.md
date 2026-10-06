@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: Execução do ciclo da Spec 006 pelo fluxo Spec Kit (implementação por tarefas, com TDD, e análise), seguida de pedidos feitos na validação humana: gerar o QR Code e o Data Matrix do identificador em um modal, usar os ícones oficiais no menu, ajustes de layout e leitura pela câmera.
 - Resposta gerada pela IA: A IA implementou as migrations, as RPCs e as funções de borda (manage-cylinders e query-cylinders), o domínio, o serviço e as telas de lista, cadastro, detalhe, testes hidrostáticos, identificadores, entrada no estoque e histórico, com pgTAP de dois tenants, testes de contrato, E2E, capturas visuais no Linux e medição de 50 mil cilindros (p95 de 756 ms em 4G). Depois da validação, acrescentou o símbolo QR/Data Matrix em modal (bwip-js sob demanda), a leitura pela câmera onde o navegador suporta, os ícones oficiais no menu e ajustes de layout.
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/006-cilindros-e-estoque
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/17
 - Análise crítica da equipe: Resultados conferidos por lint, tipagem, 1905 testes de unidade, 897 testes pgTAP, 92 testes live, 1145 testes E2E e build com pacote de entrada de 579,55 kB (limite 593,95 kB). A rodada final achou e corrigiu: expectativas desatualizadas do teste live de permissões, a medição de 50 mil cilindros rodando fora do projeto próprio, ícones do menu caindo no genérico e uma classe fora dos tokens. As suítes pgTAP de auditoria exigem base limpa (db reset). A leitura por câmera só aparece onde o navegador tem BarcodeDetector (Chrome no Android) e não foi testada com câmera real pela IA.
 - Validação humana realizada: Alisson Almeida percorreu todas as telas novas em notebook (Chrome, Windows 11) e em celular Android, incluindo o cadastro de cilindro, a leitura de Data Matrix e a inativação. Pediu ajustes de layout e a leitura pela câmera, que foram feitos, e aprovou o resultado final.
 - Decisão final: adaptado
@@ -270,7 +270,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Trocar o link de revisão pelo link do pull request antes do merge; entregar o DOCX do RIA depois do merge.
+O link de revisão foi trocado pelo do pull request #17 em 05/10/2026. Falta entregar o DOCX do RIA depois do merge.
 
 ## Validação humana
 
