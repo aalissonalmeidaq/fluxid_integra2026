@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: Correção pós-merge da Spec 006: usar a data de America/Sao_Paulo no E2E e no simulado, com regressão para o intervalo em que UTC e São Paulo diferem; mostrar a câmera só com getUserMedia e suporte a QR Code ou Data Matrix; ajustar spec, validação e RIA-022.
 - Resposta gerada pela IA: A IA trocou a data em UTC do E2E e do backend simulado por todayInSaoPaulo() e pelo novo addCivilDays() (soma no calendário civil), com testes de regressão de domínio e E2E com relógio fixo às 22h30 de São Paulo. Também fez o botão de câmera consultar BarcodeDetector.getSupportedFormats(), instanciar o detector só com os formatos suportados e tratar falha na consulta, com testes para cada cenário. Corrigiu a contradição da spec sobre a câmera, atualizou validation.md e o RIA-022 e ajustou o exportador do DOCX.
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/fix/006-pos-merge-convergencia
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/19
 - Análise crítica da equipe: A causa do erro estava no teste e no simulado, não no sistema: o formulário já usava o dia de São Paulo. Resultados: lint e typecheck sem erros; 1919 testes de unidade em 152 arquivos; 897 pgTAP; 92 live; 1148 E2E aprovados e 31 ignorados; pacote de entrada de 579,54 kB (limite 593,95 kB). Uma falha de simbolo-16px no WebKit apareceu quando a rodada concorreu com as suítes live e pgTAP, passou 9 de 9 isolada e a rodada completa seguinte passou. Nenhuma regra de tenant, RLS ou auditoria mudou. A câmera não foi testada com câmera real pela IA.
 - Validação humana realizada: Alisson Almeida registrou um teste hidrostático com a data de hoje e conferiu o botão de leitura por câmera nas telas que o oferecem, em notebook (Chrome, Windows 11) e celular, e aprovou sem pedir ajustes.
 - Decisão final: utilizado
@@ -49,7 +49,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Trocar o link de revisão pelo do PR corretivo antes do merge. Aguardar a CI verde no PR e na main. Depois, entregar o DOCX do RIA-022 pelo PR #18 e o DOCX deste RIA em PR de documentação.
+Aguardar a CI verde no PR e na main. Depois, entregar o DOCX do RIA-022 pelo PR #18 e o DOCX deste RIA em PR de documentação.
 
 ## Validação humana
 
