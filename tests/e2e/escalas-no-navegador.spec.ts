@@ -44,7 +44,7 @@ for (const tela of TELAS) {
             if (bruto === 'normal' || bruto === 'auto') continue;
             const valor = arredondar(parseFloat(bruto));
             // O campo de arquivo e o seletor nativo têm espaçamento interno do navegador, fora do controle da escala.
-            if (el.matches('input[type="file"], select, input[type="datetime-local"]')) continue;
+            if (el.matches('input[type="file"], select, input[type="datetime-local"], input[type="date"]')) continue;
             if (!espacos.includes(valor)) ofensores.push(`${propriedade} ${valor}px: ${descrever(el)}`);
           }
           // Margens automáticas viram valores grandes (centralização): só as pequenas entram na conferência.

@@ -32,8 +32,8 @@ export const documentacaoDosComponentes: readonly DocumentacaoDeComponente[] = [
   },
   {
     nome: 'TextField',
-    descricao: 'Campo de texto, e-mail, senha ou arquivo com rótulo visível, ajuda e erro.',
-    variantes: ['text', 'email', 'password', 'file'],
+    descricao: 'Campo de texto, e-mail, senha, arquivo ou data com rótulo visível, ajuda e erro.',
+    variantes: ['text', 'email', 'password', 'file', 'date'],
     estados: ['padrao', 'foco', 'desabilitado', 'erro'],
     orientacaoDeUso:
       'Use um rótulo curto e claro, ajuda para formato esperado e uma mensagem de erro que diga como corrigir. Não use o placeholder no lugar do rótulo.',

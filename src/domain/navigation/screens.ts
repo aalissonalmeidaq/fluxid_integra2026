@@ -15,6 +15,8 @@ export interface Screen {
 
 export const SCREENS: readonly Screen[] = [
   { id: 'inicio', label: 'Visão geral', path: '/', tenantScoped: false, requireAal2: false },
+  { id: 'cilindros', label: 'Cilindros', path: '/cilindros', requires: { scope: 'tenant', code: 'cylinder.read' }, tenantScoped: true, requireAal2: false },
+  { id: 'entrada-estoque', label: 'Entrada no estoque', path: '/estoque/entrada', requires: { scope: 'tenant', code: 'cylinder.stock_in' }, tenantScoped: true, requireAal2: false },
   { id: 'perfil', label: 'Meu perfil', path: '/perfil', tenantScoped: false, requireAal2: false },
   { id: 'membros', label: 'Pessoas do tenant', path: '/admin/membros', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true, requireAal2: true },
   { id: 'papeis', label: 'Papéis e permissões', path: '/admin/papeis', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true, requireAal2: true },

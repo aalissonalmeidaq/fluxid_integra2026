@@ -196,3 +196,45 @@ select '30000000-0000-0000-0000-000000000015', r.id, '10000000-0000-0000-0000-00
 union all
 select '30000000-0000-0000-0000-000000000016'::uuid, '50000000-0000-0000-0000-000000000002'::uuid, '10000000-0000-0000-0000-000000000001'::uuid
 on conflict do nothing;
+
+-- Spec 006 (cilindros): massa dedicada às suítes ao vivo, isolada em dois tenants próprios (E e F) para não alterar as contagens das
+-- demais suítes. `cyl-e-admin` administra o Tenant E; `cyl-e-stock` é operador de estoque no E; `cyl-f-admin` administra o Tenant F.
+insert into public.organizations(id,kind,legal_name,display_name,status) values
+('20000000-0000-0000-0000-00000000000e','tenant','Tenant E Sintético','Tenant E','active'),
+('20000000-0000-0000-0000-00000000000f','tenant','Tenant F Sintético','Tenant F','active')
+on conflict (id) do nothing;
+select private.bootstrap_tenant_roles('20000000-0000-0000-0000-00000000000e');
+select private.bootstrap_tenant_roles('20000000-0000-0000-0000-00000000000f');
+
+insert into auth.users (
+  instance_id,id,aud,role,email,encrypted_password,email_confirmed_at,
+  confirmation_token,recovery_token,email_change_token_new,email_change,phone,phone_change,
+  phone_change_token,email_change_token_current,reauthentication_token,
+  raw_app_meta_data,raw_user_meta_data,created_at,updated_at
+)
+values
+('00000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000017','authenticated','authenticated','cyl-e-admin@example.invalid',crypt('Local-only-017!',gen_salt('bf')),now(),'', '', '', '', null, '', '', '', '', '{"provider":"email","providers":["email"]}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000018','authenticated','authenticated','cyl-f-admin@example.invalid',crypt('Local-only-018!',gen_salt('bf')),now(),'', '', '', '', null, '', '', '', '', '{"provider":"email","providers":["email"]}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000019','authenticated','authenticated','cyl-e-stock@example.invalid',crypt('Local-only-019!',gen_salt('bf')),now(),'', '', '', '', null, '', '', '', '', '{"provider":"email","providers":["email"]}','{}',now(),now())
+on conflict (id) do nothing;
+
+insert into public.profiles(user_id,display_name) values
+('10000000-0000-0000-0000-000000000017','Cilindros Administrador E'),
+('10000000-0000-0000-0000-000000000018','Cilindros Administrador F'),
+('10000000-0000-0000-0000-000000000019','Cilindros Estoquista E') on conflict do nothing;
+
+insert into public.memberships(id,organization_id,user_id,status,activated_at) values
+('30000000-0000-0000-0000-000000000017','20000000-0000-0000-0000-00000000000e','10000000-0000-0000-0000-000000000017','active',now()),
+('30000000-0000-0000-0000-000000000018','20000000-0000-0000-0000-00000000000f','10000000-0000-0000-0000-000000000018','active',now()),
+('30000000-0000-0000-0000-000000000019','20000000-0000-0000-0000-00000000000e','10000000-0000-0000-0000-000000000019','active',now()) on conflict do nothing;
+
+insert into public.membership_roles(membership_id,role_id,assigned_by)
+select '30000000-0000-0000-0000-000000000017'::uuid, r.id, '10000000-0000-0000-0000-000000000001'::uuid from public.roles r
+  where r.organization_id='20000000-0000-0000-0000-00000000000e' and r.code='tenant_admin'
+union all
+select '30000000-0000-0000-0000-000000000018'::uuid, r.id, '10000000-0000-0000-0000-000000000001'::uuid from public.roles r
+  where r.organization_id='20000000-0000-0000-0000-00000000000f' and r.code='tenant_admin'
+union all
+select '30000000-0000-0000-0000-000000000019'::uuid, r.id, '10000000-0000-0000-0000-000000000001'::uuid from public.roles r
+  where r.organization_id='20000000-0000-0000-0000-00000000000e' and r.code='stock_operator'
+on conflict do nothing;

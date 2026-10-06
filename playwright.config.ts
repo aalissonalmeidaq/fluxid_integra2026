@@ -1,4 +1,16 @@
+import { readFileSync } from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
+
+// Medição ao vivo (Spec 006, RNF-002): só roda com E2E_AO_VIVO=1, contra o Supabase local real, e usa as variáveis VITE_ de .env.local.
+const AO_VIVO = process.env.E2E_AO_VIVO === '1';
+const variaveisLocais = (): Record<string, string> => {
+  try {
+    const linhas = readFileSync('.env.local', 'utf8').split(/\r?\n/);
+    return Object.fromEntries(linhas.filter((linha) => /^VITE_[A-Z_]+=/.test(linha)).map((linha) => [linha.slice(0, linha.indexOf('=')), linha.slice(linha.indexOf('=') + 1).trim()]));
+  } catch {
+    return {};
+  }
+};
 
 const LARGURAS_DE_REFERENCIA =
   /(app-shell|auth-session|telas-transversais|teclado-e-contraste-de-foco|cores-forcadas|escalas-no-navegador|estados|navegacao-menu|entrada-renovada|visao-geral)\.spec\.ts$/;
@@ -11,13 +23,23 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   // As comparações de captura (Spec 003, CA-008) rodam só no projeto visual-chromium.
-  testIgnore: /visual\/.*\.visual\.spec\.ts$/,
+  // A medição de 50 mil cilindros (Spec 006) só roda no projeto ao-vivo-4g, com E2E_AO_VIVO=1.
+  testIgnore: [/visual\/.*\.visual\.spec\.ts$/, /desempenho-lista-cilindros\.spec\.ts$/],
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.001, animations: 'disabled' } },
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
   },
   projects: [
+    ...(AO_VIVO
+      ? [{
+          name: 'ao-vivo-4g',
+          testMatch: /desempenho-lista-cilindros.spec.ts$/,
+          testIgnore: [],
+          timeout: 300_000,
+          use: { browserName: 'chromium' as const, baseURL: 'http://localhost:4177', serviceWorkers: 'block' as const },
+        }]
+      : []),
     {
       name: 'desktop-chromium',
       use: { ...devices['Desktop Chrome'], browserName: 'chromium' },
@@ -26,7 +48,7 @@ export default defineConfig({
       name: 'tablet-webkit',
       // As verificações transversais da Spec 003 usam emulação de cores forçadas, de teclado e de largura exata, que só
       // é confiável em Chromium; o iPad (810 px) também não é uma das larguras de referência.
-      testIgnore: [/visual\/.*\.visual\.spec\.ts$/, /(telas-transversais|teclado-e-contraste-de-foco|cores-forcadas|escalas-no-navegador|dispositivos)\.spec\.ts$/],
+      testIgnore: [/visual\/.*\.visual\.spec\.ts$/, /desempenho-lista-cilindros\.spec\.ts$/, /(telas-transversais|teclado-e-contraste-de-foco|cores-forcadas|escalas-no-navegador|dispositivos)\.spec\.ts$/],
       use: { ...devices['iPad (gen 7)'], browserName: 'webkit' },
     },
     // Larguras de referência da Spec 003 (CA-001, CA-005): 768 e 1920 px em Chromium. Rodam só as verificações
@@ -59,6 +81,15 @@ export default defineConfig({
     },
   ],
   webServer: [
+    ...(AO_VIVO
+      ? [{
+          command: 'npx vite build --outDir dist-ao-vivo --emptyOutDir && npx vite preview --outDir dist-ao-vivo --port 4177',
+          port: 4177,
+          reuseExistingServer: false,
+          timeout: 180_000,
+          env: { ...process.env, ...variaveisLocais() } as Record<string, string>,
+        }]
+      : []),
     {
       command: 'npm run build && npm run preview -- --port 4173',
       port: 4173,

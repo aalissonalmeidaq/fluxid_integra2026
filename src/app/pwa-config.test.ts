@@ -18,6 +18,22 @@ describe('Configuração PWA e Política de Cache (História 4)', () => {
     expect(viteConfigContent).toContain('/^\\/graphql\\/v1/');
   });
 
+  // Spec 006, RF-036 e CA-007: nenhum dado de cilindro, identificador ou histórico pode ser guardado no cache do service worker.
+  it('exclui as funções de cilindros da navegação offline e não define cache de dados em tempo de execução', () => {
+    const viteConfigContent = fs.readFileSync(path.resolve(process.cwd(), 'vite.config.ts'), 'utf-8');
+    expect(viteConfigContent).toContain('/^\\/functions\\/v1/');
+    expect(viteConfigContent).not.toMatch(/runtimeCaching/);
+    expect(viteConfigContent).not.toMatch(/cilindr|cylinder/i);
+  });
+
+  it('o service worker gerado só faz precache de arquivos estáticos, sem estratégia de cache de respostas da API', () => {
+    const swPath = path.resolve(process.cwd(), 'dist', 'sw.js');
+    if (!fs.existsSync(swPath)) return;
+    const sw = fs.readFileSync(swPath, 'utf-8');
+    expect(sw).not.toMatch(/StaleWhileRevalidate|NetworkFirst|CacheFirst/);
+    expect(sw).not.toMatch(/query-cylinders|manage-cylinders|\/cilindros/);
+  });
+
   it('verifica que o manifest define display standalone e cores do sistema', () => {
     const viteConfigPath = path.resolve(process.cwd(), 'vite.config.ts');
     const viteConfigContent = fs.readFileSync(viteConfigPath, 'utf-8');

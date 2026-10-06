@@ -1,4 +1,5 @@
 import type { Page, Route } from '@playwright/test';
+import { CylinderMock } from './mock-cylinders';
 
 // Backend simulado por rede para os E2E de autenticação: exercita a interface e o cliente Supabase reais
 // sem depender de um Supabase em execução. Comportamento real de Auth, RLS e sessões é provado nas suítes
@@ -48,7 +49,11 @@ const TENANT_A = '20000000-0000-0000-0000-00000000000a';
 const TENANT_B = '20000000-0000-0000-0000-00000000000b';
 
 // Perfis da consulta de permissões (`query-permissions`), como o servidor os devolveria (Spec 004, contrato da consulta).
-export type PermissionProfile = 'administrador' | 'operador' | 'master' | 'admin-fluxid' | 'dois-tenants' | 'sem-vinculo';
+export type PermissionProfile = 'administrador' | 'operador' | 'master' | 'admin-fluxid' | 'dois-tenants' | 'sem-vinculo'
+  | 'cilindros-admin' | 'cilindros-estoquista' | 'cilindros-tecnico' | 'cilindros-auditor';
+
+// Permissões de cilindros (Spec 006) por papel padrão, como o servidor as devolve em `query-permissions`.
+const CILINDROS_TODAS = ['cylinder.read', 'cylinder.write', 'cylinder.deactivate', 'cylinder.identifier', 'cylinder.stock_in', 'cylinder.test', 'cylinder.history'];
 const PROFILES: Record<PermissionProfile, { byOrganization: Record<string, string[]>; global: string[] }> = {
   administrador: { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage'] }, global: [] },
   operador: { byOrganization: { [TENANT_A]: [] }, global: [] },
@@ -56,9 +61,15 @@ const PROFILES: Record<PermissionProfile, { byOrganization: Record<string, strin
   'admin-fluxid': { byOrganization: {}, global: ['audit.read', 'platform.manage'] },
   'dois-tenants': { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage'], [TENANT_B]: [] }, global: [] },
   'sem-vinculo': { byOrganization: {}, global: [] },
+  'cilindros-admin': { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage', ...CILINDROS_TODAS] }, global: [] },
+  'cilindros-estoquista': { byOrganization: { [TENANT_A]: ['cylinder.read', 'cylinder.write', 'cylinder.stock_in', 'cylinder.history'] }, global: [] },
+  'cilindros-tecnico': { byOrganization: { [TENANT_A]: ['cylinder.read', 'cylinder.identifier', 'cylinder.test', 'cylinder.history'] }, global: [] },
+  'cilindros-auditor': { byOrganization: { [TENANT_A]: ['cylinder.read', 'cylinder.history'] }, global: [] },
 };
 
 export class MockBackend {
+  // Cilindros, identificadores, testes e histórico simulados (Spec 006): dois tenants, com o mesmo valor de identificador em ambos.
+  readonly cylinders = new CylinderMock();
   organizations = [{ id:'20000000-0000-0000-0000-00000000000a',legal_name:'Tenant A Sintético',display_name:'Tenant A',status:'active',version:1 }];
   members = [{ id:'30000000-0000-0000-0000-000000000099',display_name:'Operador A',email:'operador-a@example.invalid',status:'active',version:1 }];
   membersB = [{ id:'30000000-0000-0000-0000-000000000098',display_name:'Operador B',email:'operador-b@example.invalid',status:'active',version:1 }];
@@ -150,6 +161,10 @@ export class MockBackend {
       if (this.permissionsStatus !== 200) return respond(this.permissionsStatus, { code: 'INTERNAL_ERROR' });
       const organizationId = (body as { organization_id?: string } | null)?.organization_id;
       return respond(200, { code: 'PERMISSIONS_LISTED', tenant: organizationId ? this.permissionsByOrganization[organizationId] ?? [] : [], global: this.globalPermissions });
+    }
+    if (pathname === '/functions/v1/query-cylinders' || pathname === '/functions/v1/manage-cylinders') {
+      const reply = this.cylinders.handle(pathname.endsWith('query-cylinders') ? 'query' : 'manage', (body ?? {}) as Record<string, unknown>, (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code));
+      return respond(reply.status, reply.json);
     }
     if (pathname === '/functions/v1/query-audit') {
       if (this.auditDenied) return respond(403, { code: 'ACCESS_DENIED' });

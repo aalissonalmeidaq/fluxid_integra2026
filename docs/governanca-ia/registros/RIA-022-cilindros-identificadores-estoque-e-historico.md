@@ -1,0 +1,310 @@
+# Registro do uso de inteligência artificial e validação humana
+
+**FluxID | RIA-022 | Cilindros, identificadores, estoque e histórico**
+
+> Ponto de atenção: a IA apoia a equipe, mas a responsabilidade final é humana.
+
+## Registro da interação
+
+- Ferramenta de IA utilizada: Claude Code (Claude Sonnet 5.5), no VS Code
+- Objetivo do uso: Implementar a Spec 006: cadastro e inativação de cilindros sem exclusão física, tipos, identificadores (QR Code, Data Matrix, NFC e número do casco), entrada no estoque idempotente, teste hidrostático, histórico imutável, permissões, RLS e auditoria, com símbolo e leitura por câmera dos identificadores.
+- Prompt utilizado, em síntese sanitizada: Execução do ciclo da Spec 006 pelo fluxo Spec Kit (implementação por tarefas, com TDD, e análise), seguida de pedidos feitos na validação humana: gerar o QR Code e o Data Matrix do identificador em um modal, usar os ícones oficiais no menu, ajustes de layout e leitura pela câmera.
+- Resposta gerada pela IA: A IA implementou as migrations, as RPCs e as funções de borda (manage-cylinders e query-cylinders), o domínio, o serviço e as telas de lista, cadastro, detalhe, testes hidrostáticos, identificadores, entrada no estoque e histórico, com pgTAP de dois tenants, testes de contrato, E2E, capturas visuais no Linux e medição de 50 mil cilindros (p95 de 756 ms em 4G). Depois da validação, acrescentou o símbolo QR/Data Matrix em modal (bwip-js sob demanda), a leitura pela câmera onde o navegador suporta, os ícones oficiais no menu e ajustes de layout.
+
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/006-cilindros-e-estoque
+- Análise crítica da equipe: Resultados conferidos por lint, tipagem, 1905 testes de unidade, 897 testes pgTAP, 92 testes live, 1145 testes E2E e build com pacote de entrada de 579,55 kB (limite 593,95 kB). A rodada final achou e corrigiu: expectativas desatualizadas do teste live de permissões, a medição de 50 mil cilindros rodando fora do projeto próprio, ícones do menu caindo no genérico e uma classe fora dos tokens. As suítes pgTAP de auditoria exigem base limpa (db reset). A leitura por câmera só aparece onde o navegador tem BarcodeDetector (Chrome no Android) e não foi testada com câmera real pela IA.
+- Validação humana realizada: Alisson Almeida percorreu todas as telas novas em notebook (Chrome, Windows 11) e em celular Android, incluindo o cadastro de cilindro, a leitura de Data Matrix e a inativação. Pediu ajustes de layout e a leitura pela câmera, que foram feitos, e aprovou o resultado final.
+- Decisão final: adaptado
+- Justificativa: A validação pediu mudanças depois da primeira entrega (código do identificador em modal, ícones oficiais no menu, ajustes de layout e leitura pela câmera), então o resultado da IA foi adaptado antes de ser aprovado.
+- Fontes verificadas: Spec 006, plano, tarefas, contratos e quickstart do ciclo; WCAG 2.2; documentação do Supabase, do Playwright e da biblioteca bwip-js. Sem outras fontes externas.
+- Identificador do registro: RIA-022
+- Data e hora da interação: 05/10/2026, 21:04:27 - America/Fortaleza
+
+## Rastreabilidade técnica do ciclo
+
+- Repositório: fluxid
+- Branch: feat/006-cilindros-e-estoque
+- Spec: 006
+- Ciclo: 01
+- Commit-base: e3cdf597b3767f648661c93b8f30e7c081eb0a32
+- Hash do diff funcional preparado: 5f2e34f6936d7ecda810a379a15dae2abbb7cbd946437bd98998ac01175a7580
+- Arquivos e áreas afetadas:
+
+- `.claude/skills/ui-ux-pro-max/SKILL.md`
+- `.claude/skills/ui-ux-pro-max/data/app-interface.csv`
+- `.claude/skills/ui-ux-pro-max/data/catalog-summary.json`
+- `.claude/skills/ui-ux-pro-max/data/charts.csv`
+- `.claude/skills/ui-ux-pro-max/data/colors.csv`
+- `.claude/skills/ui-ux-pro-max/data/data-provenance.json`
+- `.claude/skills/ui-ux-pro-max/data/google-font-licenses.json`
+- `.claude/skills/ui-ux-pro-max/data/google-fonts.csv`
+- `.claude/skills/ui-ux-pro-max/data/icons.csv`
+- `.claude/skills/ui-ux-pro-max/data/landing.csv`
+- `.claude/skills/ui-ux-pro-max/data/motion.csv`
+- `.claude/skills/ui-ux-pro-max/data/phosphor-icons-upstream.json`
+- `.claude/skills/ui-ux-pro-max/data/products.csv`
+- `.claude/skills/ui-ux-pro-max/data/react-performance.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/angular.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/astro.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/avalonia.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/flutter.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/html-tailwind.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/javafx.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/jetpack-compose.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/laravel.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/nextjs.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/nuxt-ui.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/nuxtjs.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/react-native.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/react.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/shadcn.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/svelte.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/swiftui.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/threejs.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/uno.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/uwp.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/vue.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/winui.csv`
+- `.claude/skills/ui-ux-pro-max/data/stacks/wpf.csv`
+- `.claude/skills/ui-ux-pro-max/data/styles.csv`
+- `.claude/skills/ui-ux-pro-max/data/typography.csv`
+- `.claude/skills/ui-ux-pro-max/data/ui-reasoning.csv`
+- `.claude/skills/ui-ux-pro-max/data/ux-guidelines.csv`
+- `.claude/skills/ui-ux-pro-max/references/pro-rules.md`
+- `.claude/skills/ui-ux-pro-max/references/quick-reference.md`
+- `.claude/skills/ui-ux-pro-max/scripts/core.py`
+- `.claude/skills/ui-ux-pro-max/scripts/design_system.py`
+- `.claude/skills/ui-ux-pro-max/scripts/reasoning_contract.py`
+- `.claude/skills/ui-ux-pro-max/scripts/search.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-api.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-catalog.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-existing.csv`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-metadata.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-overrides.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/icons-curated.csv`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-core.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-package.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-react-exports.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-react-package.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/relevance-baseline.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/relevance-cases.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/fixtures/relevance-thresholds.json`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_catalog_refresh.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_catalog_summary_line_endings.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_core.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_core_data_quality.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_data_contracts.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_design_system_mode.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_design_system_stack.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_native_desktop_stack_freshness.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_relevance_evaluator.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_skill_script_paths.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_style_taxonomy.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_text_layout_resilience.py`
+- `.claude/skills/ui-ux-pro-max/scripts/tests/test_web_stack_freshness.py`
+- `.claude/skills/ui-ux-pro-max/scripts/validate_data.py`
+- `.gitignore`
+- `README.md`
+- `docs/prd.md`
+- `package-lock.json`
+- `package.json`
+- `playwright.config.ts`
+- `scripts/cilindros/medir-desempenho-4g.mjs`
+- `specs/006-cilindros-e-estoque/baseline.md`
+- `specs/006-cilindros-e-estoque/checklists/requirements.md`
+- `specs/006-cilindros-e-estoque/contracts/operacoes-servidor.md`
+- `specs/006-cilindros-e-estoque/contracts/permissoes-e-papeis.md`
+- `specs/006-cilindros-e-estoque/contracts/telas-e-rotas.md`
+- `specs/006-cilindros-e-estoque/contracts/verificacoes-automaticas.md`
+- `specs/006-cilindros-e-estoque/data-model.md`
+- `specs/006-cilindros-e-estoque/plan.md`
+- `specs/006-cilindros-e-estoque/quickstart.md`
+- `specs/006-cilindros-e-estoque/research.md`
+- `specs/006-cilindros-e-estoque/spec.md`
+- `specs/006-cilindros-e-estoque/tasks.md`
+- `specs/006-cilindros-e-estoque/validation.md`
+- `src/app/App.lazy.test.tsx`
+- `src/app/App.tsx`
+- `src/app/admin-routes.test.ts`
+- `src/app/cylinders/cylinder-routes.test.ts`
+- `src/app/cylinders/cylinder-routes.ts`
+- `src/app/pwa-config.test.ts`
+- `src/app/shell/navigation-menu.test.tsx`
+- `src/app/shell/navigation-menu.tsx`
+- `src/application/cylinders/cylinder-service.test.ts`
+- `src/application/cylinders/cylinder-service.ts`
+- `src/application/cylinders/cylinder-views.ts`
+- `src/application/cylinders/operation-key.test.ts`
+- `src/application/cylinders/operation-key.ts`
+- `src/design-system/components/text-field.tsx`
+- `src/design-system/docs/componentes.ts`
+- `src/domain/cylinders/cylinder-types.ts`
+- `src/domain/cylinders/cylinder-validation.test.ts`
+- `src/domain/cylinders/cylinder-validation.ts`
+- `src/domain/cylinders/format.test.ts`
+- `src/domain/cylinders/format.ts`
+- `src/domain/cylinders/history-format.test.ts`
+- `src/domain/cylinders/history-format.ts`
+- `src/domain/cylinders/hydrostatic-status.test.ts`
+- `src/domain/cylinders/hydrostatic-status.ts`
+- `src/domain/cylinders/identifier-symbology.test.ts`
+- `src/domain/cylinders/identifier-symbology.ts`
+- `src/domain/cylinders/identifier.test.ts`
+- `src/domain/cylinders/identifier.ts`
+- `src/domain/navigation/screens.test.ts`
+- `src/domain/navigation/screens.ts`
+- `src/infrastructure/supabase/cylinder-adapter.ts`
+- `src/pages/cylinders/components/access-gate.test.tsx`
+- `src/pages/cylinders/components/access-gate.tsx`
+- `src/pages/cylinders/components/camera-scan-button.test.tsx`
+- `src/pages/cylinders/components/camera-scan-button.tsx`
+- `src/pages/cylinders/components/history-list.test.tsx`
+- `src/pages/cylinders/components/history-list.tsx`
+- `src/pages/cylinders/components/hydrostatic-test-form.test.tsx`
+- `src/pages/cylinders/components/hydrostatic-test-form.tsx`
+- `src/pages/cylinders/components/hydrostatic-tests.tsx`
+- `src/pages/cylinders/components/identifier-list.tsx`
+- `src/pages/cylinders/components/identifier-symbol.test.tsx`
+- `src/pages/cylinders/components/identifier-symbol.tsx`
+- `src/pages/cylinders/components/reason-dialog.test.tsx`
+- `src/pages/cylinders/components/reason-dialog.tsx`
+- `src/pages/cylinders/components/status-badges.test.tsx`
+- `src/pages/cylinders/components/status-badges.tsx`
+- `src/pages/cylinders/cylinder-area.tsx`
+- `src/pages/cylinders/cylinder-detail-actions.test.tsx`
+- `src/pages/cylinders/cylinder-detail-page.test.tsx`
+- `src/pages/cylinders/cylinder-detail-page.tsx`
+- `src/pages/cylinders/cylinder-form-page.test.tsx`
+- `src/pages/cylinders/cylinder-form-page.tsx`
+- `src/pages/cylinders/cylinder-list-page.test.tsx`
+- `src/pages/cylinders/cylinder-list-page.tsx`
+- `src/pages/cylinders/stock-in-page.test.tsx`
+- `src/pages/cylinders/stock-in-page.tsx`
+- `src/pages/cylinders/type-label.ts`
+- `src/pages/cylinders/use-cylinder-service.ts`
+- `supabase/functions/_shared/cylinders.ts`
+- `supabase/functions/manage-cylinders/deno.json`
+- `supabase/functions/manage-cylinders/handler.ts`
+- `supabase/functions/manage-cylinders/index.ts`
+- `supabase/functions/query-cylinders/deno.json`
+- `supabase/functions/query-cylinders/handler.ts`
+- `supabase/functions/query-cylinders/index.ts`
+- `supabase/migrations/20261005150000_cylinders_schema.sql`
+- `supabase/migrations/20261005150050_cylinders_hydro_helpers.sql`
+- `supabase/migrations/20261005150060_cylinders_event_helpers.sql`
+- `supabase/migrations/20261005150100_cylinders_permissions.sql`
+- `supabase/migrations/20261005150200_cylinders_register.sql`
+- `supabase/migrations/20261005150210_cylinders_query.sql`
+- `supabase/migrations/20261005150300_cylinders_stock_in.sql`
+- `supabase/migrations/20261005150400_cylinders_tests.sql`
+- `supabase/migrations/20261005150500_cylinders_identifiers.sql`
+- `supabase/migrations/20261005150600_cylinders_inactivation.sql`
+- `supabase/migrations/20261005150700_cylinders_history.sql`
+- `supabase/seed.sql`
+- `supabase/tests/002_rbac_invariants.test.sql`
+- `supabase/tests/002_rbac_management.test.sql`
+- `supabase/tests/002_rbac_rls.test.sql`
+- `supabase/tests/002_rls_behavior.test.sql`
+- `supabase/tests/006_audit.test.sql`
+- `supabase/tests/006_constraints.test.sql`
+- `supabase/tests/006_create.test.sql`
+- `supabase/tests/006_history.test.sql`
+- `supabase/tests/006_history_order.test.sql`
+- `supabase/tests/006_hydrostatic.test.sql`
+- `supabase/tests/006_identifiers.test.sql`
+- `supabase/tests/006_immutability.test.sql`
+- `supabase/tests/006_inactivation.test.sql`
+- `supabase/tests/006_permissions.test.sql`
+- `supabase/tests/006_query.test.sql`
+- `supabase/tests/006_rls.test.sql`
+- `supabase/tests/006_stock_in.test.sql`
+- `supabase/tests/006_tests.test.sql`
+- `tests/contract/cylinders-handlers.test.ts`
+- `tests/contract/cylinders-hydrostatic-limit.test.ts`
+- `tests/contract/cylinders-no-delete.test.ts`
+- `tests/contract/cylinders-permissions.test.ts`
+- `tests/contract/cylinders-volume.live.test.ts`
+- `tests/contract/cylinders.live.test.ts`
+- `tests/e2e/cilindros.spec.ts`
+- `tests/e2e/desempenho-lista-cilindros.spec.ts`
+- `tests/e2e/entrada-estoque.spec.ts`
+- `tests/e2e/escalas-no-navegador.spec.ts`
+- `tests/e2e/support/mock-backend.ts`
+- `tests/e2e/support/mock-cylinders.ts`
+- `tests/e2e/support/telas.ts`
+- `tests/e2e/teclado-e-contraste-de-foco.spec.ts`
+- `tests/e2e/visual/cilindros.visual.spec.ts`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-cadastro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-cadastro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-entrada-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-entrada-360-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-entrada-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-lista-360-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/cadastro-de-cilindro-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/cadastro-de-cilindro-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/cadastro-de-cilindro-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/detalhe-de-cilindro-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/detalhe-de-cilindro-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/detalhe-de-cilindro-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-no-estoque-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-no-estoque-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-no-estoque-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/lista-de-cilindros-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/lista-de-cilindros-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/lista-de-cilindros-principal-768-visual-chromium-linux.png`
+- `tests/integration/navigation-permissions.live.test.ts`
+- `tests/support/sql/cilindros-volume-limpar.sql`
+- `tests/support/sql/cilindros-volume-semear.sql`
+
+## Testes e evidências
+
+- Comando(s): `npm run lint`, `npm run typecheck`, `npm run test:coverage`, `npx supabase db reset` e `npx supabase test db`, `npm run test:live`, `npm run build`, `npm run test:e2e`, `npm run test:visual:atualizar` e `npm run test:desempenho:cilindros`.
+- Resultado: aprovado
+- Evidência: lint e typecheck sem erros; 152 arquivos e 1906 testes de unidade (cobertura de linhas 94,77%); 897 testes pgTAP; 92 testes live; 1145 testes E2E aprovados e 31 ignorados; 129 capturas visuais regeneradas no Linux; pacote de entrada de 579,55 kB (limite 593,95 kB); lista com 50 mil cilindros em 4G com p95 de 756 ms (limite 2000 ms). Detalhes em `specs/006-cilindros-e-estoque/validation.md`.
+
+## Decisões e dados pendentes
+
+Trocar o link de revisão pelo link do pull request antes do merge; entregar o DOCX do RIA depois do merge.
+
+## Validação humana
+
+- Responsável pela revisão da equipe: Alisson Almeida
+- Data da validação humana: 05/10/2026
+- Amostra validada: Todas as telas novas de cilindros: inclusão de cilindro, leitura de Data Matrix, inativação e demais fluxos, em notebook e celular.
+- Ambiente da validação: Chrome, Windows 11 (notebook) e celular Android
+- Duração da validação: 25 minutos
+- Resultado da validação humana: Aprovado. A primeira rodada foi aprovada com ajustes de layout e de câmera para facilitar a interação; os ajustes foram feitos e a revalidação final foi aprovada.
+- Itens a corrigir apontados pela pessoa responsável: Ajustes de layout e leitura pela câmera para facilitar a interação, aplicados pela IA e revalidados pela pessoa responsável. Nada mais a corrigir.
+- Confirmação do responsável: sim
+- Observações: a leitura pela câmera só aparece em navegadores com BarcodeDetector (Chrome no Android); a justificativa da decisão "adaptado" foi redigido pelo agente a partir dos pedidos da própria pessoa responsável.
+
+## Regras de preenchimento
+
+- A validação humana é obrigatória para encerrar a spec. As respostas da seção acima vêm da pessoa responsável, em entrevista conduzida pelo agente de IA, e nunca são inventadas nem presumidas.
+- Registrar apenas interações relevantes para o projeto.
+- Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
+- Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
+- Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
+- Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
+- Evitar dados pessoais, sigilosos ou sensíveis.
+- Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
+
+## Checklist final
+
+- [x] Ferramentas de IA identificadas.
+- [x] Prompts relevantes registrados por síntese sanitizada.
+- [x] Respostas ou resultados documentados.
+- [x] Texto revisado para soar natural, claro e autêntico, sem alterar o sentido original.
+- [x] Quando houve geração de código, a resposta contém resumo e link para o repositório, branch ou, preferencialmente, pull request.
+- [x] Validação humana explicada.
+- [x] Fontes verificadas quando necessário.
+- [x] Decisão ou pendência registrada.
+- [x] O registro não contém segredos, credenciais ou tokens.
+- [x] Dados pessoais foram removidos ou minimizados.

@@ -86,6 +86,21 @@ Como a lista de funções servidas é fixada na inicialização, depois de atual
 
 ---
 
+## Cilindros, identificadores, estoque e histórico (Spec 006)
+
+A primeira entrega de dados de domínio: cada organização cadastra e mantém os próprios cilindros, com identificadores (QR Code, Data Matrix, etiqueta NFC e número gravado no casco), testes hidrostáticos, entrada no estoque e um histórico imutável. As telas são **Cilindros** (lista, cadastro, detalhe e histórico) e **Entrada no estoque**, visíveis pelo menu conforme as permissões `cylinder.read` e `cylinder.stock_in`.
+
+- **Código para conferência.** No detalhe do cilindro, "Mostrar código" gera no navegador o QR Code ou o Data Matrix do valor de cada identificador ativo (biblioteca `bwip-js`, carregada só ao pedir).
+- **Nada é excluído.** Cilindro, identificador, teste e evento nunca são apagados: o cilindro é inativado com justificativa, o identificador é desativado e a correção de um teste é uma retificação. O banco recusa a exclusão para qualquer papel.
+- **Todo acesso passa pelo servidor.** O cliente só chama as Edge Functions `query-cylinders` e `manage-cylinders`, que conferem sessão, vínculo, papel e permissão a cada chamada. Cada ação sensível grava o evento de histórico e a auditoria na mesma transação.
+- **Entrada no estoque idempotente.** Cada leitura leva uma chave de operação; repetir a mesma operação (duplo clique, nova tentativa, resposta perdida) não cria outro evento. Escritas exigem conexão e nunca são enfileiradas offline.
+- **Situação do teste calculada.** Em dia, a vencer (30 dias ou menos), vencido, reprovado ou sem teste, sempre derivada dos registros e do dia de hoje em São Paulo; o limite de 30 dias existe uma só vez no domínio e uma só vez no SQL.
+- **Permissões novas:** `cylinder.read`, `cylinder.write`, `cylinder.deactivate`, `cylinder.identifier`, `cylinder.stock_in`, `cylinder.test` e `cylinder.history`, entregues ao administrador do tenant, ao operador de estoque, ao operador técnico e ao novo papel auditor (`tenant_auditor`). O contrato completo está em `specs/006-cilindros-e-estoque/`.
+
+Depois de atualizar a branch, rode `npx supabase db reset` e, para as funções novas serem servidas, `npx supabase stop` e `npx supabase start`. A medição de desempenho com 50 mil cilindros usa `npm run test:live` (banco e funções) e `npm run test:desempenho:cilindros` (navegador em conexão 4G).
+
+---
+
 ## Governança de IA por ciclo
 
 Ao final de cada ciclo Spec Kit, depois dos testes e antes do commit, gere e valide o Registro de Uso de IA:

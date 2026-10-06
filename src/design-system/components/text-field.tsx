@@ -2,7 +2,7 @@ import React from 'react';
 import { classesDoControle } from './classes-do-controle';
 import { Field } from './field';
 
-export type TextFieldType = 'text' | 'email' | 'password' | 'file' | 'datetime-local';
+export type TextFieldType = 'text' | 'email' | 'password' | 'file' | 'datetime-local' | 'date';
 
 export interface TextFieldProps extends Omit<React.ComponentProps<'input'>, 'type'> {
   label: string;

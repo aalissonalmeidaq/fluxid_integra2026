@@ -44,6 +44,15 @@ const publica = (caminho: string, titulo: string) =>
     await expect(page.getByRole('heading', { name: titulo })).toBeVisible();
   };
 
+// Telas de cilindros (Spec 006): perfil com todas as permissões de cilindros no Tenant A.
+const cilindros = (caminho: string, titulo: string) =>
+  async (page: Page): Promise<void> => {
+    await entrar(page, new MockBackend().asProfile('cilindros-admin'), 'aal1');
+    await page.goto(caminho);
+    await expect(page.getByRole('heading', { level: 2, name: titulo })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: /carregando/i })).toHaveCount(0);
+  };
+
 export const TELAS: readonly Tela[] = [
   { nome: 'entrada', titulo: 'Bem-vindo de volta', abrir: publica('/', 'Bem-vindo de volta') },
   { nome: 'recuperação: solicitação', titulo: 'Recuperar acesso', abrir: publica('/?recovery=1', 'Recuperar acesso') },
@@ -97,4 +106,8 @@ export const TELAS: readonly Tela[] = [
   { nome: 'papéis e permissões', titulo: 'Papéis e permissões', abrir: autenticada('/admin/papeis', 'Papéis e permissões') },
   { nome: 'auditoria do tenant', titulo: 'Auditoria do tenant', abrir: autenticada('/admin/auditoria', 'Auditoria do tenant') },
   { nome: 'auditoria da plataforma', titulo: 'Auditoria da plataforma', abrir: autenticada('/admin/auditoria-global', 'Auditoria da plataforma') },
+  { nome: 'lista de cilindros', titulo: 'Cilindros da organização', abrir: cilindros('/cilindros', 'Cilindros da organização') },
+  { nome: 'cadastro de cilindro', titulo: 'Cadastrar cilindro', abrir: cilindros('/cilindros/novo', 'Cadastrar cilindro') },
+  { nome: 'detalhe de cilindro', titulo: 'Cilindro CIL-001', abrir: cilindros('/cilindros/72000000-0000-4000-8000-000000000001', 'Cilindro CIL-001') },
+  { nome: 'entrada no estoque', titulo: 'Entrada no estoque', abrir: cilindros('/estoque/entrada', 'Entrada no estoque') },
 ];
