@@ -49,7 +49,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Aguardar a CI verde no PR e na main. Depois, entregar o DOCX do RIA-022 pelo PR #18 e o DOCX deste RIA em PR de documentação.
+O PR #19 foi mesclado em 06/10/2026 e a CI da main ficou verde no commit do merge. O PR #18 entrou antes do #19, com o DOCX do RIA-022 ainda com defeitos; o DOCX do RIA-022 foi regenerado e o deste RIA foi entregue em pull request de documentação posterior. Esse pull request também corrige o exportador, que gerava arquivos que o Word recusava como corrompidos (prefixo mc renomeado e declarações w14 e wp14 removidas).
 
 ## Validação humana
 

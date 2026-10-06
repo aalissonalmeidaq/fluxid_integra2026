@@ -35,7 +35,7 @@
 
 | RIA-022 | 05/10/2026, 21:04:27 - America/Fortaleza | 006 | 01 | Cilindros, identificadores, estoque e histórico | `registros/22_Cilindros_Identificadores_Estoque_e_Historico.docx` (`RIA-022-cilindros-identificadores-estoque-e-historico.md`) | adaptado |
 
-| RIA-023 | 06/10/2026, 14:46:08 - America/Fortaleza | 006 | 02 | Correção pós-merge da Spec 006: fuso e leitura por câmera | `registros/RIA-023-correcao-pos-merge-da-spec-006-fuso-e-leitura-por-camera.md` | utilizado |
+| RIA-023 | 06/10/2026, 14:46:08 - America/Fortaleza | 006 | 02 | Correção pós-merge da Spec 006: fuso e leitura por câmera | `registros/23_Correcao_Pos_Merge_da_Spec_006_Fuso_e_Leitura_por_Camera.docx` (`RIA-023-correcao-pos-merge-da-spec-006-fuso-e-leitura-por-camera.md`) | utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 

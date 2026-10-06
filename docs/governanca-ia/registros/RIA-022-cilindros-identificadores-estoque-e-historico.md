@@ -270,7 +270,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-O link de revisão foi trocado pelo do pull request #17 em 05/10/2026. Falta entregar o DOCX do RIA depois do merge.
+O link de revisão foi trocado pelo do pull request #17 em 05/10/2026. O DOCX do RIA foi entregue pelo pull request #18 e, depois do ciclo corretivo do PR #19, regenerado com o rodapé, os totais de testes e os metadados corrigidos.
 
 ## Validação humana
 
