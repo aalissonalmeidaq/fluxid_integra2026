@@ -1,3 +1,4 @@
+import { addCivilDays, daysBetween, todayInSaoPaulo } from '../../../src/domain/cylinders/hydrostatic-status';
 // Backend simulado das funções query-cylinders e manage-cylinders (Spec 006) para os E2E. Reproduz o contrato de
 // specs/006-cilindros-e-estoque/contracts/operacoes-servidor.md em memória: isolamento por organização, permissões,
 // conflitos, idempotência da entrada e histórico com sequência. As regras de banco de verdade são provadas nas suítes pgTAP e `.live`.
@@ -20,9 +21,9 @@ interface MockTest { id: string; organization_id: string; cylinder_id: string; p
 interface MockEvent { id: string; organization_id: string; cylinder_id: string; sequence: number; event_type: string; actor_name: string; occurred_at: string; justification: string | null; data: Json; references_event_id: string | null }
 
 const uuid = (prefix: string, n: number): string => `${prefix}000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
-const today = (): string => new Date().toISOString().slice(0, 10);
-const addDays = (days: number): string => new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
-const daysFromToday = (date: string): number => Math.round((Date.parse(date) - Date.parse(today())) / 86_400_000);
+const today = (): string => todayInSaoPaulo();
+const addDays = (days: number): string => addCivilDays(today(), days);
+const daysFromToday = (date: string): number => daysBetween(today(), date);
 
 export function hydroStatus(last: string | null, next: string | null): string {
   if (last === null) return 'sem_teste';

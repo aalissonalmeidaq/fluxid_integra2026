@@ -35,6 +35,8 @@
 
 | RIA-022 | 05/10/2026, 21:04:27 - America/Fortaleza | 006 | 01 | Cilindros, identificadores, estoque e histórico | `registros/RIA-022-cilindros-identificadores-estoque-e-historico.md` | adaptado |
 
+| RIA-023 | 06/10/2026, 14:46:08 - America/Fortaleza | 006 | 02 | Correção pós-merge da Spec 006: fuso e leitura por câmera | `registros/RIA-023-correcao-pos-merge-da-spec-006-fuso-e-leitura-por-camera.md` | utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

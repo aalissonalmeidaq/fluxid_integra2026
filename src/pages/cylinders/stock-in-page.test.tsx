@@ -181,11 +181,11 @@ describe('entrada no estoque (história 3)', () => {
 describe('entrada no estoque pela câmera', () => {
   it('um código lido pela câmera registra a entrada na hora, sem digitar', async () => {
     Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async () => ({ getTracks: () => [{ stop: () => undefined }] }) } });
-    vi.stubGlobal('BarcodeDetector', class { detect = async () => [{ rawValue: 'DM-77' }]; });
+    vi.stubGlobal('BarcodeDetector', class { static getSupportedFormats = async () => ['qr_code', 'data_matrix']; detect = async () => [{ rawValue: 'DM-77' }]; });
     HTMLMediaElement.prototype.play = vi.fn(async () => undefined);
     const service = fakeService();
     renderView(service);
-    fireEvent.click(screen.getByRole('button', { name: 'Ler com a câmera' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Ler com a câmera' }));
     await waitFor(() => expect(service.stockIn).toHaveBeenCalledWith(ORG, 'DM-77', expect.stringMatching(UUID)), { timeout: 2000 });
     vi.unstubAllGlobals();
     Reflect.deleteProperty(navigator, 'mediaDevices');

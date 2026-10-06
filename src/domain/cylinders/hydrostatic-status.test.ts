@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { HYDROSTATIC_EXPIRING_DAYS, daysBetween, effectiveTest, hydrostaticStatus } from './hydrostatic-status';
+import { HYDROSTATIC_EXPIRING_DAYS, addCivilDays, daysBetween, effectiveTest, hydrostaticStatus, todayInSaoPaulo } from './hydrostatic-status';
+import { validateHydrostaticTestForm } from './cylinder-validation';
 
 // Mesma tabela de casos de supabase/tests/006_hydrostatic.test.sql (CA-008). Hoje: 05/10/2026.
 const HOJE = '2026-10-05';
@@ -16,6 +17,44 @@ describe('daysBetween', () => {
     expect(daysBetween('2026-10-05', '2026-11-04')).toBe(30);
     expect(daysBetween('2026-10-05', '2026-10-04')).toBe(-1);
     expect(daysBetween('2026-02-28', '2026-03-01')).toBe(1);
+  });
+});
+
+describe('todayInSaoPaulo (fuso explícito, independente da máquina)', () => {
+  it('entre 21h e 24h em São Paulo o UTC já é o dia seguinte, e o dia de São Paulo prevalece', () => {
+    // 22h30 em São Paulo (UTC-3) de 05/10/2026 = 01h30 UTC de 06/10/2026.
+    const instante = new Date('2026-10-06T01:30:00Z');
+    expect(instante.toISOString().slice(0, 10)).toBe('2026-10-06');
+    expect(todayInSaoPaulo(instante)).toBe('2026-10-05');
+  });
+
+  it('muda de dia às 00h de São Paulo (03h UTC), e não às 00h UTC', () => {
+    expect(todayInSaoPaulo(new Date('2026-10-06T02:59:59Z'))).toBe('2026-10-05');
+    expect(todayInSaoPaulo(new Date('2026-10-06T03:00:00Z'))).toBe('2026-10-06');
+  });
+
+  it('a data de realização do dia de São Paulo é aceita e a do dia UTC seguinte é recusada como futura', () => {
+    const instante = new Date('2026-10-06T01:30:00Z');
+    const formulario = (performedOn: string) => validateHydrostaticTestForm(
+      { performedOn, result: 'approved', reportNumber: '', executor: 'Lab', nextDueOn: addCivilDays(performedOn, 180), notes: '' }, todayInSaoPaulo(instante));
+    expect(formulario('2026-10-05').ok).toBe(true);
+    expect(formulario('2026-10-06').ok).toBe(false);
+  });
+});
+
+describe('addCivilDays (datas de calendário, sem milissegundos UTC)', () => {
+  it('soma e subtrai dias atravessando mês, ano e fevereiro bissexto', () => {
+    expect(addCivilDays('2026-10-05', 180)).toBe('2027-04-03');
+    expect(addCivilDays('2026-12-31', 1)).toBe('2027-01-01');
+    expect(addCivilDays('2028-02-28', 1)).toBe('2028-02-29');
+    expect(addCivilDays('2026-10-05', -3)).toBe('2026-10-02');
+    expect(addCivilDays('2026-10-05', 0)).toBe('2026-10-05');
+  });
+
+  it('não sofre com a virada do horário de verão (período em que o Brasil usava) nem com o fuso da máquina', () => {
+    expect(addCivilDays('2018-11-03', 1)).toBe('2018-11-04');
+    expect(addCivilDays('2019-02-16', 1)).toBe('2019-02-17');
+    expect(daysBetween('2026-10-05', addCivilDays('2026-10-05', 365))).toBe(365);
   });
 });
 

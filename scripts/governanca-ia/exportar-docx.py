@@ -12,6 +12,7 @@ import sys
 import argparse
 import os
 import zipfile
+from datetime import datetime, timezone
 import xml.etree.ElementTree as ET
 
 def set_cell_text(tc, new_text, ns, is_multiline_decision=False, justification=''):
@@ -110,8 +111,13 @@ def gerar_docx(source_md, base_docx, out_registros):
         for prefixo in prefixos:
             for chave, conteudo in valores.items():
                 if chave.lower().startswith(prefixo.lower()):
-                    return conteudo
+                    # O DOCX é texto corrido: sem a marcação de código do Markdown.
+                    return conteudo.replace('`', '')
         return 'Não informado no registro.'
+
+    def frase(texto):
+        texto = texto.strip()
+        return texto if texto.endswith(('.', '!', '?')) else texto + '.'
 
     def secao(titulo_secao):
         achado = re.search(rf'^## {re.escape(titulo_secao)}\s*\n(.*?)(?=^## |\Z)', markdown, re.M | re.S)
@@ -158,15 +164,19 @@ def gerar_docx(source_md, base_docx, out_registros):
         'Data da validação humana': valor('Data da validação humana'),
     }
 
-    arquivos_afetados = len(re.findall(r'^- `', markdown, re.M))
+    # Só os itens da seção "Arquivos e áreas afetadas" contam como arquivos do ciclo. O gerador do registro já deixa de fora os
+    # arquivos administrativos de docs/governanca-ia (o próprio RIA e o índice), que não fazem parte da mudança funcional.
+    achado_arquivos = re.search(r'^- Arquivos e áreas afetadas:\s*\n(.*?)(?=^## |\Z)', markdown, re.M | re.S)
+    arquivos_afetados = len(re.findall(r'^- `', achado_arquivos.group(1), re.M)) if achado_arquivos else 0
     linhas_extras = [
         ('Rastreabilidade técnica',
          f"Repositório {valor('Repositório')}; branch {valor('Branch')}; Spec {spec}, ciclo {ciclo}; "
          f"commit-base {valor('Commit-base')}; hash do diff funcional {valor('Hash do diff funcional preparado')}."),
         ('Testes e evidências',
-         f"Comandos: {valor('Comando(s)')}. Resultado: {valor('Resultado')}. Evidência: {valor('Evidência')}"),
+         f"Comandos: {frase(valor('Comando(s)'))} Resultado: {frase(valor('Resultado'))} Evidência: {frase(valor('Evidência'))}"),
         ('Arquivos e áreas afetadas',
-         f'{arquivos_afetados} arquivos. A lista completa está no Markdown de apoio do registro.'),
+         f'{arquivos_afetados} arquivos, sem contar os arquivos administrativos do próprio registro em docs/governanca-ia '
+         '(o RIA e o índice). A lista completa está no Markdown de apoio do registro.'),
         ('Observações da validação humana', valor('Observações')),
     ]
 
@@ -211,6 +221,26 @@ def gerar_docx(source_md, base_docx, out_registros):
     core_str = core_str.replace('RIA-013 Gate de registro de IA por ciclo Spec Kit', titulo)
     core_str = core_str.replace('Gate de registro de IA por ciclo Spec Kit', titulo)
     core_str = core_str.replace('RIA-013', titulo.split('|')[0].strip())
+
+    # Autoria e datas: nada de nomes ou datas herdados do modelo.
+    agora = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    core_str = re.sub(r'<dc:creator>.*?</dc:creator>', '<dc:creator>Equipe FluxID</dc:creator>', core_str)
+    core_str = re.sub(r'<lastModifiedBy>.*?</lastModifiedBy>', '<lastModifiedBy>Equipe FluxID</lastModifiedBy>', core_str)
+    core_str = re.sub(r'<dc:description>.*?</dc:description>|<dc:description/>',
+                      f'<dc:description>Registro de uso de IA e validação humana do ciclo {ciclo} da Spec {spec} do FluxID.</dc:description>', core_str)
+    core_str = re.sub(r'(<dcterms:created[^>]*>).*?(</dcterms:created>)', rf'\g<1>{agora}\g<2>', core_str)
+    core_str = re.sub(r'(<dcterms:modified[^>]*>).*?(</dcterms:modified>)', rf'\g<1>{agora}\g<2>', core_str)
+
+    # Rodapés e cabeçalhos do modelo carregam o RIA-013: trocam pelo identificador deste registro.
+    identificador = cabecalho.group(1)
+    for nome_parte in list(all_files):
+        if re.match(r'word/(footer|header)\d*\.xml$', nome_parte):
+            all_files[nome_parte] = all_files[nome_parte].decode('utf-8').replace('RIA-013', identificador).encode('utf-8')
+
+    # A miniatura do modelo mostra o RIA-013: sai do pacote, com a relação e o tipo de conteúdo dela.
+    if 'docProps/thumbnail.jpeg' in all_files:
+        del all_files['docProps/thumbnail.jpeg']
+        all_files['_rels/.rels'] = re.sub(rb'<Relationship [^>]*thumbnail[^>]*/>', b'', all_files['_rels/.rels'])
 
     new_doc_xml = ET.tostring(tree, encoding='utf-8', xml_declaration=True)
     all_files['word/document.xml'] = new_doc_xml
