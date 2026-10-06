@@ -11,6 +11,7 @@ import copy
 import sys
 import argparse
 import os
+import io
 import zipfile
 from datetime import datetime, timezone
 import xml.etree.ElementTree as ET
@@ -86,6 +87,12 @@ def gerar_docx(source_md, base_docx, out_registros):
     ET.register_namespace('wp', 'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing')
     ET.register_namespace('w10', 'urn:schemas-microsoft-com:office:word')
     ET.register_namespace('w14', 'http://schemas.microsoft.com/office/word/2010/wordml')
+    # Mantém os prefixos do modelo (mc, wps, a, pic...): sem isso o ElementTree os renomeia para ns0, ns1...
+    for _, (prefixo, uri) in ET.iterparse(io.BytesIO(xml_content), events=['start-ns']):
+        ET.register_namespace(prefixo, uri)
+    # O ElementTree descarta as declarações sem uso, mas o mc:Ignorable do modelo ainda cita w14 e wp14: o Word acusa o arquivo
+    # como corrompido. Por isso a tag raiz original é reaproveitada na serialização.
+    raiz_original = re.search(rb'<w:document\s[^>]*>', xml_content).group(0)
 
     ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
     tree = ET.fromstring(xml_content)
@@ -243,6 +250,7 @@ def gerar_docx(source_md, base_docx, out_registros):
         all_files['_rels/.rels'] = re.sub(rb'<Relationship [^>]*thumbnail[^>]*/>', b'', all_files['_rels/.rels'])
 
     new_doc_xml = ET.tostring(tree, encoding='utf-8', xml_declaration=True)
+    new_doc_xml = re.sub(rb'<w:document\s[^>]*>', lambda _: raiz_original, new_doc_xml, count=1)
     all_files['word/document.xml'] = new_doc_xml
     all_files['docProps/core.xml'] = core_str.encode('utf-8')
 
