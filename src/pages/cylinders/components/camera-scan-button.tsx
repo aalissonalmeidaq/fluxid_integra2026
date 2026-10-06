@@ -2,16 +2,31 @@ import React from 'react';
 import { Alert, Button, Dialog } from '@/design-system';
 
 interface Detector { detect: (source: HTMLVideoElement) => Promise<{ rawValue: string }[]> }
-type DetectorConstructor = new (options: { formats: string[] }) => Detector;
+interface DetectorConstructor {
+  new (options: { formats: string[] }): Detector;
+  getSupportedFormats?: () => Promise<string[]>;
+}
 
 const INTERVAL_MS = 250;
+// Só estes dois formatos interessam: os identificadores do FluxID são QR Code e Data Matrix.
+const WANTED_FORMATS = ['qr_code', 'data_matrix'];
 
 const detectorConstructor = (): DetectorConstructor | null => {
   const candidate = (globalThis as { BarcodeDetector?: DetectorConstructor }).BarcodeDetector;
   return typeof candidate === 'function' ? candidate : null;
 };
 
-const cameraAvailable = (): boolean => detectorConstructor() !== null && typeof navigator !== 'undefined' && typeof navigator.mediaDevices?.getUserMedia === 'function';
+// Formatos que este navegador realmente lê, entre os desejados. Qualquer falha na consulta vale como "sem suporte".
+async function readableFormats(): Promise<string[]> {
+  const Detector = detectorConstructor();
+  if (!Detector || typeof navigator === 'undefined' || typeof navigator.mediaDevices?.getUserMedia !== 'function') return [];
+  try {
+    const supported = (await Detector.getSupportedFormats?.()) ?? [];
+    return WANTED_FORMATS.filter((format) => supported.includes(format));
+  } catch {
+    return [];
+  }
+}
 
 export interface CameraScanButtonProps {
   // Recebe o texto lido do QR Code ou do Data Matrix. A câmera só lê; quem chama decide o que fazer com o valor.
@@ -23,7 +38,14 @@ export interface CameraScanButtonProps {
 export function CameraScanButton({ onRead }: CameraScanButtonProps): React.JSX.Element | null {
   const [trigger, setTrigger] = React.useState<HTMLElement | null>(null);
   const [open, setOpen] = React.useState(false);
-  if (!cameraAvailable()) return null;
+  // `null` enquanto consulta: o botão só aparece quando há pelo menos um formato compatível.
+  const [formats, setFormats] = React.useState<string[] | null>(null);
+  React.useEffect(() => {
+    let current = true;
+    void readableFormats().then((found) => { if (current) setFormats(found); });
+    return () => { current = false; };
+  }, []);
+  if (!formats || formats.length === 0) return null;
   const close = (): void => setOpen(false);
   return (
     <>
@@ -32,14 +54,14 @@ export function CameraScanButton({ onRead }: CameraScanButtonProps): React.JSX.E
       </Button>
       {open && (
         <Dialog title="Ler com a câmera" onClose={close} returnFocusTo={trigger} footer={<Button variant="secundario" onClick={close}>Cancelar</Button>}>
-          <Scanner onRead={(value) => { close(); onRead(value); }} />
+          <Scanner formats={formats} onRead={(value) => { close(); onRead(value); }} />
         </Dialog>
       )}
     </>
   );
 }
 
-function Scanner({ onRead }: { onRead: (value: string) => void }): React.JSX.Element {
+function Scanner({ formats, onRead }: { formats: string[]; onRead: (value: string) => void }): React.JSX.Element {
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [error, setError] = React.useState<string | null>(null);
   const onReadRef = React.useRef(onRead);
@@ -54,16 +76,17 @@ function Scanner({ onRead }: { onRead: (value: string) => void }): React.JSX.Ele
       active = false;
       if (timer) clearInterval(timer);
       stream?.getTracks().forEach((track) => track.stop());
+      stream = undefined;
     };
     void (async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
         if (!active) return stopAll();
         const video = videoRef.current;
-        if (!video || !Detector) return;
+        if (!video || !Detector) return stopAll();
         video.srcObject = stream;
         await video.play();
-        const detector = new Detector({ formats: ['qr_code', 'data_matrix'] });
+        const detector = new Detector({ formats });
         let reading = false;
         timer = setInterval(() => {
           if (!active || reading) return;
@@ -83,7 +106,7 @@ function Scanner({ onRead }: { onRead: (value: string) => void }): React.JSX.Ele
       }
     })();
     return stopAll;
-  }, []);
+  }, [formats]);
 
   return (
     <div className="flex flex-col gap-4">

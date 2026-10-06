@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { MockBackend, type PermissionProfile } from './support/mock-backend';
+import { addCivilDays, todayInSaoPaulo } from '../../src/domain/cylinders/hydrostatic-status';
 
 test.use({ serviceWorkers: 'block' });
 
@@ -56,8 +57,9 @@ test.describe('Cilindros: fluxo completo', () => {
     // Teste hidrostático.
     await expect(page.getByRole('heading', { level: 2, name: 'Cilindro NOVO-001' })).toBeVisible();
     await page.getByRole('button', { name: 'Registrar teste' }).click();
-    const hoje = new Date().toISOString().slice(0, 10);
-    const daqui6Meses = new Date(Date.now() + 180 * 86_400_000).toISOString().slice(0, 10);
+    // Datas de calendário de America/Sao_Paulo, o mesmo critério do formulário: em UTC, depois das 21h o dia já seria o seguinte.
+    const hoje = todayInSaoPaulo();
+    const daqui6Meses = addCivilDays(hoje, 180);
     await page.getByLabel('Data de realização').fill(hoje);
     await page.getByLabel('Resultado').selectOption('approved');
     await page.getByLabel('Executor').fill('Laboratório E2E');
@@ -82,6 +84,29 @@ test.describe('Cilindros: fluxo completo', () => {
     await expect(eventos.last()).toContainText('Cilindro cadastrado');
     await expect(historico).toContainText('Teste hidrostático registrado');
     await expect(historico.getByRole('button', { name: /editar|excluir|apagar|remover/i })).toHaveCount(0);
+  });
+
+  test('às 22h30 em São Paulo (já é o dia seguinte em UTC) a data de hoje é aceita e a do dia UTC seguinte é recusada', async ({ page }) => {
+    // 22h30 de 05/10/2026 em São Paulo = 01h30 de 06/10/2026 em UTC: a data em UTC seria futura para o formulário.
+    const instante = new Date('2026-10-06T01:30:00Z');
+    await page.clock.setFixedTime(instante);
+    await entrar(page);
+    await page.goto('/cilindros/72000000-0000-4000-8000-000000000003');
+    await expect(page.getByRole('heading', { level: 2, name: 'Cilindro CIL-003' })).toBeVisible();
+    await page.getByRole('button', { name: 'Registrar teste' }).click();
+    const hoje = todayInSaoPaulo(instante);
+    expect(hoje).toBe('2026-10-05');
+    await page.getByLabel('Resultado').selectOption('approved');
+    await page.getByLabel('Executor').fill('Laboratório E2E');
+    await page.getByLabel('Próxima data').fill(addCivilDays(hoje, 180));
+
+    await page.getByLabel('Data de realização').fill(instante.toISOString().slice(0, 10));
+    await page.getByRole('button', { name: 'Registrar teste', exact: true }).click();
+    await expect(page.getByText('A data de realização não pode ser futura.')).toBeVisible();
+
+    await page.getByLabel('Data de realização').fill(hoje);
+    await page.getByRole('button', { name: 'Registrar teste', exact: true }).click();
+    await expect(page.getByText('Teste hidrostático registrado.')).toBeVisible();
   });
 
   test('o Tenant B não vê os cilindros do Tenant A e a lista pagina com filtros', async ({ page }) => {

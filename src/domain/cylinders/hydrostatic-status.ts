@@ -13,6 +13,13 @@ export function daysBetween(fromDate: string, toDate: string): number {
   return Math.round((toUtc(toDate) - toUtc(fromDate)) / 86_400_000);
 }
 
+// Soma dias a uma data de calendário (AAAA-MM-DD) sem passar por instantes: usa só o calendário civil, então não depende do
+// fuso da máquina nem de horário de verão.
+export function addCivilDays(date: string, days: number): string {
+  const [year = 0, month = 1, day = 1] = date.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
 // Dia de hoje em America/Sao_Paulo, o mesmo critério do banco.
 export function todayInSaoPaulo(now: Date = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
