@@ -113,4 +113,12 @@ describe('Dialog', () => {
     act(() => { fireEvent.click(container.firstElementChild as Element); });
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it('usa a largura compacta por padrão e a padrão nos formulários de cadastro', () => {
+    const { rerender } = render(<Dialog title="Confirmar" onClose={() => undefined}><button type="button">Ok</button></Dialog>);
+    expect(screen.getByRole('dialog')).toHaveClass('max-w-compacto');
+    rerender(<Dialog title="Cadastrar" size="padrao" onClose={() => undefined}><button type="button">Ok</button></Dialog>);
+    expect(screen.getByRole('dialog')).toHaveClass('max-w-padrao');
+    expect(screen.getByRole('dialog')).not.toHaveClass('max-w-compacto');
+  });
 });

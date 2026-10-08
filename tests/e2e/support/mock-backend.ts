@@ -1,5 +1,6 @@
 import type { Page, Route } from '@playwright/test';
 import { CylinderMock } from './mock-cylinders';
+import { createRegistryMock } from './mock-registry-customers';
 
 // Backend simulado por rede para os E2E de autenticação: exercita a interface e o cliente Supabase reais
 // sem depender de um Supabase em execução. Comportamento real de Auth, RLS e sessões é provado nas suítes
@@ -50,10 +51,18 @@ const TENANT_B = '20000000-0000-0000-0000-00000000000b';
 
 // Perfis da consulta de permissões (`query-permissions`), como o servidor os devolveria (Spec 004, contrato da consulta).
 export type PermissionProfile = 'administrador' | 'operador' | 'master' | 'admin-fluxid' | 'dois-tenants' | 'sem-vinculo'
-  | 'cilindros-admin' | 'cilindros-estoquista' | 'cilindros-tecnico' | 'cilindros-auditor';
+  | 'cilindros-admin' | 'cilindros-estoquista' | 'cilindros-tecnico' | 'cilindros-auditor'
+  | 'cadastros-admin' | 'cadastros-estoquista' | 'cadastros-tecnico' | 'cadastros-auditor' | 'cadastros-motorista';
 
 // Permissões de cilindros (Spec 006) por papel padrão, como o servidor as devolve em `query-permissions`.
 const CILINDROS_TODAS = ['cylinder.read', 'cylinder.write', 'cylinder.deactivate', 'cylinder.identifier', 'cylinder.stock_in', 'cylinder.test', 'cylinder.history'];
+// Permissões da Fase 3 (Spec 007) por papel padrão, como o servidor as devolve em `query-permissions`.
+const CADASTROS_TODAS = [
+  'customer.read', 'customer.write', 'customer.deactivate', 'customer.history', 'customer.document', 'customer.anonymize',
+  'geofence.read', 'geofence.write', 'geofence.deactivate', 'geofence.history',
+  'vehicle.read', 'vehicle.write', 'vehicle.deactivate', 'vehicle.history',
+  'driver.read', 'driver.write', 'driver.deactivate', 'driver.history', 'driver.document', 'driver.anonymize',
+];
 const PROFILES: Record<PermissionProfile, { byOrganization: Record<string, string[]>; global: string[] }> = {
   administrador: { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage'] }, global: [] },
   operador: { byOrganization: { [TENANT_A]: [] }, global: [] },
@@ -65,11 +74,18 @@ const PROFILES: Record<PermissionProfile, { byOrganization: Record<string, strin
   'cilindros-estoquista': { byOrganization: { [TENANT_A]: ['cylinder.read', 'cylinder.write', 'cylinder.stock_in', 'cylinder.history'] }, global: [] },
   'cilindros-tecnico': { byOrganization: { [TENANT_A]: ['cylinder.read', 'cylinder.identifier', 'cylinder.test', 'cylinder.history'] }, global: [] },
   'cilindros-auditor': { byOrganization: { [TENANT_A]: ['cylinder.read', 'cylinder.history'] }, global: [] },
+  'cadastros-admin': { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage', ...CILINDROS_TODAS, ...CADASTROS_TODAS] }, global: [] },
+  'cadastros-estoquista': { byOrganization: { [TENANT_A]: ['cylinder.read', 'customer.read', 'geofence.read', 'vehicle.read', 'driver.read'] }, global: [] },
+  'cadastros-tecnico': { byOrganization: { [TENANT_A]: ['cylinder.read', 'customer.read', 'vehicle.read'] }, global: [] },
+  'cadastros-auditor': { byOrganization: { [TENANT_A]: ['customer.read', 'customer.history', 'geofence.read', 'geofence.history', 'vehicle.read', 'vehicle.history', 'driver.read', 'driver.history'] }, global: [] },
+  'cadastros-motorista': { byOrganization: { [TENANT_A]: [] }, global: [] },
 };
 
 export class MockBackend {
   // Cilindros, identificadores, testes e histórico simulados (Spec 006): dois tenants, com o mesmo valor de identificador em ambos.
   readonly cylinders = new CylinderMock();
+  // Clientes, unidades, geocercas, veículos e motoristas simulados (Spec 007): dois tenants, com o mesmo documento e a mesma placa em ambos.
+  readonly registry = createRegistryMock();
   organizations = [{ id:'20000000-0000-0000-0000-00000000000a',legal_name:'Tenant A Sintético',display_name:'Tenant A',status:'active',version:1 }];
   members = [{ id:'30000000-0000-0000-0000-000000000099',display_name:'Operador A',email:'operador-a@example.invalid',status:'active',version:1 }];
   membersB = [{ id:'30000000-0000-0000-0000-000000000098',display_name:'Operador B',email:'operador-b@example.invalid',status:'active',version:1 }];
@@ -135,6 +151,9 @@ export class MockBackend {
 
   async install(page: Page): Promise<void> {
     await page.route(`${ORIGIN}/**`, (route) => this.handle(route));
+    // Os blocos do mapa vêm do OpenStreetMap: nenhum E2E depende da rede externa (PNG transparente de 1 pixel).
+    const pixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+    await page.route('https://tile.openstreetmap.org/**', (route) => route.fulfill({ status: 200, contentType: 'image/png', body: pixel }));
   }
 
   private async handle(route: Route): Promise<void> {
@@ -164,6 +183,11 @@ export class MockBackend {
     }
     if (pathname === '/functions/v1/query-cylinders' || pathname === '/functions/v1/manage-cylinders') {
       const reply = this.cylinders.handle(pathname.endsWith('query-cylinders') ? 'query' : 'manage', (body ?? {}) as Record<string, unknown>, (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code));
+      return respond(reply.status, reply.json);
+    }
+    if (pathname === '/functions/v1/query-registry' || pathname === '/functions/v1/manage-registry' || pathname === '/functions/v1/lookup-postal-code' || pathname === '/functions/v1/geocode-address') {
+      const kind = pathname.endsWith('query-registry') ? 'query' : pathname.endsWith('manage-registry') ? 'manage' : pathname.endsWith('geocode-address') ? 'geocode' : 'postal';
+      const reply = this.registry.handle(kind, (body ?? {}) as Record<string, unknown>, (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code));
       return respond(reply.status, reply.json);
     }
     if (pathname === '/functions/v1/query-audit') {

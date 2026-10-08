@@ -238,3 +238,52 @@ union all
 select '30000000-0000-0000-0000-000000000019'::uuid, r.id, '10000000-0000-0000-0000-000000000001'::uuid from public.roles r
   where r.organization_id='20000000-0000-0000-0000-00000000000e' and r.code='stock_operator'
 on conflict do nothing;
+
+-- Spec 007 (clientes, unidades, geocercas, veículos e motoristas): massa dedicada às suítes ao vivo, isolada em dois tenants próprios
+-- (G e H) para não alterar as contagens das demais suítes. `reg-g-admin` administra o Tenant G; `reg-g-stock` é operador de estoque no G;
+-- `reg-g-driver` tem o papel driver no G (usuário vinculável); `reg-h-admin` administra o Tenant H.
+insert into public.organizations(id,kind,legal_name,display_name,status) values
+('20000000-0000-0000-0000-000000000020','tenant','Tenant G Sintético','Tenant G','active'),
+('20000000-0000-0000-0000-000000000021','tenant','Tenant H Sintético','Tenant H','active')
+on conflict (id) do nothing;
+select private.bootstrap_tenant_roles('20000000-0000-0000-0000-000000000020');
+select private.bootstrap_tenant_roles('20000000-0000-0000-0000-000000000021');
+
+insert into auth.users (
+  instance_id,id,aud,role,email,encrypted_password,email_confirmed_at,
+  confirmation_token,recovery_token,email_change_token_new,email_change,phone,phone_change,
+  phone_change_token,email_change_token_current,reauthentication_token,
+  raw_app_meta_data,raw_user_meta_data,created_at,updated_at
+)
+values
+('00000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000020','authenticated','authenticated','reg-g-admin@example.invalid',crypt('Local-only-020!',gen_salt('bf')),now(),'', '', '', '', null, '', '', '', '', '{"provider":"email","providers":["email"]}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000021','authenticated','authenticated','reg-h-admin@example.invalid',crypt('Local-only-021!',gen_salt('bf')),now(),'', '', '', '', null, '', '', '', '', '{"provider":"email","providers":["email"]}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000022','authenticated','authenticated','reg-g-stock@example.invalid',crypt('Local-only-022!',gen_salt('bf')),now(),'', '', '', '', null, '', '', '', '', '{"provider":"email","providers":["email"]}','{}',now(),now()),
+('00000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000023','authenticated','authenticated','reg-g-driver@example.invalid',crypt('Local-only-023!',gen_salt('bf')),now(),'', '', '', '', null, '', '', '', '', '{"provider":"email","providers":["email"]}','{}',now(),now())
+on conflict (id) do nothing;
+
+insert into public.profiles(user_id,display_name) values
+('10000000-0000-0000-0000-000000000020','Cadastros Administrador G'),
+('10000000-0000-0000-0000-000000000021','Cadastros Administrador H'),
+('10000000-0000-0000-0000-000000000022','Cadastros Estoquista G'),
+('10000000-0000-0000-0000-000000000023','Cadastros Condutor G') on conflict do nothing;
+
+insert into public.memberships(id,organization_id,user_id,status,activated_at) values
+('30000000-0000-0000-0000-000000000020','20000000-0000-0000-0000-000000000020','10000000-0000-0000-0000-000000000020','active',now()),
+('30000000-0000-0000-0000-000000000021','20000000-0000-0000-0000-000000000021','10000000-0000-0000-0000-000000000021','active',now()),
+('30000000-0000-0000-0000-000000000022','20000000-0000-0000-0000-000000000020','10000000-0000-0000-0000-000000000022','active',now()),
+('30000000-0000-0000-0000-000000000023','20000000-0000-0000-0000-000000000020','10000000-0000-0000-0000-000000000023','active',now()) on conflict do nothing;
+
+insert into public.membership_roles(membership_id,role_id,assigned_by)
+select '30000000-0000-0000-0000-000000000020'::uuid, r.id, '10000000-0000-0000-0000-000000000001'::uuid from public.roles r
+  where r.organization_id='20000000-0000-0000-0000-000000000020' and r.code='tenant_admin'
+union all
+select '30000000-0000-0000-0000-000000000021'::uuid, r.id, '10000000-0000-0000-0000-000000000001'::uuid from public.roles r
+  where r.organization_id='20000000-0000-0000-0000-000000000021' and r.code='tenant_admin'
+union all
+select '30000000-0000-0000-0000-000000000022'::uuid, r.id, '10000000-0000-0000-0000-000000000001'::uuid from public.roles r
+  where r.organization_id='20000000-0000-0000-0000-000000000020' and r.code='stock_operator'
+union all
+select '30000000-0000-0000-0000-000000000023'::uuid, r.id, '10000000-0000-0000-0000-000000000001'::uuid from public.roles r
+  where r.organization_id='20000000-0000-0000-0000-000000000020' and r.code='driver'
+on conflict do nothing;

@@ -16,7 +16,8 @@ function walk(dir: string, found: string[] = []): string[] {
   return found;
 }
 
-describe('limite de "a vencer" (RF-021)', () => {
+// Varre os arquivos do projeto de forma síncrona: com a suíte inteira e a cobertura (v8) ligadas passa dos 5 s padrão.
+describe('limite de "a vencer" (RF-021)', { timeout: 30_000 }, () => {
   it('a constante do TypeScript é igual à função SQL', () => {
     const migrations = join(ROOT, 'supabase', 'migrations');
     const source = readdirSync(migrations)
@@ -45,8 +46,10 @@ describe('limite de "a vencer" (RF-021)', () => {
     }
   });
 
-  it('o domínio define a constante uma única vez', () => {
-    const definitions = walk(join(ROOT, 'src')).filter((file) => /HYDROSTATIC_EXPIRING_DAYS\s*=\s*\d+/.test(readFileSync(file, 'utf8')));
-    expect(definitions.map((file) => relative(ROOT, file).replace(/\\/g, '/'))).toEqual(['src/domain/cylinders/hydrostatic-status.ts']);
+  it('o domínio define o número do limite uma única vez, em validity-status, e o teste hidrostático deriva dele', () => {
+    const definitions = walk(join(ROOT, 'src')).filter((file) => /(?<![A-Z_])EXPIRING_DAYS\s*=\s*\d+/.test(readFileSync(file, 'utf8')));
+    expect(definitions.map((file) => relative(ROOT, file).replace(/\\/g, '/'))).toEqual(['src/domain/shared/validity-status.ts']);
+    const hydrostatic = readFileSync(join(ROOT, 'src', 'domain', 'cylinders', 'hydrostatic-status.ts'), 'utf8');
+    expect(hydrostatic).toMatch(/HYDROSTATIC_EXPIRING_DAYS\s*=\s*EXPIRING_DAYS/);
   });
 });

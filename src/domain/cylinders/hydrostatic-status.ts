@@ -1,29 +1,13 @@
 import type { HydrostaticResult, HydrostaticStatus } from './cylinder-types';
+import { EXPIRING_DAYS } from '../shared/validity-status';
+import { addCivilDays, daysBetween, todayInSaoPaulo } from '../shared/civil-date';
 
-// Limite único de "a vencer" para todo o produto nesta spec (RF-021). O SQL tem o mesmo valor em
-// private.hydrostatic_expiring_days(); tests/contract/cylinders-hydrostatic-limit.test.ts reprova divergência.
-export const HYDROSTATIC_EXPIRING_DAYS = 30;
+// As datas civis moraram aqui na Spec 006; agora vivem em src/domain/shared/civil-date.ts e continuam exportadas daqui.
+export { addCivilDays, daysBetween, todayInSaoPaulo };
 
-// Datas de calendário no formato AAAA-MM-DD. Dias contados em UTC para não sofrer com horário de verão.
-export function daysBetween(fromDate: string, toDate: string): number {
-  const toUtc = (iso: string): number => {
-    const [year = 0, month = 1, day = 1] = iso.split('-').map(Number);
-    return Date.UTC(year, month - 1, day);
-  };
-  return Math.round((toUtc(toDate) - toUtc(fromDate)) / 86_400_000);
-}
-
-// Soma dias a uma data de calendário (AAAA-MM-DD) sem passar por instantes: usa só o calendário civil, então não depende do
-// fuso da máquina nem de horário de verão.
-export function addCivilDays(date: string, days: number): string {
-  const [year = 0, month = 1, day = 1] = date.split('-').map(Number);
-  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
-}
-
-// Dia de hoje em America/Sao_Paulo, o mesmo critério do banco.
-export function todayInSaoPaulo(now: Date = new Date()): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
-}
+// Limite único de "a vencer" para todo o produto (RF-021): o mesmo de src/domain/shared/validity-status.ts. O SQL tem o mesmo
+// valor em private.hydrostatic_expiring_days(); tests/contract/cylinders-hydrostatic-limit.test.ts reprova divergência.
+export const HYDROSTATIC_EXPIRING_DAYS = EXPIRING_DAYS;
 
 // Situação calculada do teste (RF-020): nunca digitada, sempre derivada do último teste efetivo e de hoje.
 export function hydrostaticStatus(

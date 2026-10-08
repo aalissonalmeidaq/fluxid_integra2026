@@ -66,7 +66,8 @@ export interface PerformanceItem {
 
 export interface OverviewContentMap {
   indicadores: { items: IndicatorItem[] };
-  mapa: { message: string };
+  // `center` é o ponto de exemplo em que o mapa abre e `span` a largura da caixa em graus.
+  mapa: { message: string; center: { latitude: number; longitude: number; span: number } };
   movimentacao: { series: SeriesDefinition[]; days: MovementDay[] };
   situacao: { total: number; categories: StatusCategory[] };
   alertas: { items: AlertItem[] };

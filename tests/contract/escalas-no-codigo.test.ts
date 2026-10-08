@@ -50,7 +50,8 @@ function classesDoArquivo(source: string): string[] {
 
 const escapar = (classe: string): string => classe.replace(/[^a-zA-Z0-9_-]/g, (caractere) => `\\${caractere}`);
 
-describe('Tokens no código (CA-013, RNF-006)', () => {
+// Varre os arquivos do projeto de forma síncrona: com a suíte inteira e a cobertura (v8) ligadas passa dos 5 s padrão.
+describe('Tokens no código (CA-013, RNF-006)', { timeout: 30_000 }, () => {
   it('há arquivos para varrer e o tema do FluxID existe', () => {
     expect(FILES.length).toBeGreaterThan(20);
     expect(fs.existsSync(TOKENS_CSS)).toBe(true);

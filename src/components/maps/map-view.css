@@ -1,0 +1,52 @@
+/* Marcadores do mapa: só tokens do design system. Azul = coordenadas confirmadas; ciano = digitadas ou ainda sem confirmação. */
+.fluxid-map-point {
+  fill: var(--color-azul-profundo);
+  fill-opacity: 1;
+  stroke: var(--color-branco);
+  stroke-width: 3px;
+}
+
+.fluxid-map-point--unconfirmed {
+  fill: var(--color-ciano-acessivel);
+}
+
+.fluxid-map {
+  z-index: 0;
+  font-family: inherit;
+}
+
+/* Controles do Leaflet nas escalas dos tokens (CA-013): margens, fonte, entrelinha e alvo de toque de 44 px no lugar dos valores
+   fixos do leaflet.css. */
+.fluxid-map .leaflet-top .leaflet-control { margin-top: var(--spacing-2); }
+.fluxid-map .leaflet-bottom .leaflet-control { margin-bottom: var(--spacing-2); }
+.fluxid-map .leaflet-left .leaflet-control { margin-left: var(--spacing-2); }
+.fluxid-map .leaflet-right .leaflet-control { margin-right: var(--spacing-2); }
+
+.fluxid-map .leaflet-bar a,
+.fluxid-map.leaflet-touch .leaflet-bar a {
+  width: var(--spacing-alvo);
+  height: var(--spacing-alvo);
+  line-height: var(--spacing-alvo);
+}
+
+.fluxid-map .leaflet-bar a span {
+  display: block;
+  font-size: var(--text-h3);
+  line-height: 1;
+}
+
+.fluxid-map .leaflet-control-attribution {
+  padding: 0 var(--spacing-1);
+  font-size: var(--text-legenda);
+  line-height: var(--text-legenda--line-height);
+}
+
+.fluxid-map .leaflet-control-attribution a {
+  line-height: inherit;
+}
+
+/* Mapa editável (formulário da unidade): o cursor indica que o clique escolhe o ponto. */
+.fluxid-map--editable.leaflet-grab,
+.fluxid-map--editable .leaflet-interactive {
+  cursor: crosshair;
+}

@@ -136,8 +136,17 @@ test.describe('US3: qualquer largura, só com teclado', () => {
     const cartoes = page.getByRole('region', { name: 'Indicadores principais' }).getByRole('listitem');
     const caixas = await cartoes.evaluateAll((itens) => itens.map((item) => item.getBoundingClientRect().top));
     const naMesmaLinha = new Set(caixas.map((topo) => Math.round(topo))).size;
-    if (largura >= 1024) expect(naMesmaLinha).toBe(1);
-    else if (largura >= 768) expect(naMesmaLinha).toBe(2);
+    // Decisão de 07/10/2026: no desktop o mapa ocupa 80% da largura e os indicadores ficam empilhados na coluna de 20%.
+    if (largura >= 1024) {
+      expect(naMesmaLinha).toBe(4);
+      const mapa = await page.getByRole('region', { name: 'Cilindros e viagens no mapa' }).boundingBox();
+      const indicadores = await page.getByRole('region', { name: 'Indicadores principais' }).boundingBox();
+      expect(mapa).not.toBeNull();
+      expect(indicadores).not.toBeNull();
+      const proporcao = mapa!.width / (mapa!.width + indicadores!.width);
+      expect(proporcao).toBeGreaterThan(0.77);
+      expect(proporcao).toBeLessThan(0.83);
+    } else if (largura >= 768) expect(naMesmaLinha).toBe(2);
     else expect(naMesmaLinha).toBe(4);
     const principal = await page.getByRole('main').boundingBox();
     expect(principal).not.toBeNull();

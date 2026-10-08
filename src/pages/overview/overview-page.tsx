@@ -18,11 +18,11 @@ export function OverviewPage(): React.JSX.Element {
           Acompanhe cilindros, viagens e alertas da operação. Os números abaixo são dados de exemplo, até a leitura dos dados reais.
         </p>
       </header>
-      <IndicatorsBlock />
-      <div className="grid grid-cols-1 gap-6 desktop:grid-cols-2">
-        <MapBlock />
-        <MovementBlock />
+      <div className="grid grid-cols-1 gap-6 desktop:grid-cols-5">
+        <div className="order-2 flex min-w-0 desktop:order-none desktop:col-span-4"><MapBlock /></div>
+        <div className="order-1 flex min-w-0 desktop:order-none desktop:col-span-1"><IndicatorsBlock /></div>
       </div>
+      <MovementBlock />
       <div className="grid grid-cols-1 gap-6 tablet:grid-cols-2 desktop:grid-cols-3">
         <StatusBlock />
         <AlertsBlock />

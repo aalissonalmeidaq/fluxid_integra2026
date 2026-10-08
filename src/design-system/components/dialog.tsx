@@ -10,13 +10,15 @@ export interface DialogProps {
   initialFocusRef?: React.RefObject<HTMLElement | null>;
   // Elemento que recebe o foco ao fechar; sem ele, o que tinha o foco quando o diálogo abriu.
   returnFocusTo?: HTMLElement | null;
+  // Largura: `compacto` para confirmações; `padrao` para formulários de cadastro e edição.
+  size?: 'compacto' | 'padrao';
 }
 
 const FOCAVEIS = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 // Diálogo modal acessível (RF-009): anuncia o título, prende o foco, fecha com Escape, devolve o foco ao acionador e
 // rola por dentro quando o conteúdo é longo. Clicar fora não fecha, para não descartar ações sensíveis por engano.
-export function Dialog({ title, onClose, children, footer, initialFocusRef, returnFocusTo }: DialogProps): React.JSX.Element {
+export function Dialog({ title, onClose, children, footer, initialFocusRef, returnFocusTo, size = 'compacto' }: DialogProps): React.JSX.Element {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<Element | null>(null);
@@ -64,7 +66,7 @@ export function Dialog({ title, onClose, children, footer, initialFocusRef, retu
         aria-labelledby={titleId}
         tabIndex={-1}
         onKeyDown={onKeyDown}
-        className="max-h-full w-full max-w-compacto overflow-y-auto rounded-card bg-branco p-6 text-grafite shadow-dialogo"
+        className={`max-h-full w-full ${size === 'padrao' ? 'max-w-padrao' : 'max-w-compacto'} overflow-y-auto rounded-card bg-branco p-6 text-grafite shadow-dialogo`}
       >
         <h2 id={titleId} className="text-h3 font-semibold text-navy">
           {title}

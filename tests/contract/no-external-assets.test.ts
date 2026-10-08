@@ -5,7 +5,9 @@ import { describe, expect, it } from 'vitest';
 // A PWA precisa abrir offline e não pode expor o IP das pessoas a terceiros a cada carga: fontes, imagens, scripts e folhas
 // de estilo vêm do próprio aplicativo. Fontes ou imagens externas exigem decisão de spec (hospedagem própria, por exemplo).
 const ROOT = path.resolve(import.meta.dirname, '../..');
-const ALLOWED = [/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/, /^https?:\/\/www\.w3\.org\//, /^https?:\/\/[^/]*example\.invalid/];
+// Exceção decidida na Spec 007 (mapas): blocos do mapa (tile.openstreetmap.org) e links de direitos e de abertura do mapa
+// (www.openstreetmap.org). Nenhum dado de cadastro vai nessas requisições; só a região vista no mapa.
+const ALLOWED = [/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/, /^https?:\/\/www\.w3\.org\//, /^https?:\/\/[^/]*example\.invalid/, /^https:\/\/(tile|www)\.openstreetmap\.org\//];
 
 function walk(dir: string): string[] {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -26,7 +28,8 @@ const FILES = [
   ),
 ];
 
-describe('Recursos de terceiros no cliente', () => {
+// Varre os arquivos do projeto de forma síncrona: com a suíte inteira e a cobertura (v8) ligadas passa dos 5 s padrão.
+describe('Recursos de terceiros no cliente', { timeout: 30_000 }, () => {
   it('há arquivos para varrer', () => {
     expect(FILES.length).toBeGreaterThan(10);
   });
