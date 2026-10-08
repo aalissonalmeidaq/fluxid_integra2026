@@ -152,9 +152,9 @@ Testes de comportamento acrescentados para a cobertura: `registry-views.test.ts`
 - **T125:** revisão aprovada; falta apenas os checks da PR ficarem verdes.
 - **T160:** fluxo novo de coordenadas validado.
 - **T146:** envio ao Nominatim liberado para o protótipo, a ser revisado no futuro; produção continua exigindo avaliação jurídica, contratual e de capacidade.
-- **T122:** o roteiro do quickstart foi realizado, com tempos de 20 minutos e de 34 minutos. Não foi dito a que etapa ou métrica cada tempo se refere, então MS-001 a MS-008 **não** foram preenchidas.
+- **T122:** aprovada. O roteiro do quickstart foi realizado, com tempo médio de 15 minutos por métrica (antes o responsável havia citado tempos de 20 e de 34 minutos). Resultado e tempo individual de MS-001 a MS-008 **não** foram informados e não estão registrados; os valores acima são os ditos pelo responsável, sem detalhamento.
 
 ### Pendências
 
-- T122: resultado e tempo de cada métrica MS-001 a MS-008, um a um.
+- Nenhuma pendência de tarefa. Fica sem registro o detalhamento por métrica de MS-001 a MS-008 (T122 aprovada sem ele).
 - T125: concluída. Checks da PR #22 verdes no commit `dbba135` (qualidade em 47 min, banco/RLS, regressão visual e governança de IA).

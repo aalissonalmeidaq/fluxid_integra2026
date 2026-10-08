@@ -37,7 +37,7 @@
 
 | RIA-023 | 06/10/2026, 14:46:08 - America/Fortaleza | 006 | 02 | Correção pós-merge da Spec 006: fuso e leitura por câmera | `registros/23_Correcao_Pos_Merge_da_Spec_006_Fuso_e_Leitura_por_Camera.docx` (`RIA-023-correcao-pos-merge-da-spec-006-fuso-e-leitura-por-camera.md`) | utilizado |
 
-| RIA-024 | 08/10/2026, 08:54:58 - America/Fortaleza | 007 | 01 | Clientes, unidades, geocercas, veículos e motoristas | `registros/RIA-024-clientes-unidades-geocercas-veiculos-e-motoristas.md` (revisão no PR #22; atualizado em 08/10/2026 com o ajuste da geocodificação e a revisão final, validação humana pendente de confirmação; testes de estabilidade e de localizadores incluídos após os checks da PR; validador e decisões confirmados pelo responsável em 08/10/2026; comparação da Visão geral estabilizada; checks da PR verdes) | utilizado |
+| RIA-024 | 08/10/2026, 08:54:58 - America/Fortaleza | 007 | 01 | Clientes, unidades, geocercas, veículos e motoristas | `registros/RIA-024-clientes-unidades-geocercas-veiculos-e-motoristas.md` (revisão no PR #22; atualizado em 08/10/2026 com o ajuste da geocodificação e a revisão final, validação humana pendente de confirmação; testes de estabilidade e de localizadores incluídos após os checks da PR; validador e decisões confirmados pelo responsável em 08/10/2026; comparação da Visão geral estabilizada; checks da PR verdes; T122 aprovada) | utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
