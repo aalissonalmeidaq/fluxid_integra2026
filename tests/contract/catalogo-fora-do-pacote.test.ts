@@ -13,7 +13,8 @@ function walk(dir: string): string[] {
   });
 }
 
-describe('Catálogo fora do pacote de produção', () => {
+// Varre os arquivos do projeto de forma síncrona: com a suíte inteira e a cobertura (v8) ligadas passa dos 5 s padrão.
+describe('Catálogo fora do pacote de produção', { timeout: 30_000 }, () => {
   it('nenhum arquivo de src/ nem o index.html referencia o catálogo', () => {
     const arquivos = [path.join(ROOT, 'index.html'), ...walk(path.join(ROOT, 'src')).filter((file) => /\.(tsx?|css|html)$/.test(file))];
     const ofensores = arquivos

@@ -16,7 +16,8 @@ function walk(dir: string, found: string[] = []): string[] {
   return found;
 }
 
-describe('limite de "a vencer" (RF-021)', () => {
+// Varre os arquivos do projeto de forma síncrona: com a suíte inteira e a cobertura (v8) ligadas passa dos 5 s padrão.
+describe('limite de "a vencer" (RF-021)', { timeout: 30_000 }, () => {
   it('a constante do TypeScript é igual à função SQL', () => {
     const migrations = join(ROOT, 'supabase', 'migrations');
     const source = readdirSync(migrations)

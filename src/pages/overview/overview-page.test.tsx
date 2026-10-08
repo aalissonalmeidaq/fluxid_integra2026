@@ -113,6 +113,9 @@ describe('OverviewPage', () => {
         <AuthContext.Provider value={auth}><TenantContext.Provider value={tenant(org, nome)}><OverviewPage /></TenantContext.Provider></AuthContext.Provider>,
       );
       await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
+      // O interior do mapa é montado pelo Leaflet (painéis, blocos e posições calculadas em momentos que dependem da carga da
+      // máquina); o que deve coincidir é o conteúdo do FluxID, incluindo o quadro do mapa e o nome acessível dele.
+      container.querySelectorAll('.fluxid-map').forEach((mapa) => mapa.replaceChildren());
       // Os identificadores gerados pelo React mudam a cada montagem; o conteúdo é o que deve coincidir.
       html.push(container.innerHTML.replace(/(id|for|aria-labelledby|aria-describedby|aria-controls)="[^"]*"/g, '$1=""').replace(/url\(#[^)]*\)/g, 'url(#)'));
       unmount();

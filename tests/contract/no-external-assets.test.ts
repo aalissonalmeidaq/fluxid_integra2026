@@ -28,7 +28,8 @@ const FILES = [
   ),
 ];
 
-describe('Recursos de terceiros no cliente', () => {
+// Varre os arquivos do projeto de forma síncrona: com a suíte inteira e a cobertura (v8) ligadas passa dos 5 s padrão.
+describe('Recursos de terceiros no cliente', { timeout: 30_000 }, () => {
   it('há arquivos para varrer', () => {
     expect(FILES.length).toBeGreaterThan(10);
   });
