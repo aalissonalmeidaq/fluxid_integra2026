@@ -11,12 +11,12 @@
 - Prompt utilizado, em síntese sanitizada: Instalar a skill impeccable e usá-la no design da aplicação. Criar o contexto de produto e de design, criticar o Login, aplicar clarify, harden, adapt e polish, e evoluir o painel para um visual mais moderno e com cara de tecnologia, ligado a dados e rastreabilidade. Gerar três variantes do painel para escolha.
 - Resposta gerada pela IA: Resumo do que foi produzido: texto novo do painel (custódia, auditoria e campo, sem prometer tempo real); motivo de cadeia de custódia ao fundo e diagrama do ciclo do cilindro (envase, estoque, viagem, cliente e retorno) a partir do tablet; painel reduzido a logo e primeira frase abaixo de 768 px; selo Ambiente seguro sem o verde de estado; atalho Esqueci minha senha dentro do alerta de senha incorreta; erros de campo e alerta que somem ao digitar; placeholder de e-mail com exemplo e sem placeholder de senha; status de carregamento só no botão para a vista, com aviso para leitor de tela; testes unitários e E2E atualizados e capturas visuais regeneradas no Linux. A senha continua sendo apagada após a falha, por regra de segurança. Três variantes alternativas do painel foram geradas e descartadas pela pessoa responsável, e nada delas entrou no código.
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/design/login-impeccable (branch; trocar pelo link do pull request antes do merge)
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/24
 - Análise crítica da equipe: A pessoa responsável abriu o Login e o Recuperar acesso em cinco tamanhos e aprovou o resultado. Das três variantes alternativas do painel, nenhuma foi aceita: ela citou layout ruim, pouca cara de tecnologia e preferência pelo painel atual. O agente observou nas imagens uma faixa vazia no painel em 480x1040 (Pixel 7 Pro); a pessoa responsável aprovou sem apontá-la como item a corrigir.
 - Validação humana realizada: Alisson Almeida validou o Login e o Recuperar acesso em emulações do Chrome (iPhone 14 Pro, Pixel 7 Pro, iPhone 14 Pro Max, iPad Air 5 e MacBook Air) e aprovou o resultado.
 - Decisão final: utilizado
 - Justificativa: A pessoa responsável aprovou o resultado e os testes automáticos passaram. As variantes alternativas do painel foram descartadas por ela e não fazem parte do que foi utilizado.
-- Fontes verificadas: Documentação do próprio projeto (PRODUCT.md, DESIGN.md, AGENTS.md, PRD e documento de visão). A skill impeccable (pbakaus/impeccable, GitHub) foi instalada com o instalador de skills, que apontou risco médio no Gen, 1 alerta no Socket e risco baixo no Snyk; o conteúdo da skill não foi auditado pela equipe e a skill não entra neste commit.
+- Fontes verificadas: Documentação do próprio projeto (PRODUCT.md, DESIGN.md, AGENTS.md, PRD e documento de visão). A skill impeccable (pbakaus/impeccable, GitHub) foi instalada com o instalador de skills, que apontou risco médio no Gen, 1 alerta no Socket e risco baixo no Snyk; em 08/10/2026 o agente leu o lançador da skill (baixa o binário do GitHub com verificação de SHA-256 pelo arquivo irmão, o que protege contra corrupção mas não prova autoria) e o binário em si não foi auditado. A skill não entra neste commit.
 - Identificador do registro: RIA-025
 - Data e hora da interação: 08/10/2026, 17:47:07 - America/Fortaleza
 
@@ -77,7 +77,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Trocar o link da branch pelo link do pull request antes do merge. Revisar o conteúdo da skill impeccable antes de versioná-la. PRODUCT.md, DESIGN.md e a pasta .impeccable ficaram fora deste commit e precisam de decisão sobre versionamento.
+Decidir se a skill impeccable será versionada: o binário que ela baixa não foi auditado e a skill executa um servidor local de desenvolvimento (porta 8400) que injeta script no index.html durante o modo de variantes. PRODUCT.md, DESIGN.md e a pasta .impeccable ficaram fora deste commit e precisam de decisão sobre versionamento.
 
 ## Validação humana
 
