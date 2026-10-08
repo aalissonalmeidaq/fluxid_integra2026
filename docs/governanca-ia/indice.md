@@ -39,7 +39,7 @@
 
 | RIA-024 | 08/10/2026, 08:54:58 - America/Fortaleza | 007 | 01 | Clientes, unidades, geocercas, veículos e motoristas | `registros/24_Clientes_Unidades_Geocercas_Veiculos_e_Motoristas.docx` (`RIA-024-clientes-unidades-geocercas-veiculos-e-motoristas.md`) | utilizado |
 
-| RIA-025 | 08/10/2026, 17:47:07 - America/Fortaleza | 005 | 02 | Evolução visual e recuperação de erro do Login | `registros/RIA-025-evolucao-visual-e-recuperacao-de-erro-do-login.md` | Utilizado |
+| RIA-025 | 08/10/2026, 17:47:07 - America/Fortaleza | 005 | 02 | Evolução visual e recuperação de erro do Login | `registros/25_Evolucao_Visual_e_Recuperacao_de_Erro_do_Login.docx` (`RIA-025-evolucao-visual-e-recuperacao-de-erro-do-login.md`) | Utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
