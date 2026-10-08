@@ -144,7 +144,11 @@ test.describe('Clientes: cadastro com unidade e CEP', () => {
     await page.getByRole('button', { name: 'Buscar CEP' }).click();
     await expect(formulario(page).getByLabel('Logradouro')).toHaveValue('Praça da Sé');
     await page.keyboard.type('100');
-    await page.getByRole('button', { name: 'Buscar coordenadas pelo endereço' }).click();
+    await page.getByRole('button', { name: 'Buscar coordenadas' }).click();
+    // Antes de consultar, o aviso do serviço externo exige a concordância explícita; nada saiu até aqui.
+    await expect(page.getByText('O endereço será enviado ao serviço externo OpenStreetMap/Nominatim para obtenção das coordenadas. Use esta função apenas com endereços fictícios ou de unidades comerciais.')).toBeVisible();
+    expect(backend.registry.geocodeRequests).toHaveLength(0);
+    await page.getByRole('button', { name: 'Concordo e buscar coordenadas' }).click();
     await expect(formulario(page).getByLabel('Latitude')).toHaveValue('-23.550453');
     await expect(formulario(page).getByLabel('Longitude')).toHaveValue('-46.633911');
     await expect(page.getByText('Número exato')).toBeVisible();
@@ -152,7 +156,7 @@ test.describe('Clientes: cadastro com unidade e CEP', () => {
     // Sem confirmar, o envio é recusado com o motivo em texto.
     await page.getByRole('button', { name: 'Cadastrar unidade' }).click();
     await expect(page.getByText('Confirme o endereço e o ponto, ou apague as coordenadas.')).toBeVisible();
-    await page.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto estão corretos' }).check();
+    await page.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto encontrados estão corretos.' }).check();
     await page.getByRole('button', { name: 'Cadastrar unidade' }).click();
 
     await expect(page.getByRole('heading', { level: 2, name: 'Matriz' })).toBeVisible();
@@ -160,7 +164,29 @@ test.describe('Clientes: cadastro com unidade e CEP', () => {
     await expect(page.getByText('Ainda sem confirmação do motorista')).toBeVisible();
     // Só campos de endereço saíram para a geocodificação (CA-018).
     expect(backend.registry.geocodeRequests).toHaveLength(1);
-    expect(Object.keys(backend.registry.geocodeRequests[0] ?? {}).sort()).toEqual(['city', 'district', 'number', 'organization_id', 'postal_code', 'state', 'street']);
+    expect(Object.keys(backend.registry.geocodeRequests[0] ?? {}).sort()).toEqual(['city', 'consent_confirmed', 'customer_id', 'number', 'organization_id', 'postal_code', 'state', 'street']);
+  });
+
+  test('a pessoa corrige o ponto no mapa antes de salvar e a unidade fica como informada à mão', async ({ page }) => {
+    await entrar(page);
+    await cadastrarCliente(page, 'Cliente Ponto Corrigido Ltda', syntheticCnpj(940));
+    await abrirNovaUnidade(page);
+    await formulario(page).getByLabel('CEP').fill('01001-000');
+    await page.getByRole('button', { name: 'Buscar CEP' }).click();
+    await expect(formulario(page).getByLabel('Logradouro')).toHaveValue('Praça da Sé');
+    await page.keyboard.type('100');
+    await page.getByRole('button', { name: 'Buscar coordenadas' }).click();
+    await page.getByRole('button', { name: 'Concordo e buscar coordenadas' }).click();
+    await expect(formulario(page).getByLabel('Latitude')).toHaveValue('-23.550453');
+
+    // Clique no mapa move o ponto; a confirmação da busca deixa de valer e o aviso explica o efeito.
+    await page.getByRole('group', { name: 'Mapa do ponto das coordenadas' }).click({ position: { x: 200, y: 110 } });
+    await expect(formulario(page).getByLabel('Latitude')).not.toHaveValue('-23.550453');
+    await expect(page.getByText(/O ponto foi corrigido à mão/)).toBeVisible();
+    await expect(page.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto encontrados estão corretos.' })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Cadastrar unidade' }).click();
+    await expect(page.getByRole('heading', { level: 2, name: 'Matriz' })).toBeVisible();
+    await expect(page.getByText(/Buscadas pelo endereço e confirmadas em/)).toHaveCount(0);
   });
 
   test('a Visão geral mostra no mapa as unidades com coordenadas e a lista alternativa em texto', async ({ page }) => {
@@ -172,8 +198,9 @@ test.describe('Clientes: cadastro com unidade e CEP', () => {
     await formulario(page).getByLabel('CEP').fill('01001000');
     await formulario(page).getByLabel('Cidade').fill('São Paulo');
     await formulario(page).getByLabel('UF').selectOption('SP');
-    await page.getByRole('button', { name: 'Buscar coordenadas pelo endereço' }).click();
-    await page.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto estão corretos' }).check();
+    await page.getByRole('button', { name: 'Buscar coordenadas' }).click();
+    await page.getByRole('button', { name: 'Concordo e buscar coordenadas' }).click();
+    await page.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto encontrados estão corretos.' }).check();
     await page.getByRole('button', { name: 'Cadastrar unidade' }).click();
     await expect(page.getByRole('heading', { level: 2, name: 'Matriz' })).toBeVisible();
     // O detalhe mostra o mapa da unidade.
@@ -193,6 +220,8 @@ test.describe('Clientes: cadastro com unidade e CEP', () => {
     ['not_found', 'Não encontramos este endereço'],
     ['unavailable', 'Não foi possível buscar as coordenadas agora'],
     ['rate_limited', /Muitas buscas em pouco tempo/],
+    ['disabled', /desativada neste ambiente/],
+    ['personal_blocked', /não está disponível para cadastro de pessoa física/],
   ] as const) {
     test(`coordenadas ${cenario}: a unidade é salva sem coordenadas`, async ({ page }) => {
       const backend = await entrar(page);
@@ -204,7 +233,8 @@ test.describe('Clientes: cadastro com unidade e CEP', () => {
       await formulario(page).getByLabel('CEP').fill('01001000');
       await formulario(page).getByLabel('Cidade').fill('Campinas');
       await formulario(page).getByLabel('UF').selectOption('SP');
-      await page.getByRole('button', { name: 'Buscar coordenadas pelo endereço' }).click();
+      await page.getByRole('button', { name: 'Buscar coordenadas' }).click();
+      await page.getByRole('button', { name: 'Concordo e buscar coordenadas' }).click();
       await expect(page.getByRole('status').filter({ hasText: texto })).toBeVisible();
       await page.getByRole('button', { name: 'Cadastrar unidade' }).click();
       await expect(page.getByRole('heading', { level: 2, name: 'Matriz' })).toBeVisible();

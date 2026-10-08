@@ -80,4 +80,82 @@ Correções feitas na rodada final: controles do Leaflet (`map-view.css`) passar
 
 ## 6. Validação humana (T124)
 
-**Pendente.** A entrevista com a pessoa responsável ainda não aconteceu.
+**Pendente: há uma inconsistência que depende de confirmação humana.** Três registros não concordam:
+
+- `tasks.md` (T124) determina a entrevista com **Alisson Almeida**;
+- o RIA-024 registra validação feita por **Natã Baracho**;
+- esta seção declarava a validação pendente.
+
+Nenhuma das versões foi escolhida. O responsável pelo projeto precisa confirmar (1) quem é o validador oficial, (2) se a validação registrada no RIA-024 pode ser usada e (3) se T124 deve ser corrigida ou se uma nova entrevista com Alisson deve ocorrer. Até lá, T124 e o encerramento da spec permanecem pendentes, e nada foi preenchido em nome de ninguém.
+
+## 7. Ajuste: uso controlado do Nominatim no protótipo (08/10/2026)
+
+**A integração de geocodificação é temporária e exclusiva do protótipo.** Este ajuste (T152 a T160) a colocou atrás de configuração de servidor e de aviso e confirmação explícita, sem substituir a decisão pendente de T146 para produção. Documento de referência: `docs/geocodificacao-prototipo.md`.
+
+| Requisito do ajuste | Como foi verificado |
+|---|---|
+| Configurações `GEOCODING_*` | `tests/contract/geocoding-config.test.ts` (padrões seguros, teto de 1/s); `.env.example` e `supabase/config.toml` |
+| Nominatim só pela Edge Function | `geocode-address` é o único chamador; `tests/contract/client-secrets.test.ts` e a proteção de `fetch` em `src/test/setup.ts` |
+| Consulta só no clique, sem autocomplete | `coordinates-field.test.tsx`: mudar endereço ou digitar não consulta; só o clique abre o aviso |
+| Aviso e confirmação explícita | `coordinates-field.test.tsx` (texto exato, "Concordo", "Cancelar"); `geocode-address-handler.test.ts` (428 sem `consent_confirmed`); E2E |
+| Bloqueios (pessoa física, desligada, incompleto, limite, teste sem mock) | `geocode-address-handler.test.ts` e `nominatim-provider.test.ts`; nenhum bloqueio chama o provedor |
+| Só logradouro, número, cidade, UF, CEP e país saem | `nominatim-provider.test.ts` (captura da consulta) e `geocode-address-handler.test.ts` (campos extras ignorados) |
+| Cache por organização, retenção documentada | `supabase/tests/007_geocode_cache.test.sql` (dois tenants, 30 dias) e testes de acerto e falha no handler |
+| Limite global de 1/s | balde `geocode:provider` com janela derivada de `GEOCODING_RATE_LIMIT_PER_SECOND`, teto de 1 |
+| Registros sem endereço nem URL | `geocode-address-handler.test.ts` percorre oito cenários e confere o registro |
+| Interface `GeocodingProvider` trocável | `registry.ts` e o teste de troca por configuração |
+| Correção manual do ponto no mapa | `coordinates-field.test.tsx`, `osm-map.tsx`/`map-view.tsx` (`onPick`) e E2E |
+| Nenhuma chamada real nos testes | adaptador bloqueado sob Vitest, `fetch` ao Nominatim rejeitado no setup, teste dedicado |
+
+Os resultados medidos estão na seção 8.
+
+**Pendência (T160):** a validação humana do RIA-024 foi feita antes deste ajuste. A pessoa responsável precisa repetir a entrevista sobre o fluxo novo (aviso, confirmação, pessoa física bloqueada, correção no mapa) antes do merge. Nada foi preenchido em nome dela.
+
+## 8. Revisão final: gates reproduzidos e corrigidos (08/10/2026)
+
+**A cobertura anterior foi reprovada.** O `npm run test:coverage` do estado anterior à correção (commit `f1597a2`) não atendia aos limites, que foram mantidos:
+
+| Métrica | Antes (reprovado) | Mínimo | Depois |
+|---|---|---|---|
+| Statements | 86,63% | 85% | 91,70% |
+| Branches | 79,80% (medido aqui: 79,79%) | 80% | 86,83% |
+| Functions | 84,17% | 85% | 91,08% |
+| Lines | 89,61% | 85% | 94,23% |
+| Branches em `src/domain/**` | 91,94% | 95% | acima de 95% (o comando passa) |
+
+Os números "antes" são os informados na revisão final; funções (84,17%) e ramos (79,79%) foram conferidos aqui num `git worktree` do commit `f1597a2`. Nenhum threshold foi reduzido, nenhum arquivo saiu da cobertura e nenhum teste foi removido, ignorado ou desabilitado. O único ajuste em testes existentes foi subir de 5 s para 30 s o prazo de duas varreduras de arquivos em `tests/contract/escalas-no-codigo.test.ts`, que estouravam só com a cobertura ligada (a mesma medida já existia em `no-external-assets`).
+
+Testes de comportamento acrescentados para a cobertura: `registry-views.test.ts` (mapeamento de todas as visões, valores ausentes e inválidos), `registry-service-operations.test.ts` (corpo e resposta de cada operação do serviço e detalhes das falhas), `registry-area.test.tsx` (todas as rotas, modais, Escape, links), `map-block.test.tsx` (permissão, exemplo, erro, repetição, desmontagem), `geofence-geometry.limites.test.ts`, `registry-validation.casos.test.ts` e `history-format.casos.test.ts`.
+
+### Gates reexecutados
+
+| Comando | Resultado |
+|---|---|
+| `npm ci` | **não executado**: o `node_modules` existente já corresponde ao `package-lock.json`, e reinstalar apagaria as dependências da máquina com alterações locais em `package.json` e `package-lock.json` que não são desta spec |
+| `npm run typecheck` | sem erros |
+| `npm run lint` | sem erros |
+| `npm run test` / `npm run test:coverage` | 219 arquivos e 3116 testes aprovados; limites de cobertura atendidos |
+| `npm run build` | aprovado |
+| `npm run catalogo:build` | aprovado |
+| `npx supabase db reset` + `npx supabase test db` | 64 arquivos e 1624 testes pgTAP aprovados (inclui `007_geocode_cache`, 17 testes com dois tenants) |
+| `npm run test:live` | 17 arquivos e 108 testes aprovados |
+| `npm run test:e2e` | 1464 aprovados e 31 ignorados (suítes ao vivo); 2 falharam na primeira execução (`registro-geocercas.spec.ts:72` em desktop-chromium e `navegacao-menu.spec.ts:372` em tablet-webkit, telas que este ajuste não altera) e passaram ao repetir cada um isolado, ou seja, são instáveis sob carga |
+| `npm run test:visual:atualizar` | 177 capturas reproduzidas no Linux, nenhuma imagem alterada |
+| `npm run ia:validar` | ver o resultado no commit (executado pelo hook) |
+
+### Funcionamento das chaves de configuração (verificado por testes de contrato)
+
+- `GEOCODING_ENABLED` diferente de `true`: `FEATURE_DISABLED` (403), sem consulta ao banco além da sessão e sem instanciar o provedor.
+- `GEOCODING_PROVIDER` desconhecido: `SERVICE_UNAVAILABLE`, sem trocar de provedor às escondidas; um provedor registrado novo funciona sem mudar o frontend.
+- `GEOCODING_ALLOW_PERSONAL_ADDRESSES=false`: cliente pessoa física responde `PERSONAL_ADDRESS_NOT_ALLOWED` (403) e nada sai; o tipo vem do banco, e um `person_type` no corpo é ignorado.
+- `GEOCODING_REQUIRE_TRANSMISSION_CONFIRMATION=true`: sem `consent_confirmed: true`, `CONFIRMATION_REQUIRED` (428).
+- `GEOCODING_CACHE_TTL_DAYS`: 1 a 90 dias, padrão 30, repassado à gravação do cache.
+- `GEOCODING_RATE_LIMIT_PER_SECOND`: nunca acima de 1 requisição por segundo.
+
+### Pendências que dependem de confirmação humana
+
+- Validador oficial e validade do que está no RIA-024 (seção 6).
+- T122 permanece aberta: faltam o roteiro completo do `quickstart.md` e os resultados e tempos reais de MS-001 a MS-008.
+- T125 permanece aberta até os checks da PR ficarem verdes e a revisão ser aprovada.
+- T160: nova validação humana do fluxo de busca de coordenadas.
+- T146: decisão jurídica, contratual e de capacidade para produção.

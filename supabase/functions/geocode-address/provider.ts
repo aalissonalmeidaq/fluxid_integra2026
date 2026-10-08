@@ -1,13 +1,14 @@
 // Porta do provedor de geocodificação (RF-065). A tela só conhece a resposta padronizada do FluxID; trocar de provedor é
-// implementar esta porta, sem mudar o contrato nem a tela.
+// implementar esta porta e registrá-la em `registry.ts`, sem mudar o contrato nem a tela.
 
+// Somente estes campos podem sair para o provedor externo (o país é fixo e acrescentado pelo adaptador). Nome, documento,
+// contatos, motorista, cliente, organização e identificação do cilindro nunca fazem parte da consulta.
 export interface GeocodeQuery {
   street: string;
   number: string;
-  district: string;
   city: string;
   state: string;
-  // Vazio quando a pessoa não informou; quando presente, tem 8 dígitos.
+  // Sempre presente: 8 dígitos.
   postal_code: string;
 }
 
@@ -24,8 +25,30 @@ export interface GeocodeLocation {
 export type GeocodeResult = GeocodeLocation | 'NOT_FOUND';
 
 export interface GeocodingProvider {
-  // Lança quando o provedor falha ou responde algo suspeito (o manipulador trata qualquer exceção como "serviço indisponível").
+  // Nome estável do provedor: identifica o balde global de limite e o registro de operação (nunca o endereço).
+  readonly name: string;
+  // Lança `GeocodingProviderError` (ou `GeocodingBlockedError`) quando o provedor falha ou responde algo suspeito.
   geocode(query: GeocodeQuery, signal: AbortSignal): Promise<GeocodeResult>;
+}
+
+// Falhas do provedor com código fixo: nunca carregam endereço, URL nem a mensagem original da rede, para poderem ser registradas.
+export type ProviderErrorCode = 'provider_status' | 'provider_body' | 'provider_network' | 'provider_timeout' | 'address_invalid';
+
+export class GeocodingProviderError extends Error {
+  constructor(readonly code: ProviderErrorCode) {
+    super(code);
+    this.name = 'GeocodingProviderError';
+  }
+}
+
+// A consulta foi impedida antes de sair do servidor (por exemplo, chamada real durante testes automatizados).
+export type BlockedCode = 'TEST_ENVIRONMENT_BLOCKED';
+
+export class GeocodingBlockedError extends Error {
+  constructor(readonly code: BlockedCode) {
+    super(code);
+    this.name = 'GeocodingBlockedError';
+  }
 }
 
 export const UFS = [

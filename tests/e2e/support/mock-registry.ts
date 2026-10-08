@@ -51,6 +51,8 @@ export type GeocodeScenario =
   | { kind: 'found'; latitude?: number; longitude?: number; precision?: 'address' | 'street' | 'locality'; displayName?: string }
   | { kind: 'not_found' }
   | { kind: 'unavailable' }
+  | { kind: 'disabled' }
+  | { kind: 'personal_blocked' }
   | { kind: 'rate_limited'; retryAfterSeconds: number };
 
 // Cenários da consulta de CEP (contracts/consulta-de-cep.md).
@@ -149,12 +151,17 @@ export class RegistryMock {
     const org = typeof body.organization_id === 'string' ? body.organization_id : '';
     if (org !== ORG_A && org !== ORG_B) return fail('VALIDATION_FAILED', 400);
     if (!can(org, 'customer.write')) return fail('ACCESS_DENIED', 403);
-    if (typeof body.street !== 'string' || body.street.trim() === '' || typeof body.city !== 'string' || body.city.trim() === '') {
-      return fail('VALIDATION_FAILED', 400);
-    }
+    if (typeof body.customer_id !== 'string') return fail('VALIDATION_FAILED', 400);
+    const complete = ['street', 'number', 'city', 'state'].every((field) => typeof body[field] === 'string' && String(body[field]).trim() !== '')
+      && /^\d{8}$/.test(String(body.postal_code ?? ''));
+    // Como o servidor: a funcionalidade desligada e a confirmação ausente recusam antes de olhar o endereço.
+    if (this.geocodeScenario.kind === 'disabled') return fail('FEATURE_DISABLED', 403);
+    if (body.consent_confirmed !== true) return fail('CONFIRMATION_REQUIRED', 428);
+    if (!complete) return fail('ADDRESS_INCOMPLETE', 400);
     this.geocodeRequests.push({ ...body });
     const scenario = this.geocodeScenario;
     switch (scenario.kind) {
+      case 'personal_blocked': return fail('PERSONAL_ADDRESS_NOT_ALLOWED', 403);
       case 'not_found': return ok('NOT_FOUND');
       case 'unavailable': return fail('SERVICE_UNAVAILABLE', 503);
       case 'rate_limited': return fail('RATE_LIMITED', 429, { retry_after_seconds: scenario.retryAfterSeconds });

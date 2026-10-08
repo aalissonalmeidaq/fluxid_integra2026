@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { decodeClaims } from '../_shared/http.ts';
-import { createGeocodeAddressHandler, type GeocodeGateway } from './handler.ts';
-import { NominatimProvider } from './nominatim-provider.ts';
+import { loadGeocodingConfig, readRuntimeEnv } from './config.ts';
+import { createGeocodeAddressHandler, type GeocodeGateway, type PersonType } from './handler.ts';
+import type { GeocodeLocation } from './provider.ts';
+import { createGeocodingProvider } from './registry.ts';
 
-interface RuntimeEnvironment { Deno?: { env: { get(name: string): string | undefined } } }
 const env = (name: string) => {
-  const value = (globalThis as RuntimeEnvironment).Deno?.env.get(name);
+  const value = readRuntimeEnv(name);
   if (!value) throw new Error('server_configuration_error');
   return value;
 };
@@ -35,14 +36,35 @@ function createGateway(): GeocodeGateway {
       if (error || typeof data !== 'boolean') throw new Error('rpc_failed');
       return data;
     },
+    async findCustomer(organizationId, customerId) {
+      const { data, error } = await admin.from('customers').select('person_type, status, anonymized_at').eq('id', customerId).eq('organization_id', organizationId).maybeSingle();
+      if (error) throw new Error('query_failed');
+      const row = data as { person_type?: string; status?: string; anonymized_at?: string | null } | null;
+      if (!row || (row.person_type !== 'individual' && row.person_type !== 'legal')) return null;
+      return { personType: row.person_type as PersonType, operable: row.status === 'active' && !row.anonymized_at };
+    },
+    async readCache(organizationId, key) {
+      const { data, error } = await admin.rpc('read_geocode_cache', { p_organization: organizationId, p_key: key });
+      if (error) throw new Error('rpc_failed');
+      return data && typeof data === 'object' ? (data as GeocodeLocation) : null;
+    },
+    async writeCache(organizationId, key, location, ttlDays) {
+      const { error } = await admin.rpc('write_geocode_cache', { p_organization: organizationId, p_key: key, p_location: location, p_ttl_days: ttlDays });
+      if (error) throw new Error('rpc_failed');
+    },
   };
 }
 
 export default {
-  fetch: (request: Request) => createGeocodeAddressHandler({
-    gateway: createGateway(),
-    provider: new NominatimProvider(),
-    // Só o código de resultado e a duração: nem o endereço nem a pessoa entram no registro (RF-067).
-    log: (event) => console.info(JSON.stringify({ fn: 'geocode-address', ...event })),
-  })(request),
+  fetch: (request: Request) => {
+    const config = loadGeocodingConfig(readRuntimeEnv);
+    return createGeocodeAddressHandler({
+      gateway: createGateway(),
+      // Desligada, o provedor nem é instanciado.
+      provider: config.enabled ? createGeocodingProvider(config.provider) : null,
+      config,
+      // Só identificador da operação, provedor, duração, status e código de erro sanitizado: nem endereço, nem URL, nem pessoa.
+      log: (event) => console.info(JSON.stringify({ fn: 'geocode-address', ...event })),
+    })(request);
+  },
 };

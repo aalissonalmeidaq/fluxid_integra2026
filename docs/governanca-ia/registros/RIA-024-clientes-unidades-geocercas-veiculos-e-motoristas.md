@@ -9,10 +9,12 @@
 - Ferramenta de IA utilizada: Claude Code (Claude Sonnet 5.5), no VS Code
 - Objetivo do uso: Implementar a Spec 007 (Fase 3): cadastro e consulta de clientes, contatos, unidades (endereço pelo CEP e coordenadas pelo endereço, com confirmação), geocercas (círculo e polígono, com consulta espacial), veículos e motoristas, com documentos protegidos, inativação em cascata, histórico imutável, anonimização irreversível com segundo fator, formulários em modal e mapas (formulário, detalhe da unidade e Visão geral).
 - Prompt utilizado, em síntese sanitizada: Execução do ciclo da Spec 007 pelo fluxo Spec Kit (implementação por tarefas com TDD, análise e fechamento), seguida de pedidos feitos durante o ciclo: cadastros e edições em modal para facilitar o uso, coordenadas pelo endereço com confirmação e mapas com OpenStreetMap, e o ajuste dos documentos da spec a cada decisão.
-- Resposta gerada pela IA: A IA implementou 13 migrations (PostGIS, tabelas com RLS, permissões, RPCs de cadastro, consulta, geocerca, veículo, motorista, inativação, histórico, anonimização, geocodificação e pontos das unidades), as Edge Functions query-registry, manage-registry, lookup-postal-code e geocode-address, o serviço e as telas das cinco áreas (lista, cadastro, edição e detalhe), os formulários em modal com navegação interna, os mapas em Leaflet carregados sob demanda, os testes (pgTAP, unidade, contrato, ao vivo e E2E nos três projetos), as capturas visuais no Linux e a documentação da spec (spec, plano, tarefas, contratos, quickstart, validation.md, README e PRD).
+- Resposta gerada pela IA: A IA implementou 13 migrations (PostGIS, tabelas com RLS, permissões, RPCs de cadastro, consulta, geocerca, veículo, motorista, inativação, histórico, anonimização, geocodificação e pontos das unidades), as Edge Functions query-registry, manage-registry, lookup-postal-code e geocode-address, o serviço e as telas das cinco áreas (lista, cadastro, edição e detalhe), os formulários em modal com navegação interna, os mapas em Leaflet carregados sob demanda, os testes (pgTAP, unidade, contrato, ao vivo e E2E nos três projetos), as capturas visuais no Linux e a documentação da spec (spec, plano, tarefas, contratos, quickstart, validation.md, README e PRD). Depois, a pedido da equipe, ajustou a geocodificação para o uso controlado do Nominatim no protótipo, como integração temporária e exclusiva dele: configuração de servidor (GEOCODING_*), consulta só no clique em "Buscar coordenadas" depois de aviso e confirmação explícita, bloqueio de pessoa física, envio apenas de logradouro, número, cidade, estado, CEP e país, cache por organização com retenção de 30 dias, limite global de 1 requisição por segundo, registros sem endereço nem URL, provedor trocável por configuração e correção do ponto no mapa antes de salvar (documentação em docs/geocodificacao-prototipo.md).
 
 Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/22
 - Análise crítica da equipe: Resultados conferidos por lint e tipagem sem erros, 2850 testes de unidade e contrato, 1607 testes pgTAP (com dois tenants em toda política RLS), 108 testes ao vivo, E2E nos três projetos (1127 aprovados e 31 ignorados, com falhas de seletor e de mapa corrigidas e repetidas), 177 capturas visuais reproduzidas no Linux e pacote de entrada de 574,05 kB (limite 593,95 kB). Medições em 4G com o volume de referência: p95 de 728 a 737 ms nas quatro listas (limite 2 s). Durante a rodada final apareceram e foram corrigidos: permissões e menu esperados pelo teste ao vivo de navegação, controles do Leaflet fora das escalas de tokens, requisição aos blocos do OpenStreetMap barrada pelo teste de domínios externos, captura instável do diálogo de anonimização e um teste de vínculo de motorista com condição de corrida. Detalhes em specs/007-clientes-geocercas-frota/validation.md.
+- Ajuste da geocodificação (08/10/2026): os testes novos cobrem unidade comercial autorizada, pessoa física bloqueada, cliente de outra organização, cliente inativo, confirmação de transmissão ausente, funcionalidade desligada, acerto, falha e expiração de cache (com dois tenants no banco), limite, tempo esgotado, indisponibilidade, resposta inválida, registros sem endereço, ausência de chamadas reais e troca do provedor.
+- Revisão final (08/10/2026): a cobertura do estado anterior foi reprovada (funções 84,17% contra 85%, ramos 79,80% contra 80% e ramos de src/domain 91,94% contra 95%). Foram acrescentados testes de comportamento, sem reduzir limites nem excluir arquivos, e a cobertura passou a 91,70% de instruções, 86,83% de ramos, 91,08% de funções e 94,23% de linhas, com 3116 testes. Também passaram o typecheck, o lint, o build, o build do catálogo, 1624 testes pgTAP após o db reset, 108 testes ao vivo e as capturas visuais. No E2E (1464 aprovados, 31 ignorados), dois testes falharam sob carga e passaram ao repetir. O npm ci não foi executado. Detalhes em validation.md, seções 7 e 8.
 - Validação humana realizada: Natã Baracho validou as telas novas com os perfis de administrador do Tenant A e de administrador do Tenant B, em notebook (Windows 11, Chrome) e em celular Android, percorrendo a criação de cliente, de motorista e de veículo e as subfunções de cada um. Segundo a confirmação da equipe, a validação incluiu os formulários em modal, a busca de coordenadas pelo endereço, os mapas e a nova Visão geral. Resultado: aprovado, sem itens a corrigir informados.
 - Decisão final: utilizado
 - Justificativa: A validação humana aprovou o resultado sem pedir ajustes, então a entrega foi utilizada. Os formulários em modal, a geocodificação e os mapas entraram no meio do ciclo por decisão da equipe e foram documentados e testados junto com o restante.
@@ -30,7 +32,9 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - Hash do diff funcional preparado: 4ed2465c0dd7bdb08402ef6295d3212ada3e1d5846a279e04ef2bedd1f9bdea8
 - Arquivos e áreas afetadas:
 
+- `.env.example`
 - `README.md`
+- `docs/geocodificacao-prototipo.md`
 - `docs/prd.md`
 - `package-lock.json`
 - `package.json`
@@ -63,8 +67,10 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `src/application/registry/postal-code-service.test.ts`
 - `src/application/registry/postal-code-service.ts`
 - `src/application/registry/raw.ts`
+- `src/application/registry/registry-service-operations.test.ts`
 - `src/application/registry/registry-service.test.ts`
 - `src/application/registry/registry-service.ts`
+- `src/application/registry/registry-views.test.ts`
 - `src/application/registry/registry-views.ts`
 - `src/components/maps/map-types.ts`
 - `src/components/maps/map-view.css`
@@ -79,9 +85,11 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `src/domain/overview/overview-types.ts`
 - `src/domain/registry/document-validation.test.ts`
 - `src/domain/registry/document-validation.ts`
+- `src/domain/registry/geofence-geometry.limites.test.ts`
 - `src/domain/registry/geofence-geometry.test.ts`
 - `src/domain/registry/geofence-geometry.ts`
 - `src/domain/registry/geofence-limits.ts`
+- `src/domain/registry/history-format.casos.test.ts`
 - `src/domain/registry/history-format.test.ts`
 - `src/domain/registry/history-format.ts`
 - `src/domain/registry/masks.test.ts`
@@ -90,6 +98,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `src/domain/registry/phone-and-postal-code.ts`
 - `src/domain/registry/plate.test.ts`
 - `src/domain/registry/plate.ts`
+- `src/domain/registry/registry-validation.casos.test.ts`
 - `src/domain/registry/registry-validation.test.ts`
 - `src/domain/registry/registry-validation.ts`
 - `src/domain/registry/registry-vocabulary.test.ts`
@@ -101,6 +110,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `src/infrastructure/overview/sample-overview-source.ts`
 - `src/infrastructure/supabase/registry-adapter.ts`
 - `src/pages/overview/blocks/indicators-block.tsx`
+- `src/pages/overview/blocks/map-block.test.tsx`
 - `src/pages/overview/blocks/map-block.tsx`
 - `src/pages/overview/overview-block.tsx`
 - `src/pages/overview/overview-page.test.tsx`
@@ -168,13 +178,18 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `src/pages/registry/vehicles/vehicle-form-page.tsx`
 - `src/pages/registry/vehicles/vehicle-list-page.tsx`
 - `src/pages/registry/vehicles/vehicle-pages.test.tsx`
+- `src/test/setup.ts`
+- `supabase/config.toml`
 - `supabase/functions/_shared/cylinders.ts`
 - `supabase/functions/_shared/operations.ts`
+- `supabase/functions/geocode-address/address-cache.ts`
+- `supabase/functions/geocode-address/config.ts`
 - `supabase/functions/geocode-address/deno.json`
 - `supabase/functions/geocode-address/handler.ts`
 - `supabase/functions/geocode-address/index.ts`
 - `supabase/functions/geocode-address/nominatim-provider.ts`
 - `supabase/functions/geocode-address/provider.ts`
+- `supabase/functions/geocode-address/registry.ts`
 - `supabase/functions/lookup-postal-code/deno.json`
 - `supabase/functions/lookup-postal-code/handler.ts`
 - `supabase/functions/lookup-postal-code/index.ts`
@@ -199,6 +214,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `supabase/migrations/20261007121000_registry_anonymization.sql`
 - `supabase/migrations/20261007121100_registry_site_geocoding.sql`
 - `supabase/migrations/20261007121200_registry_site_points.sql`
+- `supabase/migrations/20261008120000_geocode_cache.sql`
 - `supabase/seed.sql`
 - `supabase/tests/002_rbac_invariants.test.sql`
 - `supabase/tests/002_rbac_rls.test.sql`
@@ -211,6 +227,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `supabase/tests/007_document_reveal.test.sql`
 - `supabase/tests/007_documents_rls.test.sql`
 - `supabase/tests/007_drivers.test.sql`
+- `supabase/tests/007_geocode_cache.test.sql`
 - `supabase/tests/007_geofence_query.test.sql`
 - `supabase/tests/007_geofences.test.sql`
 - `supabase/tests/007_history.test.sql`
@@ -226,7 +243,9 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `supabase/tests/007_vehicles.test.sql`
 - `tests/contract/client-secrets.test.ts`
 - `tests/contract/cylinders-hydrostatic-limit.test.ts`
+- `tests/contract/escalas-no-codigo.test.ts`
 - `tests/contract/geocode-address-handler.test.ts`
+- `tests/contract/geocoding-config.test.ts`
 - `tests/contract/lookup-postal-code-handler.test.ts`
 - `tests/contract/manage-registry-handler.test.ts`
 - `tests/contract/no-external-assets.test.ts`
@@ -341,7 +360,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-T146: decisão da pessoa responsável e da equipe jurídica sobre enviar endereço de pessoa física ao Nominatim e sobre o uso em volume em produção. T145 (reconfirmação do motorista na primeira entrega) pertence à Fase 4. O tempo individual de MS-001 a MS-008 não foi registrado na validação humana. O Nominatim e o ViaCEP reais não rodam no CI (provedores simulados).
+T146: decisão da pessoa responsável e da equipe jurídica sobre enviar endereço de pessoa física ao Nominatim e sobre o uso em volume em produção. T145 (reconfirmação do motorista na primeira entrega) pertence à Fase 4. O tempo individual de MS-001 a MS-008 não foi registrado na validação humana. O Nominatim e o ViaCEP reais não rodam no CI (provedores simulados). A geocodificação com o Nominatim é temporária e exclusiva do protótipo (docs/geocodificacao-prototipo.md) e não resolve T146. Inconsistência da validação humana, sem escolha silenciosa: tasks.md (T124) determina entrevista com Alisson Almeida, este registro traz a validação de Natã Baracho e o validation.md a declarava pendente; o responsável pelo projeto precisa confirmar quem é o validador oficial, se a validação registrada pode ser usada e se T124 deve ser corrigida ou se uma nova entrevista com Alisson deve ocorrer. T122 (roteiro do quickstart e MS-001 a MS-008) e T125 (checks verdes e revisão aprovada) seguem abertas. Pendência obrigatória (T160): a validação humana acima, seja qual for o validador oficial, foi feita antes do ajuste de 08/10/2026 e não cobre o aviso, a confirmação, o bloqueio de pessoa física e a correção do ponto no mapa; a pessoa responsável precisa repetir a entrevista antes do merge, e nada foi preenchido em nome dela.
 
 ## Validação humana
 

@@ -391,6 +391,13 @@ AVATAR_UPLOADS_PER_HOUR = "1000"
 RETENTION_JOB_SECRET = "env(RETENTION_JOB_SECRET)"
 # Destino do link de recuperação de senha no desenvolvimento local (mesmo valor do .env.example).
 PASSWORD_RECOVERY_REDIRECT_URL = "http://127.0.0.1:3000/recuperar-senha/confirmar"
+# Geocodificação do protótipo (Nominatim), temporária: mesmos valores do .env.example e de docs/geocodificacao-prototipo.md.
+GEOCODING_ENABLED = "true"
+GEOCODING_PROVIDER = "nominatim"
+GEOCODING_ALLOW_PERSONAL_ADDRESSES = "false"
+GEOCODING_REQUIRE_TRANSMISSION_CONFIRMATION = "true"
+GEOCODING_RATE_LIMIT_PER_SECOND = "1"
+GEOCODING_CACHE_TTL_DAYS = "30"
 
 [analytics]
 enabled = true

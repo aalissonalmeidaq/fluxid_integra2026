@@ -15,6 +15,8 @@ export interface MapViewProps {
   fallback: { latitude: number; longitude: number; zoom: number };
   // Zoom quando há um ponto só (padrão 15, nível de rua). Com vários pontos o mapa enquadra todos, no maior zoom que os comporta.
   singleZoom?: number;
+  // Presente, o mapa é editável: um clique (ou toque) escolhe o novo ponto. A alternativa por teclado fica nos campos de coordenadas.
+  onPick?: (latitude: number, longitude: number) => void;
   className?: string;
 }
 
@@ -39,44 +41,70 @@ function popupContent(point: MapPoint): HTMLElement {
   return root;
 }
 
-export default function MapView({ title, points, fallback, singleZoom = 15, className }: MapViewProps): React.JSX.Element {
+export default function MapView({ title, points, fallback, singleZoom = 15, onPick, className }: MapViewProps): React.JSX.Element {
   const container = useRef<HTMLDivElement>(null);
+  const map = useRef<L.Map | null>(null);
+  const layer = useRef<L.LayerGroup | null>(null);
+  // Depois da primeira exibição, trocar o ponto só recentra o mapa: o zoom escolhido pela pessoa é mantido.
+  const framed = useRef(false);
+  const pick = useRef(onPick);
+  const editable = onPick !== undefined;
+
+  // O clique usa sempre a função mais recente, sem recriar o mapa a cada renderização.
+  useEffect(() => {
+    pick.current = onPick;
+  }, [onPick]);
 
   useEffect(() => {
     const element = container.current;
     if (!element) return undefined;
-    const map = L.map(element, { attributionControl: true, scrollWheelZoom: false });
-    map.attributionControl.setPrefix(false);
+    const instance = L.map(element, { attributionControl: true, scrollWheelZoom: false });
+    instance.attributionControl.setPrefix(false);
     L.tileLayer(TILE_URL, {
       maxZoom: 19,
       attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>',
-    }).addTo(map);
-
-    const layers = points.map((point) =>
-      L.circleMarker([point.latitude, point.longitude], { radius: 9, className: point.confirmed === false ? 'fluxid-map-point fluxid-map-point--unconfirmed' : 'fluxid-map-point' })
-        .bindPopup(popupContent(point))
-        .bindTooltip(point.label)
-        .addTo(map));
-
-    if (layers.length === 0) map.setView([fallback.latitude, fallback.longitude], fallback.zoom);
-    else if (layers.length === 1) map.setView([points[0]?.latitude ?? fallback.latitude, points[0]?.longitude ?? fallback.longitude], singleZoom);
-    else map.fitBounds(L.latLngBounds(points.map((point) => [point.latitude, point.longitude] as [number, number])), { padding: [32, 32], maxZoom: 16 });
+    }).addTo(instance);
+    if (editable) instance.on('click', (event: L.LeafletMouseEvent) => pick.current?.(Math.round(event.latlng.lat * 1e6) / 1e6, Math.round(event.latlng.lng * 1e6) / 1e6));
+    layer.current = L.layerGroup().addTo(instance);
+    map.current = instance;
+    framed.current = false;
 
     // O quadro pode mudar de tamanho depois da montagem (colunas, gaveta): o Leaflet precisa recalcular.
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => map.invalidateSize());
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => instance.invalidateSize());
     observer?.observe(element);
     return () => {
       observer?.disconnect();
-      map.remove();
+      instance.remove();
+      map.current = null;
+      layer.current = null;
     };
-  }, [points, fallback.latitude, fallback.longitude, fallback.zoom, singleZoom]);
+  }, [editable]);
+
+  useEffect(() => {
+    const instance = map.current;
+    const group = layer.current;
+    if (!instance || !group) return;
+    group.clearLayers();
+    for (const point of points) {
+      L.circleMarker([point.latitude, point.longitude], { radius: 9, className: point.confirmed === false ? 'fluxid-map-point fluxid-map-point--unconfirmed' : 'fluxid-map-point' })
+        .bindPopup(popupContent(point))
+        .bindTooltip(point.label)
+        .addTo(group);
+    }
+
+    const first = points[0];
+    if (!first) instance.setView([fallback.latitude, fallback.longitude], fallback.zoom);
+    else if (points.length === 1) instance.setView([first.latitude, first.longitude], framed.current && editable ? instance.getZoom() : singleZoom);
+    else instance.fitBounds(L.latLngBounds(points.map((point) => [point.latitude, point.longitude] as [number, number])), { padding: [32, 32], maxZoom: 16 });
+    framed.current = true;
+  }, [points, fallback.latitude, fallback.longitude, fallback.zoom, singleZoom, editable]);
 
   return (
     <div
       ref={container}
       role="group"
       aria-label={title}
-      className={['fluxid-map aspect-square w-full rounded-card border border-borda bg-cinza-gelo tablet:aspect-video', className].filter(Boolean).join(' ')}
+      className={['fluxid-map aspect-square w-full rounded-card border border-borda bg-cinza-gelo tablet:aspect-video', editable ? 'fluxid-map--editable' : '', className].filter(Boolean).join(' ')}
     />
   );
 }

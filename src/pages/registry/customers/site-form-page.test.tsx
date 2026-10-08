@@ -136,8 +136,9 @@ describe('cadastro de unidade (história 1)', () => {
 const fakeGeocoder = (outcome: GeocodeOutcome) => ({ locate: vi.fn(async () => outcome) }) as unknown as GeocodingService & { locate: ReturnType<typeof vi.fn> };
 const LOCATED: GeocodeOutcome = { kind: 'found', location: { latitude: -23.550453, longitude: -46.633911, displayName: 'Rua Digitada, São Paulo', precision: 'address' } };
 const search = async (): Promise<void> => {
-  fireEvent.click(screen.getByRole('button', { name: 'Buscar coordenadas pelo endereço' }));
-  await screen.findByRole('checkbox', { name: 'Confirmo que o endereço e o ponto estão corretos' });
+  fireEvent.click(screen.getByRole('button', { name: 'Buscar coordenadas' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Concordo e buscar coordenadas' }));
+  await screen.findByRole('checkbox', { name: 'Confirmo que o endereço e o ponto encontrados estão corretos.' });
 };
 
 describe('coordenadas pelo endereço (RF-065 a RF-067)', () => {
@@ -147,8 +148,8 @@ describe('coordenadas pelo endereço (RF-065 a RF-067)', () => {
     renderForm(service, fakePostal(FOUND), { geocoder });
     typeAddress();
     await search();
-    expect(geocoder.locate).toHaveBeenCalledWith(ORG, expect.objectContaining({ street: 'Rua Digitada', number: '10', city: 'São Paulo', state: 'SP' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto estão corretos' }));
+    expect(geocoder.locate).toHaveBeenCalledWith(ORG, CUSTOMER, expect.objectContaining({ street: 'Rua Digitada', number: '10', city: 'São Paulo', state: 'SP' }), true);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto encontrados estão corretos.' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cadastrar unidade' }));
     await waitFor(() => expect(service.createSite).toHaveBeenCalledTimes(1));
     expect(service.createSite).toHaveBeenCalledWith(ORG, CUSTOMER, expect.objectContaining({ latitude: -23.550453, longitude: -46.633911, coordinatesSource: 'geocoded' }));
@@ -161,7 +162,7 @@ describe('coordenadas pelo endereço (RF-065 a RF-067)', () => {
     await search();
     fireEvent.click(screen.getByRole('button', { name: 'Cadastrar unidade' }));
     expect(await screen.findByText('Confirme o endereço e o ponto, ou apague as coordenadas.')).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto estão corretos' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto encontrados estão corretos.' })).toHaveFocus());
     expect(service.createSite).not.toHaveBeenCalled();
   });
 
@@ -182,9 +183,9 @@ describe('coordenadas pelo endereço (RF-065 a RF-067)', () => {
     renderForm(service, fakePostal(FOUND), { geocoder: fakeGeocoder(LOCATED) });
     typeAddress();
     await search();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto estão corretos' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Confirmo que o endereço e o ponto encontrados estão corretos.' }));
     fireEvent.change(screen.getByLabelText('Número'), { target: { value: '99' } });
-    expect(screen.queryByRole('checkbox', { name: 'Confirmo que o endereço e o ponto estão corretos' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: 'Confirmo que o endereço e o ponto encontrados estão corretos.' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Cadastrar unidade' }));
     await waitFor(() => expect(service.createSite).toHaveBeenCalledTimes(1));
     expect((service.createSite.mock.calls[0]?.[2] as { coordinatesSource?: string }).coordinatesSource).toBeUndefined();
@@ -194,7 +195,8 @@ describe('coordenadas pelo endereço (RF-065 a RF-067)', () => {
     const service = fakeService();
     renderForm(service, fakePostal(FOUND), { geocoder: fakeGeocoder({ kind: 'unavailable' }) });
     typeAddress();
-    fireEvent.click(screen.getByRole('button', { name: 'Buscar coordenadas pelo endereço' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar coordenadas' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Concordo e buscar coordenadas' }));
     await waitFor(() => expect(screen.getAllByRole('status').some((node) => /Não foi possível buscar as coordenadas/.test(node.textContent ?? ''))).toBe(true));
     fireEvent.click(screen.getByRole('button', { name: 'Cadastrar unidade' }));
     await waitFor(() => expect(service.createSite).toHaveBeenCalledWith(ORG, CUSTOMER, expect.objectContaining({ latitude: null, longitude: null })));

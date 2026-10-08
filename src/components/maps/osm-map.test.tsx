@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { OsmMap, PointsMap } from './osm-map';
 
@@ -33,6 +33,32 @@ describe('OsmMap (um ponto)', () => {
   it('coordenadas fora do intervalo não montam o mapa', () => {
     const { container } = render(<OsmMap title="Localização" latitude={120} longitude={0} />);
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe('OsmMap (correção do ponto)', () => {
+  it('sem onPick o mapa só mostra: o clique não escolhe nada e o quadro não é marcado como editável', async () => {
+    const { container } = render(<OsmMap title="Localização da unidade" latitude={-23.55} longitude={-46.63} />);
+    const mapa = await screen.findByRole('group', { name: 'Localização da unidade' });
+    await waitFor(() => expect(container.querySelector('.fluxid-map-point')).not.toBeNull());
+    expect(mapa).not.toHaveClass('fluxid-map--editable');
+  });
+
+  it('com onPick, o clique no mapa informa a latitude e a longitude escolhidas e o marcador acompanha o novo ponto', async () => {
+    const onPick = vi.fn();
+    const { container, rerender } = render(<OsmMap title="Ponto" latitude={-23.55} longitude={-46.63} onPick={onPick} />);
+    const mapa = await screen.findByRole('group', { name: 'Ponto' });
+    await waitFor(() => expect(container.querySelector('.fluxid-map-point')).not.toBeNull());
+    expect(mapa).toHaveClass('fluxid-map--editable');
+    fireEvent.click(mapa, { clientX: 5, clientY: 5 });
+    await waitFor(() => expect(onPick).toHaveBeenCalledTimes(1));
+    const [latitude, longitude] = onPick.mock.calls[0] as [number, number];
+    expect(Number.isFinite(latitude) && Number.isFinite(longitude)).toBe(true);
+    expect(Math.abs(latitude)).toBeLessThanOrEqual(90);
+    // O ponto novo troca o marcador sem recriar o mapa: ainda há um só marcador.
+    rerender(<OsmMap title="Ponto" latitude={-22.9} longitude={-43.2} onPick={onPick} />);
+    await waitFor(() => expect(container.querySelectorAll('.fluxid-map-point')).toHaveLength(1));
+    expect(screen.getByText(/-22.9, -43.2/)).toBeInTheDocument();
   });
 });
 

@@ -10,7 +10,7 @@ const MapView = lazy(() => import('./map-view'));
 const validPoint = (latitude: number, longitude: number): boolean =>
   Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
 
-function MapFrame({ title, points, fallback, singleZoom, className }: { title: string; points: readonly MapPoint[]; fallback: { latitude: number; longitude: number; zoom: number }; singleZoom?: number; className?: string }): React.JSX.Element {
+function MapFrame({ title, points, fallback, singleZoom, onPick, className }: { title: string; points: readonly MapPoint[]; fallback: { latitude: number; longitude: number; zoom: number }; singleZoom?: number; onPick?: (latitude: number, longitude: number) => void; className?: string }): React.JSX.Element {
   const online = useOnlineStatus();
   if (!online) {
     return (
@@ -22,7 +22,7 @@ function MapFrame({ title, points, fallback, singleZoom, className }: { title: s
   }
   return (
     <Suspense fallback={<Loading label="Carregando o mapa…" />}>
-      <MapView title={title} points={points} fallback={fallback} {...(singleZoom !== undefined ? { singleZoom } : {})} {...(className ? { className } : {})} />
+      <MapView title={title} points={points} fallback={fallback} {...(singleZoom !== undefined ? { singleZoom } : {})} {...(onPick ? { onPick } : {})} {...(className ? { className } : {})} />
     </Suspense>
   );
 }
@@ -39,18 +39,20 @@ export interface OsmMapProps {
   zoom?: number;
   // Texto que aparece abaixo do mapa, antes do ponto (por exemplo, "Confira se o marcador está na porta").
   caption?: string;
+  // Presente, um clique (ou toque) no mapa escolhe o novo ponto: é a correção manual antes de salvar. Sem ela o mapa só mostra.
+  onPick?: (latitude: number, longitude: number) => void;
   className?: string;
 }
 
 // Um ponto só (formulário e detalhe da unidade), com o texto do ponto e o link para o mapa completo.
-export function OsmMap({ title, latitude, longitude, zoom = 16, caption, className }: OsmMapProps): React.JSX.Element | null {
+export function OsmMap({ title, latitude, longitude, zoom = 16, caption, onPick, className }: OsmMapProps): React.JSX.Element | null {
   const points = useMemo<MapPoint[]>(() => (validPoint(latitude, longitude) ? [{ id: 'ponto', label: title, latitude, longitude }] : []), [title, latitude, longitude]);
   const fallback = useMemo(() => ({ latitude, longitude, zoom }), [latitude, longitude, zoom]);
   if (points.length === 0) return null;
   const linkUrl = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=16/${latitude}/${longitude}`;
   return (
     <figure className={['m-0 flex min-w-0 flex-col gap-2', className].filter(Boolean).join(' ')}>
-      <MapFrame title={title} points={points} fallback={fallback} singleZoom={zoom} />
+      <MapFrame title={title} points={points} fallback={fallback} singleZoom={zoom} {...(onPick ? { onPick } : {})} />
       <figcaption className="flex flex-wrap items-center justify-between gap-2 text-legenda text-texto-secundario">
         <span>{caption ? `${caption} ` : ''}Ponto: {latitude}, {longitude}</span>
         <a className="font-semibold text-azul-profundo underline" href={linkUrl} target="_blank" rel="noopener noreferrer">Abrir no OpenStreetMap</a>

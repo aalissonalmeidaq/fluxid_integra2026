@@ -44,3 +44,9 @@
 .fluxid-map .leaflet-control-attribution a {
   line-height: inherit;
 }
+
+/* Mapa editável (formulário da unidade): o cursor indica que o clique escolhe o ponto. */
+.fluxid-map--editable.leaflet-grab,
+.fluxid-map--editable .leaflet-interactive {
+  cursor: crosshair;
+}
