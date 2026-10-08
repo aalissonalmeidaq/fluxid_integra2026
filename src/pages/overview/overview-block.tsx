@@ -10,12 +10,14 @@ export interface OverviewBlockProps {
   onRetry: () => void;
   // Altura mínima reservada para a estrutura não saltar quando o conteúdo chega.
   className?: string;
+  // Falso quando o bloco mostra dados reais: some a marca "Exemplo" (padrão: verdadeiro).
+  example?: boolean;
   children?: React.ReactNode;
 }
 
 // Moldura única dos blocos da Visão geral: região com o título (h3) como nome, a marca "Exemplo" e os quatro estados.
 // Há no máximo um role="status" por bloco, anunciado uma vez, e o foco nunca se move (RF-016, RF-028, RA-002, RA-004).
-export function OverviewBlock({ id, title, state, onRetry, className, children }: OverviewBlockProps): React.JSX.Element {
+export function OverviewBlock({ id, title, state, onRetry, className, example = true, children }: OverviewBlockProps): React.JSX.Element {
   const titleId = useId();
   return (
     <section
@@ -25,10 +27,10 @@ export function OverviewBlock({ id, title, state, onRetry, className, children }
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <h3 id={titleId} className="min-w-0 break-words text-h3 font-semibold text-navy">{title}</h3>
-        <ExampleBadge />
+        {example && <ExampleBadge />}
       </div>
       {state.status === 'loading' && <Loading label={`Carregando ${title.toLowerCase()}…`} />}
-      {state.status === 'empty' && <p className="text-corpo text-grafite">Nenhum item de exemplo para mostrar neste bloco.</p>}
+      {state.status === 'empty' && <p className="text-corpo text-grafite">{example ? 'Nenhum item de exemplo para mostrar neste bloco.' : 'Nenhum item para mostrar neste bloco.'}</p>}
       {state.status === 'error' && (
         <Alert variant="erro">
           <p>Não foi possível carregar este bloco.</p>

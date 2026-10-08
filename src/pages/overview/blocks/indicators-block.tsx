@@ -15,7 +15,7 @@ const TONS: Record<IndicatorTone, string> = {
 
 function Cartoes({ data }: { data: OverviewContentMap['indicadores'] }): React.JSX.Element {
   return (
-    <ul role="list" className="m-0 grid list-none grid-cols-1 gap-4 p-0 tablet:grid-cols-2 desktop:grid-cols-4">
+    <ul role="list" className="m-0 grid list-none grid-cols-1 gap-4 p-0 tablet:grid-cols-2 desktop:grid-cols-1">
       {data.items.map((item) => (
         <li key={item.id} data-tone={item.tone} className={`flex min-w-0 flex-col gap-1 rounded-card border border-l-4 p-4 ${TONS[item.tone]}`}>
           <Icon name={item.icon} size={24} />
@@ -28,11 +28,11 @@ function Cartoes({ data }: { data: OverviewContentMap['indicadores'] }): React.J
   );
 }
 
-// Os quatro cartões de indicadores do topo, cada tipo de KPI com a sua cor (RF-010).
+// Os quatro cartões de indicadores, empilhados na vertical na coluna de 20% ao lado do mapa, cada tipo de KPI com a sua cor (RF-010).
 export function IndicatorsBlock(): React.JSX.Element {
   const { state, retry } = useOverviewBlock('indicadores');
   return (
-    <OverviewBlock id="indicadores" title="Indicadores principais" state={state} onRetry={retry}>
+    <OverviewBlock id="indicadores" title="Indicadores principais" state={state} onRetry={retry} className="w-full">
       {state.status === 'ready' && <Cartoes data={state.data} />}
     </OverviewBlock>
   );

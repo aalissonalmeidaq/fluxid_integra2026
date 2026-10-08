@@ -1,0 +1,381 @@
+# Registro do uso de inteligência artificial e validação humana
+
+**FluxID | RIA-024 | Clientes, unidades, geocercas, veículos e motoristas**
+
+> Ponto de atenção: a IA apoia a equipe, mas a responsabilidade final é humana.
+
+## Registro da interação
+
+- Ferramenta de IA utilizada: Claude Code (Claude Sonnet 5.5), no VS Code
+- Objetivo do uso: Implementar a Spec 007 (Fase 3): cadastro e consulta de clientes, contatos, unidades (endereço pelo CEP e coordenadas pelo endereço, com confirmação), geocercas (círculo e polígono, com consulta espacial), veículos e motoristas, com documentos protegidos, inativação em cascata, histórico imutável, anonimização irreversível com segundo fator, formulários em modal e mapas (formulário, detalhe da unidade e Visão geral).
+- Prompt utilizado, em síntese sanitizada: Execução do ciclo da Spec 007 pelo fluxo Spec Kit (implementação por tarefas com TDD, análise e fechamento), seguida de pedidos feitos durante o ciclo: cadastros e edições em modal para facilitar o uso, coordenadas pelo endereço com confirmação e mapas com OpenStreetMap, e o ajuste dos documentos da spec a cada decisão.
+- Resposta gerada pela IA: A IA implementou 13 migrations (PostGIS, tabelas com RLS, permissões, RPCs de cadastro, consulta, geocerca, veículo, motorista, inativação, histórico, anonimização, geocodificação e pontos das unidades), as Edge Functions query-registry, manage-registry, lookup-postal-code e geocode-address, o serviço e as telas das cinco áreas (lista, cadastro, edição e detalhe), os formulários em modal com navegação interna, os mapas em Leaflet carregados sob demanda, os testes (pgTAP, unidade, contrato, ao vivo e E2E nos três projetos), as capturas visuais no Linux e a documentação da spec (spec, plano, tarefas, contratos, quickstart, validation.md, README e PRD).
+
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/007-clientes-geocercas-frota
+- Análise crítica da equipe: Resultados conferidos por lint e tipagem sem erros, 2850 testes de unidade e contrato, 1607 testes pgTAP (com dois tenants em toda política RLS), 108 testes ao vivo, E2E nos três projetos (1127 aprovados e 31 ignorados, com falhas de seletor e de mapa corrigidas e repetidas), 177 capturas visuais reproduzidas no Linux e pacote de entrada de 574,05 kB (limite 593,95 kB). Medições em 4G com o volume de referência: p95 de 728 a 737 ms nas quatro listas (limite 2 s). Durante a rodada final apareceram e foram corrigidos: permissões e menu esperados pelo teste ao vivo de navegação, controles do Leaflet fora das escalas de tokens, requisição aos blocos do OpenStreetMap barrada pelo teste de domínios externos, captura instável do diálogo de anonimização e um teste de vínculo de motorista com condição de corrida. Detalhes em specs/007-clientes-geocercas-frota/validation.md.
+- Validação humana realizada: Natã Baracho validou as telas novas com os perfis de administrador do Tenant A e de administrador do Tenant B, em notebook (Windows 11, Chrome) e em celular Android, percorrendo a criação de cliente, de motorista e de veículo e as subfunções de cada um. Segundo a confirmação da equipe, a validação incluiu os formulários em modal, a busca de coordenadas pelo endereço, os mapas e a nova Visão geral. Resultado: aprovado, sem itens a corrigir informados.
+- Decisão final: utilizado
+- Justificativa: A validação humana aprovou o resultado sem pedir ajustes, então a entrega foi utilizada. Os formulários em modal, a geocodificação e os mapas entraram no meio do ciclo por decisão da equipe e foram documentados e testados junto com o restante.
+- Fontes verificadas: Spec 007, plano, tarefas, contratos e quickstart do ciclo; WCAG 2.2; documentação do Supabase, do PostGIS, do Playwright, do Leaflet, do OpenStreetMap e do Nominatim; contrato público do ViaCEP. Sem outras fontes externas.
+- Identificador do registro: RIA-024
+- Data e hora da interação: 08/10/2026, 08:54:58 - America/Fortaleza
+
+## Rastreabilidade técnica do ciclo
+
+- Repositório: fluxid
+- Branch: feat/007-clientes-geocercas-frota
+- Spec: 007
+- Ciclo: 01
+- Commit-base: 5bb62abf881f315e87ad2df9ccf7cdd285565e3a
+- Hash do diff funcional preparado: 4ed2465c0dd7bdb08402ef6295d3212ada3e1d5846a279e04ef2bedd1f9bdea8
+- Arquivos e áreas afetadas:
+
+- `README.md`
+- `docs/prd.md`
+- `package-lock.json`
+- `package.json`
+- `playwright.config.ts`
+- `scripts/registro/medir-desempenho-4g.mjs`
+- `specs/007-clientes-geocercas-frota/baseline.md`
+- `specs/007-clientes-geocercas-frota/checklists/requirements.md`
+- `specs/007-clientes-geocercas-frota/contracts/consulta-de-cep.md`
+- `specs/007-clientes-geocercas-frota/contracts/geocodificacao-de-endereco.md`
+- `specs/007-clientes-geocercas-frota/contracts/operacoes-servidor.md`
+- `specs/007-clientes-geocercas-frota/contracts/permissoes-e-papeis.md`
+- `specs/007-clientes-geocercas-frota/contracts/telas-e-rotas.md`
+- `specs/007-clientes-geocercas-frota/contracts/verificacoes-automaticas.md`
+- `specs/007-clientes-geocercas-frota/data-model.md`
+- `specs/007-clientes-geocercas-frota/plan.md`
+- `specs/007-clientes-geocercas-frota/quickstart.md`
+- `specs/007-clientes-geocercas-frota/research.md`
+- `specs/007-clientes-geocercas-frota/spec.md`
+- `specs/007-clientes-geocercas-frota/tasks.md`
+- `specs/007-clientes-geocercas-frota/validation.md`
+- `src/app/App.tsx`
+- `src/app/admin-routes.test.ts`
+- `src/app/registry/registry-navigation.test.ts`
+- `src/app/registry/registry-navigation.ts`
+- `src/app/registry/registry-routes.test.ts`
+- `src/app/registry/registry-routes.ts`
+- `src/app/shell/navigation-menu.tsx`
+- `src/application/registry/geocoding-service.test.ts`
+- `src/application/registry/geocoding-service.ts`
+- `src/application/registry/postal-code-service.test.ts`
+- `src/application/registry/postal-code-service.ts`
+- `src/application/registry/raw.ts`
+- `src/application/registry/registry-service.test.ts`
+- `src/application/registry/registry-service.ts`
+- `src/application/registry/registry-views.ts`
+- `src/components/maps/map-types.ts`
+- `src/components/maps/map-view.css`
+- `src/components/maps/map-view.tsx`
+- `src/components/maps/osm-map.test.tsx`
+- `src/components/maps/osm-map.tsx`
+- `src/design-system/components/dialog.test.tsx`
+- `src/design-system/components/dialog.tsx`
+- `src/domain/cylinders/hydrostatic-status.ts`
+- `src/domain/navigation/screens.test.ts`
+- `src/domain/navigation/screens.ts`
+- `src/domain/overview/overview-types.ts`
+- `src/domain/registry/document-validation.test.ts`
+- `src/domain/registry/document-validation.ts`
+- `src/domain/registry/geofence-geometry.test.ts`
+- `src/domain/registry/geofence-geometry.ts`
+- `src/domain/registry/geofence-limits.ts`
+- `src/domain/registry/history-format.test.ts`
+- `src/domain/registry/history-format.ts`
+- `src/domain/registry/masks.test.ts`
+- `src/domain/registry/masks.ts`
+- `src/domain/registry/phone-and-postal-code.test.ts`
+- `src/domain/registry/phone-and-postal-code.ts`
+- `src/domain/registry/plate.test.ts`
+- `src/domain/registry/plate.ts`
+- `src/domain/registry/registry-validation.test.ts`
+- `src/domain/registry/registry-validation.ts`
+- `src/domain/registry/registry-vocabulary.test.ts`
+- `src/domain/registry/registry-vocabulary.ts`
+- `src/domain/shared/civil-date.ts`
+- `src/domain/shared/validity-status.test.ts`
+- `src/domain/shared/validity-status.ts`
+- `src/infrastructure/overview/sample-overview-source.test.ts`
+- `src/infrastructure/overview/sample-overview-source.ts`
+- `src/infrastructure/supabase/registry-adapter.ts`
+- `src/pages/overview/blocks/indicators-block.tsx`
+- `src/pages/overview/blocks/map-block.tsx`
+- `src/pages/overview/overview-block.tsx`
+- `src/pages/overview/overview-page.test.tsx`
+- `src/pages/overview/overview-page.tsx`
+- `src/pages/registry/components/anonymize-action.tsx`
+- `src/pages/registry/components/anonymize-dialog.test.tsx`
+- `src/pages/registry/components/anonymize-dialog.tsx`
+- `src/pages/registry/components/cascade-confirm-dialog.test.tsx`
+- `src/pages/registry/components/cascade-confirm-dialog.tsx`
+- `src/pages/registry/components/contact-list-editor.test.tsx`
+- `src/pages/registry/components/contact-list-editor.tsx`
+- `src/pages/registry/components/coordinates-field.test.tsx`
+- `src/pages/registry/components/coordinates-field.tsx`
+- `src/pages/registry/components/detail-list.tsx`
+- `src/pages/registry/components/document-field.test.tsx`
+- `src/pages/registry/components/document-field.tsx`
+- `src/pages/registry/components/form-modal-context.ts`
+- `src/pages/registry/components/form-modal.test.tsx`
+- `src/pages/registry/components/form-modal.tsx`
+- `src/pages/registry/components/geocode-suggestion.ts`
+- `src/pages/registry/components/geofence-preview.test.tsx`
+- `src/pages/registry/components/geofence-preview.tsx`
+- `src/pages/registry/components/geofence-shape-editor.test.tsx`
+- `src/pages/registry/components/geofence-shape-editor.tsx`
+- `src/pages/registry/components/lifecycle-actions.tsx`
+- `src/pages/registry/components/point-tester.test.tsx`
+- `src/pages/registry/components/point-tester.tsx`
+- `src/pages/registry/components/postal-code-field.test.tsx`
+- `src/pages/registry/components/postal-code-field.tsx`
+- `src/pages/registry/components/receiving-window-field.test.tsx`
+- `src/pages/registry/components/receiving-window-field.tsx`
+- `src/pages/registry/components/registry-history.test.tsx`
+- `src/pages/registry/components/registry-history.tsx`
+- `src/pages/registry/components/registry-list.tsx`
+- `src/pages/registry/components/reveal-document.test.tsx`
+- `src/pages/registry/components/reveal-document.tsx`
+- `src/pages/registry/components/status-badge.test.tsx`
+- `src/pages/registry/components/status-badge.tsx`
+- `src/pages/registry/customers/customer-detail-page.test.tsx`
+- `src/pages/registry/customers/customer-detail-page.tsx`
+- `src/pages/registry/customers/customer-form-page.test.tsx`
+- `src/pages/registry/customers/customer-form-page.tsx`
+- `src/pages/registry/customers/customer-list-page.test.tsx`
+- `src/pages/registry/customers/customer-list-page.tsx`
+- `src/pages/registry/customers/site-detail-page.test.tsx`
+- `src/pages/registry/customers/site-detail-page.tsx`
+- `src/pages/registry/customers/site-form-page.test.tsx`
+- `src/pages/registry/customers/site-form-page.tsx`
+- `src/pages/registry/drivers/driver-detail-page.tsx`
+- `src/pages/registry/drivers/driver-form-page.tsx`
+- `src/pages/registry/drivers/driver-list-page.tsx`
+- `src/pages/registry/drivers/driver-pages.test.tsx`
+- `src/pages/registry/geofences/geofence-detail-page.test.tsx`
+- `src/pages/registry/geofences/geofence-detail-page.tsx`
+- `src/pages/registry/geofences/geofence-form-page.test.tsx`
+- `src/pages/registry/geofences/geofence-form-page.tsx`
+- `src/pages/registry/geofences/geofence-list-page.test.tsx`
+- `src/pages/registry/geofences/geofence-list-page.tsx`
+- `src/pages/registry/registry-anonymization-pages.test.tsx`
+- `src/pages/registry/registry-area.test.tsx`
+- `src/pages/registry/registry-area.tsx`
+- `src/pages/registry/registry-lifecycle-pages.test.tsx`
+- `src/pages/registry/use-registry-service.ts`
+- `src/pages/registry/vehicles/vehicle-detail-page.tsx`
+- `src/pages/registry/vehicles/vehicle-form-page.tsx`
+- `src/pages/registry/vehicles/vehicle-list-page.tsx`
+- `src/pages/registry/vehicles/vehicle-pages.test.tsx`
+- `supabase/functions/_shared/cylinders.ts`
+- `supabase/functions/_shared/operations.ts`
+- `supabase/functions/geocode-address/deno.json`
+- `supabase/functions/geocode-address/handler.ts`
+- `supabase/functions/geocode-address/index.ts`
+- `supabase/functions/geocode-address/nominatim-provider.ts`
+- `supabase/functions/geocode-address/provider.ts`
+- `supabase/functions/lookup-postal-code/deno.json`
+- `supabase/functions/lookup-postal-code/handler.ts`
+- `supabase/functions/lookup-postal-code/index.ts`
+- `supabase/functions/lookup-postal-code/provider.ts`
+- `supabase/functions/lookup-postal-code/viacep-provider.ts`
+- `supabase/functions/manage-registry/deno.json`
+- `supabase/functions/manage-registry/handler.ts`
+- `supabase/functions/manage-registry/index.ts`
+- `supabase/functions/query-registry/deno.json`
+- `supabase/functions/query-registry/handler.ts`
+- `supabase/functions/query-registry/index.ts`
+- `supabase/migrations/20261007120000_registry_extensions.sql`
+- `supabase/migrations/20261007120100_registry_schema.sql`
+- `supabase/migrations/20261007120200_registry_permissions.sql`
+- `supabase/migrations/20261007120300_registry_customers_write.sql`
+- `supabase/migrations/20261007120400_registry_customers_read.sql`
+- `supabase/migrations/20261007120500_registry_geofences.sql`
+- `supabase/migrations/20261007120600_registry_vehicles.sql`
+- `supabase/migrations/20261007120700_registry_drivers.sql`
+- `supabase/migrations/20261007120800_registry_inactivation.sql`
+- `supabase/migrations/20261007120900_registry_history.sql`
+- `supabase/migrations/20261007121000_registry_anonymization.sql`
+- `supabase/migrations/20261007121100_registry_site_geocoding.sql`
+- `supabase/migrations/20261007121200_registry_site_points.sql`
+- `supabase/seed.sql`
+- `supabase/tests/002_rbac_invariants.test.sql`
+- `supabase/tests/002_rbac_rls.test.sql`
+- `supabase/tests/007_anonymization.test.sql`
+- `supabase/tests/007_audit.test.sql`
+- `supabase/tests/007_constraints.test.sql`
+- `supabase/tests/007_contacts_visibility.test.sql`
+- `supabase/tests/007_customer_queries.test.sql`
+- `supabase/tests/007_customers.test.sql`
+- `supabase/tests/007_document_reveal.test.sql`
+- `supabase/tests/007_documents_rls.test.sql`
+- `supabase/tests/007_drivers.test.sql`
+- `supabase/tests/007_geofence_query.test.sql`
+- `supabase/tests/007_geofences.test.sql`
+- `supabase/tests/007_history.test.sql`
+- `supabase/tests/007_immutability.test.sql`
+- `supabase/tests/007_inactivation.test.sql`
+- `supabase/tests/007_limits_contract.test.sql`
+- `supabase/tests/007_permissions.test.sql`
+- `supabase/tests/007_rls.test.sql`
+- `supabase/tests/007_site_geocoding.test.sql`
+- `supabase/tests/007_site_points.test.sql`
+- `supabase/tests/007_sites.test.sql`
+- `supabase/tests/007_validators.test.sql`
+- `supabase/tests/007_vehicles.test.sql`
+- `tests/contract/client-secrets.test.ts`
+- `tests/contract/cylinders-hydrostatic-limit.test.ts`
+- `tests/contract/geocode-address-handler.test.ts`
+- `tests/contract/lookup-postal-code-handler.test.ts`
+- `tests/contract/manage-registry-handler.test.ts`
+- `tests/contract/no-external-assets.test.ts`
+- `tests/contract/nominatim-provider.test.ts`
+- `tests/contract/postal-code-egress.test.ts`
+- `tests/contract/query-registry-handler.test.ts`
+- `tests/contract/registry-anonymization-handler.test.ts`
+- `tests/contract/registry-anonymization-leak.live.test.ts`
+- `tests/contract/registry-concurrency.live.test.ts`
+- `tests/contract/registry-handlers.test.ts`
+- `tests/contract/registry-history-handler.test.ts`
+- `tests/contract/registry-inactivation-handler.test.ts`
+- `tests/contract/registry-limits.test.ts`
+- `tests/contract/registry-mock.test.ts`
+- `tests/contract/registry-no-delete.test.ts`
+- `tests/contract/registry-no-sensitive-output.test.ts`
+- `tests/contract/registry-permissions.test.ts`
+- `tests/contract/registry-pwa-cache.test.ts`
+- `tests/contract/registry-vehicles-handler.test.ts`
+- `tests/contract/registry-volume.live.test.ts`
+- `tests/contract/viacep-provider.test.ts`
+- `tests/e2e/desempenho-lista-registro.spec.ts`
+- `tests/e2e/registro-clientes.spec.ts`
+- `tests/e2e/registro-frota.spec.ts`
+- `tests/e2e/registro-geocercas.spec.ts`
+- `tests/e2e/registro-modal.spec.ts`
+- `tests/e2e/registro-transversal.spec.ts`
+- `tests/e2e/support/mock-backend.ts`
+- `tests/e2e/support/mock-registry-anonymization.ts`
+- `tests/e2e/support/mock-registry-customers.ts`
+- `tests/e2e/support/mock-registry-drivers.ts`
+- `tests/e2e/support/mock-registry-fleet.ts`
+- `tests/e2e/support/mock-registry-geofences.ts`
+- `tests/e2e/support/mock-registry-lifecycle.ts`
+- `tests/e2e/support/mock-registry.ts`
+- `tests/e2e/telas-transversais.spec.ts`
+- `tests/e2e/visao-geral.spec.ts`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-carregando-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-carregando-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-erro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-global-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-global-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-pronto-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-pronto-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-anonimizacao-dialogo-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-anonimizacao-dialogo-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-anonimizacao-dialogo-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-cadastro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-cadastro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-clientes-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-clientes-lista-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-clientes-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-cadastro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-cadastro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocercas-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocercas-lista-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocercas-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-inativacao-dialogo-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-inativacao-dialogo-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-inativacao-dialogo-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motorista-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motorista-cadastro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motorista-cadastro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motorista-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motorista-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motorista-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motoristas-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motoristas-lista-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motoristas-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-unidade-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-unidade-cadastro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-unidade-cadastro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-unidade-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-unidade-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-unidade-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculo-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculo-cadastro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculo-cadastro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculo-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculo-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculo-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculos-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculos-lista-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculos-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/visao-geral-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/visao-geral-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/visao-geral.visual.spec.ts-snapshots/visao-geral-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/visao-geral.visual.spec.ts-snapshots/visao-geral-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/visao-geral.visual.spec.ts-snapshots/visao-geral-principal-768-visual-chromium-linux.png`
+- `tests/integration/navigation-permissions.live.test.ts`
+- `tests/support/sql/registry-volume-limpar.sql`
+- `tests/support/sql/registry-volume-semear.sql`
+- `vitest.live.config.ts`
+
+## Testes e evidências
+
+- Comando(s): npm run lint; npm run typecheck; npm test; npx supabase db reset e npx supabase test db; npm run test:live; npm run build; npx playwright test (desktop-chromium, tablet-webkit e mobile-360-chromium); npm run test:visual:atualizar; npm run test:desempenho:registro
+- Resultado: aprovado
+- Evidência: lint e typecheck sem erros; 212 arquivos e 2850 testes de unidade e contrato; 63 arquivos e 1607 testes pgTAP; 17 arquivos e 108 testes ao vivo; 1127 testes E2E aprovados e 31 ignorados; 177 capturas visuais; pacote de entrada de 574,05 kB
+
+## Decisões e dados pendentes
+
+Trocar o link de revisão pelo link do pull request antes do merge. T146: decisão da pessoa responsável e da equipe jurídica sobre enviar endereço de pessoa física ao Nominatim e sobre o uso em volume em produção. T145 (reconfirmação do motorista na primeira entrega) pertence à Fase 4. O tempo individual de MS-001 a MS-008 não foi registrado na validação humana. O Nominatim e o ViaCEP reais não rodam no CI (provedores simulados).
+
+## Validação humana
+
+- Responsável pela revisão da equipe: Natã Baracho
+- Data da validação humana: 08/10/2026 (data da gravação das respostas; a pessoa não informou outra)
+- Amostra validada: Perfis: administrador do Tenant A e administrador do Tenant B. Fluxos: criação de cliente, de motorista e de veículo e as subfunções de cada um, formulários em modal, busca de coordenadas pelo endereço, mapas e Visão geral nova. Larguras: não informadas separadamente (notebook e celular Android).
+- Ambiente da validação: Windows 11, navegador Chrome e celular Android
+- Duração da validação: 90 minutos
+- Resultado da validação humana: aprovado
+- Itens a corrigir apontados pela pessoa responsável: Nenhum item a corrigir foi informado.
+- Confirmação do responsável: sim, confirmado por Natã Baracho em 08/10/2026
+- Observações: O commit inclui apenas o escopo da Spec 007. Alterações locais de HTTPS de desenvolvimento (dev:rede, plugin basic-ssl, vite.config.ts e docs/arquitetura-conectividade-supabase.md) ficaram de fora. O Leaflet é a única dependência nova de execução, por decisão registrada no plano. Nenhum documento real, segredo ou dado pessoal foi usado: CPF, CNH e CNPJ de teste são fictícios.
+
+## Regras de preenchimento
+
+- A validação humana é obrigatória para encerrar a spec. As respostas da seção acima vêm da pessoa responsável, em entrevista conduzida pelo agente de IA, e nunca são inventadas nem presumidas.
+- Registrar apenas interações relevantes para o projeto.
+- Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
+- Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
+- Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
+- Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
+- Evitar dados pessoais, sigilosos ou sensíveis.
+- Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
+
+## Checklist final
+
+- [x] Ferramentas de IA identificadas.
+- [x] Prompts relevantes registrados por síntese sanitizada.
+- [x] Respostas ou resultados documentados.
+- [x] Texto revisado para soar natural, claro e autêntico, sem alterar o sentido original.
+- [x] Quando houve geração de código, a resposta contém resumo e link para o repositório, branch ou, preferencialmente, pull request.
+- [x] Validação humana explicada.
+- [x] Fontes verificadas quando necessário.
+- [x] Decisão ou pendência registrada.
+- [x] O registro não contém segredos, credenciais ou tokens.
+- [x] Dados pessoais foram removidos ou minimizados.

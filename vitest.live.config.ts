@@ -9,6 +9,9 @@ export default defineConfig({
     include: ['tests/**/*.live.test.ts'],
     testTimeout: 30_000,
     hookTimeout: 60_000,
+    // As suítes de cadastros da Spec 007 compartilham o administrador do Tenant G (limite de sessões e elevação a aal2 por usuário),
+    // então os arquivos rodam um de cada vez.
+    fileParallelism: false,
   },
   resolve: {
     alias: {

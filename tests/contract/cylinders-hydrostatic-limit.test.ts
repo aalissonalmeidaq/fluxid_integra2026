@@ -45,8 +45,10 @@ describe('limite de "a vencer" (RF-021)', () => {
     }
   });
 
-  it('o domínio define a constante uma única vez', () => {
-    const definitions = walk(join(ROOT, 'src')).filter((file) => /HYDROSTATIC_EXPIRING_DAYS\s*=\s*\d+/.test(readFileSync(file, 'utf8')));
-    expect(definitions.map((file) => relative(ROOT, file).replace(/\\/g, '/'))).toEqual(['src/domain/cylinders/hydrostatic-status.ts']);
+  it('o domínio define o número do limite uma única vez, em validity-status, e o teste hidrostático deriva dele', () => {
+    const definitions = walk(join(ROOT, 'src')).filter((file) => /(?<![A-Z_])EXPIRING_DAYS\s*=\s*\d+/.test(readFileSync(file, 'utf8')));
+    expect(definitions.map((file) => relative(ROOT, file).replace(/\\/g, '/'))).toEqual(['src/domain/shared/validity-status.ts']);
+    const hydrostatic = readFileSync(join(ROOT, 'src', 'domain', 'cylinders', 'hydrostatic-status.ts'), 'utf8');
+    expect(hydrostatic).toMatch(/HYDROSTATIC_EXPIRING_DAYS\s*=\s*EXPIRING_DAYS/);
   });
 });

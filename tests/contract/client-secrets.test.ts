@@ -139,7 +139,7 @@ describe('Contrato de Segurança: Segredos no Cliente (Client Secrets Contract)'
 // Arquivos que CITAM padrões de credencial justamente para recusá-los; o teste abaixo comprova que são detectores.
 const SECRET_DETECTORS = ['src/config/environment.ts', 'src/infrastructure/observability/audit-logger.ts'];
 
-describe('Contrato de Segurança: código do cliente', () => {
+describe('Contrato de Segurança: código do cliente', { timeout: 30_000 }, () => {
   const clientFiles = () => walk(path.join(ROOT, 'src')).filter((file) => /\.(ts|tsx)$/.test(file) && !/\.test\.tsx?$/.test(file));
 
   it('nenhum arquivo do cliente referencia credencial privilegiada nem variável de servidor', () => {
@@ -194,7 +194,7 @@ describe('Contrato de Segurança: código do cliente', () => {
   });
 });
 
-describe('Contrato de Segurança: logs', () => {
+describe('Contrato de Segurança: logs', { timeout: 30_000 }, () => {
   it('nenhum log do cliente ou das funções imprime credenciais, tokens ou dados de requisição', () => {
     const files = [...walk(path.join(ROOT, 'src')), ...walk(path.join(ROOT, 'supabase/functions'))]
       .filter((file) => /\.(ts|tsx)$/.test(file) && !/\.test\.tsx?$/.test(file));

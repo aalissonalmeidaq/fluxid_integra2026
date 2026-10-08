@@ -56,11 +56,12 @@ describe('OverviewPage', () => {
     }
   });
 
-  it('o mapa é só um espaço reservado, com texto de fase futura, sem imagem nem marcador', async () => {
+  it('o mapa mostra a região de exemplo, com texto de fase futura e sem marcador de operação', async () => {
     await renderizar();
     const mapa = screen.getByRole('region', { name: 'Cilindros e viagens no mapa' });
     expect(mapa).toHaveTextContent(/fase futura/i);
-    expect(mapa.querySelector('img, svg[role="img"], [data-marker]')).toBeNull();
+    expect(mapa.querySelector('.fluxid-map-point, [data-marker]')).toBeNull();
+    expect(await within(mapa).findByRole('group', { name: 'Mapa da região de exemplo' })).toBeInTheDocument();
   });
 
   it('os gráficos de movimentação e de situação têm descrição e tabela equivalente', async () => {

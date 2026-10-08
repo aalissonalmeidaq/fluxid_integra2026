@@ -48,7 +48,10 @@ const CONTEUDO: OverviewContentMap = {
       { id: 'lacres', icon: 'lacre', tone: 'sucesso', label: 'Lacres conectados', value: numero.format(1086), note: 'Lacres de exemplo com sinal' },
     ],
   },
-  mapa: { message: 'O rastreamento no mapa chega em uma fase futura. Este espaço fica reservado para as rotas e a localização dos cilindros.' },
+  mapa: {
+    message: 'O rastreamento das rotas e dos cilindros no mapa chega em uma fase futura. Por enquanto o mapa mostra só a região de exemplo.',
+    center: { latitude: -23.55052, longitude: -46.633308, span: 0.6 },
+  },
   movimentacao: {
     series: [
       { id: 'entradas', label: 'Entradas' },

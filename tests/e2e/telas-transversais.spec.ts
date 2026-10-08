@@ -15,6 +15,8 @@ test.beforeEach(async ({ page }, testInfo) => {
 const dominiosExternos = (urls: readonly string[]): string[] =>
   urls.filter((url) => {
     const { protocol, hostname } = new URL(url);
+    // Exceção decidida na Spec 007 (mapas): só os blocos do mapa vêm do OpenStreetMap; nenhum dado do FluxID vai na requisição.
+    if (hostname === 'tile.openstreetmap.org') return false;
     return /^https?:$/.test(protocol) && hostname !== 'localhost' && hostname !== '127.0.0.1';
   });
 

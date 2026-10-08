@@ -92,12 +92,30 @@ A primeira entrega de dados de domínio: cada organização cadastra e mantém o
 
 - **Código para conferência.** No detalhe do cilindro, "Mostrar código" gera no navegador o QR Code ou o Data Matrix do valor de cada identificador ativo (biblioteca `bwip-js`, carregada só ao pedir).
 - **Nada é excluído.** Cilindro, identificador, teste e evento nunca são apagados: o cilindro é inativado com justificativa, o identificador é desativado e a correção de um teste é uma retificação. O banco recusa a exclusão para qualquer papel.
+- **Mapas.** O formulário e o detalhe da unidade mostram o ponto no mapa; a Visão geral ocupa 80% com o mapa das unidades com coordenadas e 20% com os indicadores empilhados. Leaflet com blocos do OpenStreetMap, carregado sob demanda; sem conexão, aviso no lugar do mapa.
 - **Todo acesso passa pelo servidor.** O cliente só chama as Edge Functions `query-cylinders` e `manage-cylinders`, que conferem sessão, vínculo, papel e permissão a cada chamada. Cada ação sensível grava o evento de histórico e a auditoria na mesma transação.
 - **Entrada no estoque idempotente.** Cada leitura leva uma chave de operação; repetir a mesma operação (duplo clique, nova tentativa, resposta perdida) não cria outro evento. Escritas exigem conexão e nunca são enfileiradas offline.
 - **Situação do teste calculada.** Em dia, a vencer (30 dias ou menos), vencido, reprovado ou sem teste, sempre derivada dos registros e do dia de hoje em São Paulo; o limite de 30 dias existe uma só vez no domínio e uma só vez no SQL.
 - **Permissões novas:** `cylinder.read`, `cylinder.write`, `cylinder.deactivate`, `cylinder.identifier`, `cylinder.stock_in`, `cylinder.test` e `cylinder.history`, entregues ao administrador do tenant, ao operador de estoque, ao operador técnico e ao novo papel auditor (`tenant_auditor`). O contrato completo está em `specs/006-cilindros-e-estoque/`.
 
 Depois de atualizar a branch, rode `npx supabase db reset` e, para as funções novas serem servidas, `npx supabase stop` e `npx supabase start`. A medição de desempenho com 50 mil cilindros usa `npm run test:live` (banco e funções) e `npm run test:desempenho:cilindros` (navegador em conexão 4G).
+
+---
+
+## Clientes, unidades, geocercas, veículos e motoristas (Spec 007)
+
+Cada organização mantém o próprio cadastro operacional. As telas são **Clientes** (com contatos e unidades), **Geocercas**, **Veículos** e **Motoristas**, visíveis pelo menu conforme as permissões do papel.
+
+- **Endereço pelo CEP.** A unidade preenche o endereço a partir do CEP; a consulta (ViaCEP) é feita pela Edge Function `lookup-postal-code`, que envia só o CEP. Se a consulta falhar, o endereço é digitado à mão.
+- **Geocercas.** Círculo (centro e raio) ou polígono (vértices), validados no banco com PostGIS; há consulta "quais geocercas contêm este ponto".
+- **Documentos protegidos.** CPF, CNPJ e CNH completos ficam em tabelas sem política de leitura; as telas mostram só o valor mascarado e a revelação é uma ação auditada (`reveal_document`).
+- **Nada é excluído.** Cliente, unidade, geocerca, veículo e motorista são inativados com justificativa (a inativação do cliente é uma cascata atômica, com prévia) e podem ser reativados. Todo evento vai para um histórico imutável, na mesma transação da auditoria.
+- **Anonimização irreversível.** Pedida com justificativa e exige verificação em duas etapas (aal2), conferida na função e no banco. Ela sobrescreve os dados pessoais; cópias de segurança e logs da plataforma não são reescritos, e o endereço e as geocercas de cliente pessoa física permanecem.
+- **Cadastro e edição em modal.** Os formulários abrem sobre a lista ou o detalhe, sem recarregar a página; Escape, "Cancelar" e o Voltar do navegador fecham, e o endereço (por exemplo `/veiculos/novo`) continua valendo como link direto.
+- **Coordenadas pelo endereço.** A Edge Function `geocode-address` busca latitude e longitude no Nominatim (OpenStreetMap), enviando só os campos de endereço; a pessoa confirma o endereço e o ponto antes de gravar, e a unidade guarda a origem e quem confirmou. A reconfirmação do motorista na primeira entrega fica para a Fase 4. Se a busca falha, o cadastro segue sem ela.
+- **Todo acesso passa pelo servidor.** O cliente só chama `query-registry`, `manage-registry`, `lookup-postal-code` e `geocode-address`. Escritas exigem conexão e nunca são enfileiradas offline.
+
+Depois de atualizar a branch, rode `npx supabase db reset` e, para as funções novas serem servidas, `npx supabase stop` e `npx supabase start`. A medição de desempenho das listas com o volume de referência usa `npm run test:live` e `npm run test:desempenho:registro` (navegador em conexão 4G). O contrato completo está em `specs/007-clientes-geocercas-frota/`.
 
 ---
 

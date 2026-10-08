@@ -28,6 +28,18 @@ async function permissions(token: string | null, body: Record<string, unknown> =
 const actor = (response: Awaited<ReturnType<typeof permissions>>): ActorPermissions => ({ tenant: response.body?.tenant ?? [], global: response.body?.global ?? [] });
 const labels = (value: ActorPermissions) => visibleScreens(value).map((screen) => screen.label);
 
+// Spec 007: o administrador recebe as 20 permissões de cadastros e o operador técnico recebe a leitura de clientes e veículos.
+const ADMIN_TENANT = [
+  'audit.read',
+  'customer.anonymize', 'customer.deactivate', 'customer.document', 'customer.history', 'customer.read', 'customer.write',
+  'cylinder.deactivate', 'cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.stock_in', 'cylinder.test', 'cylinder.write',
+  'driver.anonymize', 'driver.deactivate', 'driver.document', 'driver.history', 'driver.read', 'driver.write',
+  'geofence.deactivate', 'geofence.history', 'geofence.read', 'geofence.write',
+  'tenant.manage',
+  'vehicle.deactivate', 'vehicle.history', 'vehicle.read', 'vehicle.write',
+];
+const OPERADOR_TECNICO = ['customer.read', 'cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.test', 'vehicle.read'];
+
 describe('Consulta de permissões e paridade do menu ao vivo', () => {
   let admin = '';
   let operator = '';
@@ -87,14 +99,14 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     const result = await permissions(admin, { organization_id: TENANT_C });
     expect(result.status).toBe(200);
     expect(Object.keys(result.body!).sort()).toEqual(['code', 'global', 'tenant']);
-    expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: ['audit.read', 'cylinder.deactivate', 'cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.stock_in', 'cylinder.test', 'cylinder.write', 'tenant.manage'], global: [] });
-    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Entrada no estoque', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
+    expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: ADMIN_TENANT, global: [] });
+    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Entrada no estoque', 'Clientes', 'Geocercas', 'Veículos', 'Motoristas', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
   });
 
   it('o operador técnico recebe só as permissões do papel e o menu básico', async () => {
     const result = await permissions(operator, { organization_id: TENANT_C });
-    expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: ['cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.test'], global: [] });
-    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Meu perfil']);
+    expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: OPERADOR_TECNICO, global: [] });
+    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Clientes', 'Veículos', 'Meu perfil']);
   });
 
   it('o Administrador FluxID recebe permissões globais e nenhuma do tenant, com ou sem tenant ativo', async () => {
@@ -108,9 +120,9 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
   it('com dois tenants a mesma sessão recebe conjuntos distintos por organização (CA-002)', async () => {
     const inC = await permissions(admin, { organization_id: TENANT_C });
     const inD = await permissions(admin, { organization_id: TENANT_D });
-    expect(inC.body?.tenant).toEqual(['audit.read', 'cylinder.deactivate', 'cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.stock_in', 'cylinder.test', 'cylinder.write', 'tenant.manage']);
-    expect(inD.body?.tenant).toEqual(['cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.test']);
-    expect(labels(actor(inD))).toEqual(['Visão geral', 'Cilindros', 'Meu perfil']);
+    expect(inC.body?.tenant).toEqual(ADMIN_TENANT);
+    expect(inD.body?.tenant).toEqual(OPERADOR_TECNICO);
+    expect(labels(actor(inD))).toEqual(['Visão geral', 'Cilindros', 'Clientes', 'Veículos', 'Meu perfil']);
   });
 
   it('um tenant sem vínculo ativo devolve listas vazias, sem código nem identificador do outro tenant', async () => {

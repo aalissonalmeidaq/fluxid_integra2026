@@ -60,9 +60,10 @@ describe('sampleOverviewSource', () => {
     expect(alertas.items.some((alerta) => !alerta.isNew)).toBe(true);
   });
 
-  it('o mapa não traz dados, só o texto de fase futura', async () => {
+  it('o mapa traz só o texto de fase futura e a região de exemplo, sem dados de operação', async () => {
     const { mapa } = await carregarTodos();
-    expect(Object.keys(mapa)).toEqual(['message']);
+    expect(Object.keys(mapa)).toEqual(['message', 'center']);
+    expect(Object.keys(mapa.center)).toEqual(['latitude', 'longitude', 'span']);
     expect(mapa.message).toMatch(/fase futura/i);
   });
 
