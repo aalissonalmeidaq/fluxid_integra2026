@@ -115,11 +115,24 @@ describe('OverviewPage', () => {
       await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
       // O interior do mapa é montado pelo Leaflet (painéis, blocos e posições calculadas em momentos que dependem da carga da
       // máquina); o que deve coincidir é o conteúdo do FluxID, incluindo o quadro do mapa e o nome acessível dele.
-      container.querySelectorAll('.fluxid-map').forEach((mapa) => mapa.replaceChildren());
+      // Os atributos da raiz também são do Leaflet (classes de animação e de arrasto que mudam com o tempo): só ficam o papel e o nome acessível.
+      container.querySelectorAll('.fluxid-map').forEach((mapa) => {
+        const [papel, nome] = [mapa.getAttribute('role'), mapa.getAttribute('aria-label')];
+        mapa.replaceChildren();
+        mapa.getAttributeNames().forEach((atributo) => mapa.removeAttribute(atributo));
+        mapa.setAttribute('data-mapa', '');
+        if (papel) mapa.setAttribute('role', papel);
+        if (nome) mapa.setAttribute('aria-label', nome);
+      });
       // Os identificadores gerados pelo React mudam a cada montagem; o conteúdo é o que deve coincidir.
       html.push(container.innerHTML.replace(/(id|for|aria-labelledby|aria-describedby|aria-controls)="[^"]*"/g, '$1=""').replace(/url\(#[^)]*\)/g, 'url(#)'));
       unmount();
     }
+    // Se divergirem, o trecho em que começam a diferir aparece na mensagem de falha (a comparação inteira é longa demais para ler).
+    const [a, b] = [html[0] ?? '', html[1] ?? ''];
+    let diferenca = 0;
+    while (diferenca < a.length && a[diferenca] === b[diferenca]) diferenca += 1;
+    expect(b.slice(Math.max(0, diferenca - 160), diferenca + 160)).toBe(a.slice(Math.max(0, diferenca - 160), diferenca + 160));
     expect(html[0]).toBe(html[1]);
     expect(html[0]).not.toMatch(/Gases Norte|Gases Sul|org-a|org-b/);
     expect(fetchSpy).not.toHaveBeenCalled();
