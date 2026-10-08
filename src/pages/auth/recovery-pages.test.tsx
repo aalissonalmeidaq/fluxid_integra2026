@@ -192,7 +192,7 @@ describe('Recuperação de acesso: apresentação (Spec 003)', () => {
 describe('Recuperação de senha: moldura renovada', () => {
   it('a tela de nova senha tem o painel de marca e um só h1', () => {
     renderWithConnectivity(<RecoveryConfirmPage />);
-    expect(screen.getByText('Controle seus ativos.')).toBeInTheDocument();
+    expect(screen.getByText('Cada cilindro, uma identidade.')).toBeInTheDocument();
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });

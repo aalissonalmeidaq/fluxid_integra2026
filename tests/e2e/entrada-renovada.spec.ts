@@ -33,7 +33,7 @@ test.describe('Entrada renovada (Spec 005, US1)', () => {
     } else {
       expect(painel!.y + painel!.height).toBeLessThanOrEqual(formulario!.y + 1);
     }
-    await expect(page.getByText('Controle seus ativos.')).toBeVisible();
+    await expect(page.getByText('Cada cilindro, uma identidade.')).toBeVisible();
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
     await expect(page.getByRole('banner')).toHaveCount(0);
     await expect(page.getByRole('navigation')).toHaveCount(0);
@@ -53,7 +53,7 @@ test.describe('Entrada renovada (Spec 005, US1)', () => {
     await preencher(page);
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
     await expect(page.getByRole('heading', { level: 2, name: 'Visão geral' })).toBeVisible();
-    await expect(page.getByText('Controle seus ativos.')).toHaveCount(0);
+    await expect(page.getByText('Cada cilindro, uma identidade.')).toHaveCount(0);
   });
 
   test('entrada inválida mostra mensagem genérica e devolve o foco à senha', async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe('Entrada renovada (Spec 005, US1)', () => {
     await preencher(page, 'global@e2e.invalid', 'Senha-E2E-Global-1');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Verificação em duas etapas' })).toBeVisible();
-    await expect(page.getByText('Controle seus ativos.')).toBeVisible();
+    await expect(page.getByText('Cada cilindro, uma identidade.')).toBeVisible();
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
     await expect(page.getByRole('navigation')).toHaveCount(0);
     await expect(page.getByRole('banner')).toHaveCount(0);
@@ -131,10 +131,10 @@ test.describe('Entrada renovada (Spec 005, US1)', () => {
     await new MockBackend().install(page);
     await page.goto('/?recovery=1');
     await expect(page.getByRole('heading', { level: 2, name: 'Recuperar acesso' })).toBeVisible();
-    await expect(page.getByText('Controle seus ativos.')).toBeVisible();
+    await expect(page.getByText('Cada cilindro, uma identidade.')).toBeVisible();
     await page.goto('/recuperar-senha/confirmar');
     await expect(page.getByRole('heading', { level: 2, name: 'Definir nova senha' })).toBeVisible();
-    await expect(page.getByText('Controle seus ativos.')).toBeVisible();
+    await expect(page.getByText('Cada cilindro, uma identidade.')).toBeVisible();
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
   });
 });

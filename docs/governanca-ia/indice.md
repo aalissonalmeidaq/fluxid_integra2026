@@ -39,6 +39,8 @@
 
 | RIA-024 | 08/10/2026, 08:54:58 - America/Fortaleza | 007 | 01 | Clientes, unidades, geocercas, veículos e motoristas | `registros/24_Clientes_Unidades_Geocercas_Veiculos_e_Motoristas.docx` (`RIA-024-clientes-unidades-geocercas-veiculos-e-motoristas.md`) | utilizado |
 
+| RIA-025 | 08/10/2026, 17:47:07 - America/Fortaleza | 005 | 02 | Evolução visual e recuperação de erro do Login | `registros/RIA-025-evolucao-visual-e-recuperacao-de-erro-do-login.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
@@ -48,3 +50,5 @@
 > Atualização do RIA-018: o link de revisão foi trocado pelo do pull request #7 em 01/10/2026.
 
 > Atualização do RIA-018: em 01/10/2026 o teste ao vivo do MFA foi repetido e aprovado, e o leitor de tela foi dispensado por decisão do responsável (não será usado no projeto atual).
+
+> Atualização do RIA-025: o link de revisão foi trocado pelo do pull request #24 em 08/10/2026.

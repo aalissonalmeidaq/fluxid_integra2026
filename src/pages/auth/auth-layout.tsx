@@ -16,7 +16,7 @@ export function AuthLayout({ children }: AuthLayoutProps): React.JSX.Element {
   return (
     <div className="grid min-h-full w-full flex-1 grid-cols-1 overflow-hidden rounded-card border border-borda-suave bg-branco desktop:grid-cols-2">
       <BrandPanel />
-      <div className="relative flex min-w-0 flex-col justify-center gap-6 bg-linear-to-b from-branco to-info-fundo px-4 py-8 tablet:px-8 desktop:px-12 desktop:py-16">
+      <div className="relative flex min-w-0 flex-col justify-center gap-6 bg-linear-to-b from-branco to-info-fundo px-4 py-6 tablet:px-8 tablet:py-8 desktop:px-12 desktop:py-16">
         <SecureBadge className="absolute end-6 top-6 hidden desktop:inline-flex" />
         <div className="mx-auto flex w-full max-w-compacto flex-col gap-6 rounded-card bg-branco p-6 shadow-dialogo tablet:p-8">
           <div className="hidden justify-center desktop:flex">
