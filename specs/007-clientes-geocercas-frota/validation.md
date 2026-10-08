@@ -157,4 +157,4 @@ Testes de comportamento acrescentados para a cobertura: `registry-views.test.ts`
 ### Pendências
 
 - T122: resultado e tempo de cada métrica MS-001 a MS-008, um a um.
-- T125: checks da PR verdes.
+- T125: concluída. Checks da PR #22 verdes no commit `dbba135` (qualidade em 47 min, banco/RLS, regressão visual e governança de IA).
