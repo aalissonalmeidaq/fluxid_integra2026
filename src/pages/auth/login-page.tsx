@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/app/auth/auth-context';
 import type { ActiveSessionSummary, LoginOutcome } from '@/application/identity/session-service';
 import { PasswordField } from '@/components/identity/password-field';
-import { Alert, Button, Loading, TextField } from '@/design-system';
+import { Alert, Button, TextField, VisuallyHidden } from '@/design-system';
 import { AuthLayout } from './auth-layout';
 import { ActiveSessionsDialog } from './active-sessions-dialog';
 import { ArrowRightIcon, LockIcon, MailIcon } from './login-icons';
@@ -30,7 +30,7 @@ export function LoginPage(): React.JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<{ kind: LoginOutcome['kind']; message: string } | null>(null);
   const [pending, setPending] = useState(false);
   const [limit, setLimit] = useState<ActiveSessionSummary[] | null>(null);
 
@@ -70,7 +70,7 @@ export function LoginPage(): React.JSX.Element {
       setLimit(null);
       const message = OUTCOME_MESSAGES[outcome.kind];
       if (message) {
-        setFormError(message);
+        setFormError({ kind: outcome.kind, message });
         setPassword('');
         passwordRef.current?.focus();
       }
@@ -78,6 +78,12 @@ export function LoginPage(): React.JSX.Element {
       pendingRef.current = false;
       setPending(false);
     }
+  }
+
+  // Corrigir o campo apaga o erro dele e o alerta da tentativa anterior, que já não descreve o que está na tela.
+  function clearErrors(field: 'email' | 'password'): void {
+    setFieldErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
+    setFormError(null);
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
@@ -99,76 +105,100 @@ export function LoginPage(): React.JSX.Element {
 
   return (
     <AuthLayout>
-    <section aria-labelledby="login-title" className="mx-auto flex w-full max-w-compacto flex-col gap-4">
-      <header className="flex flex-col gap-1 text-center">
-        <h2 id="login-title" className="m-0 text-h3 font-semibold text-navy">Bem-vindo de volta</h2>
-        <p className="m-0 text-corpo text-texto-secundario">Acesse sua conta para continuar</p>
-      </header>
+      <section aria-labelledby="login-title" className="mx-auto flex w-full max-w-compacto flex-col gap-4">
+        <header className="flex flex-col gap-1 text-center">
+          <h2 id="login-title" className="m-0 text-h3 font-semibold text-navy">Bem-vindo de volta</h2>
+          <p className="m-0 text-corpo text-texto-secundario">Acesse sua conta para continuar</p>
+        </header>
 
-      {alertNotice && (
-        <Alert ref={noticeRef} tabIndex={-1} variant="erro">
-          {noticeMessage(alertNotice, reason)}
-        </Alert>
-      )}
+        {alertNotice && (
+          <Alert ref={noticeRef} tabIndex={-1} variant="erro">
+            {noticeMessage(alertNotice, reason)}
+          </Alert>
+        )}
 
-      {notice === 'signed_out' && <Alert variant="sucesso">Você saiu com segurança.</Alert>}
+        {notice === 'signed_out' && <Alert variant="sucesso">Você saiu com segurança.</Alert>}
 
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-        <TextField
-          ref={emailRef}
-          label="E-mail"
-          leading={<MailIcon />}
-          placeholder="Digite seu e-mail"
-          type="email"
-          autoComplete="username"
-          inputMode="email"
-          autoCapitalize="none"
-          spellCheck={false}
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          error={fieldErrors.email}
-        />
-        <PasswordField
-          ref={passwordRef}
-          label="Senha"
-          leading={<LockIcon />}
-          placeholder="Digite sua senha"
-          autoComplete="current-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          error={fieldErrors.password}
-        />
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+          <TextField
+            ref={emailRef}
+            label="E-mail"
+            leading={<MailIcon />}
+            placeholder="nome@empresa.com.br"
+            type="email"
+            autoComplete="username"
+            inputMode="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              clearErrors('email');
+            }}
+            error={fieldErrors.email}
+          />
+          <PasswordField
+            ref={passwordRef}
+            label="Senha"
+            leading={<LockIcon />}
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              clearErrors('password');
+            }}
+            error={fieldErrors.password}
+          />
 
-        <button
-          type="button"
-          onClick={() => setRecovering(true)}
-          className="-mt-2 inline-flex min-h-alvo items-center self-end rounded-controle px-2 text-corpo font-semibold text-azul-profundo hover:underline"
-        >
-          Esqueci minha senha
-        </button>
+          <button
+            type="button"
+            onClick={() => setRecovering(true)}
+            className="-mt-2 inline-flex min-h-alvo items-center self-end rounded-controle px-2 text-corpo font-semibold text-azul-profundo hover:underline"
+          >
+            Esqueci minha senha
+          </button>
 
-        {formError && <Alert variant="erro">{formError}</Alert>}
+          {formError && (
+            <Alert variant="erro">
+              <span className="flex flex-col items-start gap-2">
+                {formError.message}
+                {formError.kind === 'invalid_credentials' && (
+                  <button
+                    type="button"
+                    onClick={() => setRecovering(true)}
+                    className="inline-flex min-h-alvo items-center rounded-controle font-semibold underline"
+                  >
+                    Esqueci minha senha
+                  </button>
+                )}
+              </span>
+            </Alert>
+          )}
 
-        {pending && !limit && <Loading variant="botao" label="Entrando…" />}
+          {pending && !limit && (
+            <div role="status" aria-live="polite">
+              <VisuallyHidden>Entrando…</VisuallyHidden>
+            </div>
+          )}
 
-        <Button ref={submitRef} type="submit" disabled={pending} className="w-full">
-          {pending ? 'Entrando…' : 'Entrar'}
-          {!pending && <ArrowRightIcon />}
-        </Button>
-      </form>
+          <Button ref={submitRef} type="submit" disabled={pending} className="w-full">
+            {pending ? 'Entrando…' : 'Entrar'}
+            {!pending && <ArrowRightIcon />}
+          </Button>
+        </form>
 
-      {limit && (
-        <ActiveSessionsDialog
-          sessions={limit}
-          pending={pending}
-          onConfirm={(sessionId) => void attempt(sessionId)}
-          onCancel={() => {
-            setLimit(null);
-            setPassword('');
-          }}
-        />
-      )}
-    </section>
+        {limit && (
+          <ActiveSessionsDialog
+            sessions={limit}
+            pending={pending}
+            onConfirm={(sessionId) => void attempt(sessionId)}
+            onCancel={() => {
+              setLimit(null);
+              setPassword('');
+            }}
+          />
+        )}
+      </section>
     </AuthLayout>
   );
 }

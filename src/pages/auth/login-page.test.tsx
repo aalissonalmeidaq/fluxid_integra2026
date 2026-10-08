@@ -49,6 +49,8 @@ describe('LoginPage: formulário acessível', () => {
     expect(login).toHaveBeenCalledTimes(1);
     expect(login).toHaveBeenCalledWith({ email: 'ana@example.invalid', password: 'Senha-Forte-123' });
     expect(screen.getByRole('status')).toHaveTextContent(/entrando/i);
+    // O andamento aparece uma só vez na tela: o aviso de status é só para leitor de tela e o texto visível é o do botão.
+    expect(screen.getByRole('status').firstElementChild).toHaveClass('sr-only');
     expect(screen.getByRole('button', { name: /entrando/i })).toBeDisabled();
     release({ kind: 'authenticated' });
     await waitFor(() => expect(screen.getByRole('button', { name: 'Entrar' })).toBeEnabled());
@@ -96,6 +98,46 @@ describe('LoginPage: mensagens por resultado', () => {
     await screen.findByRole('alert');
     expect(screen.getByLabelText('Senha')).toHaveValue('');
     expect(screen.getByLabelText('Senha')).toHaveFocus();
+  });
+});
+
+describe('LoginPage: recuperação depois da falha (harden)', () => {
+  it('oferece "Esqueci minha senha" dentro do alerta de credencial incorreta e abre a recuperação', async () => {
+    renderLogin({ kind: 'invalid_credentials' });
+    fill();
+    submit();
+    const alert = await screen.findByRole('alert');
+    fireEvent.click(within(alert).getByRole('button', { name: 'Esqueci minha senha' }));
+    expect(screen.getByRole('heading', { name: /recuperar|redefinir|esqueci/i })).toBeInTheDocument();
+  });
+
+  it.each(['account_unavailable', 'rate_limited', 'unavailable'] as const)('não oferece o atalho de recuperação quando o resultado é %s', async (kind) => {
+    renderLogin({ kind });
+    fill();
+    submit();
+    const alert = await screen.findByRole('alert');
+    expect(within(alert).queryByRole('button', { name: 'Esqueci minha senha' })).toBeNull();
+  });
+
+  it('some com o alerta de falha ao digitar de novo', async () => {
+    renderLogin({ kind: 'invalid_credentials' });
+    fill();
+    submit();
+    await screen.findByRole('alert');
+    fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'outra' } });
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('mostra os dois erros de campo juntos e limpa cada um ao digitar no campo', () => {
+    renderLogin({ kind: 'authenticated' });
+    submit();
+    expect(screen.getByText('Informe seu e-mail.')).toBeInTheDocument();
+    expect(screen.getByText('Informe sua senha.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('E-mail'), { target: { value: 'a' } });
+    expect(screen.queryByText('Informe seu e-mail.')).toBeNull();
+    expect(screen.getByText('Informe sua senha.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'x' } });
+    expect(screen.queryByText('Informe sua senha.')).toBeNull();
   });
 });
 
@@ -254,7 +296,7 @@ describe('LoginPage: moldura renovada (Spec 005)', () => {
   it('fica dentro da moldura com painel de marca e um só h1 (o logotipo)', () => {
     renderLogin({ kind: 'authenticated' });
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-    expect(screen.getByText('Controle seus ativos.')).toBeInTheDocument();
+    expect(screen.getByText('Cada cilindro, uma identidade.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Bem-vindo de volta' })).toBeInTheDocument();
   });
 
