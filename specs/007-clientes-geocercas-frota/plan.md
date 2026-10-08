@@ -53,7 +53,7 @@ Fica de fora, por decisão da spec: viagens e escalação (Fase 4), aplicativo d
 | IV Estados explícitos | Situação cadastral, situação operacional do veículo e situação do documento (calculada) são independentes, em colunas e componentes separados | Aprovado |
 | V Experiência e acessibilidade | Design system, WCAG 2.2 AA, 360 px a desktop amplo, PWA preservada; offline informa que escrita e busca de CEP exigem conexão; geocerca com alternativa em texto | Aprovado |
 | VI Rastreabilidade | Branch `feat/007-clientes-geocercas-frota`, spec 007, issue (a abrir), PR e RIA de encerramento | Aprovado |
-| VII Qualidade verificável | Lint, tipagem, testes, cobertura, RLS, integração, E2E, axe, build PWA e validação humana (Alisson Almeida) | Aprovado |
+| VII Qualidade verificável | Lint, tipagem, testes, cobertura, RLS, integração, E2E, axe, build PWA e validação humana (Natã Baracho) | Aprovado |
 | VIII Documentação viva | Contratos desta spec; `docs/prd.md` e `README.md` atualizados na convergência | Aprovado |
 
 Nenhuma violação a justificar. Dois pontos de atenção estão em *Riscos*: dados pessoais em coluna de texto (criptografia por coluna avaliada e adiada) e dependência de um serviço público externo.

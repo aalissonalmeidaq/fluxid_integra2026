@@ -80,13 +80,7 @@ Correções feitas na rodada final: controles do Leaflet (`map-view.css`) passar
 
 ## 6. Validação humana (T124)
 
-**Pendente: há uma inconsistência que depende de confirmação humana.** Três registros não concordam:
-
-- `tasks.md` (T124) determina a entrevista com **Alisson Almeida**;
-- o RIA-024 registra validação feita por **Natã Baracho**;
-- esta seção declarava a validação pendente.
-
-Nenhuma das versões foi escolhida. O responsável pelo projeto precisa confirmar (1) quem é o validador oficial, (2) se a validação registrada no RIA-024 pode ser usada e (3) se T124 deve ser corrigida ou se uma nova entrevista com Alisson deve ocorrer. Até lá, T124 e o encerramento da spec permanecem pendentes, e nada foi preenchido em nome de ninguém.
+**Inconsistência resolvida.** `tasks.md` citava Alisson Almeida, o RIA-024 registra Natã Baracho e esta seção declarava a validação pendente. Confirmado pelo responsável pelo projeto em 08/10/2026 (mensagem na conversa): (1) o validador oficial é **Natã Baracho**; (2) a validação registrada no RIA-024 pode ser usada; (3) T124 deve ser corrigida, e foi, sem nova entrevista com Alisson. O conteúdo da validação é o do RIA-024; nada foi acrescentado em nome de ninguém.
 
 ## 7. Ajuste: uso controlado do Nominatim no protótipo (08/10/2026)
 
@@ -109,7 +103,7 @@ Nenhuma das versões foi escolhida. O responsável pelo projeto precisa confirma
 
 Os resultados medidos estão na seção 8.
 
-**Pendência (T160):** a validação humana do RIA-024 foi feita antes deste ajuste. A pessoa responsável precisa repetir a entrevista sobre o fluxo novo (aviso, confirmação, pessoa física bloqueada, correção no mapa) antes do merge. Nada foi preenchido em nome dela.
+**T160:** a validação do RIA-024 é anterior a este ajuste. Confirmado pelo responsável pelo projeto em 08/10/2026 (mensagem na conversa): o fluxo novo está validado. Amostra, ambiente e duração não foram informados e não estão registrados.
 
 ## 8. Revisão final: gates reproduzidos e corrigidos (08/10/2026)
 
@@ -152,10 +146,15 @@ Testes de comportamento acrescentados para a cobertura: `registry-views.test.ts`
 - `GEOCODING_CACHE_TTL_DAYS`: 1 a 90 dias, padrão 30, repassado à gravação do cache.
 - `GEOCODING_RATE_LIMIT_PER_SECOND`: nunca acima de 1 requisição por segundo.
 
-### Pendências que dependem de confirmação humana
+### Decisões humanas registradas em 08/10/2026 (Confirmado pelo responsável pelo projeto em 08/10/2026 (mensagem na conversa))
 
-- Validador oficial e validade do que está no RIA-024 (seção 6).
-- T122 permanece aberta: faltam o roteiro completo do `quickstart.md` e os resultados e tempos reais de MS-001 a MS-008.
-- T125 permanece aberta até os checks da PR ficarem verdes e a revisão ser aprovada.
-- T160: nova validação humana do fluxo de busca de coordenadas.
-- T146: decisão jurídica, contratual e de capacidade para produção.
+- **Validador oficial:** Natã Baracho; validação do RIA-024 aceita; T124 corrigida (seção 6).
+- **T125:** revisão aprovada; falta apenas os checks da PR ficarem verdes.
+- **T160:** fluxo novo de coordenadas validado.
+- **T146:** envio ao Nominatim liberado para o protótipo, a ser revisado no futuro; produção continua exigindo avaliação jurídica, contratual e de capacidade.
+- **T122:** o roteiro do quickstart foi realizado, com tempos de 20 minutos e de 34 minutos. Não foi dito a que etapa ou métrica cada tempo se refere, então MS-001 a MS-008 **não** foram preenchidas.
+
+### Pendências
+
+- T122: resultado e tempo de cada métrica MS-001 a MS-008, um a um.
+- T125: checks da PR verdes.

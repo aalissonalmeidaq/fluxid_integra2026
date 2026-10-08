@@ -65,7 +65,7 @@ Três pontos tornam esta spec diferente da anterior: o **endereço** da unidade 
 - **Auditor**: só consulta e vê o histórico, sem revelar documentos.
 - **Motorista (papel `driver`)**: nesta spec não acessa nenhuma tela de cadastro; o vínculo dele com o cadastro de motorista serve à Fase 5.
 - **Administrador FluxID (perfil global)**: só vê dados de uma organização quando atua com ela como organização ativa e com permissão para isso.
-- **Alisson Almeida**: responsável pela validação humana do ciclo.
+- **Natã Baracho**: validador oficial da validação humana do ciclo (confirmado pelo responsável pelo projeto em 08/10/2026; antes constava Alisson Almeida).
 
 ## Cenários de usuário e testes
 
