@@ -55,12 +55,12 @@ test.describe('Geocercas: fluxo completo', () => {
     await page.getByLabel('Latitude do ponto').fill('-23,5502');
     await page.getByLabel('Longitude do ponto').fill('-46,6331');
     await page.getByRole('button', { name: 'Testar ponto' }).click();
-    await expect(page.getByText('O ponto está dentro da geocerca.')).toBeVisible();
+    await expect(page.getByText('O ponto está dentro da geocerca.', { exact: true })).toBeVisible();
 
     await page.getByLabel('Latitude do ponto').fill('-23,5');
     await page.getByLabel('Longitude do ponto').fill('-46,6');
     await page.getByRole('button', { name: 'Testar ponto' }).click();
-    await expect(page.getByText('O ponto está fora da geocerca.')).toBeVisible();
+    await expect(page.getByText('O ponto está fora da geocerca.', { exact: true })).toBeVisible();
 
     // A geocerca aparece no detalhe da unidade e na lista.
     await page.goto(`/clientes/${CUSTOMER_A}/unidades/${SITE_A}`);
@@ -92,10 +92,10 @@ test.describe('Geocercas: fluxo completo', () => {
     await page.getByLabel('Latitude do ponto').fill('-23,5');
     await page.getByLabel('Longitude do ponto').fill('-46,6');
     await page.getByRole('button', { name: 'Testar ponto' }).click();
-    await expect(page.getByText('O ponto está dentro da geocerca.')).toBeVisible();
+    await expect(page.getByText('O ponto está dentro da geocerca.', { exact: true })).toBeVisible();
     await page.getByLabel('Longitude do ponto').fill('-46,58');
     await page.getByRole('button', { name: 'Testar ponto' }).click();
-    await expect(page.getByText('O ponto está fora da geocerca.')).toBeVisible();
+    await expect(page.getByText('O ponto está fora da geocerca.', { exact: true })).toBeVisible();
   });
 
   test('sobreposição avisa com o nome da outra geocerca e a nova fica salva', async ({ page }) => {
