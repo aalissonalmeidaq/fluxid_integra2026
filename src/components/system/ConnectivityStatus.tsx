@@ -8,6 +8,8 @@ export interface ConnectivityStatusProps {
   onReconnect?: () => void;
   // Versão discreta para a barra superior: quando conectado, só um ponto e o texto curto, sem caixa nem borda.
   compact?: boolean;
+  // Falso quando outro aviso já anuncia a perda de rede (a faixa de offline): o estado fica visível, mas sem repetir o anúncio.
+  announce?: boolean;
 }
 
 const ENDPOINT_LABELS: Record<EndpointKind, string> = {
@@ -22,6 +24,7 @@ export function ConnectivityStatus({
   result,
   onReconnect,
   compact = false,
+  announce = true,
 }: ConnectivityStatusProps): React.JSX.Element {
   const { state, selectedEndpoint } = result;
 
@@ -77,9 +80,21 @@ export function ConnectivityStatus({
     );
   }
 
+  // Barra superior sem rede: texto neutro e um ponto vazio, nunca o verde de "conectado". Com a rede do aparelho fora, a faixa de offline é
+  // quem anuncia e o botão de reconectar não faz sentido; com a rede boa e o Supabase fora, o estado é anunciado e o botão fica.
+  if (state === 'offline' && compact) {
+    return (
+      <div role={announce ? 'status' : undefined} className="inline-flex items-center gap-2 text-legenda text-texto-secundario">
+        <span data-testid="status-icon-offline" aria-hidden="true">○</span>
+        <span>Sem conexão</span>
+        {announce && onReconnect && <Button variant="secundario" onClick={onReconnect}>Reconectar</Button>}
+      </div>
+    );
+  }
+
   if (state === 'offline') {
     return (
-      <div role="alert" className={`${BASE} flex-wrap border-borda-controle bg-branco text-grafite`}>
+      <div role={announce ? 'alert' : undefined} className={`${BASE} flex-wrap border-borda-controle bg-branco text-grafite`}>
         <span>Sem conexão (Offline)</span>
         {onReconnect && (
           <Button variant="secundario" onClick={onReconnect}>

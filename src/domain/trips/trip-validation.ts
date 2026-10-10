@@ -85,6 +85,8 @@ export interface DeliveryFormInput {
   latitude: string;
   longitude: string;
   atSiteAddress: boolean;
+  // Justificativa da correção de uma entrega (RF-015); só vale quando `options.correction` está ligada.
+  correctionReason?: string | undefined;
   results: readonly DeliveryResultInput[];
 }
 export interface DeliveryFormValue {
@@ -94,6 +96,8 @@ export interface DeliveryFormValue {
   latitude: number | null;
   longitude: number | null;
   atSiteAddress: boolean;
+  // Justificativa normalizada da correção; `null` na entrega original.
+  correctionReason: string | null;
   results: { itemId: string; delivered: boolean; reason?: string }[];
 }
 
@@ -104,8 +108,14 @@ function parseCoordinate(value: string): number | null | 'invalid' {
 }
 
 // O horário informado não pode estar no futuro; o servidor repete a conferência.
-// Na correção só de dados do recebedor (sem cilindros pendentes) a lista de resultados pode ser vazia.
-export function validateDeliveryForm(input: DeliveryFormInput, now: Date = new Date(), options: { allowNoResults?: boolean } = {}): ValidationResult<DeliveryFormValue> {
+// Na correção só de dados do recebedor (sem cilindros pendentes) a lista de resultados pode ser vazia. A correção (`correction`) exige a
+// justificativa de 5 a 500 caracteres (RF-015), depois de juntar os espaços repetidos. A posição é por coordenadas ou no endereço da
+// unidade, nunca as duas.
+export function normalizeText(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+export function validateDeliveryForm(input: DeliveryFormInput, now: Date = new Date(), options: { allowNoResults?: boolean; correction?: boolean } = {}): ValidationResult<DeliveryFormValue> {
   const errors: FieldErrors = {};
   const moment = input.deliveredAt === '' ? Number.NaN : new Date(input.deliveredAt).getTime();
   if (Number.isNaN(moment)) fail(errors, 'deliveredAt', 'Informe a data e a hora da entrega.');
@@ -123,6 +133,12 @@ export function validateDeliveryForm(input: DeliveryFormInput, now: Date = new D
   if (longitude === 'invalid') fail(errors, 'longitude', 'Informe a longitude em graus decimais.');
   else if (longitude !== null && (longitude < -180 || longitude > 180)) fail(errors, 'longitude', 'A longitude vai de −180 a 180.');
   if ((latitude === null) !== (longitude === null)) fail(errors, latitude === null ? 'latitude' : 'longitude', 'Informe a latitude e a longitude juntas, ou deixe as duas em branco.');
+  if (input.atSiteAddress && (latitude !== null || longitude !== null)) fail(errors, 'atSiteAddress', 'Escolha só uma forma de informar a posição: as coordenadas ou no endereço da unidade.');
+
+  const correctionReason = options.correction === true ? normalizeText(input.correctionReason ?? '') : null;
+  if (correctionReason !== null && (correctionReason.length < TRIP_LIMITS.justificationMin || correctionReason.length > TRIP_LIMITS.justificationMax)) {
+    fail(errors, 'correctionReason', `Explique por que corrige a entrega, em ${TRIP_LIMITS.justificationMin} a ${TRIP_LIMITS.justificationMax} caracteres.`);
+  }
 
   if (input.results.length === 0 && options.allowNoResults !== true) fail(errors, 'results', 'A parada não tem cilindros para registrar.');
   input.results.forEach((result) => {
@@ -138,6 +154,7 @@ export function validateDeliveryForm(input: DeliveryFormInput, now: Date = new D
     latitude: typeof latitude === 'number' ? latitude : null,
     longitude: typeof longitude === 'number' ? longitude : null,
     atSiteAddress: input.atSiteAddress,
+    correctionReason,
     results: input.results.map((result) => (result.delivered ? { itemId: result.itemId, delivered: true } : { itemId: result.itemId, delivered: false, reason: result.reason.trim() })),
   }));
 }

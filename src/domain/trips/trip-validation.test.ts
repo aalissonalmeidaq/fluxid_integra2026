@@ -134,3 +134,65 @@ describe('justificativas', () => {
     expect(validateUnlockForm({ exceptional: true, justification: 'Cilindro precisa voltar' })).toEqual({ ok: true, value: { justification: 'Cilindro precisa voltar' } });
   });
 });
+
+describe('validateDeliveryForm: justificativa da correção (RF-015)', () => {
+  const correcao = { allowNoResults: true, correction: true } as const;
+  const erro = { ok: false, errors: { correctionReason: expect.stringContaining('5 a 500') } };
+
+  it('a correção exige a justificativa', () => {
+    expect(validateDeliveryForm(delivery({ results: [] }), NOW, correcao)).toMatchObject(erro);
+    expect(validateDeliveryForm(delivery({ results: [], correctionReason: undefined }), NOW, correcao)).toMatchObject(erro);
+  });
+
+  it('justificativa só com espaços conta como vazia', () => {
+    expect(validateDeliveryForm(delivery({ results: [], correctionReason: '      ' }), NOW, correcao)).toMatchObject(erro);
+    expect(validateDeliveryForm(delivery({ results: [], correctionReason: '\n\t  \n' }), NOW, correcao)).toMatchObject(erro);
+  });
+
+  it('tem de 5 a 500 caracteres, contados depois de limpar os espaços', () => {
+    expect(validateDeliveryForm(delivery({ results: [], correctionReason: 'Erro' }), NOW, correcao)).toMatchObject(erro);
+    expect(validateDeliveryForm(delivery({ results: [], correctionReason: '  ab  c ' }), NOW, correcao)).toMatchObject(erro);
+    expect(validateDeliveryForm(delivery({ results: [], correctionReason: 'Erro!' }), NOW, correcao).ok).toBe(true);
+    expect(validateDeliveryForm(delivery({ results: [], correctionReason: 'x'.repeat(500) }), NOW, correcao).ok).toBe(true);
+    expect(validateDeliveryForm(delivery({ results: [], correctionReason: 'x'.repeat(501) }), NOW, correcao)).toMatchObject(erro);
+  });
+
+  it('normaliza os espaços e devolve a justificativa limpa', () => {
+    const result = validateDeliveryForm(delivery({ results: [], correctionReason: '  Nome   do\n recebedor \t digitado   errado  ' }), NOW, correcao);
+    expect(result).toMatchObject({ ok: true, value: { correctionReason: 'Nome do recebedor digitado errado' } });
+  });
+
+  it('a entrega original não tem justificativa de correção, mesmo que o campo venha preenchido', () => {
+    expect(validateDeliveryForm(delivery({ correctionReason: 'Texto que não vale' }), NOW)).toMatchObject({ ok: true, value: { correctionReason: null } });
+    expect(validateDeliveryForm(delivery(), NOW)).toMatchObject({ ok: true, value: { correctionReason: null } });
+  });
+});
+
+describe('validateDeliveryForm: posição por coordenadas ou no endereço da unidade, nunca as duas', () => {
+  const contradicao = { ok: false, errors: { atSiteAddress: expect.stringContaining('só uma') } };
+
+  it.each([
+    ['coordenadas', { latitude: '-23,55', longitude: '-46,63', atSiteAddress: false }, true],
+    ['no endereço da unidade', { latitude: '', longitude: '', atSiteAddress: true }, true],
+    ['sem posição', { latitude: '', longitude: '', atSiteAddress: false }, true],
+  ])('aceita %s', (_nome, patch, ok) => {
+    expect(validateDeliveryForm(delivery(patch), NOW).ok).toBe(ok);
+  });
+
+  it.each([
+    ['as duas coordenadas e o endereço', { latitude: '-23,55', longitude: '-46,63', atSiteAddress: true }],
+    ['só a latitude e o endereço', { latitude: '-23,55', longitude: '', atSiteAddress: true }],
+    ['só a longitude e o endereço', { latitude: '', longitude: '-46,63', atSiteAddress: true }],
+  ])('recusa %s', (_nome, patch) => {
+    expect(validateDeliveryForm(delivery(patch), NOW)).toMatchObject(contradicao);
+  });
+
+  it('no endereço da unidade o valor devolvido não leva coordenadas', () => {
+    expect(validateDeliveryForm(delivery({ atSiteAddress: true }), NOW)).toMatchObject({ ok: true, value: { latitude: null, longitude: null, atSiteAddress: true } });
+  });
+
+  it('mantém o par de coordenadas e a faixa de cada uma', () => {
+    expect(validateDeliveryForm(delivery({ latitude: '-23,55' }), NOW)).toMatchObject({ ok: false, errors: { longitude: expect.stringContaining('juntas') } });
+    expect(validateDeliveryForm(delivery({ latitude: '91', longitude: '0' }), NOW)).toMatchObject({ ok: false, errors: { latitude: 'A latitude vai de −90 a 90.' } });
+  });
+});

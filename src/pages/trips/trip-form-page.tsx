@@ -27,7 +27,7 @@ const defaultNavigate = (path: string): void => window.location.assign(path);
 interface Values { plannedDate: string; vehicleId: string; driverId: string; notes: string }
 const SERVER_FIELDS: Record<string, string> = { planned_date: 'plannedDate', vehicle_id: 'vehicleId', driver_id: 'driverId', notes: 'notes', stops: 'stops', cylinders: 'cylinders', request_id: 'form' };
 
-type Banner = { variant: 'erro' | 'informacao'; title?: string; message: string; recarregar?: boolean; tripId?: string };
+type Banner = { variant: 'erro' | 'informacao'; title?: string; message: string; recarregar?: boolean; tripId?: string; trips?: { id: string; number: number }[] };
 type Load = 'loading' | 'ready' | 'not_found' | 'error';
 
 const ENTITY_LABELS: Record<string, string> = { vehicle: 'O veículo', driver: 'O motorista', site: 'Uma unidade da viagem', customer: 'O cliente de uma unidade' };
@@ -35,8 +35,6 @@ const ENTITY_LABELS: Record<string, string> = { vehicle: 'O veículo', driver: '
 // Estado de tela para cada falha do servidor, em texto claro e sem culpar a pessoa (contracts/operacoes-servidor.md).
 function describeFailure(failure: TripFailure, serialOf: (id: string | undefined) => string): Banner | null {
   switch (failure.kind) {
-    case 'cylinder_reserved':
-      return { variant: 'erro', title: 'Cilindro já reservado', message: `${serialOf(failure.cylinderId)} já está na viagem n.º ${failure.trip?.number ?? ''}. Tire-o desta viagem ou escolha outro.`.replace('  ', ' '), ...(failure.trip ? { tripId: failure.trip.id } : {}) };
     case 'cylinder_not_eligible':
       return { variant: 'erro', title: 'Cilindro não pode viajar', message: `${serialOf(failure.cylinderId)}: ${failure.reason ? CYLINDER_REFUSAL_LABELS[failure.reason as CylinderRefusalReason] ?? 'não elegível' : 'não elegível'}.` };
     case 'capacity_exceeded':
@@ -97,6 +95,8 @@ export function TripFormView({ organizationId, service, online, tripId, onNaviga
   const [errors, setErrors] = useState<FieldErrors>({});
   const [errorTick, setErrorTick] = useState(0);
   const [banner, setBanner] = useState<Banner | null>(null);
+  // Cilindros que outra operação reservou depois da busca: saem da lista e não voltam pela busca já carregada.
+  const [reservedElsewhere, setReservedElsewhere] = useState<string[]>([]);
   const [live, setLive] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -195,8 +195,33 @@ export function TripFormView({ organizationId, service, online, tripId, onNaviga
       setBanner({ variant: 'erro', message: 'Revise os dados informados e tente de novo.' });
       return;
     }
+    if (outcome.kind === 'cylinder_reserved') { dropReserved(outcome); return; }
     const described = describeFailure(outcome, serialOf);
     if (described) { setBanner(described); announce(described.message); }
+  };
+
+  // Reserva concorrente (RF-004): o servidor recusou sem gravar nada. Tira da lista só os cilindros em conflito, mantém todo o resto
+  // preenchido e diz, em texto, o que aconteceu; a viagem que reservou só vem para quem pode lê-la. Sem recarregar a tela.
+  const dropReserved = (failure: TripFailure): void => {
+    const conflicts = failure.conflicts ?? (failure.cylinderId ? [{ cylinderId: failure.cylinderId, ...(failure.trip ? { trip: failure.trip } : {}) }] : []);
+    const ids = new Set(conflicts.map((conflict) => conflict.cylinderId));
+    const serials = [...ids].map((id) => serialOf(id));
+    setStops((current) => current.map((stop) => ({ ...stop, cylinders: stop.cylinders.filter((cylinder) => !ids.has(cylinder.id)) })));
+    setReservedElsewhere((current) => [...new Set([...current, ...ids])]);
+    const trips = [...new Map(conflicts.flatMap((conflict) => (conflict.trip ? [[conflict.trip.id, conflict.trip] as const] : []))).values()];
+    const plural = serials.length > 1;
+    const who = plural ? `${serials.slice(0, -1).join(', ')} e ${serials[serials.length - 1]!}` : (serials[0] ?? 'O cilindro');
+    const where = trips.length > 0 ? `, na viagem n.º ${trips.map((trip) => trip.number).join(' e ')}` : '';
+    const message = `${who} ${plural ? 'foram reservados' : 'foi reservado'} por outra operação${where}. Os demais dados foram mantidos: confira a lista e confirme de novo.`;
+    setBanner({ variant: 'erro', title: plural ? 'Cilindros reservados por outra operação' : 'Cilindro reservado por outra operação', message, trips });
+    announce(message);
+  };
+
+  // Os links do aviso navegam dentro do app: nada de recarregar a página e perder o que foi preenchido.
+  const goTo = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>): void => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+    event.preventDefault();
+    navigateTo(path);
   };
 
   const title = editing ? 'Editar viagem' : 'Planejar viagem';
@@ -225,7 +250,10 @@ export function TripFormView({ organizationId, service, online, tripId, onNaviga
       {banner && (banner.variant === 'erro' ? (
         <Alert ref={bannerRef} tabIndex={-1} variant="erro" {...(banner.title ? { title: banner.title } : {})}>
           <p>{banner.message}</p>
-          {banner.tripId && <a className="font-semibold underline" href={`/viagens/${banner.tripId}`}>Abrir essa viagem</a>}
+          {banner.tripId && <a className="font-semibold underline" href={`/viagens/${banner.tripId}`} onClick={goTo(`/viagens/${banner.tripId}`)}>Abrir essa viagem</a>}
+          {banner.trips?.map((trip) => (
+            <a key={trip.id} className="mr-4 font-semibold underline" href={`/viagens/${trip.id}`} onClick={goTo(`/viagens/${trip.id}`)}>{`Abrir a viagem n.º ${trip.number}`}</a>
+          ))}
           {banner.recarregar && <Button variant="secundario" className="mt-2" onClick={reload}>Recarregar dados</Button>}
         </Alert>
       ) : <TripNotice variant="informacao">{banner.message}</TripNotice>)}
@@ -258,7 +286,7 @@ export function TripFormView({ organizationId, service, online, tripId, onNaviga
             <FormCard>
               <FormSection legend="Paradas e cilindros" description="Cada parada é uma unidade de cliente, na ordem da viagem. Os cilindros ficam reservados ao salvar.">
                 <StopEditor stops={stops} sites={options?.sites ?? []} onChange={setStops} service={service} organizationId={organizationId}
-                  remaining={summary.remainingCapacity} errors={errors} disabled={submitting} onAnnounce={announce} />
+                  remaining={summary.remainingCapacity} errors={errors} disabled={submitting} unavailableIds={reservedElsewhere} onAnnounce={announce} />
                 {errors.cylinders && <p role="alert" className="text-corpo font-semibold text-erro">{errors.cylinders}</p>}
               </FormSection>
             </FormCard>

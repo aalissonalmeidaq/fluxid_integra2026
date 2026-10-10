@@ -296,7 +296,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Esclarecer os dois pontos sem detalhe da análise crítica (cilindro já reservado e selo Em trânsito repetido). Observação: com o aparelho offline, a barra superior ainda mostrou "Conectado: Dispositivo local" ao lado da faixa de sem conexão.
+Os três pontos que ficaram em aberto na revisão foram corrigidos em 10/10/2026, depois da validação humana acima, e não foram revalidados por uma pessoa: o conflito de cilindro já reservado (o servidor devolve todos os cilindros em conflito de uma vez, em ordem fixa, e a tela tira só esses), o selo "Em trânsito" repetido (item e custódia com o mesmo texto agora mostram um selo só) e a barra superior que dizia "Conectado" com o aparelho sem rede (a apresentação passa a mostrar "offline"; a escolha do destino não muda). Também entraram a justificativa obrigatória na correção de entrega e a regra de posição por coordenadas ou no endereço da unidade, nunca as duas. A pessoa responsável precisa confirmar essas correções antes do merge.
 
 ## Validação humana
 

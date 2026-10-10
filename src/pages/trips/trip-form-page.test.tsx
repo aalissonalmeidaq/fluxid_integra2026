@@ -71,9 +71,107 @@ describe('planejar viagem', () => {
     renderForm(fakeTripService({ createTrip: vi.fn(async () => ({ kind: 'cylinder_reserved', cylinderId: cylinder(1).id, trip: { id: 'outra-viagem', number: 4 } })) }));
     await fillPlan();
     fireEvent.click(screen.getByRole('button', { name: 'Planejar viagem' }));
-    expect(await screen.findByText('Cilindro já reservado')).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent(/CIL-001 já está na viagem n.º 4/);
-    expect(screen.getByRole('link', { name: 'Abrir essa viagem' })).toHaveAttribute('href', '/viagens/outra-viagem');
+    expect(await screen.findByText('Cilindro reservado por outra operação')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/CIL-001 foi reservado por outra operação, na viagem n.º 4/);
+    expect(screen.getByRole('link', { name: 'Abrir a viagem n.º 4' })).toHaveAttribute('href', '/viagens/outra-viagem');
+  });
+
+  describe('reserva concorrente: outro operador reservou o cilindro entre a busca e a confirmação', () => {
+    const conflict = (...ids: number[]) => ({
+      kind: 'cylinder_reserved' as const, cylinderId: cylinder(ids[0]!).id, trip: { id: 'outra-viagem', number: 4 },
+      conflicts: ids.map((n) => ({ cylinderId: cylinder(n).id, trip: { id: 'outra-viagem', number: 4 } })),
+    });
+
+    it('tira só o cilindro em conflito, avisa em texto claro e mantém todo o resto preenchido', async () => {
+      const service = fakeTripService({ createTrip: vi.fn(async () => conflict(1)) });
+      renderForm(service);
+      await fillPlan(['CIL-001', 'CIL-002', 'CIL-003']);
+      fireEvent.change(screen.getByLabelText('Observações'), { target: { value: 'levar rampa' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Planejar viagem' }));
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('Cilindro reservado por outra operação');
+      expect(alert).toHaveTextContent(/CIL-001 foi reservado por outra operação, na viagem n\.º 4\./);
+      expect(alert).toHaveTextContent(/Os demais dados foram mantidos/);
+      expect(screen.queryByRole('button', { name: /^Tirar CIL-001 da parada/ })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Tirar CIL-002 da parada/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Tirar CIL-003 da parada/ })).toBeInTheDocument();
+      expect(screen.getByLabelText('Veículo')).toHaveValue(VEHICLE);
+      expect(screen.getByLabelText('Motorista')).toHaveValue(DRIVER);
+      expect(screen.getByLabelText('Unidade da parada 1')).toHaveValue(SITE_1);
+      expect(screen.getByLabelText('Observações')).toHaveValue('levar rampa');
+      expect(screen.getByText('2 de 3')).toBeInTheDocument();
+    });
+
+    it('não recarrega a tela: o formulário é o mesmo e os dados não são pedidos de novo', async () => {
+      const service = fakeTripService({ createTrip: vi.fn(async () => conflict(1)) });
+      renderForm(service);
+      await fillPlan();
+      const form = screen.getByRole('button', { name: 'Planejar viagem' }).closest('form');
+      fireEvent.click(screen.getByRole('button', { name: 'Planejar viagem' }));
+      await screen.findByRole('alert');
+      expect(screen.queryByText(/Carregando/i)).not.toBeInTheDocument();
+      expect(form?.isConnected).toBe(true);
+      expect(screen.getByRole('button', { name: 'Planejar viagem' }).closest('form')).toBe(form);
+      expect(service.tripOptions).toHaveBeenCalledTimes(1);
+    });
+
+    it('o cilindro em conflito some da busca aberta, sem refazer a tela', async () => {
+      renderForm(fakeTripService({ createTrip: vi.fn(async () => conflict(1)) }));
+      await fillPlan(['CIL-001']);
+      fireEvent.click(screen.getByRole('button', { name: 'Planejar viagem' }));
+      await screen.findByRole('alert');
+      expect(screen.queryByRole('button', { name: 'Adicionar CIL-001' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Adicionar CIL-002' })).toBeInTheDocument();
+    });
+
+    it('o link da viagem em conflito navega dentro do app, sem recarregar a página', async () => {
+      const { onNavigate } = renderForm(fakeTripService({ createTrip: vi.fn(async () => conflict(1)) }));
+      await fillPlan();
+      fireEvent.click(screen.getByRole('button', { name: 'Planejar viagem' }));
+      const link = await screen.findByRole('link', { name: 'Abrir a viagem n.º 4' });
+      expect(link).toHaveAttribute('href', '/viagens/outra-viagem');
+      const notPrevented = fireEvent.click(link);
+      expect(notPrevented).toBe(false);
+      expect(onNavigate).toHaveBeenCalledWith('/viagens/outra-viagem');
+    });
+
+    it('sem a viagem (a pessoa não pode lê-la) o aviso não a revela e não oferece o link', async () => {
+      renderForm(fakeTripService({ createTrip: vi.fn(async () => ({ kind: 'cylinder_reserved' as const, cylinderId: cylinder(1).id, conflicts: [{ cylinderId: cylinder(1).id }] })) }));
+      await fillPlan();
+      fireEvent.click(screen.getByRole('button', { name: 'Planejar viagem' }));
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent(/CIL-001 foi reservado por outra operação\./);
+      expect(alert).not.toHaveTextContent(/viagem n\.º/);
+      expect(screen.queryByRole('link', { name: /Abrir a viagem/ })).not.toBeInTheDocument();
+    });
+
+    it('vários cilindros em conflito saem todos de uma vez e aparecem no aviso', async () => {
+      renderForm(fakeTripService({ createTrip: vi.fn(async () => conflict(1, 3)) }));
+      await fillPlan(['CIL-001', 'CIL-002', 'CIL-003']);
+      fireEvent.click(screen.getByRole('button', { name: 'Planejar viagem' }));
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent(/CIL-001 e CIL-003 foram reservados por outra operação/);
+      expect(screen.queryByRole('button', { name: /^Tirar CIL-001 da parada/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^Tirar CIL-003 da parada/ })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Tirar CIL-002 da parada/ })).toBeInTheDocument();
+    });
+
+    it('depois do aviso a pessoa confirma de novo só com o que sobrou e a viagem é planejada', async () => {
+      const createTrip = vi.fn()
+        .mockResolvedValueOnce(conflict(1))
+        .mockResolvedValueOnce({ kind: 'success', value: { tripId: TRIP, number: 5, version: 1 } });
+      const { onNavigate } = renderForm(fakeTripService({ createTrip }));
+      await fillPlan();
+      fireEvent.click(screen.getByRole('button', { name: 'Planejar viagem' }));
+      await screen.findByRole('alert');
+      fireEvent.click(screen.getByRole('button', { name: 'Planejar viagem' }));
+      await waitFor(() => expect(createTrip).toHaveBeenCalledTimes(2));
+      const [, second, secondRequest] = createTrip.mock.calls[1] as [string, { stops: { cylinderIds: string[] }[] }, string];
+      const [, , firstRequest] = createTrip.mock.calls[0] as [string, unknown, string];
+      expect(second.stops[0]!.cylinderIds).toEqual([cylinder(2).id]);
+      expect(secondRequest).not.toBe(firstRequest);
+      await waitFor(() => expect(onNavigate).toHaveBeenCalledWith(`/viagens/${TRIP}`));
+    });
   });
 
   it('cilindro sem teste em dia: diz o motivo em texto', async () => {

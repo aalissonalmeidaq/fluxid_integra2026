@@ -341,11 +341,29 @@ describe('detalhe: divergência, correção e leitura do recebedor', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Corrigir entrega · Parada 1' });
     expect(within(dialog).getByText(/Registro anterior/)).toBeInTheDocument();
     expect(within(dialog).queryByRole('radiogroup', { name: 'Resultado de CIL-001' })).not.toBeInTheDocument();
+    // Sem justificativa a correção não sai: o erro aparece no campo e o servidor nem é chamado.
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Registrar correção' }));
+    expect(await within(dialog).findByText(/Explique por que corrige a entrega/)).toBeInTheDocument();
+    expect(service.registerDelivery).not.toHaveBeenCalled();
+    fireEvent.change(within(dialog).getByLabelText('Justificativa da correção'), { target: { value: 'Cilindro entregue depois' } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Registrar correção' }));
     await waitFor(() => expect(service.registerDelivery).toHaveBeenCalledTimes(1));
-    const call = service.registerDelivery.mock.calls[0] as unknown as [string, string, string, { results: Array<{ itemId: string; delivered: boolean }> }, string];
+    const call = service.registerDelivery.mock.calls[0] as unknown as [string, string, string, { results: Array<{ itemId: string; delivered: boolean }>; correctionReason: string | null }, string];
     expect(call[3].results).toEqual([{ itemId: 'i2', delivered: true }]);
+    expect(call[3].correctionReason).toBe('Cilindro entregue depois');
     expect(call[4]).toBe('d1');
+  });
+
+  it('o erro de justificativa devolvido pelo servidor aparece junto do campo da correção', async () => {
+    const service = sailingService('with_divergence', {
+      registerDelivery: vi.fn(async () => ({ kind: 'invalid', fields: { correction_reason: 'Explique por que corrige a entrega, em 5 a 500 caracteres.' } })),
+    }, { items: items(), deliveries: [delivered('Recebedor Fictício')] });
+    renderDetail(service, { abilities: OPERATOR });
+    fireEvent.click(await screen.findByRole('button', { name: 'Corrigir a entrega da parada 1' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Corrigir entrega · Parada 1' });
+    fireEvent.change(within(dialog).getByLabelText('Justificativa da correção'), { target: { value: 'Cilindro entregue depois' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Registrar correção' }));
+    expect(await within(dialog).findByText(/Explique por que corrige a entrega/)).toBeInTheDocument();
   });
 
   it('depois de uma correção só o registro mais recente é mostrado, e a contagem de correções aparece', async () => {

@@ -87,7 +87,11 @@ describe('varredura do código-fonte', () => {
   it('o nome do recebedor só existe como coluna de trip_deliveries', () => {
     const owners = fs.readdirSync(path.join(ROOT, 'supabase/migrations')).filter((name) => /_trips_/.test(name))
       .filter((name) => /recipient_name/.test(read(`supabase/migrations/${name}`)));
-    expect(owners.sort()).toEqual(['20261009120000_trips_schema.sql', '20261009120310_trips_plan_read.sql', '20261009120500_trips_delivery.sql']);
+    // O esquema, a leitura e a entrega (a função `register_delivery`, redefinida pela migration da justificativa de correção) são os únicos
+    // arquivos que tocam o nome; nenhum outro evento, auditoria ou função o repete.
+    expect(owners.sort()).toEqual([
+      '20261009120000_trips_schema.sql', '20261009120310_trips_plan_read.sql', '20261009120500_trips_delivery.sql', '20261010100000_trips_delivery_correction.sql',
+    ]);
   });
 
   it('nenhum estado do cliente nem URL guarda o nome do recebedor', () => {

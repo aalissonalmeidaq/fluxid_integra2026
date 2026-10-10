@@ -2,7 +2,7 @@ import React from 'react';
 import { StatusBadge, VisuallyHidden, type StatusBadgeVariant } from '@/design-system';
 import {
   CUSTODY_STATUS_LABELS, ITEM_STATUS_LABELS, LOCK_STATUS_LABELS, STOP_STATUS_LABELS, TRIP_STATUS_LABELS,
-  type CustodyStatus, type ItemStatus, type LockStatus, type StopStatus, type TripStatus,
+  custodyRepeatsItemStatus, type CustodyStatus, type ItemStatus, type LockStatus, type StopStatus, type TripStatus,
 } from '@/domain/trips/trip-vocabulary';
 
 // Todas as situações da viagem aparecem com texto e ícone, nunca só cor (RF-008, CA-008). O prefixo só para leitor de tela diz de qual
@@ -24,8 +24,14 @@ export function StopStatusBadge({ status }: { status: StopStatus }): React.JSX.E
   return <StatusBadge variant={STOP[status]}><VisuallyHidden>Situação da parada: </VisuallyHidden>{STOP_STATUS_LABELS[status]}</StatusBadge>;
 }
 
-export function ItemStatusBadge({ status }: { status: ItemStatus }): React.JSX.Element {
-  return <StatusBadge variant={ITEM[status]}><VisuallyHidden>Situação do cilindro na viagem: </VisuallyHidden>{ITEM_STATUS_LABELS[status]}</StatusBadge>;
+// Com `withCustody`, o selo vale também para a custódia (item e cilindro "em trânsito" dizem a mesma coisa): o prefixo para leitor de
+// tela nomeia os dois estados e o selo da custódia não se repete.
+export function ItemStatusBadge({ status, withCustody = false }: { status: ItemStatus; withCustody?: boolean }): React.JSX.Element {
+  return (
+    <StatusBadge variant={ITEM[status]}>
+      <VisuallyHidden>{withCustody ? 'Situação do cilindro na viagem e custódia: ' : 'Situação do cilindro na viagem: '}</VisuallyHidden>{ITEM_STATUS_LABELS[status]}
+    </StatusBadge>
+  );
 }
 
 // "Bloqueado (lógico)": registra a reserva, não o acionamento da trava. A confirmação do dispositivo é da Fase 6.
@@ -36,6 +42,19 @@ export function LockBadge({ status }: { status: LockStatus }): React.JSX.Element
 
 export function CustodyBadge({ status }: { status: CustodyStatus }): React.JSX.Element {
   return <StatusBadge variant={CUSTODY[status]}><VisuallyHidden>Custódia: </VisuallyHidden>{CUSTODY_STATUS_LABELS[status]}</StatusBadge>;
+}
+
+// Situação do item na viagem, bloqueio e custódia do cilindro, nesta ordem. Quando o item e a custódia dizem o mesmo ("em trânsito"), o
+// selo é um só, para não mostrar dois selos idênticos; nos demais casos os três estados aparecem, cada um com o seu rótulo.
+export function ItemBadges({ itemStatus, lockStatus, custodyStatus }: { itemStatus: ItemStatus; lockStatus: LockStatus; custodyStatus: CustodyStatus }): React.JSX.Element {
+  const repeated = custodyRepeatsItemStatus(itemStatus, custodyStatus);
+  return (
+    <>
+      <ItemStatusBadge status={itemStatus} withCustody={repeated} />
+      <LockBadge status={lockStatus} />
+      {!repeated && <CustodyBadge status={custodyStatus} />}
+    </>
+  );
 }
 
 // Viagem planejada ou carregando com a data prevista no passado (RF-001a).

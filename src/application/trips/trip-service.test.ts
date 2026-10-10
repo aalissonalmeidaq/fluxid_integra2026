@@ -82,6 +82,29 @@ describe('códigos do servidor viram estados de tela', () => {
     expect(await kindOf(code, status)).toMatchObject({ kind });
   });
 
+  it('todos os cilindros reservados por outra operação vêm de uma vez, cada um com a viagem quando ela é revelada', async () => {
+    const body = {
+      cylinder_id: 'c1', trip_id: 't9', trip_number: 12,
+      conflicts: [{ cylinder_id: 'c1', trip_id: 't9', trip_number: 12 }, { cylinder_id: 'c2', trip_id: 't10', trip_number: 13 }],
+    };
+    expect(await kindOf('CYLINDER_RESERVED', 409, body)).toEqual({
+      kind: 'cylinder_reserved', trip: { id: 't9', number: 12 }, cylinderId: 'c1',
+      conflicts: [{ cylinderId: 'c1', trip: { id: 't9', number: 12 } }, { cylinderId: 'c2', trip: { id: 't10', number: 13 } }],
+    });
+  });
+
+  it('sem permissão de leitura o conflito vem sem a viagem', async () => {
+    expect(await kindOf('CYLINDER_RESERVED', 409, { cylinder_id: 'c1', conflicts: [{ cylinder_id: 'c1' }] })).toEqual({
+      kind: 'cylinder_reserved', cylinderId: 'c1', conflicts: [{ cylinderId: 'c1' }],
+    });
+  });
+
+  it('entradas inválidas na lista de conflitos são ignoradas', async () => {
+    expect(await kindOf('CYLINDER_RESERVED', 409, { cylinder_id: 'c1', conflicts: [null, 'x', { cylinder_id: 5 }, { cylinder_id: 'c3' }] })).toEqual({
+      kind: 'cylinder_reserved', cylinderId: 'c1', conflicts: [{ cylinderId: 'c3' }],
+    });
+  });
+
   it('cilindro reservado traz a viagem que o reservou', async () => {
     expect(await kindOf('CYLINDER_RESERVED', 409, { trip_id: 't9', trip_number: 12, cylinder_id: 'c1' })).toEqual({ kind: 'cylinder_reserved', trip: { id: 't9', number: 12 }, cylinderId: 'c1' });
   });
@@ -247,6 +270,7 @@ describe('carregamento e início', () => {
 describe('chegada e entrega', () => {
   const value = {
     deliveredAt: '2026-10-09T15:30:00.000Z', recipientName: 'Recebedor Fictício', recipientRole: null, latitude: -23.55, longitude: -46.63, atSiteAddress: false,
+    correctionReason: null,
     results: [{ itemId: 'i1', delivered: true }, { itemId: 'i2', delivered: false, reason: 'Sem espaço' }],
   };
 
@@ -266,10 +290,26 @@ describe('chegada e entrega', () => {
     });
   });
 
-  it('a correção leva o registro anterior', async () => {
+  it('a correção leva o registro anterior e a justificativa', async () => {
     const t = transport(reply(200, { code: 'DELIVERED', delivery_id: 'd2', stop_status: 'delivered' }));
-    expect(await new TripService(t).registerDelivery(ORG, 't1', 's1', value, 'd1')).toMatchObject({ kind: 'success', value: { stopStatus: 'delivered', outsideGeofence: null } });
-    expect(t.call).toHaveBeenCalledWith('manage-trips', expect.objectContaining({ supersedes_id: 'd1' }));
+    const corrected = { ...value, correctionReason: 'Nome digitado errado' };
+    expect(await new TripService(t).registerDelivery(ORG, 't1', 's1', corrected, 'd1')).toMatchObject({ kind: 'success', value: { stopStatus: 'delivered', outsideGeofence: null } });
+    expect(t.call).toHaveBeenCalledWith('manage-trips', expect.objectContaining({ supersedes_id: 'd1', correction_reason: 'Nome digitado errado' }));
+  });
+
+  it('a entrega original não leva justificativa de correção', async () => {
+    const t = transport(reply(200, { code: 'DELIVERED', delivery_id: 'd1', stop_status: 'delivered' }));
+    await new TripService(t).registerDelivery(ORG, 't1', 's1', value, undefined, 'r3');
+    const body = (t.call as unknown as { mock: { calls: [string, Record<string, unknown>][] } }).mock.calls[0]![1];
+    expect(body.correction_reason ?? null).toBeNull();
+    expect(body.supersedes_id ?? null).toBeNull();
+  });
+
+  it('o texto da justificativa nunca aparece na falha devolvida à tela', async () => {
+    const t = transport(reply(400, { code: 'VALIDATION_FAILED', fields: [{ field: 'correction_reason', message: 'Explique por que corrige a entrega, em 5 a 500 caracteres.' }] }));
+    const outcome = await new TripService(t).registerDelivery(ORG, 't1', 's1', { ...value, correctionReason: 'Justificativa Secreta Fictícia' }, 'd1');
+    expect(outcome).toMatchObject({ kind: 'invalid', fields: { correction_reason: expect.stringContaining('5 a 500') } });
+    expect(JSON.stringify(outcome)).not.toContain('Justificativa Secreta Fictícia');
   });
 
   it('resposta de entrega incompleta nunca vira sucesso', async () => {

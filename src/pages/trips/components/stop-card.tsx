@@ -6,7 +6,7 @@ import { formatDateTime } from '@/domain/cylinders/format';
 import { RECIPIENT_RESTRICTED } from '@/domain/trips/trip-vocabulary';
 import { currentDelivery } from '../current-delivery';
 import { ArriveStopAction } from './arrive-stop-action';
-import { CustodyBadge, ItemStatusBadge, LockBadge, StopStatusBadge } from './trip-badges';
+import { ItemBadges, StopStatusBadge } from './trip-badges';
 
 export function ItemRow({ item, action }: { item: TripItemView; action?: React.ReactNode }): React.JSX.Element {
   return (
@@ -14,9 +14,7 @@ export function ItemRow({ item, action }: { item: TripItemView; action?: React.R
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="min-w-0 break-words text-corpo"><span className="font-semibold text-navy">{item.cylinder.serialNumber}</span>{` · ${item.cylinder.gas} ${item.cylinder.capacityValue} ${item.cylinder.capacityUnit}`}</span>
         <span className="flex flex-wrap items-center gap-2">
-          <ItemStatusBadge status={item.itemStatus} />
-          <LockBadge status={item.lockStatus} />
-          <CustodyBadge status={item.cylinder.custodyStatus} />
+          <ItemBadges itemStatus={item.itemStatus} lockStatus={item.lockStatus} custodyStatus={item.cylinder.custodyStatus} />
         </span>
       </div>
       <p className="text-legenda text-texto-secundario">{`Teste hidrostático: ${HYDROSTATIC_LABELS[item.cylinder.hydroStatus]}`}</p>

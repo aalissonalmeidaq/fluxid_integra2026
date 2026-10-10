@@ -74,3 +74,9 @@ export const CYLINDER_REFUSAL_LABELS: Record<CylinderRefusalReason, string> = {
 };
 
 export const RECIPIENT_RESTRICTED = '(restrito)';
+
+// O item "em trânsito" e o cilindro "em trânsito" dizem a mesma coisa com as mesmas palavras: a tela mostra um selo só. Nas demais
+// combinações os rótulos diferem ("Entregue" e "No cliente", "Não entregue" e "Em trânsito") e os dois estados aparecem.
+export function custodyRepeatsItemStatus(item: ItemStatus, custody: CustodyStatus): boolean {
+  return ITEM_STATUS_LABELS[item] === CUSTODY_STATUS_LABELS[custody];
+}

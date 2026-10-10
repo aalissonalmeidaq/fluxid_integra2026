@@ -73,23 +73,54 @@ test.describe('Planejamento de viagens', () => {
     await expect(page.getByText('CIL-009', { exact: true })).toBeVisible();
   });
 
-  test('o cilindro reservado deixa de ser oferecido e uma corrida recusada diz em qual viagem ele está', async ({ page }) => {
+  test('reserva concorrente: outro operador reserva o cilindro depois da busca, e a recusa tira só esse cilindro, sem recarregar a tela', async ({ page }) => {
     const backend = await entrar(page);
     await abrirPlanejamento(page);
     const dialogo = formulario(page);
-    await montar(page, ['CIL-006']);
-    // Enquanto a tela está aberta, outra pessoa reserva o CIL-007 numa viagem própria.
+    // O operador 1 carregou a lista e escolheu CIL-006 e CIL-007; CIL-008 continua só na lista (ainda não foi escolhido).
+    await montar(page, ['CIL-006', 'CIL-007']);
+    await dialogo.getByLabel('Observações').fill('Levar rampa');
+    await expect(dialogo.getByRole('button', { name: 'Adicionar CIL-008' })).toBeVisible();
+    // Marca o documento: se a página recarregar, a marca some.
+    await page.evaluate(() => { (window as unknown as { __semRecarga: boolean }).__semRecarga = true; });
+
+    // O operador 2 reserva o CIL-007 e o CIL-008 numa viagem própria.
     const tomada = backend.trips.handle('manage', {
       operation: 'create_trip', organization_id: ORG_A, request_id: crypto.randomUUID(), planned_date: backend.trips.today(),
       vehicle_id: backend.registry.vehicles[0]!.id, driver_id: backend.registry.drivers[0]!.id,
-      stops: [{ site_id: backend.registry.sites[0]!.id, cylinder_ids: [backend.cylinders.cylinders.find((c) => c.serial_number === 'CIL-007')!.id] }],
+      stops: [{ site_id: backend.registry.sites[0]!.id, cylinder_ids: ['CIL-007', 'CIL-008'].map((serial) => backend.cylinders.cylinders.find((c) => c.serial_number === serial)!.id) }],
     }, () => true);
     expect(tomada.status).toBe(200);
-    await dialogo.getByRole('button', { name: 'Adicionar CIL-007' }).click();
+
+    // O operador 1 confirma.
     await dialogo.getByRole('button', { name: 'Planejar viagem' }).click();
-    await expect(dialogo.getByRole('alert').filter({ hasText: 'Cilindro já reservado' })).toContainText('CIL-007 já está na viagem n.º 1');
-    await expect(dialogo.getByRole('link', { name: 'Abrir essa viagem' })).toBeVisible();
+    const aviso = dialogo.getByRole('alert').filter({ hasText: 'Cilindro reservado por outra operação' });
+    await expect(aviso).toContainText('CIL-007 foi reservado por outra operação, na viagem n.º 1.');
+    await expect(aviso).toContainText('Os demais dados foram mantidos');
+    await expect(aviso).toBeFocused();
+
+    // Só o item em conflito saiu; o resto do que foi preenchido continua.
+    await expect(dialogo.getByRole('button', { name: /^Tirar CIL-007 da parada/ })).toHaveCount(0);
+    await expect(dialogo.getByRole('button', { name: /^Tirar CIL-006 da parada/ })).toBeVisible();
+    await expect(dialogo.getByLabel('Observações')).toHaveValue('Levar rampa');
+    await expect(dialogo.getByLabel('Veículo')).not.toHaveValue('');
+    await expect(dialogo.getByLabel('Motorista')).not.toHaveValue('');
+    await expect(dialogo.getByLabel('Unidade da parada 1')).not.toHaveValue('');
+    await expect(dialogo.getByText('1 de 30')).toBeVisible();
+
+    // Nada de recarregar: a mesma página, com a marca, e a busca já não oferece o cilindro tomado.
+    expect(await page.evaluate(() => (window as unknown as { __semRecarga?: boolean }).__semRecarga)).toBe(true);
+    await expect(dialogo.getByRole('button', { name: 'Adicionar CIL-007' })).toHaveCount(0);
     expect(backend.trips.trips).toHaveLength(1);
+
+    // O acesso ao registro em conflito navega dentro do app.
+    await expect(dialogo.getByRole('link', { name: 'Abrir a viagem n.º 1' })).toHaveAttribute('href', /\/viagens\//);
+
+    // Sem o cilindro em conflito, o operador 1 confirma de novo e a viagem é planejada.
+    await dialogo.getByRole('button', { name: 'Planejar viagem' }).click();
+    await expect(page.getByRole('heading', { level: 2, name: 'Viagem n.º 2' })).toBeVisible();
+    expect(await page.evaluate(() => (window as unknown as { __semRecarga?: boolean }).__semRecarga)).toBe(true);
+    expect(backend.trips.trips).toHaveLength(2);
   });
 
   test('teste vencido depois da escolha: a recusa mostra o motivo em texto', async ({ page }) => {

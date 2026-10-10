@@ -45,6 +45,8 @@ export interface OperationSpec {
   mfa?: boolean;
   // Campo do corpo -> [regra, nome do argumento da RPC]. `identifier` gera dois argumentos (tipo e valor).
   fields: Record<string, [Rule, string]>;
+  // Regra entre campos (ex.: uma justificativa que só vale numa correção). Recebe os argumentos já validados e devolve os problemas, ou nada.
+  crossCheck?: (args: Record<string, unknown>) => FieldIssue[] | null;
 }
 
 export const IDENTIFIER_KINDS = ['qr_code', 'data_matrix', 'nfc_tag', 'hull_number'] as const;
@@ -230,6 +232,8 @@ export function createOperationsHandler(gateway: OperationsGateway, operations: 
     if (typeof organizationId !== 'string' || !UUID_PATTERN.test(organizationId)) return json({ code: 'VALIDATION_FAILED' }, 400);
     const built = buildArgs(spec, body);
     if (!built.ok) return json({ code: 'VALIDATION_FAILED', fields: built.fields }, 400);
+    const crossed = spec.crossCheck?.(built.args);
+    if (crossed && crossed.length > 0) return json({ code: 'VALIDATION_FAILED', fields: crossed }, 400);
 
     let result: Record<string, unknown>;
     try {

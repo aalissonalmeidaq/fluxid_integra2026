@@ -33,6 +33,8 @@ export interface TripFailure {
   entityId?: string;
   // Cilindro recusado e o motivo (`cylinder_not_eligible`).
   cylinderId?: string;
+  // Todos os cilindros reservados por outra operação (`cylinder_reserved`); a viagem só vem para quem pode ler viagens.
+  conflicts?: { cylinderId: string; trip?: { id: string; number: number } }[];
   reason?: CylinderRefusalReason;
   capacity?: number;
   requested?: number;
@@ -116,6 +118,17 @@ export class TripService {
     if (entityId !== null) failure.entityId = entityId;
     const cylinderId = str(body.cylinder_id);
     if (cylinderId !== null) failure.cylinderId = cylinderId;
+    if (Array.isArray(body.conflicts)) {
+      const conflicts: NonNullable<TripFailure['conflicts']> = [];
+      for (const entry of body.conflicts) {
+        const id = isObject(entry) ? str(entry.cylinder_id) : null;
+        if (!isObject(entry) || id === null) continue;
+        const conflictTripId = str(entry.trip_id);
+        const conflictTripNumber = num(entry.trip_number);
+        conflicts.push(conflictTripId !== null && conflictTripNumber !== null ? { cylinderId: id, trip: { id: conflictTripId, number: conflictTripNumber } } : { cylinderId: id });
+      }
+      if (conflicts.length > 0) failure.conflicts = conflicts;
+    }
     if (typeof body.reason === 'string') failure.reason = body.reason as CylinderRefusalReason;
     const capacity = num(body.capacity);
     if (capacity !== null) failure.capacity = capacity;
@@ -271,13 +284,13 @@ export class TripService {
   }
 
   // Entrega por parada inteira. Com `supersedesId`, é a correção de um registro anterior (novo registro; o original fica intacto).
-  // O nome do recebedor segue só no corpo do pedido: o serviço não o guarda nem o repete em lugar algum.
+  // O nome do recebedor e a justificativa da correção seguem só no corpo do pedido: o serviço não os guarda nem os repete em lugar algum.
   registerDelivery(organizationId: string, tripId: string, stopId: string, value: DeliveryFormValue, supersedesId?: string, requestId?: string): Promise<TripOutcome<RegisteredDelivery>> {
     return this.command(organizationId, 'register_delivery', {
       trip_id: tripId, stop_id: stopId, delivered_at: value.deliveredAt, recipient_name: value.recipientName, recipient_role: value.recipientRole,
       latitude: value.latitude, longitude: value.longitude, at_site_address: value.atSiteAddress,
       results: value.results.map((result) => (result.delivered ? { item_id: result.itemId, delivered: true } : { item_id: result.itemId, delivered: false, reason: result.reason })),
-      supersedes_id: supersedesId,
+      supersedes_id: supersedesId, correction_reason: value.correctionReason ?? undefined,
     }, (payload) => {
       const deliveryId = str(payload.delivery_id);
       const stopStatus = payload.stop_status;

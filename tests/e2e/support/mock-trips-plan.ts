@@ -74,12 +74,18 @@ function checkCadastros(mock: TripMock, org: string, vehicleId: unknown, driverI
   return null;
 }
 
-function checkNewCylinders(mock: TripMock, org: string, ids: string[], exceptTrip?: string): Reply | null {
+function checkNewCylinders(mock: TripMock, org: string, ids: string[], canRead: boolean, exceptTrip?: string): Reply | null {
   const found = ids.map((id) => mock.cylinders.cylinders.find((cylinder) => cylinder.id === id && cylinder.organization_id === org));
   if (found.some((cylinder) => !cylinder)) return fail('NOT_FOUND', 404, { entity: 'cylinder' });
-  for (const cylinder of [...(found as Cylinder[])].sort((a, b) => a.id.localeCompare(b.id))) {
+  const ordered = [...(found as Cylinder[])].sort((a, b) => a.id.localeCompare(b.id));
+  // Como o servidor: todos os cilindros reservados por outra operação vêm de uma vez, em ordem fixa; a viagem que reservou só é revelada a
+  // quem pode ler viagens. Só depois vem a elegibilidade.
+  const conflicts = ordered.flatMap((cylinder) => {
     const reserved = openItem(mock, cylinder.id, exceptTrip);
-    if (reserved) return fail('CYLINDER_RESERVED', 409, { cylinder_id: cylinder.id, trip_id: reserved.trip.id, trip_number: reserved.trip.number });
+    return reserved ? [{ cylinder_id: cylinder.id, ...(canRead ? { trip_id: reserved.trip.id, trip_number: reserved.trip.number } : {}) }] : [];
+  });
+  if (conflicts.length > 0) return fail('CYLINDER_RESERVED', 409, { ...conflicts[0]!, conflicts });
+  for (const cylinder of ordered) {
     const reason = refusal(cylinder, mock.today());
     if (reason) return fail('CYLINDER_NOT_ELIGIBLE', 409, { cylinder_id: cylinder.id, reason });
   }
@@ -94,7 +100,7 @@ function validateHeader(mock: TripMock, body: Json, creating: boolean): Reply | 
   return null;
 }
 
-function createTrip({ org, body, mock }: TripOperationContext): Reply {
+function createTrip({ org, body, mock, can }: TripOperationContext): Reply {
   const header = validateHeader(mock, body, true);
   if (header) return header;
   const stops = readStops(body.stops);
@@ -104,7 +110,7 @@ function createTrip({ org, body, mock }: TripOperationContext): Reply {
   const ids = stops.flatMap((stop) => stop.cylinder_ids);
   const vehicle = mock.registry.vehicles.find((candidate) => candidate.id === body.vehicle_id)!;
   if (ids.length > (vehicle.capacity_cylinders as number)) return fail('CAPACITY_EXCEEDED', 409, { capacity: vehicle.capacity_cylinders, requested: ids.length });
-  const cylinders = checkNewCylinders(mock, org, ids);
+  const cylinders = checkNewCylinders(mock, org, ids, can(org, 'trip.read'));
   if (cylinders) return cylinders;
 
   const id = mock.nextId('99');
@@ -126,7 +132,7 @@ function createTrip({ org, body, mock }: TripOperationContext): Reply {
   return ok('CREATED', { trip_id: id, number, version: 1 });
 }
 
-function updateTrip({ org, body, mock }: TripOperationContext): Reply {
+function updateTrip({ org, body, mock, can }: TripOperationContext): Reply {
   const trip = mock.tripOf(org, body.trip_id);
   if (!trip) return fail('NOT_FOUND', 404);
   if (trip.status === 'completed' || trip.status === 'cancelled') return fail('TRIP_CLOSED', 409);
@@ -152,7 +158,7 @@ function updateTrip({ org, body, mock }: TripOperationContext): Reply {
   if (current.some((item) => item.item_status === 'checked' && !ids.includes(item.cylinder_id))) return invalid('cylinders', 'Cilindro já conferido só sai da viagem pela retirada com exceção.');
   if (items.some((item) => item.item_status === 'removed' && ids.includes(item.cylinder_id))) return invalid('cylinders', 'Cilindro retirado desta viagem não volta a ela.');
   const added = ids.filter((id) => !current.some((item) => item.cylinder_id === id));
-  const cylinders = checkNewCylinders(mock, org, added, trip.id);
+  const cylinders = checkNewCylinders(mock, org, added, can(org, 'trip.read'), trip.id);
   if (cylinders) return cylinders;
 
   trip.planned_date = String(body.planned_date);

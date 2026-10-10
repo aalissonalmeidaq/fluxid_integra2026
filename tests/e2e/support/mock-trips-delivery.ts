@@ -81,6 +81,11 @@ function registerDelivery({ org, body, mock }: TripOperationContext): Reply {
   const hasLat = typeof body.latitude === 'number';
   const hasLng = typeof body.longitude === 'number';
   if (hasLat !== hasLng) return invalid('latitude', 'Informe a latitude e a longitude juntas, ou deixe as duas em branco.');
+  if (body.at_site_address === true && (hasLat || hasLng)) return invalid('at_site_address', 'Escolha só uma forma de informar a posição: as coordenadas ou no endereço da unidade.');
+  // RF-015: a correção exige a justificativa de 5 a 500 caracteres (espaços repetidos viram um só); a original não a aceita.
+  const reason = typeof body.correction_reason === 'string' ? body.correction_reason.replace(/\s+/g, ' ').trim() : '';
+  if (supersedes !== null && (reason.length < 5 || reason.length > 500)) return invalid('correction_reason', 'Explique por que corrige a entrega, em 5 a 500 caracteres.');
+  if (supersedes === null && reason !== '') return invalid('correction_reason', 'A justificativa só vale na correção de uma entrega.');
   const results = Array.isArray(body.results) ? (body.results as Json[]) : null;
   if (results === null) return invalid('results', 'Informe o resultado de cada cilindro.');
 
@@ -118,11 +123,12 @@ function registerDelivery({ org, body, mock }: TripOperationContext): Reply {
   const id = mock.nextId('9c');
   mock.deliveries.push({
     id, organization_id: org, stop_id: stop.id, delivered_at: new Date(when).toISOString(), recipient_name: name, recipient_role: role, latitude: hasLat ? (body.latitude as number) : null,
-    longitude: hasLng ? (body.longitude as number) : null, at_site_address: body.at_site_address === true, outside_geofence: outside, results: stored, supersedes_id: supersedes,
+    longitude: hasLng ? (body.longitude as number) : null, at_site_address: body.at_site_address === true, outside_geofence: outside, results: stored, supersedes_id: supersedes, correction_reason: supersedes === null ? null : reason,
     recorded_by_name: TRIP_ACTOR_NAME, recorded_at: mock.now().toISOString(),
   });
-  // O evento guarda só contagens e indicadores: nunca o nome, a função, a posição nem a justificativa (CA-007).
-  mock.appendEvent(trip, supersedes === null ? 'delivery_registered' : 'delivery_corrected', null, {
+  // Os dados do evento guardam só contagens e indicadores: nunca o nome, a função nem a posição (CA-007). A justificativa da correção vai na
+  // coluna própria do evento, que só quem tem permissão de histórico lê.
+  mock.appendEvent(trip, supersedes === null ? 'delivery_registered' : 'delivery_corrected', supersedes === null ? null : reason, {
     stop_id: stop.id, position: stop.position, delivered: stored.filter((entry) => entry.delivered === true).length, not_delivered: stored.filter((entry) => entry.delivered !== true).length, has_recipient: true, outside_geofence: outside,
   });
   return ok('DELIVERED', { delivery_id: id, stop_status: stop.status, outside_geofence: outside });

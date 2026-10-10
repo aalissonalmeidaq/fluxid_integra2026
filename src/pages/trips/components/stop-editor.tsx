@@ -16,6 +16,8 @@ export interface StopEditorProps {
   remaining: number | null;
   errors: Record<string, string>;
   disabled?: boolean;
+  // Cilindros que outra operação acabou de reservar: não são mais oferecidos na busca, mesmo que a lista já carregada ainda os traga.
+  unavailableIds?: readonly string[];
   onAnnounce: (message: string) => void;
 }
 
@@ -28,10 +30,10 @@ function groupedSites(sites: readonly SiteOption[]): Array<{ customer: string; s
 
 // Editor das paradas da viagem (RF-002, RF-003): acrescentar, remover, subir e descer com botões (nunca só arrastar), escolher a
 // unidade e os cilindros de cada parada. Cada ação anuncia o resultado na região de status única da tela.
-export function StopEditor({ stops, sites, onChange, service, organizationId, remaining, errors, disabled = false, onAnnounce }: StopEditorProps): React.JSX.Element {
+export function StopEditor({ stops, sites, onChange, service, organizationId, remaining, errors, disabled = false, unavailableIds = [], onAnnounce }: StopEditorProps): React.JSX.Element {
   const [pickerOpen, setPickerOpen] = useState<string | null>(null);
   const addRef = useRef<HTMLButtonElement>(null);
-  const allIds = new Set(stops.flatMap((stop) => stop.cylinders.map((cylinder) => cylinder.id)));
+  const allIds = new Set([...stops.flatMap((stop) => stop.cylinders.map((cylinder) => cylinder.id)), ...unavailableIds]);
   const atLimit = stops.length >= TRIP_LIMITS.maxStops;
 
   const update = (key: string, patch: Partial<StopDraft>): void => onChange(stops.map((stop) => (stop.key === key ? { ...stop, ...patch } : stop)));

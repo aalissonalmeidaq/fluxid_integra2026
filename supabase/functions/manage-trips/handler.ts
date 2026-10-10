@@ -72,6 +72,22 @@ export const MANAGE_OPERATIONS: Record<string, OperationSpec> = {
       latitude: [{ t: 'number', min: -90, max: 90, nullable: true, optional: true }, 'p_latitude'], longitude: [{ t: 'number', min: -180, max: 180, nullable: true, optional: true }, 'p_longitude'],
       at_site_address: [{ t: 'bool', optional: true }, 'p_at_site_address'], results: [results, 'p_results'],
       supersedes_id: [{ t: 'uuid', optional: true }, 'p_supersedes'],
+      correction_reason: [{ t: 'text', max: 4000, nullable: true, optional: true }, 'p_correction_reason'],
+    },
+    // RF-015: a correção exige a justificativa de 5 a 500 caracteres (depois de juntar os espaços) e a original não a aceita.
+    // RF-013: a posição é por coordenadas ou no endereço da unidade, nunca as duas. O banco repete as duas regras.
+    crossCheck: (args) => {
+      const issues: { field: string; message: string }[] = [];
+      const reason = typeof args.p_correction_reason === 'string' ? args.p_correction_reason.replace(/\s+/g, ' ').trim() : '';
+      if (args.p_supersedes) {
+        if (reason.length < 5 || reason.length > 500) issues.push({ field: 'correction_reason', message: 'Explique por que corrige a entrega, em 5 a 500 caracteres.' });
+      } else if (reason !== '') {
+        issues.push({ field: 'correction_reason', message: 'A justificativa só vale na correção de uma entrega.' });
+      }
+      if (args.p_at_site_address === true && (args.p_latitude != null || args.p_longitude != null)) {
+        issues.push({ field: 'at_site_address', message: 'Escolha só uma forma de informar a posição: as coordenadas ou no endereço da unidade.' });
+      }
+      return issues;
     },
   },
 };

@@ -38,6 +38,7 @@ const WARNING_TEXT: Record<TripWarning, string> = {
 // Nome dos campos do servidor nos nomes do formulário de entrega.
 const DELIVERY_SERVER_FIELDS: Record<string, string> = {
   recipient_name: 'recipientName', recipient_role: 'recipientRole', delivered_at: 'deliveredAt', latitude: 'latitude', longitude: 'longitude', results: 'results',
+  correction_reason: 'correctionReason', at_site_address: 'atSiteAddress',
 };
 
 type Load = 'loading' | 'ready' | 'not_found' | 'offline' | 'error';

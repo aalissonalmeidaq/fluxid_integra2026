@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
-  CHECK_SOURCES, CUSTODY_STATUSES, CUSTODY_STATUS_LABELS, CYLINDER_TRIP_EVENT_LABELS, CYLINDER_TRIP_EVENT_TYPES, isFinalTrip, isOpenItem, ITEM_STATUS_LABELS,
+  CHECK_SOURCES, custodyRepeatsItemStatus, CUSTODY_STATUSES, CUSTODY_STATUS_LABELS, CYLINDER_TRIP_EVENT_LABELS, CYLINDER_TRIP_EVENT_TYPES, isFinalTrip, isOpenItem, ITEM_STATUS_LABELS,
   ITEM_STATUSES, LOCK_STATUS_LABELS, LOCK_STATUSES, OPEN_ITEM_STATUSES, STOP_STATUS_LABELS, STOP_STATUSES, TRIP_EVENT_LABELS, TRIP_EVENT_TYPES,
   TRIP_STATUS_LABELS, TRIP_STATUSES,
 } from './trip-vocabulary';
@@ -70,5 +70,12 @@ describe('funções auxiliares', () => {
 
   it('viagem concluída ou cancelada é final', () => {
     expect(TRIP_STATUSES.filter(isFinalTrip)).toEqual(['completed', 'cancelled']);
+  });
+});
+
+describe('custodyRepeatsItemStatus', () => {
+  it('só o item em trânsito com o cilindro em trânsito repetem as mesmas palavras', () => {
+    const repeated = ITEM_STATUSES.flatMap((item) => CUSTODY_STATUSES.filter((custody) => custodyRepeatsItemStatus(item, custody)).map((custody) => `${item}/${custody}`));
+    expect(repeated).toEqual(['in_transit/in_transit']);
   });
 });

@@ -58,3 +58,5 @@
 > Atualização do RIA-026: em 10/10/2026 o ponto do offline foi esclarecido com o Offline do DevTools e aprovado; restam o cilindro já reservado e o selo Em trânsito repetido.
 
 > Atualização do RIA-026: o link de revisão foi trocado pelo do pull request #28 em 10/10/2026.
+
+> Atualização do RIA-026: em 10/10/2026 foram corrigidos o cilindro já reservado, o selo Em trânsito repetido e o estado offline na barra superior; as correções aguardam confirmação da pessoa responsável.

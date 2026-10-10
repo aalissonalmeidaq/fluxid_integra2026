@@ -131,7 +131,109 @@ describe('diálogo de correção', () => {
   it('sem cilindros pendentes a correção só atualiza os dados do recebedor', () => {
     const { onSubmit } = setup({ previous, items: [] });
     expect(screen.getByText(/só atualiza os dados do recebedor/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Justificativa da correção'), { target: { value: 'Nome digitado errado' } });
     submit();
     expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('diálogo de correção: justificativa obrigatória (RF-015)', () => {
+  const reason = (): HTMLElement => screen.getByLabelText('Justificativa da correção');
+
+  it('a correção mostra o campo da justificativa e a entrega original não', () => {
+    setup({ previous, items: [items[1]!] });
+    expect(reason()).toBeInTheDocument();
+    expect(screen.getByText(/de 5 a 500 caracteres/)).toBeInTheDocument();
+  });
+
+  it('a entrega original não tem o campo da justificativa', () => {
+    setup();
+    expect(screen.queryByLabelText('Justificativa da correção')).not.toBeInTheDocument();
+  });
+
+  it.each([['vazia', ''], ['só espaços', '     '], ['com 4 caracteres', 'Erro'], ['com 501 caracteres', 'x'.repeat(501)]])(
+    'justificativa %s: erro junto do campo, foco nele e nada enviado',
+    (_nome, text) => {
+      const { onSubmit } = setup({ previous, items: [items[1]!] });
+      fireEvent.change(reason(), { target: { value: text } });
+      submit();
+      expect(screen.getByText(/Explique por que corrige a entrega/)).toBeInTheDocument();
+      expect(reason()).toHaveFocus();
+      expect(reason()).toHaveAttribute('aria-invalid', 'true');
+      expect(onSubmit).not.toHaveBeenCalled();
+    },
+  );
+
+  it('envia a justificativa com os espaços normalizados', () => {
+    const { onSubmit } = setup({ previous, items: [items[1]!] });
+    fireEvent.change(reason(), { target: { value: '  Nome   digitado\n errado  ' } });
+    submit();
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit.mock.calls[0]![0]).toMatchObject({ correctionReason: 'Nome digitado errado' });
+  });
+
+  it('mostra o erro de justificativa devolvido pelo servidor junto do campo', () => {
+    setup({ previous, items: [items[1]!], serverErrors: { correctionReason: 'Explique por que corrige a entrega, em 5 a 500 caracteres.' } });
+    expect(screen.getByText(/Explique por que corrige a entrega/)).toBeInTheDocument();
+  });
+});
+
+describe('diálogo de entrega: posição por coordenadas ou no endereço da unidade (RF-013)', () => {
+  const lat = (): HTMLInputElement => screen.getByLabelText('Latitude') as HTMLInputElement;
+  const lon = (): HTMLInputElement => screen.getByLabelText('Longitude') as HTMLInputElement;
+  const site = (): HTMLInputElement => screen.getByLabelText('Entrega no endereço da unidade') as HTMLInputElement;
+
+  it('marcar o endereço da unidade limpa e desabilita as coordenadas', () => {
+    setup();
+    fireEvent.change(lat(), { target: { value: '-23,55' } });
+    fireEvent.change(lon(), { target: { value: '-46,63' } });
+    fireEvent.click(site());
+    expect(site()).toBeChecked();
+    expect(lat()).toHaveValue('');
+    expect(lon()).toHaveValue('');
+    expect(lat()).toBeDisabled();
+    expect(lon()).toBeDisabled();
+  });
+
+  it('desmarcar o endereço da unidade devolve os campos de coordenadas', () => {
+    setup();
+    fireEvent.click(site());
+    fireEvent.click(site());
+    expect(site()).not.toBeChecked();
+    expect(lat()).toBeEnabled();
+    expect(lon()).toBeEnabled();
+  });
+
+  it('informar uma coordenada desmarca o endereço da unidade', () => {
+    setup();
+    fireEvent.click(site());
+    expect(lat()).toBeDisabled();
+    fireEvent.click(site());
+    fireEvent.change(lat(), { target: { value: '-23,55' } });
+    expect(site()).not.toBeChecked();
+  });
+
+  it('a seleção do endereço da unidade nunca envia coordenadas', () => {
+    const { onSubmit } = setup();
+    name('Recebedor Fictício');
+    fireEvent.change(lat(), { target: { value: '-23,55' } });
+    fireEvent.change(lon(), { target: { value: '-46,63' } });
+    fireEvent.click(site());
+    submit();
+    expect(onSubmit.mock.calls[0]![0]).toMatchObject({ atSiteAddress: true, latitude: null, longitude: null });
+  });
+
+  it('só coordenadas enviam as coordenadas e o endereço fica desmarcado', () => {
+    const { onSubmit } = setup();
+    name('Recebedor Fictício');
+    fireEvent.change(lat(), { target: { value: '-23,55' } });
+    fireEvent.change(lon(), { target: { value: '-46,63' } });
+    submit();
+    expect(onSubmit.mock.calls[0]![0]).toMatchObject({ atSiteAddress: false, latitude: -23.55, longitude: -46.63 });
+  });
+
+  it('explica a regra ao lado das opções', () => {
+    setup();
+    expect(screen.getByText(/ou marque que a entrega foi no endereço da unidade/)).toBeInTheDocument();
   });
 });

@@ -68,10 +68,11 @@ Um registro **por parada** (RF-013); a correção é um novo registro que aponta
 | `recipient_name` | text | 2 a 120; **dado pessoal**, nunca em evento nem auditoria |
 | `recipient_role` | text | até 80 |
 | `latitude`, `longitude` | numeric | ambas ou nenhuma, dentro do intervalo |
-| `at_site_address` | boolean | marca "no endereço da unidade" |
+| `at_site_address` | boolean | marca "no endereço da unidade"; **não vale junto de coordenadas** (restrição `trip_deliveries_position_exclusive_check`) |
 | `outside_geofence` | boolean | nulo se não houve comparação |
 | `results` | jsonb | por cilindro: `{ item_id, delivered, reason? }` |
 | `supersedes_id` | uuid | registro corrigido (nulo no original) |
+| `correction_reason` | text | justificativa da correção: **obrigatória só quando `supersedes_id` existe**, de 5 a 500 caracteres, sem espaços nas pontas; nula no original (restrição `trip_deliveries_correction_reason_check`) |
 | `recorded_by`, `recorded_at` | | |
 
 Gatilhos recusam `update` e `delete`.

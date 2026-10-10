@@ -96,13 +96,58 @@ test.describe('Entrega por parada', () => {
     await expect(correcao.getByText(/Registro anterior/)).toBeVisible();
     await expect(correcao.getByText(/recebido por Outra Pessoa Fictícia/)).toBeVisible();
     await expect(correcao.getByRole('radiogroup', { name: 'Resultado de CIL-007' })).toHaveCount(0);
+    // RF-015: sem justificativa a correção não sai; o erro fica junto do campo, o foco vai para ele e nada é gravado.
+    await correcao.getByRole('button', { name: 'Registrar correção' }).click();
+    await expect(correcao.getByText(/Explique por que corrige a entrega/)).toBeVisible();
+    await expect(correcao.getByLabel('Justificativa da correção')).toBeFocused();
+    expect(backend.trips.deliveries).toHaveLength(1);
+    await correcao.getByLabel('Justificativa da correção').fill('Cilindro entregue depois do aviso');
     await correcao.getByRole('button', { name: 'Registrar correção' }).click();
     await expect(correcao).toHaveCount(0);
     await expect(page.getByText('Situação da parada: Entregue')).toBeVisible();
     await expect(page.getByText('Entrega registrada (corrigida)')).toBeVisible();
     await expect(page.getByText('1 correção registrada; os registros anteriores ficam no histórico.')).toBeVisible();
     expect(backend.trips.deliveries).toHaveLength(2);
-    expect(backend.trips.deliveries.find((d) => d.supersedes_id === null)!.recipient_name).toBe('Outra Pessoa Fictícia');
+    const original = backend.trips.deliveries.find((d) => d.supersedes_id === null)!;
+    const correcaoRegistro = backend.trips.deliveries.find((d) => d.supersedes_id !== null)!;
+    expect(original.recipient_name).toBe('Outra Pessoa Fictícia');
+    expect(original.correction_reason).toBeNull();
+    expect(correcaoRegistro.supersedes_id).toBe(original.id);
+    expect(correcaoRegistro.correction_reason).toBe('Cilindro entregue depois do aviso');
+    // A justificativa vai na coluna própria do evento, e não nos dados do evento.
+    const evento = backend.trips.events.find((e) => e.event_type === 'delivery_corrected')!;
+    expect(evento.justification).toBe('Cilindro entregue depois do aviso');
+    expect(JSON.stringify(evento.data)).not.toContain('Cilindro entregue depois do aviso');
+  });
+
+  test('a posição é por coordenadas ou no endereço da unidade, nunca as duas', async ({ page }) => {
+    const backend = await entrar(page);
+    const id = emAndamento(backend, [['CIL-006']]);
+    await page.goto(`/viagens/${id}`);
+    await page.getByRole('button', { name: /Registrar chegada à parada 1/ }).click();
+    await page.getByRole('button', { name: 'Registrar entrega da parada 1' }).click();
+    const dialogo = page.getByRole('dialog', { name: 'Registrar entrega · Parada 1' });
+    await dialogo.getByLabel('Nome de quem recebeu').fill('Recebedor Fictício');
+    const latitude = dialogo.getByLabel('Latitude');
+    const longitude = dialogo.getByLabel('Longitude');
+    const endereco = dialogo.getByLabel('Entrega no endereço da unidade');
+    await latitude.fill('-23,5505');
+    await longitude.fill('-46,6333');
+    await endereco.check();
+    await expect(latitude).toBeDisabled();
+    await expect(longitude).toBeDisabled();
+    await expect(latitude).toHaveValue('');
+    await expect(longitude).toHaveValue('');
+    await endereco.uncheck();
+    await latitude.fill('-23,5505');
+    await expect(endereco).not.toBeChecked();
+    await endereco.check();
+    await dialogo.getByRole('button', { name: 'Registrar entrega' }).click();
+    await expect(dialogo).toHaveCount(0);
+    const gravada = backend.trips.deliveries[0]!;
+    expect(gravada.at_site_address).toBe(true);
+    expect(gravada.latitude).toBeNull();
+    expect(gravada.longitude).toBeNull();
   });
 
   test('chegada fora da ordem é registrada e destacada', async ({ page }) => {
@@ -139,7 +184,7 @@ test.describe('Entrega por parada', () => {
     backend.trips.items[0]!.item_status = 'delivered';
     backend.trips.deliveries.push({
       id: 'd1', organization_id: ORG_A, stop_id: parada.id, delivered_at: '2026-10-09T15:00:00.000Z', recipient_name: 'Nome-sigiloso-do-recebedor', recipient_role: 'Funcao-sigilosa', latitude: null, longitude: null,
-      at_site_address: false, outside_geofence: null, results: [], supersedes_id: null, recorded_by_name: 'Ana', recorded_at: '2026-10-09T15:01:00.000Z',
+      at_site_address: false, outside_geofence: null, results: [], supersedes_id: null, correction_reason: null, recorded_by_name: 'Ana', recorded_at: '2026-10-09T15:01:00.000Z',
     });
     await page.goto(`/viagens/${id}`);
     await expect(page.getByText(/recebido por \(restrito\)/)).toBeVisible();

@@ -40,7 +40,7 @@ export function DeliveryDialog({ stop, items, previous, busy, error, serverError
     deliveredAt: localNow(),
     recipientName: correction && !restricted ? previous.recipientName : '',
     recipientRole: correction && !restricted && previous.recipientRole !== null ? previous.recipientRole : '',
-    latitude: '', longitude: '', atSiteAddress: false,
+    latitude: '', longitude: '', atSiteAddress: false, correctionReason: '',
   });
   const [results, setResults] = useState<DeliveryResultInput[]>(() => items.map((item) => ({ itemId: item.id, delivered: true, reason: '' })));
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -54,15 +54,22 @@ export function DeliveryDialog({ stop, items, previous, busy, error, serverError
     formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
   }, [tick, serverErrors]);
 
+  // A posição é por coordenadas ou no endereço da unidade, nunca as duas: marcar o endereço limpa as coordenadas e informar uma
+  // coordenada desmarca o endereço.
   const set = (field: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>): void => {
-    setForm((current) => ({ ...current, [field]: field === 'atSiteAddress' ? event.target.checked : event.target.value }));
+    const { checked, value } = event.target;
+    setForm((current) => {
+      if (field === 'atSiteAddress') return checked ? { ...current, atSiteAddress: true, latitude: '', longitude: '' } : { ...current, atSiteAddress: false };
+      if (field === 'latitude' || field === 'longitude') return { ...current, [field]: value, atSiteAddress: value.trim() !== '' ? false : current.atSiteAddress };
+      return { ...current, [field]: value };
+    });
   };
   const setResult = (itemId: string, patch: Partial<DeliveryResultInput>): void => setResults((current) => current.map((result) => (result.itemId === itemId ? { ...result, ...patch } : result)));
 
   const submit = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     if (busy) return;
-    const parsed = validateDeliveryForm({ ...form, results }, new Date(), { allowNoResults: correction });
+    const parsed = validateDeliveryForm({ ...form, results }, new Date(), { allowNoResults: correction, correction });
     if (!parsed.ok) {
       setErrors(parsed.errors);
       setTick((current) => current + 1);
@@ -96,6 +103,15 @@ export function DeliveryDialog({ stop, items, previous, busy, error, serverError
             <p className="mt-1 text-corpo">{`Entrega em ${formatDateTime(previous.deliveredAt)} · recebido por ${previous.recipientName}${previous.recipientRole && previous.recipientRole !== RECIPIENT_RESTRICTED ? ` (${previous.recipientRole})` : ''}.`}</p>
             <p className="mt-1 text-corpo">A correção cria um novo registro; o anterior é mantido no histórico.</p>
           </div>
+        )}
+
+        {correction && (
+          <Field label="Justificativa da correção" help={`Explique por que a entrega é corrigida, de ${TRIP_LIMITS.justificationMin} a ${TRIP_LIMITS.justificationMax} caracteres. Fica no histórico da viagem.`} error={shown.correctionReason}>
+            {(control) => (
+              <textarea name="correctionReason" rows={3} maxLength={TRIP_LIMITS.justificationMax * 2} value={form.correctionReason ?? ''}
+                onChange={(event) => setForm((current) => ({ ...current, correctionReason: event.target.value }))} {...control} className={textareaClass} />
+            )}
+          </Field>
         )}
 
         <fieldset className="flex min-w-0 flex-col gap-4">
@@ -142,13 +158,14 @@ export function DeliveryDialog({ stop, items, previous, busy, error, serverError
           <legend className="mb-2 text-h3 font-semibold text-navy">Posição (opcional)</legend>
           <p className="text-corpo">Informe a latitude e a longitude, ou marque que a entrega foi no endereço da unidade. Fora da geocerca da unidade é aceito, e o registro destaca isso.</p>
           <div className="grid gap-4 tablet:grid-cols-2">
-            <TextField label="Latitude" name="latitude" inputMode="decimal" value={form.latitude} onChange={set('latitude')} error={shown.latitude} help="Exemplo: -23,5505" />
-            <TextField label="Longitude" name="longitude" inputMode="decimal" value={form.longitude} onChange={set('longitude')} error={shown.longitude} help="Exemplo: -46,6333" />
+            <TextField label="Latitude" name="latitude" inputMode="decimal" value={form.latitude} onChange={set('latitude')} error={shown.latitude} disabled={form.atSiteAddress} help="Exemplo: -23,5505" />
+            <TextField label="Longitude" name="longitude" inputMode="decimal" value={form.longitude} onChange={set('longitude')} error={shown.longitude} disabled={form.atSiteAddress} help="Exemplo: -46,6333" />
           </div>
           <label className="inline-flex min-h-alvo items-center gap-2 text-corpo">
             <input type="checkbox" name="atSiteAddress" checked={form.atSiteAddress} onChange={set('atSiteAddress')} className="size-6" />
             Entrega no endereço da unidade
           </label>
+          {shown.atSiteAddress && <p role="alert" className="text-corpo font-semibold text-erro">{shown.atSiteAddress}</p>}
         </fieldset>
       </form>
     </Dialog>

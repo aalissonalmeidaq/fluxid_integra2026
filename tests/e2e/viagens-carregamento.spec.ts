@@ -64,9 +64,10 @@ test.describe('Carregamento e início da viagem', () => {
     await iniciar.click();
 
     await expect(page.getByText('Situação da viagem: Em andamento')).toBeVisible();
-    await expect(page.getByText('Situação do cilindro na viagem: Em trânsito')).toHaveCount(3);
+    // Item em trânsito e cilindro em trânsito dizem a mesma coisa: um selo só por cilindro, sem a custódia repetida.
+    await expect(page.getByText('Situação do cilindro na viagem e custódia: Em trânsito')).toHaveCount(3);
     await expect(page.getByText('Bloqueio: Bloqueado (lógico)')).toHaveCount(3);
-    await expect(page.getByText('Custódia: Em trânsito')).toHaveCount(3);
+    await expect(page.getByText('Custódia: Em trânsito', { exact: true })).toHaveCount(0);
     await expect(page.getByText(/Fase 6/)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Iniciar viagem' })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Conferência da carga' })).toHaveCount(0);

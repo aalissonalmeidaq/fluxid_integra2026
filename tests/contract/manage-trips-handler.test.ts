@@ -255,10 +255,71 @@ describe('manage-trips: chegada e entrega', () => {
     })]);
   });
 
-  it('a correção leva o registro que corrige', async () => {
+  it('a correção leva o registro que corrige e a justificativa', async () => {
     const gw = gateway({ code: 'DELIVERED' });
-    await handler(gw)(post({ ...delivery, supersedes_id: 'd0000000-0000-4000-8000-000000000001' }));
-    expect(gw.rpc.mock.calls[0]![1]).toMatchObject({ p_supersedes: 'd0000000-0000-4000-8000-000000000001' });
+    await handler(gw)(post({ ...delivery, supersedes_id: 'd0000000-0000-4000-8000-000000000001', correction_reason: '  Nome do recebedor digitado errado  ' }));
+    expect(gw.rpc.mock.calls[0]![1]).toMatchObject({ p_supersedes: 'd0000000-0000-4000-8000-000000000001', p_correction_reason: 'Nome do recebedor digitado errado' });
+  });
+
+  it('a entrega original leva a justificativa nula', async () => {
+    const gw = gateway({ code: 'DELIVERED' });
+    await handler(gw)(post(delivery));
+    expect(gw.rpc.mock.calls[0]![1]).toMatchObject({ p_supersedes: null, p_correction_reason: null });
+  });
+
+  describe('RF-015: a justificativa da correção é conferida na borda, antes de chamar o banco', () => {
+    const FIX = { ...delivery, supersedes_id: 'd0000000-0000-4000-8000-000000000001' };
+    it.each([
+      ['sem justificativa', { correction_reason: undefined }],
+      ['justificativa nula', { correction_reason: null }],
+      ['justificativa vazia', { correction_reason: '' }],
+      ['só com espaços e quebras', { correction_reason: '  \n\t  ' }],
+      ['com 4 caracteres', { correction_reason: 'Erro' }],
+      ['com 501 caracteres', { correction_reason: 'x'.repeat(501) }],
+      ['que não é texto', { correction_reason: 12345 }],
+    ])('recusa a correção %s: 400, no campo certo, sem tocar no banco', async (_nome, patch) => {
+      const gw = gateway({ code: 'DELIVERED' });
+      const response = await handler(gw)(post({ ...FIX, ...patch }));
+      expect(response.status).toBe(400);
+      expect(JSON.stringify(await response.json())).toContain('correction_reason');
+      expect(gw.rpc).not.toHaveBeenCalled();
+    });
+
+    it('aceita 5 e 500 caracteres', async () => {
+      const gw = gateway({ code: 'DELIVERED' });
+      expect((await handler(gw)(post({ ...FIX, correction_reason: 'Erro!' }))).status).toBe(200);
+      expect((await handler(gw)(post({ ...FIX, correction_reason: 'x'.repeat(500) }))).status).toBe(200);
+    });
+
+    it('a justificativa de correção em entrega original é recusada', async () => {
+      const gw = gateway({ code: 'DELIVERED' });
+      const response = await handler(gw)(post({ ...delivery, correction_reason: 'Texto que não vale na original' }));
+      expect(response.status).toBe(400);
+      expect(gw.rpc).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('RF-013: a posição é por coordenadas ou no endereço da unidade, nunca as duas', () => {
+    it.each([
+      ['as duas coordenadas e o endereço da unidade', { latitude: -23.55, longitude: -46.63, at_site_address: true }],
+      ['só a latitude e o endereço da unidade', { latitude: -23.55, longitude: null, at_site_address: true }],
+      ['só a longitude e o endereço da unidade', { latitude: null, longitude: -46.63, at_site_address: true }],
+    ])('recusa %s: 400 no campo at_site_address, sem tocar no banco', async (_nome, patch) => {
+      const gw = gateway({ code: 'DELIVERED' });
+      const response = await handler(gw)(post({ ...delivery, ...patch }));
+      expect(response.status).toBe(400);
+      expect(JSON.stringify(await response.json())).toContain('at_site_address');
+      expect(gw.rpc).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['só coordenadas', { latitude: -23.55, longitude: -46.63, at_site_address: false }],
+      ['só o endereço da unidade', { latitude: null, longitude: null, at_site_address: true }],
+      ['sem posição', { latitude: null, longitude: null, at_site_address: false }],
+    ])('aceita %s', async (_nome, patch) => {
+      const gw = gateway({ code: 'DELIVERED' });
+      expect((await handler(gw)(post({ ...delivery, ...patch }))).status).toBe(200);
+    });
   });
 
   it.each([

@@ -72,7 +72,7 @@ create function pg_temp.deliver(p_trip uuid, p_pos integer, p_items jsonb, p_nam
   p_lat numeric default null, p_lon numeric default null, p_supersedes uuid default null, p_req uuid default gen_random_uuid(), p_user uuid default '10000000-0000-0000-0000-000000000002',
   p_session uuid default '60000000-0000-0000-0000-0000000800a2', p_org uuid default '20000000-0000-0000-0000-00000000000a') returns jsonb language sql as $$
   select public.register_delivery(p_user, p_session, p_org, p_req, p_trip, pg_temp.stop_id(p_trip, p_pos), coalesce(p_when, now() - interval '1 minute'), p_name, p_role, p_lat, p_lon, false,
-    pg_temp.res(p_trip, p_items), p_supersedes)
+    pg_temp.res(p_trip, p_items), p_supersedes, case when p_supersedes is null then null else 'Correção de teste fictícia' end)
 $$;
 
 insert into public.geofences (id, organization_id, site_id, name, shape, center, radius_m, area) values
@@ -106,7 +106,7 @@ select is((select outside_geofence is null from public.trip_deliveries where sto
 create temp table g2 as select pg_temp.sail(jsonb_build_array(pg_temp.stop(3, array[10])), 2, 2, array[10]) as t;
 select pg_temp.arrive((select t from g2), 1);
 select is(public.register_delivery('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (select t from g2),
-  pg_temp.stop_id((select t from g2), 1), now() - interval '1 minute', 'Recebedor Fictício', null, null, null, true, pg_temp.res((select t from g2), '[[10, true, null]]'), null) ->> 'code', 'DELIVERED', 'at_site_address sem coordenadas é aceito');
+  pg_temp.stop_id((select t from g2), 1), now() - interval '1 minute', 'Recebedor Fictício', null, null, null, true, pg_temp.res((select t from g2), '[[10, true, null]]'), null, null) ->> 'code', 'DELIVERED', 'at_site_address sem coordenadas é aceito');
 select is((select at_site_address from public.trip_deliveries where stop_id = pg_temp.stop_id((select t from g2), 1)), true, 'e gravado');
 select is((select latitude is null and longitude is null from public.trip_deliveries where stop_id = pg_temp.stop_id((select t from g2), 1)), true, 'sem coordenadas');
 

@@ -72,7 +72,7 @@ create function pg_temp.deliver(p_trip uuid, p_pos integer, p_items jsonb, p_nam
   p_lat numeric default null, p_lon numeric default null, p_supersedes uuid default null, p_req uuid default gen_random_uuid(), p_user uuid default '10000000-0000-0000-0000-000000000002',
   p_session uuid default '60000000-0000-0000-0000-0000000800a2', p_org uuid default '20000000-0000-0000-0000-00000000000a') returns jsonb language sql as $$
   select public.register_delivery(p_user, p_session, p_org, p_req, p_trip, pg_temp.stop_id(p_trip, p_pos), coalesce(p_when, now() - interval '1 minute'), p_name, p_role, p_lat, p_lon, false,
-    pg_temp.res(p_trip, p_items), p_supersedes)
+    pg_temp.res(p_trip, p_items), p_supersedes, case when p_supersedes is null then null else 'Correção de teste fictícia' end)
 $$;
 
 insert into auth.users (id, aud, role, email) values

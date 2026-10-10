@@ -151,3 +151,19 @@ Entrevista feita em 2026-10-10 com Natã Baracho (perfis gestor-b, admin-a e aud
 Ao desligar o Wi-Fi, "tudo continuou como estava": o app local fala com o Supabase em localhost e o navegador pode seguir "online" (adaptadores virtuais), então não há mudança. Repetido com o **Offline do DevTools** na viagem n.º 2 ("em andamento"), a pessoa responsável viu como esperado: faixa "Sem conexão. Dispositivo sem conexão de rede. Modo offline em operação." abaixo da barra, aviso lateral "Sem conexão. As telas podem estar desatualizadas.", aviso na tela da viagem "Sem conexão. As ações que alteram a viagem exigem conexão.", "Esta operação exige conexão." junto de "Concluir viagem", e "Registrar chegada", "Devolver ao estoque" e "Registrar desbloqueio" desabilitados; a estrutura da tela e o histórico continuaram visíveis; ao voltar para "Sem limitação" os botões voltaram a funcionar. Na Visão geral, o mapa avisou "O mapa precisa de conexão" e os pontos continuaram descritos em texto.
 
 **Observação:** com o aparelho offline, a barra superior ainda mostrou "Conectado: Dispositivo local" em verde, ao lado da faixa de sem conexão. A faixa e os avisos estão certos; o texto da barra pode confundir. Fica anotado para decisão, fora do escopo de viagens (barra da Spec 003 e 005).
+
+## Rodada de correções de 2026-10-10
+
+Depois da validação humana, os três pontos em aberto foram corrigidos (cilindro já reservado, selo repetido, estado offline na barra) e entraram a justificativa de correção de entrega e as migrations `20261010100000` e `20261010100100`.
+
+| Etapa | Resultado |
+|---|---|
+| `npm run lint` e `npm run typecheck` | passaram |
+| `npm run test:coverage` | instruções 91,67%, funções 91,18%; um teste de `registry-area` estourava o tempo padrão e ganhou 20 s |
+| `npx supabase db reset` e `npx supabase test db` | 86 arquivos, 2398 testes, PASS |
+| `npm run test:live` | 18 de 18 arquivos, 115 de 115 testes (depois de `supabase stop` e `start`, pois o edge runtime estava parado) |
+| `npm run test:e2e` | 1625 passaram, 44 ignorados, 2 instáveis (`registro-clientes` no `tablet-webkit` e `visao-geral` offline no `desktop-1920`) que passaram isolados |
+| `npm run test:visual:atualizar` | 213 de 213 capturas no Linux; nenhum `*-win32.png` |
+
+Estas correções não foram revalidadas por uma pessoa.
+

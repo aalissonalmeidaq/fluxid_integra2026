@@ -80,6 +80,7 @@ export interface TripDeliveryRow {
   outside_geofence: boolean | null;
   results: Json[];
   supersedes_id: string | null;
+  correction_reason: string | null;
   recorded_by_name: string;
   recorded_at: string;
 }
