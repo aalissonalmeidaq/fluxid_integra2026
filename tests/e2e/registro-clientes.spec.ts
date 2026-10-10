@@ -207,7 +207,7 @@ test.describe('Clientes: cadastro com unidade e CEP', () => {
     await expect(page.getByRole('group', { name: 'Mapa da unidade Matriz' })).toBeVisible();
 
     await page.goto('/');
-    const bloco = page.getByRole('region', { name: 'Cilindros e viagens no mapa' });
+    const bloco = page.getByRole('region', { name: 'Mapa da operação' });
     await expect(bloco.getByRole('group', { name: 'Mapa das unidades dos clientes' })).toBeVisible();
     await expect(bloco).not.toContainText('Exemplo');
     await expect(bloco.locator('.fluxid-map-point')).toHaveCount(1);

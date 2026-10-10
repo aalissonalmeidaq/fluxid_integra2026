@@ -7,7 +7,7 @@ import { OverviewPage } from './overview-page';
 // RF-008 a RF-016, RF-023, RF-032, CA-003, CA-009: a Visão geral mostra só dados de exemplo, todos rotulados, sem rede.
 const TITULOS_DOS_BLOCOS = [
   'Indicadores principais',
-  'Cilindros e viagens no mapa',
+  'Mapa da operação',
   'Movimentação de cilindros',
   'Cilindros por situação',
   'Alertas recentes',
@@ -58,7 +58,7 @@ describe('OverviewPage', () => {
 
   it('o mapa mostra a região de exemplo, com texto de fase futura e sem marcador de operação', async () => {
     await renderizar();
-    const mapa = screen.getByRole('region', { name: 'Cilindros e viagens no mapa' });
+    const mapa = screen.getByRole('region', { name: 'Mapa da operação' });
     expect(mapa).toHaveTextContent(/fase futura/i);
     expect(mapa.querySelector('.fluxid-map-point, [data-marker]')).toBeNull();
     expect(await within(mapa).findByRole('group', { name: 'Mapa da região de exemplo' })).toBeInTheDocument();

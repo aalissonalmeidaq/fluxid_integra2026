@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import type { TripService } from '@/application/trips/trip-service';
 import type { RegistryOutcome, RegistryService } from '@/application/registry/registry-service';
 import type { SiteDetail } from '@/application/registry/registry-views';
 import { usePermissions } from '@/app/navigation/permissions-context';
@@ -7,6 +8,8 @@ import { OsmMap } from '@/components/maps/osm-map';
 import { Alert, Card, ErrorState, Loading } from '@/design-system';
 import { GEOFENCE_SHAPE_LABELS, WEEK_DAY_LABELS } from '@/domain/registry/registry-vocabulary';
 import { AccessGate } from '@/pages/cylinders/components/access-gate';
+import { TripsOfBlock } from '@/pages/trips/components/trips-of-block';
+import { useTripService } from '@/pages/trips/use-trip-service';
 import { DetailBlock, secondaryLinkClass } from '../components/detail-list';
 import { LifecycleActions } from '../components/lifecycle-actions';
 import { RegistryHistory } from '../components/registry-history';
@@ -14,7 +17,8 @@ import { primaryLinkClass } from '../components/registry-list';
 import { AnonymizedBadge, EntityStatusBadge } from '../components/status-badge';
 import { useRegistryService } from '../use-registry-service';
 
-export interface SiteAbilities { write: boolean; deactivate: boolean; history: boolean; geofenceWrite: boolean }
+// `trips` (trip.read) mostra o bloco "Viagens" da unidade (Spec 008, RF-027).
+export interface SiteAbilities { write: boolean; deactivate: boolean; history: boolean; geofenceWrite: boolean; trips?: boolean }
 
 export interface SiteDetailViewProps {
   organizationId: string;
@@ -23,13 +27,15 @@ export interface SiteDetailViewProps {
   customerId: string;
   siteId: string;
   can: SiteAbilities;
+  // Serviço das viagens, para o bloco "Viagens"; sem ele o bloco não aparece.
+  tripService?: TripService | null;
 }
 
 type Load = 'loading' | 'ready' | 'not_found' | 'error';
 
 const time = (value: string | null): string => (value ? value.slice(0, 5) : '');
 
-export function SiteDetailView({ organizationId, service, online, customerId, siteId, can }: SiteDetailViewProps): React.JSX.Element {
+export function SiteDetailView({ organizationId, service, online, customerId, siteId, can, tripService = null }: SiteDetailViewProps): React.JSX.Element {
   const [detail, setDetail] = useState<SiteDetail | null>(null);
   const [load, setLoad] = useState<Load>('loading');
   const [notice, setNotice] = useState<string | null>(null);
@@ -162,6 +168,15 @@ export function SiteDetailView({ organizationId, service, online, customerId, si
         </section>
       </Card>
 
+      {can.trips && tripService && (
+        <Card>
+          <section aria-labelledby="site-trips-title" className="flex flex-col gap-4">
+            <h3 id="site-trips-title" className="text-h3 font-semibold text-navy">Viagens</h3>
+            <TripsOfBlock organizationId={organizationId} service={tripService} subject={{ kind: 'site', id: site.id }} />
+          </section>
+        </Card>
+      )}
+
       {can.history && <RegistryHistory organizationId={organizationId} service={service} entityType="site" entityId={site.id} refreshKey={site.version} />}
     </section>
   );
@@ -169,6 +184,7 @@ export function SiteDetailView({ organizationId, service, online, customerId, si
 
 export function SiteDetailPage(): React.JSX.Element {
   const { service, organizationId, online } = useRegistryService();
+  const { service: tripService } = useTripService();
   const { permissions } = usePermissions();
   const route = resolveRegistryRoute(window.location.pathname);
   const ids = route?.area === 'customers' && (route.kind === 'site_detail' || route.kind === 'site_edit') ? { customerId: route.customerId, siteId: route.siteId } : { customerId: '', siteId: '' };
@@ -181,7 +197,8 @@ export function SiteDetailPage(): React.JSX.Element {
         service={service}
         online={online}
         {...ids}
-        can={{ write: has('customer.write'), deactivate: has('customer.deactivate'), history: has('customer.history'), geofenceWrite: has('geofence.write') }}
+        tripService={tripService}
+        can={{ write: has('customer.write'), deactivate: has('customer.deactivate'), history: has('customer.history'), geofenceWrite: has('geofence.write'), trips: has('trip.read') }}
       />
     </AccessGate>
   );

@@ -17,7 +17,7 @@ const BRASIL = { latitude: -14.235, longitude: -51.9253, zoom: 4 };
 function ExampleMap(): React.JSX.Element {
   const { state, retry } = useOverviewBlock('mapa');
   return (
-    <OverviewBlock id="mapa" title="Cilindros e viagens no mapa" state={state} onRetry={retry} className="w-full">
+    <OverviewBlock id="mapa" title="Mapa da operação" state={state} onRetry={retry} className="w-full">
       {state.status === 'ready' && (
         <div className="flex flex-1 flex-col gap-2">
           <PointsMap
@@ -57,7 +57,7 @@ function SitesMap({ organizationId }: { organizationId: string }): React.JSX.Ele
   const total = load.kind === 'ready' ? load.points.total : 0;
 
   return (
-    <OverviewBlock id="mapa" title="Cilindros e viagens no mapa" state={state} onRetry={() => { setLoad({ kind: 'loading' }); setAttempt((value) => value + 1); }} className="w-full" example={false}>
+    <OverviewBlock id="mapa" title="Mapa da operação" state={state} onRetry={() => { setLoad({ kind: 'loading' }); setAttempt((value) => value + 1); }} className="w-full" example={false}>
       <div className="flex flex-1 flex-col gap-2">
         <PointsMap title="Mapa das unidades dos clientes" points={points} fallback={BRASIL} className="flex-1" />
         <p role="status" className="break-words text-corpo text-grafite">

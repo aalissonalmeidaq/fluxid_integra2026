@@ -14,7 +14,7 @@ const ALL: DetailAbilities = { write: true, deactivate: true, identifier: true, 
 const detail = (over: Partial<CylinderDetail> = {}, cylinder: Partial<CylinderDetail['cylinder']> = {}): CylinderDetail => ({
   cylinder: {
     id: CYL, serialNumber: 'AB-1', type: TYPE, manufacturer: 'Fábrica X', manufactureYear: 2020, workingPressureBar: 200, notes: 'Observação do casco',
-    status: 'active', inactivationReason: null, stockStatus: 'in_stock', hydroLastResult: 'approved', hydroNextDueOn: '2027-01-01', version: 3, createdAt: '2026-10-05T13:30:00Z', ...cylinder,
+    status: 'active', inactivationReason: null, stockStatus: 'in_stock', custodyStatus: 'in_organization', custodySite: null, hydroLastResult: 'approved', hydroNextDueOn: '2027-01-01', version: 3, createdAt: '2026-10-05T13:30:00Z', ...cylinder,
   },
   identifiers: [
     { id: 'i1', kind: 'qr_code', value: 'QR-1', status: 'active', createdAt: '2026-10-05T13:30:00Z', deactivatedAt: null, deactivationJustification: null, transferred: false },

@@ -1,0 +1,336 @@
+# Registro do uso de inteligência artificial e validação humana
+
+**FluxID | RIA-026 | Viagens, paradas, carga e entrega**
+
+> Ponto de atenção: a IA apoia a equipe, mas a responsabilidade final é humana.
+
+## Registro da interação
+
+- Ferramenta de IA utilizada: Claude Code (Anthropic), modelo Claude Sonnet 5.5, com o fluxo Spec Kit
+- Objetivo do uso: Implementar a Spec 008 (Fase 4): planejar viagens com paradas e cilindros, conferir o carregamento, iniciar, registrar entrega e divergência, desbloquear como registro próprio, devolver ao estoque, concluir e cancelar, com reserva atômica, histórico imutável, auditoria e custódia dos cilindros.
+- Prompt utilizado, em síntese sanitizada: Executar o fluxo Spec Kit da Spec 008 (specify, clarify, plan, tasks, implement) com TDD, RLS testada com dois tenants, bloqueio lógico sem comando a dispositivo, recebedor só por nome e função e telas no padrão visual da Spec 005; depois rodar a rodada completa de testes e conduzir o roteiro de validação com a pessoa responsável.
+- Resposta gerada pela IA: Resumo do que foi produzido: 10 migrations de viagens (esquema, permissões, travas de cilindro, planejamento e leitura, carregamento e início, entrega, desbloqueio, encerramento, histórico e leitura de custódia), as funções manage-trips e query-trips, o domínio, o serviço e o adaptador de viagens, as telas de lista, formulário e detalhe com diálogos, a seção Viagens no cilindro e na unidade, testes pgTAP, de contrato, unitários, E2E, visuais e de desempenho em 4G, e a documentação da spec com validation.md.
+
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/28
+- Análise crítica da equipe: A pessoa responsável executou o roteiro do quickstart no app com três perfis, mediu os tempos e aprovou. Tempos informados: planejar 1 min 13 s, conferir dez cilindros e iniciar 2 min 07 s, entrega 1 min 48 s, auditoria 1 min 49 s, todos dentro das metas. Ficaram sem esclarecimento: o relato de que, ao incluir um cilindro já reservado, a tela piscou e voltou sem os dados (a busca não oferece cilindro reservado e o aviso só surge em concorrência); o selo Em trânsito repetido na mesma linha do item. O offline foi esclarecido depois: ao desligar o Wi-Fi nada mudou porque o servidor local segue alcançável; com o Offline do DevTools numa tela de viagem a pessoa viu a faixa de sem conexão, o aviso na tela, os botões desabilitados com o motivo e tudo voltar ao reconectar. A pessoa respondeu 'tudo aprovado' sem detalhar esses pontos.
+- Validação humana realizada: Natã Baracho executou o roteiro do quickstart com administrador do Tenant A, auditor do Tenant A e administrador do Tenant B, mediu os tempos e aprovou o resultado.
+- Decisão final: utilizado
+- Justificativa: A pessoa responsável aprovou o resultado e os testes automáticos passaram. A decisão foi informada como utilizado, sem justificativa própria na entrevista.
+- Fontes verificadas: Documentação do próprio projeto (spec, plano, pesquisa, modelo de dados, contratos, quickstart, PRD e AGENTS.md). Nenhuma fonte externa.
+- Identificador do registro: RIA-026
+- Data e hora da interação: 10/10/2026, 09:04:26 - America/Fortaleza
+
+## Rastreabilidade técnica do ciclo
+
+- Repositório: fluxid
+- Branch: feat/008-viagens-paradas-carga
+- Spec: 008
+- Ciclo: 01
+- Commit-base: 66952a1b0a230cf828e976887142c1b20802431a
+- Hash do diff funcional preparado: 42d1b0edd0b10d36cbd1c73005fbac49bf40323e3d7c1e57368420155f1e108a
+- Arquivos e áreas afetadas:
+
+- `README.md`
+- `docs/prd.md`
+- `package.json`
+- `playwright.config.ts`
+- `scripts/viagens/medir-desempenho-4g.mjs`
+- `specs/008-viagens-paradas-carga/baseline.md`
+- `specs/008-viagens-paradas-carga/checklists/requirements.md`
+- `specs/008-viagens-paradas-carga/contracts/operacoes-servidor.md`
+- `specs/008-viagens-paradas-carga/contracts/permissoes-e-papeis.md`
+- `specs/008-viagens-paradas-carga/contracts/telas-e-rotas.md`
+- `specs/008-viagens-paradas-carga/contracts/verificacoes-automaticas.md`
+- `specs/008-viagens-paradas-carga/data-model.md`
+- `specs/008-viagens-paradas-carga/plan.md`
+- `specs/008-viagens-paradas-carga/quickstart.md`
+- `specs/008-viagens-paradas-carga/research.md`
+- `specs/008-viagens-paradas-carga/spec.md`
+- `specs/008-viagens-paradas-carga/tasks.md`
+- `specs/008-viagens-paradas-carga/validation.md`
+- `src/app/App.tsx`
+- `src/app/admin-routes.test.ts`
+- `src/app/shell/navigation-menu.tsx`
+- `src/app/trips/trip-routes.test.ts`
+- `src/app/trips/trip-routes.ts`
+- `src/application/cylinders/cylinder-service.test.ts`
+- `src/application/cylinders/cylinder-service.ts`
+- `src/application/cylinders/cylinder-views.ts`
+- `src/application/trips/trip-service.test.ts`
+- `src/application/trips/trip-service.ts`
+- `src/application/trips/trip-views.test.ts`
+- `src/application/trips/trip-views.ts`
+- `src/design-system/charts/chart-table.tsx`
+- `src/domain/cylinders/cylinder-types.ts`
+- `src/domain/navigation/screens.test.ts`
+- `src/domain/navigation/screens.ts`
+- `src/domain/trips/trip-eligibility.test.ts`
+- `src/domain/trips/trip-eligibility.ts`
+- `src/domain/trips/trip-history-format.test.ts`
+- `src/domain/trips/trip-history-format.ts`
+- `src/domain/trips/trip-limits.ts`
+- `src/domain/trips/trip-summary.test.ts`
+- `src/domain/trips/trip-summary.ts`
+- `src/domain/trips/trip-transitions.test.ts`
+- `src/domain/trips/trip-transitions.ts`
+- `src/domain/trips/trip-validation.test.ts`
+- `src/domain/trips/trip-validation.ts`
+- `src/domain/trips/trip-vocabulary.test.ts`
+- `src/domain/trips/trip-vocabulary.ts`
+- `src/infrastructure/overview/sample-overview-source.ts`
+- `src/infrastructure/supabase/trip-adapter.ts`
+- `src/pages/cylinders/components/custody-info.tsx`
+- `src/pages/cylinders/cylinder-detail-actions.test.tsx`
+- `src/pages/cylinders/cylinder-detail-custody.test.tsx`
+- `src/pages/cylinders/cylinder-detail-page.test.tsx`
+- `src/pages/cylinders/cylinder-detail-page.tsx`
+- `src/pages/cylinders/cylinder-form-page.test.tsx`
+- `src/pages/cylinders/cylinder-list-page.test.tsx`
+- `src/pages/cylinders/cylinder-list-page.tsx`
+- `src/pages/overview/alert-visuals.tsx`
+- `src/pages/overview/blocks/alerts-block.tsx`
+- `src/pages/overview/blocks/blocks-states.test.tsx`
+- `src/pages/overview/blocks/cylinders-block.tsx`
+- `src/pages/overview/blocks/indicators-block.tsx`
+- `src/pages/overview/blocks/map-block.tsx`
+- `src/pages/overview/blocks/performance-block.tsx`
+- `src/pages/overview/overview-block.tsx`
+- `src/pages/overview/overview-page.test.tsx`
+- `src/pages/overview/overview-page.tsx`
+- `src/pages/registry/components/registry-list.tsx`
+- `src/pages/registry/customers/site-detail-page.tsx`
+- `src/pages/registry/customers/site-detail-trips.test.tsx`
+- `src/pages/trips/components/arrive-stop-action.test.tsx`
+- `src/pages/trips/components/arrive-stop-action.tsx`
+- `src/pages/trips/components/cancel-dialog.test.tsx`
+- `src/pages/trips/components/cancel-dialog.tsx`
+- `src/pages/trips/components/cylinder-picker.test.tsx`
+- `src/pages/trips/components/cylinder-picker.tsx`
+- `src/pages/trips/components/delivery-dialog.test.tsx`
+- `src/pages/trips/components/delivery-dialog.tsx`
+- `src/pages/trips/components/loading-panel.test.tsx`
+- `src/pages/trips/components/loading-panel.tsx`
+- `src/pages/trips/components/remove-item-dialog.test.tsx`
+- `src/pages/trips/components/remove-item-dialog.tsx`
+- `src/pages/trips/components/return-item-dialog.tsx`
+- `src/pages/trips/components/stop-card.tsx`
+- `src/pages/trips/components/stop-draft.ts`
+- `src/pages/trips/components/stop-editor.test.tsx`
+- `src/pages/trips/components/stop-editor.tsx`
+- `src/pages/trips/components/trip-badges.tsx`
+- `src/pages/trips/components/trip-history-list.test.tsx`
+- `src/pages/trips/components/trip-history-list.tsx`
+- `src/pages/trips/components/trip-notice.tsx`
+- `src/pages/trips/components/trip-summary-panel.test.tsx`
+- `src/pages/trips/components/trip-summary-panel.tsx`
+- `src/pages/trips/components/trips-of-block.test.tsx`
+- `src/pages/trips/components/trips-of-block.tsx`
+- `src/pages/trips/components/unlock-dialog.test.tsx`
+- `src/pages/trips/components/unlock-dialog.tsx`
+- `src/pages/trips/current-delivery.ts`
+- `src/pages/trips/trip-abilities.ts`
+- `src/pages/trips/trip-detail-history.test.tsx`
+- `src/pages/trips/trip-detail-page.test.tsx`
+- `src/pages/trips/trip-detail-page.tsx`
+- `src/pages/trips/trip-failure-text.ts`
+- `src/pages/trips/trip-form-page.test.tsx`
+- `src/pages/trips/trip-form-page.tsx`
+- `src/pages/trips/trip-list-filters.test.tsx`
+- `src/pages/trips/trip-list-page.test.tsx`
+- `src/pages/trips/trip-list-page.tsx`
+- `src/pages/trips/trip-session-expired.test.tsx`
+- `src/pages/trips/trip-test-support.ts`
+- `src/pages/trips/trips-area.tsx`
+- `src/pages/trips/use-trip-service.ts`
+- `supabase/functions/_shared/cylinders.ts`
+- `supabase/functions/_shared/operations.ts`
+- `supabase/functions/manage-trips/deno.json`
+- `supabase/functions/manage-trips/handler.ts`
+- `supabase/functions/manage-trips/index.ts`
+- `supabase/functions/query-cylinders/handler.ts`
+- `supabase/functions/query-trips/deno.json`
+- `supabase/functions/query-trips/handler.ts`
+- `supabase/functions/query-trips/index.ts`
+- `supabase/migrations/20261009120000_trips_schema.sql`
+- `supabase/migrations/20261009120100_trips_permissions.sql`
+- `supabase/migrations/20261009120200_trips_cylinder_guards.sql`
+- `supabase/migrations/20261009120300_trips_plan.sql`
+- `supabase/migrations/20261009120310_trips_plan_read.sql`
+- `supabase/migrations/20261009120400_trips_loading_start.sql`
+- `supabase/migrations/20261009120500_trips_delivery.sql`
+- `supabase/migrations/20261009120600_trips_unlock.sql`
+- `supabase/migrations/20261009120700_trips_close.sql`
+- `supabase/migrations/20261009120800_trips_history.sql`
+- `supabase/migrations/20261009120900_trips_cylinder_custody_read.sql`
+- `supabase/tests/002_rbac_invariants.test.sql`
+- `supabase/tests/002_rbac_management.test.sql`
+- `supabase/tests/002_rbac_rls.test.sql`
+- `supabase/tests/002_rls_behavior.test.sql`
+- `supabase/tests/006_permissions.test.sql`
+- `supabase/tests/008_close.test.sql`
+- `supabase/tests/008_constraints.test.sql`
+- `supabase/tests/008_cylinder_custody.test.sql`
+- `supabase/tests/008_cylinder_custody_read.test.sql`
+- `supabase/tests/008_cylinder_in_trip.test.sql`
+- `supabase/tests/008_delivery.test.sql`
+- `supabase/tests/008_delivery_geofence.test.sql`
+- `supabase/tests/008_history_audit.test.sql`
+- `supabase/tests/008_idempotency.test.sql`
+- `supabase/tests/008_immutability.test.sql`
+- `supabase/tests/008_limits_contract.test.sql`
+- `supabase/tests/008_loading_start.test.sql`
+- `supabase/tests/008_permissions.test.sql`
+- `supabase/tests/008_plan.test.sql`
+- `supabase/tests/008_plan_read.test.sql`
+- `supabase/tests/008_query.test.sql`
+- `supabase/tests/008_reservation_concurrency.test.sql`
+- `supabase/tests/008_rls.test.sql`
+- `supabase/tests/008_transitions.test.sql`
+- `supabase/tests/008_unlock.test.sql`
+- `tests/contract/manage-trips-handler.test.ts`
+- `tests/contract/query-trips-handler.test.ts`
+- `tests/contract/trips-limits.test.ts`
+- `tests/contract/trips-no-delete.test.ts`
+- `tests/contract/trips-no-recipient-in-logs.test.ts`
+- `tests/contract/trips-operations-catalog.test.ts`
+- `tests/contract/trips-permissions.test.ts`
+- `tests/e2e/desempenho-lista-viagens.spec.ts`
+- `tests/e2e/registro-clientes.spec.ts`
+- `tests/e2e/support/mock-backend.ts`
+- `tests/e2e/support/mock-cylinders.ts`
+- `tests/e2e/support/mock-trips-close.ts`
+- `tests/e2e/support/mock-trips-delivery.ts`
+- `tests/e2e/support/mock-trips-loading.ts`
+- `tests/e2e/support/mock-trips-plan.ts`
+- `tests/e2e/support/mock-trips-query.ts`
+- `tests/e2e/support/mock-trips-unlock.ts`
+- `tests/e2e/support/mock-trips.ts`
+- `tests/e2e/support/trips-scenario.ts`
+- `tests/e2e/viagens-acessibilidade.spec.ts`
+- `tests/e2e/viagens-carregamento.spec.ts`
+- `tests/e2e/viagens-consulta.spec.ts`
+- `tests/e2e/viagens-desbloqueio.spec.ts`
+- `tests/e2e/viagens-encerramento.spec.ts`
+- `tests/e2e/viagens-entrega.spec.ts`
+- `tests/e2e/viagens-offline.spec.ts`
+- `tests/e2e/viagens-planejamento.spec.ts`
+- `tests/e2e/visao-geral.spec.ts`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-lista-360-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-carregando-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-carregando-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-carregando-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-erro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-erro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-global-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-global-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-global-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-pronto-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-pronto-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-pronto-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/detalhe-de-cilindro-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/detalhe-de-cilindro-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/lista-de-cilindros-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/lista-de-cilindros-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/visao-geral-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/visao-geral-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/visao-geral-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-cancelada-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-cancelada-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-cancelada-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-carregando-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-carregando-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-carregando-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-concluida-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-concluida-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-concluida-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-planejada-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-planejada-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-planejada-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-cancelar-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-cancelar-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-cancelar-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-desbloqueio-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-desbloqueio-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-desbloqueio-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-devolucao-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-devolucao-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-devolucao-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-entrega-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-entrega-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-entrega-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-formulario-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-formulario-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-formulario-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-todas-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-todas-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-todas-768-visual-chromium-linux.png`
+- `tests/e2e/visual/visao-geral.visual.spec.ts-snapshots/visao-geral-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/visao-geral.visual.spec.ts-snapshots/visao-geral-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/visao-geral.visual.spec.ts-snapshots/visao-geral-principal-768-visual-chromium-linux.png`
+- `tests/integration/navigation-permissions.live.test.ts`
+- `tests/integration/trips-reservation.live.test.ts`
+- `tests/support/sql/trips-volume-limpar.sql`
+- `tests/support/sql/trips-volume-semear.sql`
+- `tests/support/trips-fixtures.ts`
+
+## Testes e evidências
+
+- Comando(s): npm run lint; npm run typecheck; npm run test:coverage; npx supabase db reset; npx supabase test db; npm run test:live; npm run build; npm run catalogo:build; npm run test:e2e; npm run test:visual:atualizar; node scripts/viagens/medir-desempenho-4g.mjs
+- Resultado: aprovado
+- Evidência: Lint, tipos e build sem erros. Cobertura: 91,6% das instruções e 94,13% das linhas. Banco: 84 arquivos e 2323 testes passaram. Testes ao vivo: 115 de 115 depois do db reset (3 falhas de avatar anteriores eram do estado do banco local). E2E: 1621 passaram, 43 ignorados e 1 instável que passou isolado. Capturas visuais: 213 de 213. Desempenho em Slow 4G: lista p95 731 ms e detalhe p95 658 ms. Números completos em specs/008-viagens-paradas-carga/validation.md.
+
+## Decisões e dados pendentes
+
+Esclarecer os dois pontos sem detalhe da análise crítica (cilindro já reservado e selo Em trânsito repetido). Observação: com o aparelho offline, a barra superior ainda mostrou "Conectado: Dispositivo local" ao lado da faixa de sem conexão.
+
+## Validação humana
+
+- Responsável pela revisão da equipe: Natã Baracho
+- Data da validação humana: 10/10/2026
+- Amostra validada: Perfis informados: gestor-b (administrador do Tenant B), admin-a (administrador do Tenant A) e auditor-a (auditor do Tenant A). Nas capturas enviadas durante a conversa aparecem os fluxos 1 a 9 do quickstart (planejar, editar, conferir, iniciar, entregar, divergir, desbloquear, devolver ao estoque, concluir, cancelar, consultar, auditoria, isolamento entre organizações e offline) e o detalhe do cilindro em emulações do Chrome de 393, 430, 480, 820 e 1559 px. A pessoa não listou telas nem larguras na entrevista.
+- Ambiente da validação: Windows 11, Google Chrome e celular Android. O modelo do aparelho não foi detalhado.
+- Duração da validação: 15 minutos
+- Resultado da validação humana: aprovado
+- Itens a corrigir apontados pela pessoa responsável: Nenhum item a corrigir foi apontado.
+- Confirmação do responsável: sim, confirmado por Natã Baracho em 10/10/2026
+- Observações: As respostas foram dadas em conversa com o agente e gravadas com a confirmação da pessoa responsável. Confirmou as premissas da spec: conferência manual, posição da entrega informada, CNH vencida impede iniciar e licenciamento só avisa, recebedor só por nome e função. Não houve validação com leitor de tela.
+
+## Regras de preenchimento
+
+- A validação humana é obrigatória para encerrar a spec. As respostas da seção acima vêm da pessoa responsável, em entrevista conduzida pelo agente de IA, e nunca são inventadas nem presumidas.
+- Registrar apenas interações relevantes para o projeto.
+- Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
+- Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
+- Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
+- Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
+- Evitar dados pessoais, sigilosos ou sensíveis.
+- Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
+
+## Checklist final
+
+- [x] Ferramentas de IA identificadas.
+- [x] Prompts relevantes registrados por síntese sanitizada.
+- [x] Respostas ou resultados documentados.
+- [x] Texto revisado para soar natural, claro e autêntico, sem alterar o sentido original.
+- [x] Quando houve geração de código, a resposta contém resumo e link para o repositório, branch ou, preferencialmente, pull request.
+- [x] Validação humana explicada.
+- [x] Fontes verificadas quando necessário.
+- [x] Decisão ou pendência registrada.
+- [x] O registro não contém segredos, credenciais ou tokens.
+- [x] Dados pessoais foram removidos ou minimizados.

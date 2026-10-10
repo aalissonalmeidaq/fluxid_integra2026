@@ -41,6 +41,8 @@
 
 | RIA-025 | 08/10/2026, 17:47:07 - America/Fortaleza | 005 | 02 | Evolução visual e recuperação de erro do Login | `registros/25_Evolucao_Visual_e_Recuperacao_de_Erro_do_Login.docx` (`RIA-025-evolucao-visual-e-recuperacao-de-erro-do-login.md`) | Utilizado |
 
+| RIA-026 | 10/10/2026, 09:04:26 - America/Fortaleza | 008 | 01 | Viagens, paradas, carga e entrega | `registros/RIA-026-viagens-paradas-carga-e-entrega.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
@@ -52,3 +54,7 @@
 > Atualização do RIA-018: em 01/10/2026 o teste ao vivo do MFA foi repetido e aprovado, e o leitor de tela foi dispensado por decisão do responsável (não será usado no projeto atual).
 
 > Atualização do RIA-025: o link de revisão foi trocado pelo do pull request #24 em 08/10/2026.
+
+> Atualização do RIA-026: em 10/10/2026 o ponto do offline foi esclarecido com o Offline do DevTools e aprovado; restam o cilindro já reservado e o selo Em trânsito repetido.
+
+> Atualização do RIA-026: o link de revisão foi trocado pelo do pull request #28 em 10/10/2026.

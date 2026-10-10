@@ -11,7 +11,7 @@ export function CylindersBlock(): React.JSX.Element {
       {state.status === 'ready' && (
         <List>
           {state.data.items.map((item) => (
-            <ListItem key={item.id} className="flex flex-col border-b border-borda-suave pb-2">
+            <ListItem key={item.id} className="flex flex-col border-b border-borda-suave pb-2 last:border-b-0 last:pb-0">
               <span className="break-words text-corpo font-semibold text-navy">{item.id}</span>
               <span className="break-words text-legenda text-texto-secundario">{item.gas} · {item.status}</span>
             </ListItem>

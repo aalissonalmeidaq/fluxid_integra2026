@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import type { TripService } from '@/application/trips/trip-service';
 import type { CylinderOutcome, CylinderService } from '@/application/cylinders/cylinder-service';
 import type { CylinderDetail, IdentifierView, TestView } from '@/application/cylinders/cylinder-views';
 import { usePermissions } from '@/app/navigation/permissions-context';
@@ -8,6 +9,8 @@ import {
 import { validateIdentifierForm } from '@/domain/cylinders/cylinder-validation';
 import { formatDate } from '@/domain/cylinders/format';
 import { Alert, Button, Card, ErrorState, Loading, Select, TextField } from '@/design-system';
+import { TripsOfBlock } from '@/pages/trips/components/trips-of-block';
+import { useTripService } from '@/pages/trips/use-trip-service';
 import { AccessGate } from './components/access-gate';
 import { HistoryList } from './components/history-list';
 import { CameraScanButton } from './components/camera-scan-button';
@@ -15,12 +18,14 @@ import { HydrostaticTestForm } from './components/hydrostatic-test-form';
 import { HydrostaticTests } from './components/hydrostatic-tests';
 import { IdentifierList } from './components/identifier-list';
 import { ReasonDialog } from './components/reason-dialog';
+import { CustodyInfo } from './components/custody-info';
 import { IdentifierWarning, StatusBadges } from './components/status-badges';
 import { typeLabel } from './type-label';
 import { useCylinderService } from './use-cylinder-service';
 
 // O que a pessoa pode fazer neste cilindro. A tela só oferece a ação; a decisão final é sempre do servidor (RF-039).
-export interface DetailAbilities { write: boolean; deactivate: boolean; identifier: boolean; test: boolean; history: boolean }
+// `trips` (trip.read) mostra o bloco "Viagens" do cilindro (Spec 008, RF-027).
+export interface DetailAbilities { write: boolean; deactivate: boolean; identifier: boolean; test: boolean; history: boolean; trips?: boolean }
 
 export interface CylinderDetailViewProps {
   organizationId: string;
@@ -28,6 +33,8 @@ export interface CylinderDetailViewProps {
   online: boolean;
   cylinderId: string;
   can: DetailAbilities;
+  // Serviço das viagens, para o bloco "Viagens"; sem ele o bloco não aparece.
+  tripService?: TripService | null;
 }
 
 type Load = 'loading' | 'ready' | 'not_found' | 'error';
@@ -75,7 +82,7 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-export function CylinderDetailView({ organizationId, service, online, cylinderId, can }: CylinderDetailViewProps): React.JSX.Element {
+export function CylinderDetailView({ organizationId, service, online, cylinderId, can, tripService = null }: CylinderDetailViewProps): React.JSX.Element {
   const [detail, setDetail] = useState<CylinderDetail | null>(null);
   const [load, setLoad] = useState<Load>('loading');
   const [testForm, setTestForm] = useState<{ mode: 'register' } | { mode: 'rectify'; test: TestView } | null>(null);
@@ -174,6 +181,7 @@ export function CylinderDetailView({ organizationId, service, online, cylinderId
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadges status={cylinder.status} stockStatus={cylinder.stockStatus} hydroStatus={detail.hydroStatus} />
             <IdentifierWarning activeCount={activeIdentifiers} />
+            <CustodyInfo status={cylinder.custodyStatus} site={cylinder.custodySite} />
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -278,6 +286,12 @@ export function CylinderDetailView({ organizationId, service, online, cylinderId
             />
           </Block>
 
+          {can.trips && tripService && (
+            <Block id="cyl-trips-title" title="Viagens">
+              <TripsOfBlock organizationId={organizationId} service={tripService} subject={{ kind: 'cylinder', id: cylinderId }} />
+            </Block>
+          )}
+
           {can.history && (
             <Block id="cyl-history-title" title="Histórico">
               <HistoryList key={historyVersion} organizationId={organizationId} cylinderId={cylinderId} service={service} />
@@ -366,6 +380,7 @@ export function CylinderDetailView({ organizationId, service, online, cylinderId
 
 export function CylinderDetailPage({ cylinderId }: { cylinderId: string }): React.JSX.Element {
   const { service, organizationId, online } = useCylinderService();
+  const { service: tripService } = useTripService();
   const { permissions } = usePermissions();
   const has = (code: string): boolean => permissions?.tenant.includes(code) ?? false;
   return (
@@ -376,7 +391,8 @@ export function CylinderDetailPage({ cylinderId }: { cylinderId: string }): Reac
         service={service}
         online={online}
         cylinderId={cylinderId}
-        can={{ write: has('cylinder.write'), deactivate: has('cylinder.deactivate'), identifier: has('cylinder.identifier'), test: has('cylinder.test'), history: has('cylinder.history') }}
+        tripService={tripService}
+        can={{ write: has('cylinder.write'), deactivate: has('cylinder.deactivate'), identifier: has('cylinder.identifier'), test: has('cylinder.test'), history: has('cylinder.history'), trips: has('trip.read') }}
       />
     </AccessGate>
   );

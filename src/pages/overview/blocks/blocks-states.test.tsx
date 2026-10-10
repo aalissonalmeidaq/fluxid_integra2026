@@ -9,7 +9,7 @@ import { OverviewPage } from '../overview-page';
 // RF-028, CA-006, RA-004, história 4: cada bloco trata os quatro estados sem quebrar a página nem mover o foco.
 const TITULO_POR_BLOCO: Record<OverviewBlockId, string> = {
   indicadores: 'Indicadores principais',
-  mapa: 'Cilindros e viagens no mapa',
+  mapa: 'Mapa da operação',
   movimentacao: 'Movimentação de cilindros',
   situacao: 'Cilindros por situação',
   alertas: 'Alertas recentes',
