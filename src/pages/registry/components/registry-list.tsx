@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import type { RegistryFailure, RegistryOutcome } from '@/application/registry/registry-service';
 import type { Page } from '@/application/registry/registry-views';
 import { Alert, Button, Card, DataTable, ErrorState, type ColunaDaTabela } from '@/design-system';
+
+// Resultado de uma página: o das consultas dos cadastros e o das viagens têm a mesma forma (sucesso com a página ou uma falha identificada por kind).
+export type ListOutcome<T> = { kind: 'success'; value: Page<T> } | { kind: string };
 
 export interface RegistryListProps<T, Q> {
   // Filtros e busca atuais: quando a identidade muda, a lista recarrega desde a primeira página.
   query: Q;
-  fetchPage: (query: Q, cursor: string | null) => Promise<RegistryOutcome<Page<T>>>;
+  fetchPage: (query: Q, cursor: string | null) => Promise<ListOutcome<T>>;
   columns: readonly ColunaDaTabela<T>[];
   getKey: (item: T) => string;
   legend: string;
@@ -24,11 +26,13 @@ export interface RegistryListProps<T, Q> {
 type Phase = 'loading' | 'ready' | 'error';
 type Failure = { kind: 'access_denied' | 'offline' | 'unavailable'; message: string };
 
-const failureOf = (outcome: RegistryFailure, subject: string): Failure => {
+const failureOf = (outcome: { kind: string }, subject: string): Failure => {
   if (outcome.kind === 'access_denied' || outcome.kind === 'mfa_required') return { kind: 'access_denied', message: `Você não tem permissão para ver ${subject}.` };
   if (outcome.kind === 'offline') return { kind: 'offline', message: `Sem conexão. A consulta de ${subject} exige conexão.` };
   return { kind: 'unavailable', message: `Não foi possível carregar ${subject} agora.` };
 };
+
+const isSuccess = <T,>(outcome: ListOutcome<T>): outcome is { kind: 'success'; value: Page<T> } => outcome.kind === 'success';
 
 const linkClass = 'inline-flex min-h-alvo items-center justify-center rounded-controle border border-azul-profundo bg-azul-profundo px-4 text-corpo font-semibold text-branco hover:bg-navy';
 
@@ -63,7 +67,7 @@ export function RegistryList<T, Q>({ query, fetchPage, columns, getKey, legend, 
     let active = true;
     void fetchPage(query, null).then((outcome) => {
       if (!active) return;
-      if (outcome.kind === 'success') applyPage(outcome.value, false);
+      if (isSuccess(outcome)) applyPage(outcome.value, false);
       else { setFailure(failureOf(outcome, subject)); setPhase('error'); }
     });
     return () => { active = false; };
@@ -74,7 +78,7 @@ export function RegistryList<T, Q>({ query, fetchPage, columns, getKey, legend, 
     setLoadingMore(true);
     const outcome = await fetchPage(query, next);
     setLoadingMore(false);
-    if (outcome.kind === 'success') applyPage(outcome.value, true);
+    if (isSuccess(outcome)) applyPage(outcome.value, true);
     else setFailure(failureOf(outcome, subject));
   };
 

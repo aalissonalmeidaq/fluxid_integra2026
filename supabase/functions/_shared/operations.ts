@@ -32,6 +32,7 @@ export type Rule =
   | (Common & { t: 'literal-true' })
   | (Common & { t: 'enum'; values: readonly string[]; nullable?: boolean })
   | (Common & { t: 'int-list'; min: number; max: number; maxItems: number; nullable?: boolean })
+  | (Common & { t: 'uuid-list'; maxItems: number; minItems?: number; nullable?: boolean })
   | (Common & { t: 'object'; fields: Record<string, Rule>; nullable?: boolean })
   | (Common & { t: 'objects'; fields: Record<string, Rule>; maxItems: number; minItems?: number; nullable?: boolean })
   | (Common & { t: 'identifier' });
@@ -51,6 +52,8 @@ export const IDENTIFIER_KINDS = ['qr_code', 'data_matrix', 'nfc_tag', 'hull_numb
 const SUCCESS = new Set([
   'LISTED', 'FOUND', 'CREATED', 'UPDATED', 'OK', 'STOCKED', 'TYPE_SAVED',
   'INACTIVATED', 'REACTIVATED', 'LINKED', 'UNLINKED', 'REVEALED', 'ANONYMIZED', 'STATUS_CHANGED',
+  // Spec 008 (viagens).
+  'LOADING', 'REVERTED', 'CHECKED', 'UNCHECKED', 'REMOVED', 'STARTED', 'ARRIVED', 'DELIVERED', 'UNLOCKED', 'RETURNED', 'COMPLETED', 'CANCELLED',
 ]);
 const STATUS: Record<string, number> = {
   AUTH_REQUIRED: 401, ACCESS_DENIED: 403, MFA_REQUIRED: 403, NOT_FOUND: 404, VALIDATION_FAILED: 400, JUSTIFICATION_REQUIRED: 400,
@@ -60,6 +63,9 @@ const STATUS: Record<string, number> = {
   DOCUMENT_CONFLICT: 409, PLATE_CONFLICT: 409, NAME_CONFLICT: 409, INACTIVE_RECORD: 409, PARENT_INACTIVE: 409, CASCADE_CHANGED: 409,
   USER_NOT_ELIGIBLE: 409, GEOMETRY_INVALID: 400, ANONYMIZED_RECORD: 409, ALREADY_ANONYMIZED: 409, ACTIVE_RECORD: 409,
   CONFIRMATION_REQUIRED: 400,
+  // Spec 008 (viagens, paradas, carga e entrega).
+  CYLINDER_RESERVED: 409, CYLINDER_NOT_ELIGIBLE: 409, CAPACITY_EXCEEDED: 409, RESOURCE_BUSY: 409, DRIVER_LICENSE_EXPIRED: 409, INVALID_TRANSITION: 409,
+  ITEMS_PENDING: 409, STOPS_OPEN: 409, TRIP_CLOSED: 409, STOP_CLOSED: 409, REQUEST_REUSED: 409, CYLINDER_IN_TRIP: 409,
 };
 
 // Exceções do banco (gatilhos) que a borda traduz em código de negócio, sem reescrever as RPCs que as provocam.
@@ -130,6 +136,11 @@ function check(rule: Rule, value: unknown): Checked {
       if (!Array.isArray(value) || value.length === 0 || value.length > rule.maxItems) return { ok: false, message: 'Lista inválida.' };
       const allInts = value.every((item) => typeof item === 'number' && Number.isInteger(item) && item >= rule.min && item <= rule.max);
       return allInts && new Set(value).size === value.length ? { ok: true, value } : { ok: false, message: 'Lista inválida.' };
+    }
+    case 'uuid-list': {
+      if (!Array.isArray(value) || value.length > rule.maxItems || value.length < (rule.minItems ?? 0)) return { ok: false, message: 'Lista inválida.' };
+      const allUuids = value.every((item) => typeof item === 'string' && UUID_PATTERN.test(item));
+      return allUuids ? { ok: true, value } : { ok: false, message: 'Lista inválida.' };
     }
     case 'object': {
       if (!isObject(value)) return { ok: false, message: 'Objeto inválido.' };

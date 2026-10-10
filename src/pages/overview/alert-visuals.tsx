@@ -17,8 +17,8 @@ export function SeverityBadge({ severity }: { severity: AlertSeverity }): React.
 // Destaque de alerta que acabou de ser disparado. É texto ("Novo") com um ponto, sem animação (movimento reduzido).
 export function NewBadge(): React.JSX.Element {
   return (
-    <span className="inline-flex items-center gap-1 rounded-controle bg-erro px-2 py-1 text-legenda font-semibold text-branco">
-      <span aria-hidden="true" className="inline-block size-2 rounded-full bg-branco" />
+    <span className="inline-flex items-center gap-1 text-legenda font-semibold text-erro">
+      <span aria-hidden="true" className="inline-block size-2 rounded-full bg-erro" />
       Novo
     </span>
   );

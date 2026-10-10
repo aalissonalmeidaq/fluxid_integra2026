@@ -209,6 +209,8 @@ Frontend React, TypeScript, Vite e Tailwind. Aplicativo de campo com PWA e Capac
 
 > **Situação da Fase 3 (Spec 007).** Entregue: clientes com contatos e documento protegido, unidades com endereço preenchido pelo CEP (consulta feita pelo servidor), geocercas circulares e poligonais com consulta espacial (RF007); veículos e motoristas com vínculo opcional a um usuário (RF008); inativação e reativação com cascata atômica, histórico imutável e anonimização irreversível com verificação em duas etapas (RF-063). Documentos completos só aparecem por revelação auditada. Ficam para specs futuras: planejamento de viagens, paradas e cargas (RF009), importação em massa e mapa interativo com camadas.
 
+> **Situação da Fase 4 (Spec 008).** Entregue: planejamento de viagens com paradas e cilindros e reserva única por cilindro (RF009), conferência de carga, início com cilindros em trânsito e bloqueados em modo lógico, chegada, entrega por cilindro com recebedor protegido, divergência e correção, desbloqueio lógico, devolução ao estoque, cancelamento e conclusão, histórico imutável e consultas por cilindro e unidade. Ficam para as próximas fases: leitura por QR Code, Data Matrix e NFC, GPS, fotos, assinatura e fila offline (Fase 5); comando e confirmação da trava física do lacre (Fase 6); proximidade, alertas e relatórios (Fase 7).
+
 
 ## 16 Critérios de pronto
 

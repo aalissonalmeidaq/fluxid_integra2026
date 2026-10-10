@@ -41,7 +41,7 @@ async function perderRede(page: Page): Promise<() => Promise<void>> {
 
 const menu = (page: Page) => page.getByRole('navigation', { name: 'Navegação principal' });
 const semRolagemHorizontal = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
-const BLOCOS = ['Indicadores principais', 'Cilindros e viagens no mapa', 'Movimentação de cilindros', 'Cilindros por situação', 'Alertas recentes', 'Cilindros recentes', 'Desempenho operacional'];
+const BLOCOS = ['Indicadores principais', 'Mapa da operação', 'Movimentação de cilindros', 'Cilindros por situação', 'Alertas recentes', 'Cilindros recentes', 'Desempenho operacional'];
 
 async function abrirMenuSeRecolhido(page: Page): Promise<void> {
   const botao = page.getByRole('button', { name: 'Menu' });
@@ -139,7 +139,7 @@ test.describe('US3: qualquer largura, só com teclado', () => {
     // Decisão de 07/10/2026: no desktop o mapa ocupa 80% da largura e os indicadores ficam empilhados na coluna de 20%.
     if (largura >= 1024) {
       expect(naMesmaLinha).toBe(4);
-      const mapa = await page.getByRole('region', { name: 'Cilindros e viagens no mapa' }).boundingBox();
+      const mapa = await page.getByRole('region', { name: 'Mapa da operação' }).boundingBox();
       const indicadores = await page.getByRole('region', { name: 'Indicadores principais' }).boundingBox();
       expect(mapa).not.toBeNull();
       expect(indicadores).not.toBeNull();

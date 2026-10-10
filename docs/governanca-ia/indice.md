@@ -41,6 +41,8 @@
 
 | RIA-025 | 08/10/2026, 17:47:07 - America/Fortaleza | 005 | 02 | Evolução visual e recuperação de erro do Login | `registros/25_Evolucao_Visual_e_Recuperacao_de_Erro_do_Login.docx` (`RIA-025-evolucao-visual-e-recuperacao-de-erro-do-login.md`) | Utilizado |
 
+| RIA-026 | 10/10/2026, 09:04:26 - America/Fortaleza | 008 | 01 | Viagens, paradas, carga e entrega | `registros/RIA-026-viagens-paradas-carga-e-entrega.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

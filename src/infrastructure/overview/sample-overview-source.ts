@@ -42,10 +42,10 @@ function rotuloDoDia(indice: number): string {
 const CONTEUDO: OverviewContentMap = {
   indicadores: {
     items: [
-      { id: 'cadastrados', icon: 'cilindro', tone: 'cadastro', label: 'Cilindros cadastrados', value: numero.format(TOTAL), note: 'Total de exemplo no cadastro' },
-      { id: 'em-viagem', icon: 'rota', tone: 'viagem', label: 'Em viagem', value: numero.format(138), note: 'Cilindros em rotas de exemplo' },
-      { id: 'alertas-criticos', icon: 'alerta', tone: 'critico', label: 'Alertas críticos', value: numero.format(7), note: 'Eventos de exemplo a tratar' },
-      { id: 'lacres', icon: 'lacre', tone: 'sucesso', label: 'Lacres conectados', value: numero.format(1086), note: 'Lacres de exemplo com sinal' },
+      { id: 'cadastrados', icon: 'cilindro', tone: 'cadastro', label: 'Cilindros cadastrados', value: numero.format(TOTAL), note: 'Total no cadastro' },
+      { id: 'em-viagem', icon: 'rota', tone: 'viagem', label: 'Em viagem', value: numero.format(138), note: 'Cilindros em rotas' },
+      { id: 'alertas-criticos', icon: 'alerta', tone: 'critico', label: 'Alertas críticos', value: numero.format(7), note: 'Eventos a tratar' },
+      { id: 'lacres', icon: 'lacre', tone: 'sucesso', label: 'Lacres conectados', value: numero.format(1086), note: 'Lacres com sinal' },
     ],
   },
   mapa: {

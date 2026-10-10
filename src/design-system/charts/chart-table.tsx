@@ -12,6 +12,8 @@ export interface ChartTableProps {
 // próprio bloco quando não cabe, sem criar rolagem horizontal na página; por isso o grupo recebe o foco do teclado.
 export function ChartTable({ caption, rowHeader, columns, rows }: ChartTableProps): React.JSX.Element {
   return (
+    <details className="text-corpo text-grafite">
+      <summary className="min-h-alvo cursor-pointer py-2 font-semibold text-azul-profundo">Ver os dados do gráfico em tabela</summary>
     <div role="group" aria-label={`Tabela: ${caption}`} tabIndex={0} className="max-w-full overflow-x-auto">
       <table className="w-full border-collapse text-legenda text-grafite">
         <caption className="sr-only">{caption}</caption>
@@ -35,5 +37,6 @@ export function ChartTable({ caption, rowHeader, columns, rows }: ChartTableProp
         </tbody>
       </table>
     </div>
+    </details>
   );
 }

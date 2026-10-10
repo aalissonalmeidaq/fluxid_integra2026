@@ -12,20 +12,22 @@ export interface OverviewBlockProps {
   className?: string;
   // Falso quando o bloco mostra dados reais: some a marca "Exemplo" (padrão: verdadeiro).
   example?: boolean;
+  // Sem moldura: o conteúdo já tem caixas próprias. O título e a marca "Exemplo" seguem na página para leitores de tela.
+  bare?: boolean;
   children?: React.ReactNode;
 }
 
 // Moldura única dos blocos da Visão geral: região com o título (h3) como nome, a marca "Exemplo" e os quatro estados.
 // Há no máximo um role="status" por bloco, anunciado uma vez, e o foco nunca se move (RF-016, RF-028, RA-002, RA-004).
-export function OverviewBlock({ id, title, state, onRetry, className, example = true, children }: OverviewBlockProps): React.JSX.Element {
+export function OverviewBlock({ id, title, state, onRetry, className, example = true, bare = false, children }: OverviewBlockProps): React.JSX.Element {
   const titleId = useId();
   return (
     <section
       aria-labelledby={titleId}
       data-block={id}
-      className={['flex min-h-16 min-w-0 flex-col gap-4 rounded-card border border-borda-suave bg-branco p-6', className].filter(Boolean).join(' ')}
+      className={['flex min-h-16 w-full min-w-0 flex-col gap-4', bare ? '' : 'rounded-card border border-borda-suave bg-branco p-6', className].filter(Boolean).join(' ')}
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
+      <div className={bare ? 'sr-only' : 'flex flex-wrap items-start justify-between gap-2'}>
         <h3 id={titleId} className="min-w-0 break-words text-h3 font-semibold text-navy">{title}</h3>
         {example && <ExampleBadge />}
       </div>

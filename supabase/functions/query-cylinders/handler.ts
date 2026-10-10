@@ -13,6 +13,7 @@ export const QUERY_OPERATIONS: Record<string, OperationSpec> = {
       status: [{ t: 'enum', values: ['active', 'inactive', 'all'], optional: true }, 'p_status'],
       stock_status: [{ t: 'enum', values: ['in_stock', 'out_of_stock'], optional: true }, 'p_stock_status'],
       hydro_status: [{ t: 'enum', values: HYDRO_STATUSES, optional: true }, 'p_hydro_status'],
+      custody: [{ t: 'enum', values: ['in_organization', 'in_transit', 'at_customer'], optional: true }, 'p_custody'],
       cylinder_type_id: [{ t: 'uuid', optional: true }, 'p_type'],
       sort: [{ t: 'enum', values: ['serial', 'serial_desc'], optional: true }, 'p_sort'],
       cursor: [{ t: 'text', max: 200, nullable: true, optional: true }, 'p_cursor'],
