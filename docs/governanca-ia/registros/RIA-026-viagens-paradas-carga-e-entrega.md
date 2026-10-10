@@ -12,7 +12,7 @@
 - Resposta gerada pela IA: Resumo do que foi produzido: 10 migrations de viagens (esquema, permissões, travas de cilindro, planejamento e leitura, carregamento e início, entrega, desbloqueio, encerramento, histórico e leitura de custódia), as funções manage-trips e query-trips, o domínio, o serviço e o adaptador de viagens, as telas de lista, formulário e detalhe com diálogos, a seção Viagens no cilindro e na unidade, testes pgTAP, de contrato, unitários, E2E, visuais e de desempenho em 4G, e a documentação da spec com validation.md.
 
 Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/008-viagens-paradas-carga
-- Análise crítica da equipe: A pessoa responsável executou o roteiro do quickstart no app com três perfis, mediu os tempos e aprovou. Tempos informados: planejar 1 min 13 s, conferir dez cilindros e iniciar 2 min 07 s, entrega 1 min 48 s, auditoria 1 min 49 s, todos dentro das metas. Ficaram sem esclarecimento: o relato de que, ao incluir um cilindro já reservado, a tela piscou e voltou sem os dados (a busca não oferece cilindro reservado e o aviso só surge em concorrência); o 'tudo continuou como estava' ao ficar offline; e o selo Em trânsito repetido na mesma linha do item. A pessoa respondeu 'tudo aprovado' sem detalhar esses pontos.
+- Análise crítica da equipe: A pessoa responsável executou o roteiro do quickstart no app com três perfis, mediu os tempos e aprovou. Tempos informados: planejar 1 min 13 s, conferir dez cilindros e iniciar 2 min 07 s, entrega 1 min 48 s, auditoria 1 min 49 s, todos dentro das metas. Ficaram sem esclarecimento: o relato de que, ao incluir um cilindro já reservado, a tela piscou e voltou sem os dados (a busca não oferece cilindro reservado e o aviso só surge em concorrência); o selo Em trânsito repetido na mesma linha do item. O offline foi esclarecido depois: ao desligar o Wi-Fi nada mudou porque o servidor local segue alcançável; com o Offline do DevTools numa tela de viagem a pessoa viu a faixa de sem conexão, o aviso na tela, os botões desabilitados com o motivo e tudo voltar ao reconectar. A pessoa respondeu 'tudo aprovado' sem detalhar esses pontos.
 - Validação humana realizada: Natã Baracho executou o roteiro do quickstart com administrador do Tenant A, auditor do Tenant A e administrador do Tenant B, mediu os tempos e aprovou o resultado.
 - Decisão final: utilizado
 - Justificativa: A pessoa responsável aprovou o resultado e os testes automáticos passaram. A decisão foi informada como utilizado, sem justificativa própria na entrevista.
@@ -296,7 +296,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Trocar o link da branch pelo link do pull request antes do merge. Esclarecer os três pontos sem detalhe da análise crítica (cilindro já reservado, offline e selo Em trânsito repetido).
+Trocar o link da branch pelo link do pull request antes do merge. Esclarecer os dois pontos sem detalhe da análise crítica (cilindro já reservado e selo Em trânsito repetido). Observação: com o aparelho offline, a barra superior ainda mostrou "Conectado: Dispositivo local" ao lado da faixa de sem conexão.
 
 ## Validação humana
 

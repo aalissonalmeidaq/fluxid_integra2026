@@ -145,3 +145,9 @@ Em 2026-10-10, ao fim do roteiro, a pessoa responsável respondeu ao agente **"t
 ## Validação humana e registro de IA (T106)
 
 Entrevista feita em 2026-10-10 com Natã Baracho (perfis gestor-b, admin-a e auditor-a; Windows 11, Chrome e celular Android; 15 minutos; resultado aprovado; decisão utilizado; premissas da spec confirmadas; respostas autorizadas a ser gravadas em nome dele). Registrada em `docs/governanca-ia/registros/RIA-026-viagens-paradas-carga-e-entrega.md`. A decisão foi informada sem justificativa própria; o registro diz isso.
+
+## Esclarecimento do offline (fluxo 9), 2026-10-10
+
+Ao desligar o Wi-Fi, "tudo continuou como estava": o app local fala com o Supabase em localhost e o navegador pode seguir "online" (adaptadores virtuais), então não há mudança. Repetido com o **Offline do DevTools** na viagem n.º 2 ("em andamento"), a pessoa responsável viu como esperado: faixa "Sem conexão. Dispositivo sem conexão de rede. Modo offline em operação." abaixo da barra, aviso lateral "Sem conexão. As telas podem estar desatualizadas.", aviso na tela da viagem "Sem conexão. As ações que alteram a viagem exigem conexão.", "Esta operação exige conexão." junto de "Concluir viagem", e "Registrar chegada", "Devolver ao estoque" e "Registrar desbloqueio" desabilitados; a estrutura da tela e o histórico continuaram visíveis; ao voltar para "Sem limitação" os botões voltaram a funcionar. Na Visão geral, o mapa avisou "O mapa precisa de conexão" e os pontos continuaram descritos em texto.
+
+**Observação:** com o aparelho offline, a barra superior ainda mostrou "Conectado: Dispositivo local" em verde, ao lado da faixa de sem conexão. A faixa e os avisos estão certos; o texto da barra pode confundir. Fica anotado para decisão, fora do escopo de viagens (barra da Spec 003 e 005).

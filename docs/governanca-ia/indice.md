@@ -54,3 +54,5 @@
 > Atualização do RIA-018: em 01/10/2026 o teste ao vivo do MFA foi repetido e aprovado, e o leitor de tela foi dispensado por decisão do responsável (não será usado no projeto atual).
 
 > Atualização do RIA-025: o link de revisão foi trocado pelo do pull request #24 em 08/10/2026.
+
+> Atualização do RIA-026: em 10/10/2026 o ponto do offline foi esclarecido com o Offline do DevTools e aprovado; restam o cilindro já reservado e o selo Em trânsito repetido.
