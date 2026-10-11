@@ -21,6 +21,7 @@ export const SCREENS: readonly Screen[] = [
   { id: 'geocercas', label: 'Geocercas', path: '/geocercas', requires: { scope: 'tenant', code: 'geofence.read' }, tenantScoped: true, requireAal2: false },
   { id: 'veiculos', label: 'Veículos', path: '/veiculos', requires: { scope: 'tenant', code: 'vehicle.read' }, tenantScoped: true, requireAal2: false },
   { id: 'motoristas', label: 'Motoristas', path: '/motoristas', requires: { scope: 'tenant', code: 'driver.read' }, tenantScoped: true, requireAal2: false },
+  { id: 'viagens', label: 'Viagens', path: '/viagens', requires: { scope: 'tenant', code: 'trip.read' }, tenantScoped: true, requireAal2: false },
   { id: 'perfil', label: 'Meu perfil', path: '/perfil', tenantScoped: false, requireAal2: false },
   { id: 'membros', label: 'Pessoas do tenant', path: '/admin/membros', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true, requireAal2: true },
   { id: 'papeis', label: 'Papéis e permissões', path: '/admin/papeis', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true, requireAal2: true },

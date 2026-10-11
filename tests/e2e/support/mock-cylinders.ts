@@ -49,6 +49,8 @@ export class CylinderMock {
   now: () => Date = () => new Date();
   // Faz a próxima chamada de comando perder a resposta (rede caiu depois de gravar), para exercitar o estado desconhecido.
   loseNextStockInResponse = false;
+  // Custódia do cilindro (Spec 008): quem conhece as viagens (TripMock) a informa; sem ele, todos estão na organização.
+  custodyOf: (cylinderId: string) => { status: string; site: { id: string; customer_id: string; name: string } | null } = () => ({ status: 'in_organization', site: null });
 
   constructor(total = 40) {
     for (let n = 1; n <= total; n += 1) {
@@ -96,6 +98,7 @@ export class CylinderMock {
   private item(c: MockCylinder): Json {
     return {
       id: c.id, serial_number: c.serial_number, type: this.typeJson(c.type_id), status: c.status, stock_status: c.stock_status,
+      custody_status: this.custodyOf(c.id).status, custody_site: this.custodyOf(c.id).site,
       hydro_status: hydroStatus(c.hydro_last_result, c.hydro_next_due_on),
       active_identifier_count: this.identifiers.filter((i) => i.cylinder_id === c.id && i.status === 'active').length, version: c.version,
     };
@@ -137,6 +140,7 @@ export class CylinderMock {
     const desc = body.sort === 'serial_desc';
     let rows = this.cylinders.filter((c) => c.organization_id === org && (status === 'all' || c.status === status));
     if (body.stock_status) rows = rows.filter((c) => c.stock_status === body.stock_status);
+    if (body.custody) rows = rows.filter((c) => this.custodyOf(c.id).status === body.custody);
     if (body.hydro_status) rows = rows.filter((c) => hydroStatus(c.hydro_last_result, c.hydro_next_due_on) === body.hydro_status);
     if (body.cylinder_type_id) rows = rows.filter((c) => c.type_id === body.cylinder_type_id);
     if (search) rows = rows.filter((c) => c.serial_number.toUpperCase().includes(search) || this.identifiers.some((i) => i.cylinder_id === c.id && i.status === 'active' && i.value.toUpperCase() === search));

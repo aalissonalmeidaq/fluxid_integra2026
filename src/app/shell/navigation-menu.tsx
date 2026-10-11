@@ -24,6 +24,7 @@ const ICONS: Record<string, IconName> = {
   geocercas: 'geocerca',
   veiculos: 'caminhao',
   motoristas: 'rota',
+  viagens: 'localizacao',
   perfil: 'usuario',
   membros: 'rede',
   papeis: 'escudo',

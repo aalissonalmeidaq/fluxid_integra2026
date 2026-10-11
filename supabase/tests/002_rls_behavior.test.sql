@@ -30,7 +30,7 @@ select public.tap_act_as('10000000-0000-0000-0000-000000000002', '60000000-0000-
 select is((select count(*)::int from public.organizations where id = '20000000-0000-0000-0000-00000000000a'), 1, 'A vê a organização A');
 select is((select count(*)::int from public.memberships where user_id = '10000000-0000-0000-0000-000000000002'), 1, 'A vê o próprio vínculo');
 select is((select count(*)::int from public.audit_logs where organization_id = '20000000-0000-0000-0000-00000000000a' and action = 'auth.login' and target_type = 'session'), 1, 'A com audit.read vê a auditoria de A');
-select is((select count(*)::int from public.roles where organization_id = '20000000-0000-0000-0000-00000000000a' and system), 6 - 1, 'A vê os papéis preestabelecidos do próprio tenant');
+select is((select count(*)::int from public.roles where organization_id = '20000000-0000-0000-0000-00000000000a' and system), 7 - 1, 'A vê os papéis preestabelecidos do próprio tenant');
 select is((select count(*)::int from public.user_sessions), 1, 'A vê somente as próprias sessões');
 
 -- Tenant A: acesso cruzado bloqueado.

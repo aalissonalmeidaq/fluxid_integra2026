@@ -25,7 +25,7 @@ insert into public.memberships (id, organization_id, user_id, status, activated_
 create temp table access_a on commit drop as
   select public.list_tenant_access('10000000-0000-0000-0000-000000000002','60000000-0000-0000-0000-0000000000a1','20000000-0000-0000-0000-00000000000a') as result;
 select is((select result->>'kind' from access_a), 'listed', 'administrador A lista o acesso do próprio tenant');
-select is((select count(*)::int from jsonb_array_elements((select result->'roles' from access_a)) r where (r->>'system')::boolean), 5, 'lista os cinco papéis preestabelecidos do tenant');
+select is((select count(*)::int from jsonb_array_elements((select result->'roles' from access_a)) r where (r->>'system')::boolean), 6, 'lista os seis papéis preestabelecidos do tenant');
 select ok((select result->'roles' @> '[{"code":"tenant_admin","system":true}]'::jsonb from access_a), 'identifica papéis preestabelecidos como imutáveis');
 select ok((select result->'permissions' @> '[{"code":"audit.read","delegable":true},{"code":"platform.manage","delegable":false}]'::jsonb from access_a), 'informa a delegabilidade de cada permissão');
 select ok(not (select result::text like '%50000000-0000-0000-0000-0000000000%' and result::text like '%0000000000f4%' from access_a), 'não vaza vínculos nem papéis de outro tenant');

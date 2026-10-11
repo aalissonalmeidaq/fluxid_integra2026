@@ -49,6 +49,6 @@ select is(pg_temp.codes(pg_temp.role_of('20000000-0000-0000-0000-0000000006e1', 
 
 -- Idempotente: rodar de novo não duplica nem falha.
 select lives_ok($$ select private.bootstrap_tenant_roles('20000000-0000-0000-0000-0000000006e1') $$, 'o bootstrap é idempotente');
-select is((select count(*)::int from public.roles where organization_id = '20000000-0000-0000-0000-0000000006e1'), 5, 'o tenant novo tem 5 papéis de sistema');
+select is((select count(*)::int from public.roles where organization_id = '20000000-0000-0000-0000-0000000006e1'), 6, 'o tenant novo tem 6 papéis de sistema');
 
 select * from finish(); rollback;

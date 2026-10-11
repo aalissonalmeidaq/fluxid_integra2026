@@ -30,6 +30,17 @@ describe('CylinderService: consultas', () => {
     }
   });
 
+  it('a custódia vai como filtro e volta no item, com a unidade quando está no cliente (Spec 008)', async () => {
+    const site = { id: 's1', name: 'Unidade Centro', customer_id: 'c1' };
+    const transport = transportReturning(200, { code: 'LISTED', items: [{ ...itemWire, custody_status: 'at_customer', custody_site: site }, { ...itemWire, id: 'x', custody_status: 'em_lugar_nenhum', custody_site: { id: 1 } }], total: 2, next: null });
+    const outcome = await service(transport).list(ORG, { custody: 'at_customer' });
+    expect(transport.call).toHaveBeenCalledWith('query-cylinders', { operation: 'list', organization_id: ORG, custody: 'at_customer' });
+    if (outcome.kind !== 'success') throw new Error('esperava sucesso');
+    expect(outcome.value.items[0]).toMatchObject({ custodyStatus: 'at_customer', custodySite: { id: 's1', customerId: 'c1', name: 'Unidade Centro' } });
+    // Valor desconhecido nunca é presumido como lugar: cai no padrão da organização, sem unidade.
+    expect(outcome.value.items[1]).toMatchObject({ custodyStatus: 'in_organization', custodySite: null });
+  });
+
   it('lista sem filtros não envia campos vazios', async () => {
     const transport = transportReturning(200, { code: 'LISTED', items: [], total: 0, next: null });
     await service(transport).list(ORG, {});
@@ -137,9 +148,18 @@ describe('CylinderService: comandos', () => {
     ['ALREADY_IN_STOCK', 409, 'already_in_stock'],
     ['ALREADY_INACTIVE', 409, 'already_inactive'],
     ['IDEMPOTENCY_PAYLOAD_CONFLICT', 409, 'idempotency_conflict'],
+    ['CYLINDER_IN_TRIP', 409, 'cylinder_in_trip'],
   ])('%s (HTTP %i) vira %s', async (code, status, kind) => {
     const outcome = await service(transportReturning(status, { code })).inactivate(ORG, { cylinderId: CYL, reason: 'lost', justification: 'motivo ok' });
     expect(outcome.kind).toBe(kind);
+  });
+
+  it('cilindro em viagem aberta traz a viagem (Spec 008, RF-024a), na inativação e na entrada no estoque', async () => {
+    const body = { code: 'CYLINDER_IN_TRIP', trip_id: 'trip-1', trip_number: 7 };
+    const inactivated = await service(transportReturning(409, body)).inactivate(ORG, { cylinderId: CYL, reason: 'lost', justification: 'motivo ok' });
+    expect(inactivated).toEqual({ kind: 'cylinder_in_trip', trip: { id: 'trip-1', number: 7 } });
+    const stocked = await service(transportReturning(409, body)).stockIn(ORG, 'QR-1', '11111111-1111-4111-8111-111111111111');
+    expect(stocked).toEqual({ kind: 'cylinder_in_trip', trip: { id: 'trip-1', number: 7 } });
   });
 
   it('erros de validação trazem os campos; conflitos trazem o cilindro dono', async () => {

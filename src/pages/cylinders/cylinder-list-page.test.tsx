@@ -10,7 +10,7 @@ const NITROGENIO: CylinderTypeView = { id: 't2', gas: 'Nitrogênio', capacityVal
 
 const item = (n: number, over: Partial<CylinderListItem> = {}): CylinderListItem => ({
   id: `72000000-0000-4000-8000-${String(n).padStart(12, '0')}`, serialNumber: `Q-${String(n).padStart(3, '0')}`, type: OXIGENIO, status: 'active',
-  stockStatus: 'out_of_stock', hydroStatus: 'em_dia', activeIdentifierCount: 1, version: 1, ...over,
+  stockStatus: 'out_of_stock', custodyStatus: 'in_organization', custodySite: null, hydroStatus: 'em_dia', activeIdentifierCount: 1, version: 1, ...over,
 });
 
 function fakeService(overrides: Record<string, unknown> = {}) {
@@ -35,6 +35,30 @@ describe('lista de cilindros (história 2)', () => {
     expect(within(row).getByText('Em estoque')).toBeInTheDocument();
     expect(within(row).getByText('Vencido')).toBeInTheDocument();
     expect(within(row).getByText('Sem identificador')).toBeInTheDocument();
+  });
+
+  it('mostra a custódia de cada cilindro e, no cliente, o link da unidade', async () => {
+    const service = fakeService({ list: vi.fn(async () => ({ kind: 'success' as const, value: { items: [
+      item(1), item(2, { custodyStatus: 'in_transit' }),
+      item(3, { custodyStatus: 'at_customer', custodySite: { id: 's1', customerId: 'c1', name: 'Unidade Centro' } }),
+    ], total: 3, next: null } })) });
+    renderList(service);
+    await screen.findByRole('rowheader', { name: 'Q-001' });
+    expect(screen.getByRole('columnheader', { name: 'Custódia' })).toBeInTheDocument();
+    const rowOf = (name: string) => screen.getByRole('rowheader', { name }).closest('[role="row"]') as HTMLElement;
+    expect(within(rowOf('Q-001')).getByText('Na organização')).toBeInTheDocument();
+    expect(within(rowOf('Q-002')).getByText('Em trânsito')).toBeInTheDocument();
+    expect(within(rowOf('Q-003')).getByText('No cliente')).toBeInTheDocument();
+    expect(within(rowOf('Q-003')).getByRole('link', { name: 'Unidade Centro' })).toHaveAttribute('href', '/clientes/c1/unidades/s1');
+    expect(within(rowOf('Q-001')).queryByRole('link', { name: /Unidade/ })).not.toBeInTheDocument();
+  });
+
+  it('filtra por custódia e envia o filtro ao servidor', async () => {
+    const service = fakeService();
+    renderList(service);
+    await screen.findByRole('rowheader', { name: 'Q-001' });
+    fireEvent.change(screen.getByLabelText('Custódia'), { target: { value: 'in_transit' } });
+    await waitFor(() => expect(service.list).toHaveBeenLastCalledWith(ORG, expect.objectContaining({ custody: 'in_transit' })));
   });
 
   it('cada número de série é um link para o detalhe', async () => {

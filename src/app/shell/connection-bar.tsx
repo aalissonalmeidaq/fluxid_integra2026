@@ -3,6 +3,7 @@ import { ConnectivityStatus } from '@/components/system/ConnectivityStatus';
 import { SyncStatus } from '@/design-system/components/sync-status';
 import { useConnectivity } from '../connectivity-context';
 import { useOnlineStatus } from '../use-online-status';
+import { presentedConnectivity } from './presented-connectivity';
 
 // Aviso de que o dispositivo perdeu a rede; anunciado sem mover o foco.
 export function OfflineNotice(): React.JSX.Element | null {
@@ -24,10 +25,13 @@ export interface ConnectionBarProps {
 // também para quem ainda não entrou (RF-013). Com a sessão autenticada o estado vai para a barra superior (`inline`).
 export function ConnectionBar({ inline = false }: ConnectionBarProps): React.JSX.Element {
   const { result, reconnect } = useConnectivity();
+  // Uma só fonte de verdade: sem rede no aparelho, o estado mostrado é "offline" e o aviso de offline é quem anuncia.
+  const isOnline = useOnlineStatus();
+  const shown = presentedConnectivity(result, isOnline);
   if (inline) {
     return (
       <div data-testid="connection-bar" className="flex items-center">
-        <ConnectivityStatus compact result={result} onReconnect={() => void reconnect()} />
+        <ConnectivityStatus compact announce={isOnline} result={shown} onReconnect={() => void reconnect()} />
       </div>
     );
   }
@@ -35,7 +39,7 @@ export function ConnectionBar({ inline = false }: ConnectionBarProps): React.JSX
     <div data-testid="connection-bar" className="flex flex-col">
       <OfflineNotice />
       <div className="flex justify-end px-4 py-2 tablet:px-6">
-        <ConnectivityStatus result={result} onReconnect={() => void reconnect()} />
+        <ConnectivityStatus announce={isOnline} result={shown} onReconnect={() => void reconnect()} />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import type {
   CapacityUnit, Classification, CylinderEventType, CylinderStatus, HydrostaticResult, HydrostaticStatus, IdentifierKind,
   IdentifierStatus, InactivationReason, StockStatus,
 } from '@/domain/cylinders/cylinder-types';
+import type { CustodyStatus } from '@/domain/trips/trip-vocabulary';
 
 // Visões que a interface recebe do servidor, já em camelCase. O contrato bruto está em
 // specs/006-cilindros-e-estoque/contracts/operacoes-servidor.md.
@@ -10,15 +11,18 @@ export interface CylinderTypeView {
   id: string; gas: string; capacityValue: number; capacityUnit: CapacityUnit; classification: Classification; active: boolean;
 }
 
+export interface CustodySiteView { id: string; customerId: string; name: string }
+
 export interface CylinderListItem {
   id: string; serialNumber: string; type: CylinderTypeView; status: CylinderStatus; stockStatus: StockStatus;
+  custodyStatus: CustodyStatus; custodySite: CustodySiteView | null;
   hydroStatus: HydrostaticStatus; activeIdentifierCount: number; version: number;
 }
 
 export interface CylinderDetailData {
   id: string; serialNumber: string; type: CylinderTypeView; manufacturer: string | null; manufactureYear: number | null;
   workingPressureBar: number | null; notes: string | null; status: CylinderStatus; inactivationReason: InactivationReason | null;
-  stockStatus: StockStatus; hydroLastResult: HydrostaticResult | null; hydroNextDueOn: string | null; version: number; createdAt: string;
+  stockStatus: StockStatus; custodyStatus: CustodyStatus; custodySite: CustodySiteView | null; hydroLastResult: HydrostaticResult | null; hydroNextDueOn: string | null; version: number; createdAt: string;
 }
 
 export interface IdentifierView {
@@ -57,7 +61,7 @@ export interface StockInResult {
 }
 
 export interface CylinderListQuery {
-  search?: string; status?: 'active' | 'inactive' | 'all'; stockStatus?: StockStatus; hydroStatus?: HydrostaticStatus;
+  search?: string; status?: 'active' | 'inactive' | 'all'; stockStatus?: StockStatus; hydroStatus?: HydrostaticStatus; custody?: CustodyStatus;
   cylinderTypeId?: string; sort?: 'serial' | 'serial_desc'; cursor?: string; limit?: number;
 }
 

@@ -4,8 +4,10 @@ import type { CylinderListItem, CylinderListPage, CylinderListQuery, CylinderTyp
 import { usePermissions } from '@/app/navigation/permissions-context';
 import { HYDROSTATIC_LABELS, HYDROSTATIC_STATUSES, STOCK_LABELS, STOCK_STATUSES, type HydrostaticStatus, type StockStatus } from '@/domain/cylinders/cylinder-types';
 import { Alert, Button, Card, DataTable, ErrorState, Select, TextField, type ColunaDaTabela } from '@/design-system';
+import { CUSTODY_STATUSES, CUSTODY_STATUS_LABELS, type CustodyStatus } from '@/domain/trips/trip-vocabulary';
 import { AccessGate } from './components/access-gate';
 import { CameraScanButton } from './components/camera-scan-button';
+import { CustodyInfo } from './components/custody-info';
 import { IdentifierWarning, StatusBadges } from './components/status-badges';
 import { typeLabel } from './type-label';
 import { useCylinderService } from './use-cylinder-service';
@@ -13,15 +15,16 @@ import { useCylinderService } from './use-cylinder-service';
 const PAGE_SIZE = 25;
 
 interface Query {
-  search: string; status: 'active' | 'inactive' | 'all'; stockStatus: '' | StockStatus; hydroStatus: '' | HydrostaticStatus; cylinderTypeId: string; sort: 'serial' | 'serial_desc';
+  search: string; status: 'active' | 'inactive' | 'all'; stockStatus: '' | StockStatus; hydroStatus: '' | HydrostaticStatus; custody: '' | CustodyStatus; cylinderTypeId: string; sort: 'serial' | 'serial_desc';
 }
-const INITIAL: Query = { search: '', status: 'active', stockStatus: '', hydroStatus: '', cylinderTypeId: '', sort: 'serial' };
+const INITIAL: Query = { search: '', status: 'active', stockStatus: '', hydroStatus: '', custody: '', cylinderTypeId: '', sort: 'serial' };
 
 const toServiceQuery = (query: Query): CylinderListQuery => ({
   status: query.status, sort: query.sort, limit: PAGE_SIZE,
   ...(query.search.trim() ? { search: query.search.trim() } : {}),
   ...(query.stockStatus ? { stockStatus: query.stockStatus } : {}),
   ...(query.hydroStatus ? { hydroStatus: query.hydroStatus } : {}),
+  ...(query.custody ? { custody: query.custody } : {}),
   ...(query.cylinderTypeId ? { cylinderTypeId: query.cylinderTypeId } : {}),
 });
 
@@ -54,6 +57,7 @@ const COLUMNS: readonly ColunaDaTabela<CylinderListItem>[] = [
       </span>
     ),
   },
+  { id: 'custodia', cabecalho: 'Custódia', celula: (cylinder) => <CustodyInfo status={cylinder.custodyStatus} site={cylinder.custodySite} /> },
 ];
 
 export interface CylinderListViewProps {
@@ -173,6 +177,10 @@ export function CylinderListView({ organizationId, service, canCreate }: Cylinde
               <option value="">Todas</option>
               {HYDROSTATIC_STATUSES.map((status) => <option key={status} value={status}>{HYDROSTATIC_LABELS[status]}</option>)}
             </Select>
+            <Select wrapperClassName="min-w-0" label="Custódia" name="custody" value={query.custody} onChange={(event) => change({ custody: event.target.value as Query['custody'] })}>
+              <option value="">Todas</option>
+              {CUSTODY_STATUSES.map((status) => <option key={status} value={status}>{CUSTODY_STATUS_LABELS[status]}</option>)}
+            </Select>
             <Select wrapperClassName="min-w-0" label="Tipo de cilindro" name="cylinderTypeId" value={query.cylinderTypeId} onChange={(event) => change({ cylinderTypeId: event.target.value })}>
               <option value="">Todos</option>
               {types.map((type) => <option key={type.id} value={type.id}>{typeLabel(type)}</option>)}
@@ -200,7 +208,7 @@ export function CylinderListView({ organizationId, service, canCreate }: Cylinde
             <div className="flex flex-col items-start gap-4">
               <h3 className="text-h3 font-semibold text-navy">Nenhum cilindro encontrado</h3>
               <p className="text-corpo">
-                {query.search || query.stockStatus || query.hydroStatus || query.cylinderTypeId || query.status !== 'active'
+                {query.search || query.stockStatus || query.hydroStatus || query.custody || query.cylinderTypeId || query.status !== 'active'
                   ? 'Nenhum cilindro corresponde à busca e aos filtros escolhidos. Ajuste e tente de novo.'
                   : 'Esta organização ainda não tem cilindros ativos.'}
               </p>

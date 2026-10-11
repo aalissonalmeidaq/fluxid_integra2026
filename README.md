@@ -119,6 +119,21 @@ Depois de atualizar a branch, rode `npx supabase db reset` e, para as funções 
 
 ---
 
+## Viagens, paradas, carga e entrega (Spec 008)
+
+A tela **Viagens** planeja e acompanha cada saída, do planejamento à entrega, sempre dentro da organização ativa.
+
+- **Planejamento.** Data, veículo, motorista e de uma a trinta paradas, cada uma com uma unidade de cliente e seus cilindros. Um cilindro só pode estar em uma viagem aberta (reserva atômica no banco); a capacidade do veículo, o teste hidrostático e os cadastros inativos são conferidos no servidor.
+- **Carregamento e saída.** Conferência manual de cada cilindro, retirada com justificativa (exceção) e início da viagem, que tira os cilindros do estoque e os deixa "em trânsito" e **bloqueados (lógico)**. A trava física do lacre e a confirmação do dispositivo ficam para a Fase 6.
+- **Entrega.** Chegada à parada (em qualquer ordem, com aviso), entrega por cilindro, nome e função do recebedor (visíveis só a quem tem `trip.recipient`), posição opcional com aviso de geocerca e correção que não apaga o registro original.
+- **Desbloqueio, devolução e encerramento.** Desbloqueio lógico (o excepcional exige segundo fator e justificativa), devolução ao estoque, cancelamento e conclusão, com texto claro do que falta.
+- **Consulta.** Lista com busca, filtros por situação, período, veículo, motorista, cliente e custódia, histórico imutável da viagem sem dado pessoal e o bloco "Viagens" nos detalhes de cilindro e de unidade. A lista e o detalhe de cilindros mostram a custódia (na organização, em trânsito, no cliente).
+- **Todo acesso passa pelo servidor.** O cliente só chama `query-trips` e `manage-trips`; cada comando leva um `request_id` e repetir o mesmo pedido não duplica nada. Escritas exigem conexão e nunca são enfileiradas offline (a fila é da Fase 5).
+
+Depois de atualizar a branch, rode `npx supabase db reset` e, para as funções novas serem servidas, `npx supabase stop` e `npx supabase start`. As medições de volume usam `tests/support/sql/trips-volume-semear.sql` e `trips-volume-limpar.sql`.
+
+---
+
 ## Governança de IA por ciclo
 
 Ao final de cada ciclo Spec Kit, depois dos testes e antes do commit, gere e valide o Registro de Uso de IA:

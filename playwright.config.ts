@@ -24,7 +24,7 @@ export default defineConfig({
   reporter: 'html',
   // As comparações de captura (Spec 003, CA-008) rodam só no projeto visual-chromium.
   // A medição de 50 mil cilindros (Spec 006) só roda no projeto ao-vivo-4g, com E2E_AO_VIVO=1.
-  testIgnore: [/visual\/.*\.visual\.spec\.ts$/, /desempenho-lista-(cilindros|registro)\.spec\.ts$/],
+  testIgnore: [/visual\/.*\.visual\.spec\.ts$/, /desempenho-lista-(cilindros|registro|viagens)\.spec\.ts$/],
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.001, animations: 'disabled' } },
   use: {
     baseURL: 'http://localhost:4173',
@@ -34,7 +34,7 @@ export default defineConfig({
     ...(AO_VIVO
       ? [{
           name: 'ao-vivo-4g',
-          testMatch: /desempenho-lista-(cilindros|registro).spec.ts$/,
+          testMatch: /desempenho-lista-(cilindros|registro|viagens).spec.ts$/,
           testIgnore: [],
           timeout: 300_000,
           use: { browserName: 'chromium' as const, baseURL: 'http://localhost:4177', serviceWorkers: 'block' as const },
@@ -48,7 +48,7 @@ export default defineConfig({
       name: 'tablet-webkit',
       // As verificações transversais da Spec 003 usam emulação de cores forçadas, de teclado e de largura exata, que só
       // é confiável em Chromium; o iPad (810 px) também não é uma das larguras de referência.
-      testIgnore: [/visual\/.*\.visual\.spec\.ts$/, /desempenho-lista-(cilindros|registro)\.spec\.ts$/, /(telas-transversais|teclado-e-contraste-de-foco|cores-forcadas|escalas-no-navegador|dispositivos)\.spec\.ts$/],
+      testIgnore: [/visual\/.*\.visual\.spec\.ts$/, /desempenho-lista-(cilindros|registro|viagens)\.spec\.ts$/, /(telas-transversais|teclado-e-contraste-de-foco|cores-forcadas|escalas-no-navegador|dispositivos)\.spec\.ts$/],
       use: { ...devices['iPad (gen 7)'], browserName: 'webkit' },
     },
     // Larguras de referência da Spec 003 (CA-001, CA-005): 768 e 1920 px em Chromium. Rodam só as verificações

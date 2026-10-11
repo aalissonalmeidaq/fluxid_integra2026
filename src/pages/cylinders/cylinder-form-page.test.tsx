@@ -12,7 +12,7 @@ const TYPE: CylinderTypeView = { id: '71000000-0000-4000-8000-0000000000a1', gas
 const detail = (over: Partial<CylinderDetail['cylinder']> = {}): CylinderDetail => ({
   cylinder: {
     id: CYL, serialNumber: 'AB-1', type: TYPE, manufacturer: 'Fábrica X', manufactureYear: 2020, workingPressureBar: 200, notes: 'obs',
-    status: 'active', inactivationReason: null, stockStatus: 'out_of_stock', hydroLastResult: null, hydroNextDueOn: null, version: 3, createdAt: '2026-10-05T10:00:00Z', ...over,
+    status: 'active', inactivationReason: null, stockStatus: 'out_of_stock', custodyStatus: 'in_organization', custodySite: null, hydroLastResult: null, hydroNextDueOn: null, version: 3, createdAt: '2026-10-05T10:00:00Z', ...over,
   },
   identifiers: [], tests: [], hydroStatus: 'sem_teste',
 });

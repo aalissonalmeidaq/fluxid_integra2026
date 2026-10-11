@@ -11,7 +11,7 @@ export const HYDRO_STATUSES = ['em_dia', 'a_vencer', 'vencido', 'reprovado', 'se
 export const EVENT_TYPES = [
   'cylinder_created', 'cylinder_updated', 'cylinder_inactivated', 'cylinder_reactivated', 'identifier_added', 'identifier_deactivated',
   'identifier_transferred_out', 'identifier_transferred_in', 'stock_in', 'stock_out_inactivation', 'hydrostatic_test_registered',
-  'hydrostatic_test_rectified',
+  'hydrostatic_test_rectified', 'trip_reserved', 'trip_released', 'trip_departed', 'trip_delivered', 'trip_returned',
 ] as const;
 
 export function createCylinderHandler(gateway: CylinderGateway, operations: Record<string, OperationSpec>) {

@@ -32,6 +32,7 @@ export const EVENT_TYPES = [
   'cylinder_created', 'cylinder_updated', 'cylinder_inactivated', 'cylinder_reactivated',
   'identifier_added', 'identifier_deactivated', 'identifier_transferred_out', 'identifier_transferred_in',
   'stock_in', 'stock_out_inactivation', 'hydrostatic_test_registered', 'hydrostatic_test_rectified',
+  'trip_reserved', 'trip_released', 'trip_departed', 'trip_delivered', 'trip_returned',
 ] as const;
 export type CylinderEventType = (typeof EVENT_TYPES)[number];
 
@@ -61,6 +62,11 @@ export const EVENT_LABELS: Record<CylinderEventType, string> = {
   stock_out_inactivation: 'Saída do estoque por inativação',
   hydrostatic_test_registered: 'Teste hidrostático registrado',
   hydrostatic_test_rectified: 'Teste hidrostático retificado',
+  trip_reserved: 'Reservado para viagem',
+  trip_released: 'Liberado da viagem',
+  trip_departed: 'Saiu em viagem',
+  trip_delivered: 'Entregue ao cliente',
+  trip_returned: 'Devolvido ao estoque pela viagem',
 };
 
 export const JUSTIFICATION_MIN = 5;

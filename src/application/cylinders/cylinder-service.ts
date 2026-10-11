@@ -1,9 +1,10 @@
 import { normalizeIdentifier } from '@/domain/cylinders/identifier';
+import type { CustodyStatus } from '@/domain/trips/trip-vocabulary';
 import type {
   CapacityUnit, Classification, CylinderEventType, HydrostaticResult, IdentifierKind, InactivationReason,
 } from '@/domain/cylinders/cylinder-types';
 import type {
-  CylinderDetail, CylinderDetailData, CylinderListItem, CylinderListPage, CylinderListQuery, CylinderTypeView, HistoryEvent,
+  CustodySiteView, CylinderDetail, CylinderDetailData, CylinderListItem, CylinderListPage, CylinderListQuery, CylinderTypeView, HistoryEvent,
   HistoryPage, HistoryQuery, IdentifierView, LookupResult, StockInResult, TestView,
 } from './cylinder-views';
 
@@ -14,7 +15,7 @@ export interface CylinderTransport {
 export type CylinderFailureKind =
   | 'offline' | 'unavailable' | 'unknown' | 'access_denied' | 'mfa_required' | 'not_found' | 'invalid' | 'justification_required'
   | 'serial_conflict' | 'identifier_conflict' | 'identifier_unavailable' | 'version_conflict' | 'cylinder_inactive'
-  | 'already_in_stock' | 'already_inactive' | 'idempotency_conflict';
+  | 'already_in_stock' | 'already_inactive' | 'idempotency_conflict' | 'cylinder_in_trip';
 
 export interface CylinderFailure {
   kind: CylinderFailureKind;
@@ -24,6 +25,8 @@ export interface CylinderFailure {
   ownerCylinderId?: string;
   // Leitura de identificador desativado: a quem pertencia.
   deactivatedOwner?: { id: string; serialNumber: string };
+  // Cilindro em viagem aberta (Spec 008, RF-024a): a viagem que o mantém.
+  trip?: { id: string; number: number };
 }
 
 export type CylinderOutcome<T> = { kind: 'success'; value: T } | CylinderFailure;
@@ -38,7 +41,7 @@ const FAILURES: Record<string, CylinderFailureKind> = {
   VALIDATION_FAILED: 'invalid', JUSTIFICATION_REQUIRED: 'justification_required', SERIAL_CONFLICT: 'serial_conflict',
   IDENTIFIER_CONFLICT: 'identifier_conflict', IDENTIFIER_UNAVAILABLE: 'identifier_unavailable', VERSION_CONFLICT: 'version_conflict',
   CYLINDER_INACTIVE: 'cylinder_inactive', ALREADY_IN_STOCK: 'already_in_stock', ALREADY_INACTIVE: 'already_inactive',
-  IDEMPOTENCY_PAYLOAD_CONFLICT: 'idempotency_conflict',
+  IDEMPOTENCY_PAYLOAD_CONFLICT: 'idempotency_conflict', CYLINDER_IN_TRIP: 'cylinder_in_trip',
 };
 
 function toType(value: unknown): CylinderTypeView | null {
@@ -51,13 +54,20 @@ function toType(value: unknown): CylinderTypeView | null {
   };
 }
 
+const CUSTODY: readonly CustodyStatus[] = ['in_organization', 'in_transit', 'at_customer'];
+const toCustody = (value: unknown): CustodyStatus => (CUSTODY.includes(value as CustodyStatus) ? (value as CustodyStatus) : 'in_organization');
+function toCustodySite(value: unknown): CustodySiteView | null {
+  return isObject(value) && typeof value.id === 'string' && typeof value.name === 'string' && typeof value.customer_id === 'string'
+    ? { id: value.id, customerId: value.customer_id, name: value.name } : null;
+}
+
 function toListItem(value: unknown): CylinderListItem | null {
   if (!isObject(value) || typeof value.id !== 'string' || typeof value.serial_number !== 'string') return null;
   const type = toType(value.type);
   if (!type) return null;
   return {
     id: value.id, serialNumber: value.serial_number, type, status: value.status as CylinderListItem['status'],
-    stockStatus: value.stock_status as CylinderListItem['stockStatus'], hydroStatus: value.hydro_status as CylinderListItem['hydroStatus'],
+    stockStatus: value.stock_status as CylinderListItem['stockStatus'], custodyStatus: toCustody(value.custody_status), custodySite: toCustodySite(value.custody_site), hydroStatus: value.hydro_status as CylinderListItem['hydroStatus'],
     activeIdentifierCount: num(value.active_identifier_count) ?? 0, version: num(value.version) ?? 1,
   };
 }
@@ -66,7 +76,7 @@ function toDetailData(value: unknown): CylinderDetailData | null {
   const base = toListItem(value);
   if (!base || !isObject(value)) return null;
   return {
-    id: base.id, serialNumber: base.serialNumber, type: base.type, status: base.status, stockStatus: base.stockStatus, version: base.version,
+    id: base.id, serialNumber: base.serialNumber, type: base.type, status: base.status, stockStatus: base.stockStatus, custodyStatus: base.custodyStatus, custodySite: base.custodySite, version: base.version,
     manufacturer: str(value.manufacturer), manufactureYear: num(value.manufacture_year), workingPressureBar: num(value.working_pressure_bar),
     notes: str(value.notes), inactivationReason: str(value.inactivation_reason) as InactivationReason | null,
     hydroLastResult: str(value.hydro_last_result) as HydrostaticResult | null, hydroNextDueOn: str(value.hydro_next_due_on),
@@ -137,6 +147,7 @@ export class CylinderService {
     if (body.deactivated === true && isObject(body.cylinder) && typeof body.cylinder.id === 'string') {
       failure.deactivatedOwner = { id: body.cylinder.id, serialNumber: str(body.cylinder.serial_number) ?? '' };
     }
+    if (typeof body.trip_id === 'string' && typeof body.trip_number === 'number') failure.trip = { id: body.trip_id, number: body.trip_number };
     return failure;
   }
 
@@ -164,7 +175,7 @@ export class CylinderService {
     const search = query.search?.trim();
     return this.run('query-cylinders', false, compact({
       operation: 'list', organization_id: organizationId, search: search ? search : undefined, status: query.status,
-      stock_status: query.stockStatus, hydro_status: query.hydroStatus, cylinder_type_id: query.cylinderTypeId, sort: query.sort,
+      stock_status: query.stockStatus, hydro_status: query.hydroStatus, custody: query.custody, cylinder_type_id: query.cylinderTypeId, sort: query.sort,
       cursor: query.cursor, limit: query.limit,
     }), (payload) => {
       if (!Array.isArray(payload.items)) return null;

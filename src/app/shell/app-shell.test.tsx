@@ -189,6 +189,49 @@ describe('AppShell', () => {
     expect(screen.queryByText(/modo offline em operação/i)).not.toBeInTheDocument();
   });
 
+  describe('conectividade: o aviso de offline nunca aparece junto de um indicador de conexão ativa', () => {
+    const connectedLocal = (): ConnectivityContextValue => ({ ...connectivity('connected'), result: { ...initialResult, state: 'connected', selectedEndpoint: 'local' } });
+    const indicadorVerde = (): HTMLElement | null => document.querySelector('[data-testid="status-icon"]');
+
+    it('online e conectado mostra "Conectado: Dispositivo local", sem aviso de offline', () => {
+      renderShell({ authState: { status: 'authenticated', aal: 'aal1' }, conn: connectedLocal() });
+      expect(screen.getByText('Conectado: Dispositivo local')).toBeInTheDocument();
+      expect(indicadorVerde()).not.toBeNull();
+      expect(screen.queryByText(/modo offline em operação/i)).not.toBeInTheDocument();
+    });
+
+    it('sem rede o aviso de offline aparece e o "Conectado" com o ponto verde some (barra superior)', () => {
+      renderShell({ authState: { status: 'authenticated', aal: 'aal1' }, conn: connectedLocal() });
+      act(() => { window.dispatchEvent(new Event('offline')); });
+      expect(screen.getByText(/modo offline em operação/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Conectado:/)).not.toBeInTheDocument();
+      expect(indicadorVerde()).toBeNull();
+      expect(within(screen.getByTestId('connection-bar')).getByText('Sem conexão')).toBeInTheDocument();
+    });
+
+    it('sem rede, deslogado, o mesmo vale para a barra de conexão completa', () => {
+      renderShell({ conn: connectedLocal() });
+      act(() => { window.dispatchEvent(new Event('offline')); });
+      expect(screen.getByText(/modo offline em operação/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Conectado:/)).not.toBeInTheDocument();
+      expect(indicadorVerde()).toBeNull();
+    });
+
+    it('ao voltar a rede o aviso some e o indicador de conexão volta', () => {
+      renderShell({ authState: { status: 'authenticated', aal: 'aal1' }, conn: connectedLocal() });
+      act(() => { window.dispatchEvent(new Event('offline')); });
+      act(() => { window.dispatchEvent(new Event('online')); });
+      expect(screen.queryByText(/modo offline em operação/i)).not.toBeInTheDocument();
+      expect(screen.getByText('Conectado: Dispositivo local')).toBeInTheDocument();
+    });
+
+    it('erro de configuração segue visível sem rede', () => {
+      renderShell({ authState: { status: 'authenticated', aal: 'aal1' }, conn: connectivity('blocked') });
+      act(() => { window.dispatchEvent(new Event('offline')); });
+      expect(screen.getByText(/Conexão bloqueada/)).toBeInTheDocument();
+    });
+  });
+
   it('o idioma do documento é pt-BR', () => {
     renderShell();
     expect(document.documentElement.lang).toBe('pt-BR');

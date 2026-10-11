@@ -23,7 +23,8 @@
     "ia:validar": "node scripts/governanca-ia/validar-registro-ia.mjs --staged",
     "ia:hooks": "node scripts/governanca-ia/instalar-hooks.mjs",
     "test:desempenho:cilindros": "node scripts/cilindros/medir-desempenho-4g.mjs",
-    "test:desempenho:registro": "node scripts/registro/medir-desempenho-4g.mjs"
+    "test:desempenho:registro": "node scripts/registro/medir-desempenho-4g.mjs",
+    "test:desempenho:viagens": "node scripts/viagens/medir-desempenho-4g.mjs"
   },
   "dependencies": {
     "@fontsource-variable/montserrat": "5.3.0",

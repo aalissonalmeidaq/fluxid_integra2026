@@ -49,7 +49,7 @@ describe('RegistryArea', () => {
     await waitFor(() => expect(screen.queryByText('Carregando a página…')).not.toBeInTheDocument(), { timeout: 15000 });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByText('Página não encontrada')).not.toBeInTheDocument();
-  });
+  }, 20000);
 
   it('as áreas de rota inexistente mostram "Página não encontrada" em cada área', () => {
     for (const area of ['geofences', 'vehicles', 'drivers'] as const) {
