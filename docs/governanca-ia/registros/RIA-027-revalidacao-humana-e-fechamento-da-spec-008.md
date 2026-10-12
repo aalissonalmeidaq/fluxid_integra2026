@@ -9,7 +9,7 @@
 - Ferramenta de IA utilizada: Claude Code — Claude Sonnet 5.5
 - Objetivo do uso: Registrar a revalidação humana das correções de 10/10/2026 da Spec 008 e a justificativa do prazo de 20 s do teste de registry-area.
 - Prompt utilizado, em síntese sanitizada: Análise da PR #28 já mergeada, reprodução do estouro de prazo do teste de registry-area sob cobertura, entrevista de revalidação e registro das respostas em validation.md.
-- Resposta gerada pela IA: Seção de revalidação e justificativa do prazo em specs/008-viagens-paradas-carga/validation.md. Não há código novo. Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/fix/008-pos-merge
+- Resposta gerada pela IA: Seção de revalidação e justificativa do prazo em specs/008-viagens-paradas-carga/validation.md. Não há código novo. Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/30
 - Análise crítica da equipe: O prazo de 20 s do teste de registry-area é necessário sob cobertura: sem ele o teste reprovou uma vez com 5000 ms, e com ele passou duas vezes. A asserção não mudou.
 - Validação humana realizada: Alisson Almeida respondeu a entrevista em 12/10/2026 e aprovou, com as lacunas indicadas nas pendências.
 - Decisão final: utilizado
