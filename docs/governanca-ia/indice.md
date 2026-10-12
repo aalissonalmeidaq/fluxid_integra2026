@@ -43,6 +43,10 @@
 
 | RIA-026 | 10/10/2026, 09:04:26 - America/Fortaleza | 008 | 01 | Viagens, paradas, carga e entrega | `registros/RIA-026-viagens-paradas-carga-e-entrega.md` | Utilizado |
 
+| RIA-027 | 12/10/2026, 11:44:42 - America/Fortaleza | 008 | 02 | Revalidação humana e fechamento da Spec 008 | `registros/RIA-027-revalidacao-humana-e-fechamento-da-spec-008.md` | Utilizado |
+
+> Atualização do RIA-026: em 12/10/2026 Alisson Almeida revalidou as correções de 10/10 e aprovou (RIA-027). A pessoa não detalhou a amostra nem o resultado por fluxo; as lacunas estão nas pendências do RIA-027.
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
