@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: Execução do /speckit-implement sobre as tarefas da Spec 009: domínio e adaptadores de câmera, NFC e GPS, consulta resolve, método de leitura em check_item e register_delivery, posição na chegada e na entrega, consulta lendo o código, testes (unidade, contrato, pgTAP, live, E2E, visuais), medição em 4G, roteiro em aparelho Android e correção do convite de instalação do PWA.
 - Resposta gerada pela IA: Código em src/domain/field, src/infrastructure/field, src/application/field e src/pages/field; três migrations (20261013100000, 20261013100100 e 20261013100200); ajustes em manage-trips e query-cylinders; testes de unidade, contrato, pgTAP, live, E2E e capturas visuais; roteiro e validação da spec; correção do convite de instalação do PWA em use-pwa-install.ts.
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/009-leitura-gps-campo
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/32
 - Análise crítica da equipe: A suíte completa passou e o roteiro em aparelho Android deu dentro das metas (MS-001 em 2 min 47 s, MS-002 até 1 min 10 s, MS-007 em 10 s). O roteiro mostrou que o PWA não pedia instalação; a causa provável era o convite do navegador se perder ao trocar de tela, e foi corrigida com teste, mas a instalação ainda não foi confirmada no aparelho.
 - Validação humana realizada: Alisson Almeida executou o roteiro em aparelho Android em 12/10/2026 e aprovou, com as lacunas indicadas nas pendências.
 - Decisão final: utilizado
@@ -198,7 +198,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Trocar o link de revisão pelo do pull request antes do merge. O PWA não foi instalado no aparelho, nem depois da correção; falta confirmar a instalação no Android. Versão do Chrome, larguras e fluxos detalhados e justificativa da decisão além de 'funcional' não foram informados. Entregar o DOCX do RIA depois do merge.
+O PWA não foi instalado no aparelho, nem depois da correção; falta confirmar a instalação no Android. Versão do Chrome, larguras e fluxos detalhados e justificativa da decisão além de 'funcional' não foram informados. Entregar o DOCX do RIA depois do merge.
 
 ## Validação humana
 
