@@ -167,3 +167,23 @@ Depois da validação humana, os três pontos em aberto foram corrigidos (cilind
 
 Estas correções não foram revalidadas por uma pessoa.
 
+### Prazo de 20 s no teste de `registry-area` (investigado em 2026-10-12)
+
+Sem o prazo ampliado, o caso `customers/list` de `registry-area.test.tsx` reprova com "Test timed out in 5000ms" em `npm run test:coverage` (reproduzido em 2026-10-12); com o prazo de 20 s, a mesma suíte passou duas vezes seguidas (256 arquivos, 3890 testes; instruções 91,67%, ramos 86,6%, funções 91,18%, linhas 94,18%). Em `npm run test` (sem cobertura) o arquivo passa no prazo padrão (cerca de 8 s o arquivo todo). Causa: o `waitFor` do próprio teste já espera até 15 s, mas o teste tinha só 5 s; o primeiro caso carrega a rota por `React.lazy` e, com a cobertura instrumentando o código, a transformação a frio passa dos 5 s nesta máquina. A asserção não foi alterada, então o prazo não esconde falha de lógica; ele só alinha o teste à espera que já declarava. Por isso o prazo de 20 s fica.
+
+## Revalidação humana das correções de 10/10 (2026-10-12)
+
+Entrevista feita em 2026-10-12 com Alisson Almeida, a partir do roteiro de revalidação de oito fluxos (reserva concorrente, justificativa da correção de entrega, histórico, posição exclusiva, selo "Em trânsito", barra offline, escrita offline e Visão Geral em 360, 768 e 1920 px). As respostas abaixo são as dadas pela pessoa, sem acréscimos.
+
+| Pergunta | Resposta |
+|---|---|
+| Quem validou | Alisson Almeida |
+| Amostra (perfis, telas, larguras e fluxos) | Informou só o rótulo "perfis, telas, larguras e fluxos", sem dizer quais. Não foi completado nem estimado. |
+| Ambiente | Windows, Android e Chrome. Não informou em qual aparelho fez o Offline do DevTools. |
+| Duração | 12 minutos |
+| Resultado | aprovado |
+| Itens a corrigir | nenhum informado |
+| Decisão | utilizado, sem justificativa própria |
+| Respostas gravadas em seu nome | sim |
+
+Não houve resultado por fluxo: a pessoa informou o resultado geral "aprovado", e o registro não afirma que cada um dos oito fluxos foi executado. Fica como pendência confirmar quais fluxos e larguras foram conferidos. A decisão sobre o layout da Visão Geral (80/20 da Spec 007, mantido na `main`) não foi alterada.
