@@ -48,6 +48,49 @@ const detail = () => ({
   warnings: ['cnh_expiring'],
 });
 
+// Spec 009 (RF-010, RF-013, RN-003): posição da chegada, origem e precisão da entrega e método da conferência chegam do servidor e nunca são
+// presumidos; valor desconhecido invalida o detalhe, mas a falta deles (registro anterior à Spec 009) é normal.
+describe('detalhe: leitura e posição (Spec 009)', () => {
+  const withPosition = () => {
+    const value = detail();
+    Object.assign(value.stops[0]!, { arrival: { latitude: -23.55, longitude: -46.63, accuracy_m: 12.4, position_source: 'gps', position_read_at: '2026-10-13T15:29:30Z', outside_geofence: false } });
+    Object.assign(value.items[0]!, { check_source: 'camera' });
+    Object.assign(value.deliveries[0]!, { accuracy_m: 9.5, position_source: 'gps', position_read_at: '2026-10-13T15:30:00Z' });
+    Object.assign(value.deliveries[0]!.results[0]!, { source: 'nfc' });
+    return value;
+  };
+
+  it('converte a posição da chegada, a origem e a precisão da entrega e o método de cada cilindro', () => {
+    const view = toTripDetail(withPosition())!;
+    expect(view.stops[0]!.arrival).toEqual({ latitude: -23.55, longitude: -46.63, accuracyM: 12.4, positionSource: 'gps', positionReadAt: '2026-10-13T15:29:30Z', outsideGeofence: false });
+    expect(view.items[0]!.checkSource).toBe('camera');
+    expect(view.deliveries[0]).toMatchObject({ accuracyM: 9.5, positionSource: 'gps', positionReadAt: '2026-10-13T15:30:00Z' });
+    expect(view.deliveries[0]!.results[0]).toMatchObject({ source: 'nfc' });
+  });
+
+  it('registro anterior à Spec 009 (sem nenhum desses campos) continua válido, com tudo nulo', () => {
+    const view = toTripDetail(detail())!;
+    expect(view.stops[0]!.arrival).toBeNull();
+    expect(view.items[0]!.checkSource).toBeNull();
+    expect(view.deliveries[0]).toMatchObject({ accuracyM: null, positionSource: null, positionReadAt: null });
+    expect(view.deliveries[0]!.results[0]).toMatchObject({ source: null });
+  });
+
+  it('origem ou método desconhecido invalida o detalhe, em vez de ser presumido', () => {
+    const broken = (patch: (value: ReturnType<typeof withPosition>) => void) => { const value = withPosition(); patch(value); return toTripDetail(value); };
+    expect(broken((v) => { Object.assign(v.items[0]!, { check_source: 'scan' }); })).toBeNull();
+    expect(broken((v) => { Object.assign(v.deliveries[0]!, { position_source: 'wifi' }); })).toBeNull();
+    expect(broken((v) => { Object.assign(v.stops[0]!, { arrival: { latitude: -23.5, longitude: -46.6, position_source: 'site_address' } }); })).toBeNull();
+    expect(broken((v) => { Object.assign(v.deliveries[0]!.results[0]!, { source: 'scan' }); })).toBeNull();
+  });
+
+  it('a chegada sem coordenadas completas não vira posição', () => {
+    const value = withPosition();
+    Object.assign(value.stops[0]!, { arrival: { latitude: -23.5, longitude: null, position_source: 'gps' } });
+    expect(toTripDetail(value)).toBeNull();
+  });
+});
+
 describe('detalhe', () => {
   it('converte a viagem inteira', () => {
     const view = toTripDetail(detail());

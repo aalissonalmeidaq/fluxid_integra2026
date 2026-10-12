@@ -1,5 +1,5 @@
 import {
-  createCylinderHandler, EVENT_TYPES, HYDRO_STATUSES, type CylinderGateway, type OperationSpec,
+  createCylinderHandler, EVENT_TYPES, HYDRO_STATUSES, IDENTIFIER_KINDS, type CylinderGateway, type OperationSpec,
 } from '../_shared/cylinders.ts';
 
 export type { CylinderGateway } from '../_shared/cylinders.ts';
@@ -22,6 +22,14 @@ export const QUERY_OPERATIONS: Record<string, OperationSpec> = {
   },
   get: { rpc: 'query_cylinder_get', fields: { cylinder_id: [{ t: 'uuid' }, 'p_cylinder'] } },
   lookup: { rpc: 'query_cylinder_lookup', fields: { identifier_value: [{ t: 'text', max: 200, noBreaks: true }, 'p_identifier_value'] } },
+  // Spec 009 (RF-002, RF-007): resolve o código lido (câmera, NFC, digitação ou leitor) por até 3 candidatos, só na organização ativa.
+  resolve: {
+    rpc: 'query_identifier_resolve',
+    fields: {
+      candidates: [{ t: 'text-list', minItems: 1, maxItems: 3, maxLength: 200 }, 'p_candidates'],
+      expected_kind: [{ t: 'enum', values: IDENTIFIER_KINDS, optional: true }, 'p_expected_kind'],
+    },
+  },
   history: {
     rpc: 'query_cylinder_history',
     fields: {

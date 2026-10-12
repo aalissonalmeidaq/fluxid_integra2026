@@ -1,3 +1,4 @@
+import { READING_SOURCES, READING_SOURCE_LABELS, readingSourceSentence } from '../field/reading-source';
 import { TRIP_EVENT_LABELS, type TripEventType } from './trip-vocabulary';
 
 // Texto do histórico da viagem (RF-025). Usa só o que o servidor guarda no evento: contagens, posições e valores de campos de
@@ -47,6 +48,27 @@ function updated(data: Data, names: Record<string, string>): string {
   return parts.length > 0 ? `${parts.join('; ')}.` : 'Viagem editada.';
 }
 
+// Contagem dos métodos de leitura da entrega, na ordem fixa dos métodos: "Métodos: 1 por toque, 1 por câmera." Só o método e a contagem;
+// nunca o valor lido (RF-017). Sem contagem válida (registro anterior à Spec 009), não acrescenta nada.
+function sourcesText(value: unknown): string {
+  if (typeof value !== 'object' || value === null) return '';
+  const counts = value as Record<string, unknown>;
+  const parts = READING_SOURCES.flatMap((source) => {
+    const n = count(counts[source]);
+    return n !== null && n > 0 ? [`${n} por ${READING_SOURCE_LABELS[source]}`] : [];
+  });
+  return parts.length > 0 ? ` Métodos: ${parts.join(', ')}.` : '';
+}
+
+// Origem e faixa de precisão da posição, em palavras (Spec 009, RF-010). Nunca as coordenadas: o evento nem as guarda (RF-017).
+function positionPhrase(data: Data): string {
+  const band = data.accuracy_band === 'good' ? ', precisão boa' : data.accuracy_band === 'low' ? ', precisão baixa' : '';
+  if (data.position_source === 'gps') return ` Posição por GPS${band}.`;
+  if (data.position_source === 'typed') return ' Posição informada.';
+  if (data.position_source === 'site_address') return ' Entrega no endereço da unidade.';
+  return '';
+}
+
 function delivery(data: Data, corrected: boolean): string {
   const position = count(data.position);
   const delivered = count(data.delivered);
@@ -55,7 +77,8 @@ function delivery(data: Data, corrected: boolean): string {
   const results = `${plural(delivered, 'entregue', 'entregues')} e ${plural(notDelivered, 'não entregue', 'não entregues')}`;
   const recipient = data.has_recipient === true ? ', com recebedor registrado' : '';
   const outside = data.outside_geofence === true ? ' Registrada fora da área da unidade.' : '';
-  return corrected ? `Parada ${position} corrigida: ${results}${recipient}.${outside}` : `Parada ${position}: ${results}${recipient}.${outside}`;
+  const methods = `${positionPhrase(data)}${sourcesText(data.sources)}`;
+  return corrected ? `Parada ${position} corrigida: ${results}${recipient}.${outside}${methods}` : `Parada ${position}: ${results}${recipient}.${outside}${methods}`;
 }
 
 function completed(data: Data): string {
@@ -85,8 +108,9 @@ export function describeTripEvent(type: TripEventType, data: Data, names: Record
     case 'stop_arrived': {
       const position = count(data.position);
       if (position === null) return `${TRIP_EVENT_LABELS.stop_arrived}.`;
-      return `Chegada à parada ${position}${data.out_of_order === true ? ', fora da ordem planejada' : ''}.`;
+      return `Chegada à parada ${position}${data.out_of_order === true ? ', fora da ordem planejada' : ''}.${positionPhrase(data)}${data.outside_geofence === true ? ' Fora da área da unidade.' : ''}`;
     }
+    case 'item_checked': return `${readingSourceSentence(TRIP_EVENT_LABELS.item_checked, typeof data.source === 'string' ? data.source : null)}.`;
     case 'delivery_registered': return delivery(data, false);
     case 'delivery_corrected': return delivery(data, true);
     case 'unlock_registered': return data.exceptional === true ? 'Desbloqueio excepcional registrado.' : 'Desbloqueio registrado.';

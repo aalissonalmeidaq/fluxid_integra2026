@@ -1,7 +1,12 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { TripDeliveryView } from '@/application/trips/trip-views';
-import { detail } from '../trip-test-support';
+import type { PositionReading } from '@/domain/field/position-quality';
+import type { DeliveryFormValue } from '@/domain/trips/trip-validation';
+import type { GeolocationReader } from '@/infrastructure/field/geolocation-reader';
+import { ReaderError, type ReaderErrorKind } from '@/infrastructure/field/reader-error';
+import type { ResolutionLike } from '@/domain/field/reading-result';
+import { cylinder, detail } from '../trip-test-support';
 import { DeliveryDialog, type DeliveryDialogProps } from './delivery-dialog';
 
 const base = detail();
@@ -20,6 +25,204 @@ const setup = (over: Partial<DeliveryDialogProps> = {}) => {
 };
 const submit = (): void => { fireEvent.click(screen.getByRole('button', { name: /Registrar (entrega|correção)/ })); };
 const name = (value: string): void => { fireEvent.change(screen.getByLabelText('Nome de quem recebeu'), { target: { value } }); };
+
+// Spec 009 (RF-001a, RF-005): a leitura confirma o cilindro previsto na parada como "entregue", com o método por cilindro; "não entregue"
+// e a justificativa seguem manuais, e a entrega só vale ao salvar.
+const found = (n: number): ResolutionLike => ({
+  kind: 'found', value: { cylinder: { id: cylinder(n).id, serialNumber: `CIL-00${n}`, status: 'active' }, trip: null },
+});
+const typeCode = async (value: string): Promise<void> => {
+  fireEvent.change(await screen.findByLabelText('Código do cilindro'), { target: { value } });
+  fireEvent.click(screen.getByRole('button', { name: 'Marcar como entregue' }));
+};
+
+// Spec 009, US2 (RF-009 a RF-014): a posição da entrega pelo GPS do aparelho, por coordenadas digitadas ou no endereço da unidade, sempre
+// opcional; a origem, a precisão e o horário da leitura seguem no envio; leitura com mais de 2 minutos é lida de novo antes de enviar.
+describe('diálogo de entrega: posição (Spec 009)', () => {
+  const READING: PositionReading = { latitude: -23.55052, longitude: -46.633309, accuracyM: 12.4, readAt: Date.UTC(2026, 9, 13, 15, 29, 30) };
+  const geolocation = (fail?: ReaderErrorKind): GeolocationReader & { read: ReturnType<typeof vi.fn> } => ({
+    isSupported: () => true, read: vi.fn(async () => { if (fail) throw new ReaderError(fail); return READING; }),
+  }) as never;
+  const sent = (onSubmit: ReturnType<typeof vi.fn>) => (onSubmit.mock.calls[0] as unknown as [DeliveryFormValue])[0];
+
+  it('sem posição nenhuma, a entrega segue (a posição é opcional) e o valor não tem "position"', () => {
+    const { onSubmit } = setup({ geolocation: geolocation() });
+    name('Recebedor Fictício');
+    submit();
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect('position' in sent(onSubmit)).toBe(false);
+  });
+
+  it('a posição lida pelo GPS segue com a origem "gps", a precisão e o horário da leitura', async () => {
+    const { onSubmit } = setup({ geolocation: geolocation(), now: () => READING.readAt + 10_000 });
+    fireEvent.click(screen.getByRole('button', { name: 'Usar minha posição' }));
+    await screen.findByText('Origem: GPS');
+    name('Recebedor Fictício');
+    submit();
+    expect(sent(onSubmit)).toMatchObject({ latitude: -23.55052, longitude: -46.633309, atSiteAddress: false, position: { source: 'gps', accuracyM: 12.4, readAt: new Date(READING.readAt).toISOString() } });
+  });
+
+  it('coordenadas digitadas seguem como "informada"', () => {
+    const { onSubmit } = setup({ geolocation: geolocation() });
+    fireEvent.change(screen.getByLabelText('Latitude'), { target: { value: '-23,5505' } });
+    fireEvent.change(screen.getByLabelText('Longitude'), { target: { value: '-46,6333' } });
+    name('Recebedor Fictício');
+    submit();
+    expect(sent(onSubmit)).toMatchObject({ latitude: -23.5505, longitude: -46.6333, position: { source: 'typed', accuracyM: null, readAt: null } });
+  });
+
+  it('"Entrega no endereço da unidade" segue como "site_address", sem coordenadas', () => {
+    const { onSubmit } = setup({ geolocation: geolocation() });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Entrega no endereço da unidade' }));
+    name('Recebedor Fictício');
+    submit();
+    expect(sent(onSubmit)).toMatchObject({ latitude: null, longitude: null, atSiteAddress: true, position: { source: 'site_address' } });
+  });
+
+  it('editar o número depois da leitura troca a origem para "informada" no envio', async () => {
+    const { onSubmit } = setup({ geolocation: geolocation(), now: () => READING.readAt });
+    fireEvent.click(screen.getByRole('button', { name: 'Usar minha posição' }));
+    await screen.findByText('Origem: GPS');
+    fireEvent.change(screen.getByLabelText('Latitude'), { target: { value: '-23.55' } });
+    name('Recebedor Fictício');
+    submit();
+    expect(sent(onSubmit)).toMatchObject({ position: { source: 'typed', accuracyM: null } });
+  });
+
+  it('leitura do GPS com mais de 2 minutos é lida de novo antes de enviar', async () => {
+    let clock = READING.readAt;
+    const reader = geolocation();
+    const { onSubmit } = setup({ geolocation: reader, now: () => clock });
+    fireEvent.click(screen.getByRole('button', { name: 'Usar minha posição' }));
+    await screen.findByText('Origem: GPS');
+    clock = READING.readAt + 121_000;
+    reader.read.mockResolvedValueOnce({ ...READING, accuracyM: 4, readAt: clock });
+    name('Recebedor Fictício');
+    submit();
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(reader.read).toHaveBeenCalledTimes(2);
+    expect(sent(onSubmit)).toMatchObject({ position: { source: 'gps', accuracyM: 4, readAt: new Date(clock).toISOString() } });
+  });
+
+  it('se a nova leitura falha, nada é enviado e o texto explica', async () => {
+    let clock = READING.readAt;
+    const reader = geolocation();
+    const { onSubmit } = setup({ geolocation: reader, now: () => clock });
+    fireEvent.click(screen.getByRole('button', { name: 'Usar minha posição' }));
+    await screen.findByText('Origem: GPS');
+    clock = READING.readAt + 121_000;
+    reader.read.mockRejectedValueOnce(new ReaderError('denied'));
+    name('Recebedor Fictício');
+    submit();
+    expect(await screen.findByText('Não foi possível atualizar a posição. Leia de novo ou digite as coordenadas.')).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('precisão ruim avisa mas não impede o envio', async () => {
+    const reader = geolocation();
+    reader.read.mockResolvedValueOnce({ ...READING, accuracyM: 450 });
+    const { onSubmit } = setup({ geolocation: reader, now: () => READING.readAt });
+    fireEvent.click(screen.getByRole('button', { name: 'Usar minha posição' }));
+    await screen.findByText('Precisão baixa (cerca de 450 m). Você pode salvar mesmo assim.');
+    name('Recebedor Fictício');
+    submit();
+    expect(sent(onSubmit)).toMatchObject({ position: { source: 'gps', accuracyM: 450 } });
+  });
+
+  it('permissão negada: explica, mantém o formulário e a entrega segue por coordenadas ou endereço da unidade', async () => {
+    const { onSubmit } = setup({ geolocation: geolocation('denied') });
+    name('Recebedor Fictício');
+    fireEvent.click(screen.getByRole('button', { name: 'Usar minha posição' }));
+    expect(await screen.findByText(/A permissão de localização foi negada/)).toBeInTheDocument();
+    expect((screen.getByLabelText('Nome de quem recebeu') as HTMLInputElement).value).toBe('Recebedor Fictício');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Entrega no endereço da unidade' }));
+    submit();
+    expect(sent(onSubmit)).toMatchObject({ position: { source: 'site_address' } });
+  });
+});
+
+describe('diálogo de entrega: leitura (Spec 009)', () => {
+  it('sem o resolvedor, não oferece leitura', () => {
+    setup();
+    expect(screen.queryByLabelText('Código do cilindro')).toBeNull();
+  });
+
+  it('o código de um cilindro da parada o marca "Entregue" com o método e diz em texto', async () => {
+    const resolve = vi.fn(async () => found(1));
+    setup({ resolve });
+    await typeCode('QR-1');
+    expect((await screen.findAllByText('Cilindro CIL-001 marcado como entregue.')).length).toBeGreaterThan(0);
+    expect(resolve).toHaveBeenCalledWith({ candidates: [{ value: 'QR-1', origin: 'scanned' }], source: 'typed' });
+    expect(screen.getByText('Entregue por código digitado ou leitor')).toBeInTheDocument();
+  });
+
+  it('o método do cilindro segue para o envio da entrega', async () => {
+    const { onSubmit } = setup({ resolve: vi.fn(async () => found(1)) });
+    await typeCode('QR-1');
+    await screen.findAllByText('Cilindro CIL-001 marcado como entregue.');
+    name('Recebedor Fictício');
+    submit();
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      results: [{ itemId: 'i1', delivered: true, source: 'typed' }, { itemId: 'i2', delivered: true }],
+    }));
+  });
+
+  it('cilindro que não é da parada é recusado e não entra na entrega', async () => {
+    setup({ resolve: vi.fn(async () => found(9)) });
+    await typeCode('QR-9');
+    expect((await screen.findAllByText('Cilindro CIL-009 não está previsto nesta parada.')).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('radio', { name: 'Entregue', checked: true })).toHaveLength(2);
+    expect(screen.queryByText(/Entregue por/)).toBeNull();
+  });
+
+  it('o mesmo cilindro lido de novo avisa que já está marcado', async () => {
+    setup({ resolve: vi.fn(async () => found(1)) });
+    await typeCode('QR-1');
+    await screen.findAllByText('Cilindro CIL-001 marcado como entregue.');
+    await typeCode('QR-1');
+    expect((await screen.findAllByText('Cilindro CIL-001 já está marcado como entregue.')).length).toBeGreaterThan(0);
+  });
+
+  it('o código não encontrado diz "Cilindro não encontrado."', async () => {
+    setup({ resolve: vi.fn(async () => ({ kind: 'not_found' }) as ResolutionLike) });
+    await typeCode('NAO-EXISTE');
+    expect((await screen.findAllByText('Cilindro não encontrado.')).length).toBeGreaterThan(0);
+  });
+
+  it('a leitura reverte um "Não entregue" marcado antes, sem manter a justificativa', async () => {
+    setup({ resolve: vi.fn(async () => found(1)) });
+    fireEvent.click(screen.getAllByRole('radio', { name: 'Não entregue' })[0]!);
+    expect(screen.getByLabelText('Por que CIL-001 não foi entregue')).toBeInTheDocument();
+    await typeCode('QR-1');
+    await screen.findAllByText('Cilindro CIL-001 marcado como entregue.');
+    expect(screen.queryByLabelText('Por que CIL-001 não foi entregue')).toBeNull();
+    expect(screen.getAllByRole('radio', { name: 'Entregue', checked: true })).toHaveLength(2);
+  });
+
+  it('marcar "Não entregue" à mão tira o método e a justificativa continua manual', async () => {
+    const { onSubmit } = setup({ resolve: vi.fn(async () => found(1)) });
+    await typeCode('QR-1');
+    await screen.findAllByText('Cilindro CIL-001 marcado como entregue.');
+    fireEvent.click(screen.getAllByRole('radio', { name: 'Não entregue' })[0]!);
+    expect(screen.queryByText(/Entregue por/)).toBeNull();
+    fireEvent.change(screen.getByLabelText('Por que CIL-001 não foi entregue'), { target: { value: 'Cilindro não estava no endereço' } });
+    name('Recebedor Fictício');
+    submit();
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ results: [{ itemId: 'i1', delivered: false, reason: 'Cilindro não estava no endereço' }, { itemId: 'i2', delivered: true }] }));
+  });
+
+  it('o envio do código fica desabilitado sem conexão', () => {
+    setup({ resolve: vi.fn(async () => found(1)), online: false });
+    expect(screen.getByRole('button', { name: 'Marcar como entregue' })).toBeDisabled();
+  });
+
+  it('o leitor não fica dentro do formulário da entrega (sem formulário aninhado)', async () => {
+    setup({ resolve: vi.fn(async () => found(1)) });
+    const field = await screen.findByLabelText('Código do cilindro');
+    expect(field.closest('form')?.parentElement?.closest('form')).toBeNull();
+    expect(screen.getByLabelText('Nome de quem recebeu').closest('form')).not.toBe(field.closest('form'));
+  });
+});
 
 describe('diálogo de entrega', () => {
   it('abre com o título da parada e o foco no nome do recebedor', () => {

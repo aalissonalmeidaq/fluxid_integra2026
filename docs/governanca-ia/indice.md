@@ -47,6 +47,8 @@
 
 > Atualização do RIA-026: em 12/10/2026 Alisson Almeida revalidou as correções de 10/10 e aprovou (RIA-027). A pessoa não detalhou a amostra nem o resultado por fluxo; as lacunas estão nas pendências do RIA-027.
 
+| RIA-028 | 12/10/2026, 20:55:57 - America/Fortaleza | 009 | 01 | Leitura de identificadores e GPS no aplicativo de campo | `registros/RIA-028-leitura-de-identificadores-e-gps-no-aplicativo-de-campo.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

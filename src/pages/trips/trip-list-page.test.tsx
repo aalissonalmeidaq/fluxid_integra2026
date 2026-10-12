@@ -5,6 +5,21 @@ import { TripListView } from './trip-list-page';
 
 const renderList = (service: ReturnType<typeof fakeTripService> | null, canCreate = true) => render(<TripListView organizationId={ORG} service={service} canCreate={canCreate} />);
 
+// Spec 009, US3 (RF-006): o cabeçalho das viagens recebe o "Ler cilindro", junto da ação de planejar.
+describe('lista de viagens: ações do cabeçalho (Spec 009)', () => {
+  it('mostra a ação extra ao lado de "Planejar viagem"', async () => {
+    render(<TripListView organizationId={ORG} service={fakeTripService()} canCreate extraActions={<button type="button">Ler cilindro</button>} />);
+    expect(await screen.findByRole('button', { name: 'Ler cilindro' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Planejar viagem' })).toBeInTheDocument();
+  });
+
+  it('sem a permissão de ver cilindros a ação não é passada, e a lista fica como era', async () => {
+    renderList(fakeTripService());
+    await screen.findByText('2 viagens encontradas');
+    expect(screen.queryByRole('button', { name: 'Ler cilindro' })).toBeNull();
+  });
+});
+
 describe('lista de viagens', () => {
   it('mostra as viagens abertas, com situação, atraso e total anunciado', async () => {
     const service = fakeTripService();

@@ -3,8 +3,12 @@ import type { TripDeliveryView, TripItemView, TripStopView } from '@/application
 import { Button } from '@/design-system';
 import { HYDROSTATIC_LABELS } from '@/domain/cylinders/cylinder-types';
 import { formatDateTime } from '@/domain/cylinders/format';
+import { positionSummary } from '@/domain/field/position-summary';
+import { READING_SOURCE_LABELS } from '@/domain/field/reading-source';
 import { RECIPIENT_RESTRICTED } from '@/domain/trips/trip-vocabulary';
 import { currentDelivery } from '../current-delivery';
+import type { PositionPayload } from '@/domain/field/position-draft';
+import { ArrivePositionAction } from './arrive-position-action';
 import { ArriveStopAction } from './arrive-stop-action';
 import { ItemBadges, StopStatusBadge } from './trip-badges';
 
@@ -18,7 +22,7 @@ export function ItemRow({ item, action }: { item: TripItemView; action?: React.R
         </span>
       </div>
       <p className="text-legenda text-texto-secundario">{`Teste hidrostático: ${HYDROSTATIC_LABELS[item.cylinder.hydroStatus]}`}</p>
-      {item.checkedAt && <p className="text-legenda text-texto-secundario">{`Conferido em ${formatDateTime(item.checkedAt)}${item.checkedByName ? ` por ${item.checkedByName}` : ''}.`}</p>}
+      {item.checkedAt && <p className="text-legenda text-texto-secundario">{`Conferido em ${formatDateTime(item.checkedAt)}${item.checkedByName ? ` por ${item.checkedByName}` : ''}.${item.checkSource ? ` Método: ${READING_SOURCE_LABELS[item.checkSource]}.` : ''}`}</p>}
       {item.divergenceReason && <p className="break-words text-corpo text-erro">{`Motivo: ${item.divergenceReason}`}</p>}
       {action}
     </li>
@@ -35,7 +39,8 @@ function DeliverySummary({ delivery, corrections }: { delivery: TripDeliveryView
         {delivery.recipientRole && !restricted ? ` (${delivery.recipientRole})` : ''}
       </p>
       {delivery.atSiteAddress && <p className="text-corpo">Entrega no endereço da unidade.</p>}
-      {delivery.latitude !== null && delivery.longitude !== null && !delivery.atSiteAddress && <p className="text-corpo">Posição informada na entrega.</p>}
+      {delivery.positionSource === 'gps' && <p className="text-corpo">{positionSummary('gps', delivery.accuracyM ?? null)}</p>}
+      {delivery.latitude !== null && delivery.longitude !== null && !delivery.atSiteAddress && delivery.positionSource !== 'gps' && <p className="text-corpo">Posição informada na entrega.</p>}
       {delivery.outsideGeofence === true && <p className="text-corpo font-semibold text-alerta-texto">Posição fora da geocerca da unidade.</p>}
       {delivery.outsideGeofence === false && <p className="text-corpo">Posição dentro da geocerca da unidade.</p>}
       {corrections > 0 && <p className="text-legenda text-texto-secundario">{`${corrections} ${corrections === 1 ? 'correção registrada' : 'correções registradas'}; os registros anteriores ficam no histórico.`}</p>}
@@ -58,11 +63,13 @@ export interface StopCardProps {
   onUnlock: (item: TripItemView, trigger: HTMLElement) => void;
   onReturn: (item: TripItemView, trigger: HTMLElement) => void;
   onArrive: (stop: TripStopView) => void;
+  // Chegada com a posição lida pelo aparelho ou digitada (Spec 009); sem ele, só a chegada sem posição.
+  onArriveWithPosition?: (stop: TripStopView, position: PositionPayload) => void;
   onDeliver: (stop: TripStopView, trigger: HTMLElement) => void;
   onCorrect: (stop: TripStopView, trigger: HTMLElement) => void;
 }
 
-export function StopCard({ stop, items, deliveries, tripInProgress, canOperate, canUnlock, canException, canReturn, online, busyKey, onUnlock, onReturn, onArrive, onDeliver, onCorrect }: StopCardProps): React.JSX.Element {
+export function StopCard({ stop, items, deliveries, tripInProgress, canOperate, canUnlock, canException, canReturn, online, busyKey, onUnlock, onReturn, onArrive, onArriveWithPosition, onDeliver, onCorrect }: StopCardProps): React.JSX.Element {
   const current = currentDelivery(deliveries);
   const label = `parada ${stop.position ?? ''}`;
   const busy = busyKey !== null;
@@ -77,9 +84,19 @@ export function StopCard({ stop, items, deliveries, tripInProgress, canOperate, 
       </div>
       <p className="break-words text-corpo"><a className="font-semibold text-azul-profundo underline" href={`/clientes/${stop.site.customerId}/unidades/${stop.site.id}`}>{stop.site.name}</a>{` · ${stop.site.customerName} · ${stop.site.city}/${stop.site.state}`}</p>
       {stop.arrivedAt && <p className="text-legenda text-texto-secundario">{`Chegada em ${formatDateTime(stop.arrivedAt)}.`}</p>}
+      {stop.arrival && (
+        <p className="text-legenda text-texto-secundario">
+          {positionSummary(stop.arrival.positionSource, stop.arrival.accuracyM)}
+          {stop.arrival.outsideGeofence === true && <span className="font-semibold text-alerta-texto">{' Fora da geocerca da unidade.'}</span>}
+          {stop.arrival.outsideGeofence === false && ' Dentro da geocerca da unidade.'}
+        </p>
+      )}
 
       {tripInProgress && canOperate && stop.status === 'pending' && (
         <ArriveStopAction position={stop.position} siteName={stop.site.name} online={online} busy={busy} loading={busyKey === `arrive:${stop.id}`} onArrive={() => onArrive(stop)} />
+      )}
+      {tripInProgress && canOperate && stop.status === 'pending' && onArriveWithPosition && (
+        <ArrivePositionAction position={stop.position} siteName={stop.site.name} online={online} busy={busy} loading={busyKey === `arrive:${stop.id}`} onArrive={(payload) => onArriveWithPosition(stop, payload)} />
       )}
       {tripInProgress && canOperate && stop.status === 'on_site' && (
         <Button className="self-start" disabled={!online || busy} aria-label={`Registrar entrega da ${label}`} onClick={(event) => onDeliver(stop, event.currentTarget)}>Registrar entrega</Button>

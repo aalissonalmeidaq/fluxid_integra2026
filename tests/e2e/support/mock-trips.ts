@@ -54,6 +54,8 @@ export interface TripStopRow {
   arrived_at: string | null;
   out_of_order: boolean;
   closed_at: string | null;
+  // Posição lida na chegada (Spec 009); nula quando a chegada não teve posição.
+  arrival?: { latitude: number; longitude: number; accuracy_m: number | null; position_source: 'gps' | 'typed'; position_read_at: string | null; outside_geofence: boolean | null } | null;
 }
 export interface TripItemRow {
   id: string;
@@ -65,6 +67,8 @@ export interface TripItemRow {
   lock_status: 'none' | 'locked' | 'unlocked';
   checked_at: string | null;
   checked_by_name: string | null;
+  // Método da conferência (Spec 009): manual, typed, camera ou nfc; nulo enquanto não conferido.
+  check_source?: string | null;
   divergence_reason: string | null;
 }
 export interface TripDeliveryRow {
@@ -78,6 +82,10 @@ export interface TripDeliveryRow {
   longitude: number | null;
   at_site_address: boolean;
   outside_geofence: boolean | null;
+  // Precisão, origem e horário da leitura da posição (Spec 009); nulos nas entregas sem origem.
+  accuracy_m?: number | null;
+  position_source?: 'gps' | 'typed' | 'site_address' | null;
+  position_read_at?: string | null;
   results: Json[];
   supersedes_id: string | null;
   correction_reason: string | null;

@@ -12,6 +12,36 @@ const setup = (over: Partial<LoadingPanelProps> = {}) => {
   return handlers;
 };
 
+describe('painel de conferência: leitura (Spec 009)', () => {
+  const read = vi.fn(async () => ({ tone: 'success' as const, message: 'Cilindro CIL-001 conferido.' }));
+
+  it('com a leitura ligada, oferece o campo de código e o envio, e entrega o código digitado como método "typed"', async () => {
+    setup({ onReadCylinder: read });
+    fireEvent.change(await screen.findByLabelText('Código do cilindro'), { target: { value: 'QR-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Conferir código' }));
+    await screen.findByText('Cilindro CIL-001 conferido.');
+    expect(read).toHaveBeenCalledWith({ candidates: [{ value: 'QR-1', origin: 'scanned' }], source: 'typed' });
+  });
+
+  it('sem trip.operate ou sem o tratador da leitura, não oferece nada de leitura', () => {
+    setup({ onReadCylinder: read, canOperate: false });
+    expect(screen.queryByLabelText('Código do cilindro')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Conferir código' })).toBeNull();
+  });
+
+  it('o campo de código fica desabilitado sem conexão, com o motivo à vista', () => {
+    setup({ onReadCylinder: read, online: false });
+    expect(screen.getByRole('button', { name: 'Conferir código' })).toBeDisabled();
+    expect(screen.getByText('Sem conexão. Registrar exige conexão.')).toBeInTheDocument();
+  });
+
+  it('a conferência manual por toque continua completa', () => {
+    const { onCheck } = setup({ onReadCylinder: read });
+    fireEvent.click(screen.getByRole('button', { name: 'Conferir CIL-002' }));
+    expect(onCheck).toHaveBeenCalledWith(expect.objectContaining({ id: 'i2' }));
+  });
+});
+
 describe('painel de conferência', () => {
   it('mostra o contador "x de y conferidos" em texto', () => {
     setup({ items: checked('i1') });

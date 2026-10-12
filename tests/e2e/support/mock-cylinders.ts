@@ -112,16 +112,16 @@ export class CylinderMock {
     const org = String(body.organization_id ?? '');
     const operation = String(body.operation ?? '');
     const need: Record<string, string> = {
-      list: 'cylinder.read', get: 'cylinder.read', lookup: 'cylinder.read', catalog: 'cylinder.read', history: 'cylinder.history',
+      list: 'cylinder.read', get: 'cylinder.read', lookup: 'cylinder.read', resolve: 'cylinder.read', catalog: 'cylinder.read', history: 'cylinder.history',
       create: 'cylinder.write', update: 'cylinder.write', save_type: 'cylinder.write', inactivate: 'cylinder.deactivate', reactivate: 'cylinder.deactivate',
       add_identifier: 'cylinder.identifier', deactivate_identifier: 'cylinder.identifier', transfer_identifier: 'cylinder.identifier',
       stock_in: 'cylinder.stock_in', register_test: 'cylinder.test', rectify_test: 'cylinder.test',
     };
-    const queryOps = ['list', 'get', 'lookup', 'catalog', 'history'];
+    const queryOps = ['list', 'get', 'lookup', 'resolve', 'catalog', 'history'];
     if (!(operation in need) || queryOps.includes(operation) !== (kind === 'query')) return { status: 400, json: { code: 'VALIDATION_FAILED' } };
     if (!can(org, need[operation]!)) return { status: 403, json: { code: 'ACCESS_DENIED' } };
     const handlers: Record<string, (organizationId: string, payload: Json) => Reply> = {
-      list: (o, b) => this.op_list(o, b), get: (o, b) => this.op_get(o, b), lookup: (o, b) => this.op_lookup(o, b), catalog: (o) => this.op_catalog(o),
+      list: (o, b) => this.op_list(o, b), get: (o, b) => this.op_get(o, b), lookup: (o, b) => this.op_lookup(o, b), resolve: (o, b) => this.op_resolve(o, b), catalog: (o) => this.op_catalog(o),
       history: (o, b) => this.op_history(o, b), create: (o, b) => this.op_create(o, b), update: (o, b) => this.op_update(o, b), save_type: (o, b) => this.op_save_type(o, b),
       inactivate: (o, b) => this.op_inactivate(o, b), reactivate: (o, b) => this.op_reactivate(o, b), add_identifier: (o, b) => this.op_add_identifier(o, b),
       deactivate_identifier: (o, b) => this.op_deactivate_identifier(o, b), transfer_identifier: (o, b) => this.op_transfer_identifier(o, b),
@@ -174,6 +174,21 @@ export class CylinderMock {
       return { status: 200, json: { code: 'FOUND', cylinder: { id: c.id, serial_number: c.serial_number, status: c.status, stock_status: c.stock_status, hydro_status: hydroStatus(c.hydro_last_result, c.hydro_next_due_on) }, identifier: { id: active.id, kind: active.kind, value: active.value } } };
     }
     return this.notFoundFor(org, value);
+  }
+
+  // Spec 009: resolve até 3 candidatos, só na organização ativa; o primeiro que casa vale. Código inexistente e de outra organização
+  // recebem a mesma resposta. A viagem que reserva o cilindro não é simulada aqui (é provada no pgTAP e nos testes de unidade).
+  private op_resolve(org: string, body: Json): Reply {
+    const candidates = Array.isArray(body.candidates) ? body.candidates.map((value) => String(value).trim().toUpperCase()) : [];
+    if (candidates.length < 1 || candidates.length > 3 || candidates.some((value) => value === '' || value.length > 200)) return { status: 400, json: { code: 'VALIDATION_FAILED' } };
+    const kind = typeof body.expected_kind === 'string' ? body.expected_kind : null;
+    for (const [index, value] of candidates.entries()) {
+      const active = this.identifiers.find((i) => i.organization_id === org && i.status === 'active' && i.value.toUpperCase() === value && (kind === null || i.kind === kind));
+      if (!active) continue;
+      const c = this.cylinders.find((candidate) => candidate.id === active.cylinder_id)!;
+      return { status: 200, json: { code: 'FOUND', matched: index, cylinder: { id: c.id, serial_number: c.serial_number, status: c.status, stock_status: c.stock_status, hydro_status: hydroStatus(c.hydro_last_result, c.hydro_next_due_on) }, identifier: { id: active.id, kind: active.kind } } };
+    }
+    return this.notFoundFor(org, candidates[0]!);
   }
 
   private notFoundFor(org: string, value: string): Reply {

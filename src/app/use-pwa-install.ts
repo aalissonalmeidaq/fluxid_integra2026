@@ -1,8 +1,49 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+interface InstallState {
+  deferredPrompt: BeforeInstallPromptEvent | null;
+  isInstalled: boolean;
+}
+
+// O navegador dispara `beforeinstallprompt` uma única vez, logo no carregamento. Cada tela (entrada, barra superior) monta o seu
+// próprio hook em momentos diferentes; se o convite fosse guardado por componente, ele se perderia ao sair da entrada e o botão
+// "Instalar App" nunca apareceria depois do login. Por isso o convite fica num armazenamento do módulo, ouvido desde o início.
+let state: InstallState = { deferredPrompt: null, isInstalled: false };
+const listeners = new Set<() => void>();
+
+function update(next: Partial<InstallState>): void {
+  state = { ...state, ...next };
+  listeners.forEach((listener) => listener());
+}
+
+function handleBeforeInstall(event: Event): void {
+  event.preventDefault();
+  update({ deferredPrompt: event as BeforeInstallPromptEvent });
+}
+
+function handleAppInstalled(): void {
+  update({ isInstalled: true, deferredPrompt: null });
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+  window.addEventListener('appinstalled', handleAppInstalled);
+}
+
+const subscribe = (listener: () => void): (() => void) => {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+};
+const getSnapshot = (): InstallState => state;
+
+// Só para os testes: volta ao estado inicial entre um caso e outro.
+export function resetPwaInstallForTests(): void {
+  update({ deferredPrompt: null, isInstalled: false });
 }
 
 export function usePwaInstall(): {
@@ -10,38 +51,16 @@ export function usePwaInstall(): {
   isInstalled: boolean;
   promptInstall: () => Promise<void>;
 } {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-
-  useEffect(() => {
-    const handleBeforeInstall = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    const handleAppInstalled = () => {
-      setIsInstalled(true);
-      setDeferredPrompt(null);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, []);
+  const { deferredPrompt, isInstalled } = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   const promptInstall = useCallback(async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    if (choice.outcome === 'accepted') {
-      setIsInstalled(true);
-    }
-    setDeferredPrompt(null);
-  }, [deferredPrompt]);
+    const pending = state.deferredPrompt;
+    if (!pending) return;
+    await pending.prompt();
+    const choice = await pending.userChoice;
+    // O convite só vale uma vez, aceito ou não.
+    update(choice.outcome === 'accepted' ? { isInstalled: true, deferredPrompt: null } : { deferredPrompt: null });
+  }, []);
 
   return {
     isInstallable: !!deferredPrompt && !isInstalled,

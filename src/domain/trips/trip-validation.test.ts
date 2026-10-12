@@ -135,6 +135,73 @@ describe('justificativas', () => {
   });
 });
 
+// Spec 009 (RF-010, RF-011, RF-014): a origem, a precisão e o horário da leitura da posição seguem no valor da entrega; leitura velha é recusada.
+describe('validateDeliveryForm: origem e precisão da posição', () => {
+  const gpsAt = (offsetMs: number) => ({ accuracyM: 12.4, readAt: NOW.getTime() - offsetMs });
+  const withCoords = (over: Partial<DeliveryFormInput> = {}) => delivery({ latitude: '-23.550520', longitude: '-46.633309', ...over });
+
+  it('coordenadas lidas pelo GPS levam origem "gps", precisão e horário da leitura em ISO', () => {
+    const result = validateDeliveryForm(withCoords({ gps: gpsAt(30_000) }), NOW);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.position).toEqual({ source: 'gps', accuracyM: 12.4, readAt: new Date(NOW.getTime() - 30_000).toISOString() });
+  });
+
+  it('coordenadas digitadas levam origem "informada", sem precisão nem horário', () => {
+    const result = validateDeliveryForm(withCoords(), NOW);
+    expect(result.ok && result.value.position).toEqual({ source: 'typed', accuracyM: null, readAt: null });
+  });
+
+  it('"no endereço da unidade" leva a origem "site_address"', () => {
+    const result = validateDeliveryForm(delivery({ atSiteAddress: true }), NOW);
+    expect(result.ok && result.value.position).toEqual({ source: 'site_address', accuracyM: null, readAt: null });
+  });
+
+  it('sem posição, o valor não tem o campo "position" (a posição é opcional)', () => {
+    const result = validateDeliveryForm(delivery(), NOW);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect('position' in result.value).toBe(false);
+  });
+
+  it('leitura do GPS com mais de 2 minutos é recusada, com texto que manda ler de novo', () => {
+    const result = validateDeliveryForm(withCoords({ gps: gpsAt(120_001) }), NOW);
+    expect(result).toMatchObject({ ok: false, errors: { position: expect.stringContaining('Leia de novo') } });
+  });
+
+  it('leitura com exatamente 2 minutos ainda vale', () => {
+    expect(validateDeliveryForm(withCoords({ gps: gpsAt(120_000) }), NOW).ok).toBe(true);
+  });
+
+  it('precisão ruim (acima de 100 m) não bloqueia: só marca a faixa na tela', () => {
+    const result = validateDeliveryForm(withCoords({ gps: { accuracyM: 450, readAt: NOW.getTime() } }), NOW);
+    expect(result.ok && result.value.position).toMatchObject({ source: 'gps', accuracyM: 450 });
+  });
+
+  it('a leitura do GPS sem coordenadas no formulário não vira posição', () => {
+    const result = validateDeliveryForm(delivery({ gps: gpsAt(1_000) }), NOW);
+    if (result.ok) expect('position' in result.value).toBe(false);
+  });
+});
+
+// Spec 009 (RF-001a): o método de leitura de cada cilindro entregue segue no valor do formulário; o não entregue nunca o leva.
+describe('validateDeliveryForm: método de leitura por cilindro', () => {
+  it('mantém o método informado em cada cilindro entregue', () => {
+    const result = validateDeliveryForm(delivery({ results: [{ itemId: 'i1', delivered: true, reason: '', source: 'camera' }, { itemId: 'i2', delivered: true, reason: '', source: 'nfc' }] }), NOW);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.results).toEqual([{ itemId: 'i1', delivered: true, source: 'camera' }, { itemId: 'i2', delivered: true, source: 'nfc' }]);
+  });
+
+  it('sem método informado, não inventa um (o servidor assume "manual")', () => {
+    const result = validateDeliveryForm(delivery(), NOW);
+    if (result.ok) expect(result.value.results.every((entry) => !('source' in entry))).toBe(true);
+  });
+
+  it('cilindro não entregue nunca leva o método, mesmo que a tela o tenha guardado', () => {
+    const result = validateDeliveryForm(delivery({ results: [{ itemId: 'i1', delivered: false, reason: 'Cilindro não estava no endereço', source: 'camera' }] }), NOW);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.results).toEqual([{ itemId: 'i1', delivered: false, reason: 'Cilindro não estava no endereço' }]);
+  });
+});
+
 describe('validateDeliveryForm: justificativa da correção (RF-015)', () => {
   const correcao = { allowNoResults: true, correction: true } as const;
   const erro = { ok: false, errors: { correctionReason: expect.stringContaining('5 a 500') } };

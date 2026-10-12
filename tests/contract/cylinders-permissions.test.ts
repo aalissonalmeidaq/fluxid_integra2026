@@ -16,7 +16,7 @@ const sql = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).m
 const PERMISSIONS = ['cylinder.read', 'cylinder.write', 'cylinder.deactivate', 'cylinder.identifier', 'cylinder.stock_in', 'cylinder.test', 'cylinder.history'];
 
 const OPERATION_PERMISSION: Record<string, string> = {
-  list: 'cylinder.read', get: 'cylinder.read', lookup: 'cylinder.read', catalog: 'cylinder.read', history: 'cylinder.history',
+  list: 'cylinder.read', get: 'cylinder.read', lookup: 'cylinder.read', resolve: 'cylinder.read', catalog: 'cylinder.read', history: 'cylinder.history',
   create: 'cylinder.write', update: 'cylinder.write', save_type: 'cylinder.write',
   inactivate: 'cylinder.deactivate', reactivate: 'cylinder.deactivate',
   add_identifier: 'cylinder.identifier', deactivate_identifier: 'cylinder.identifier', transfer_identifier: 'cylinder.identifier',

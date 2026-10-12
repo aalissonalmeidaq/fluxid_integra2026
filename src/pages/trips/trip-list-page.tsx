@@ -7,6 +7,7 @@ import { formatPlate } from '@/domain/registry/plate';
 import { CUSTODY_STATUSES, CUSTODY_STATUS_LABELS, type CustodyStatus } from '@/domain/trips/trip-vocabulary';
 import { formatDate } from '@/domain/cylinders/format';
 import { AccessGate } from '@/pages/cylinders/components/access-gate';
+import { ReadCylinderControl } from '@/pages/field/read-cylinder-control';
 import { primaryLinkClass, RegistryList } from '@/pages/registry/components/registry-list';
 import { OverdueBadge, TripStatusBadge } from './components/trip-badges';
 import { useTripService } from './use-trip-service';
@@ -35,9 +36,11 @@ export interface TripListViewProps {
   organizationId: string;
   service: TripService | null;
   canCreate: boolean;
+  // Ações extras do cabeçalho (o "Ler cilindro" da Spec 009).
+  extraActions?: React.ReactNode;
 }
 
-export function TripListView({ organizationId, service, canCreate }: TripListViewProps): React.JSX.Element {
+export function TripListView({ organizationId, service, canCreate, extraActions }: TripListViewProps): React.JSX.Element {
   const [query, setQuery] = useState<Query>(INITIAL);
   const [searchDraft, setSearchDraft] = useState('');
   const [options, setOptions] = useState<TripOptions | null>(null);
@@ -69,12 +72,15 @@ export function TripListView({ organizationId, service, canCreate }: TripListVie
   return (
     <section aria-labelledby="trip-list-title" className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-legenda font-semibold uppercase text-azul-profundo">Viagens</p>
           <h2 id="trip-list-title" className="mt-1 text-h2 font-bold text-navy">Viagens da organização</h2>
           <p className="mt-1 text-corpo">Planeje, confira a carga e acompanhe cada viagem, da saída à entrega.</p>
         </div>
-        {create && <a className={`${primaryLinkClass} tablet:shrink-0`} href={create.href}>{create.label}</a>}
+        <div className="flex flex-wrap items-center gap-2 tablet:justify-end">
+          {extraActions}
+          {create && <a className={primaryLinkClass} href={create.href}>{create.label}</a>}
+        </div>
       </div>
 
       <Card>
@@ -153,7 +159,8 @@ export function TripListPage(): React.JSX.Element {
   const { permissions } = usePermissions();
   return (
     <AccessGate permission="trip.read">
-      <TripListView key={organizationId} organizationId={organizationId} service={service} canCreate={permissions?.tenant.includes('trip.write') ?? false} />
+      <TripListView key={organizationId} organizationId={organizationId} service={service} canCreate={permissions?.tenant.includes('trip.write') ?? false}
+        extraActions={permissions?.tenant.includes('cylinder.read') ? <ReadCylinderControl /> : null} />
     </AccessGate>
   );
 }

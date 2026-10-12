@@ -1,5 +1,8 @@
 import { isCalendarDate, todayInSaoPaulo } from '../shared/civil-date';
 import type { FieldErrors, ValidationResult } from '../registry/registry-validation';
+import type { GpsMeta } from '../field/position-draft';
+import { isStale, type PositionOrigin } from '../field/position-quality';
+import type { ReadingSource } from '../field/reading-source';
 import { TRIP_LIMITS } from './trip-limits';
 import { describeTripPlanIssue, summarizeTripPlan, type PlannedStop } from './trip-summary';
 
@@ -76,6 +79,8 @@ export interface DeliveryResultInput {
   itemId: string;
   delivered: boolean;
   reason: string;
+  // Método de leitura do cilindro entregue (Spec 009). Sem ele, o servidor assume "manual"; o não entregue nunca o leva.
+  source?: ReadingSource | undefined;
 }
 export interface DeliveryFormInput {
   // Data e hora no formato do campo `datetime-local` (AAAA-MM-DDTHH:MM), no fuso do aparelho.
@@ -87,7 +92,15 @@ export interface DeliveryFormInput {
   atSiteAddress: boolean;
   // Justificativa da correção de uma entrega (RF-015); só vale quando `options.correction` está ligada.
   correctionReason?: string | undefined;
+  // Leitura do GPS de onde vieram as coordenadas, enquanto não editadas à mão (Spec 009). Sem ela, as coordenadas são "informadas".
+  gps?: GpsMeta | null | undefined;
   results: readonly DeliveryResultInput[];
+}
+// Origem, precisão e horário da leitura da posição que segue com a entrega (Spec 009); ausente quando não há posição.
+export interface DeliveryPosition {
+  source: PositionOrigin;
+  accuracyM: number | null;
+  readAt: string | null;
 }
 export interface DeliveryFormValue {
   deliveredAt: string;
@@ -98,7 +111,8 @@ export interface DeliveryFormValue {
   atSiteAddress: boolean;
   // Justificativa normalizada da correção; `null` na entrega original.
   correctionReason: string | null;
-  results: { itemId: string; delivered: boolean; reason?: string }[];
+  position?: DeliveryPosition;
+  results: { itemId: string; delivered: boolean; reason?: string; source?: ReadingSource }[];
 }
 
 function parseCoordinate(value: string): number | null | 'invalid' {
@@ -135,6 +149,13 @@ export function validateDeliveryForm(input: DeliveryFormInput, now: Date = new D
   if ((latitude === null) !== (longitude === null)) fail(errors, latitude === null ? 'latitude' : 'longitude', 'Informe a latitude e a longitude juntas, ou deixe as duas em branco.');
   if (input.atSiteAddress && (latitude !== null || longitude !== null)) fail(errors, 'atSiteAddress', 'Escolha só uma forma de informar a posição: as coordenadas ou no endereço da unidade.');
 
+  // Leitura do GPS velha (acima de 2 minutos) nunca é gravada como se fosse do momento (RF-011): a tela lê de novo antes de salvar.
+  const hasCoordinates = typeof latitude === 'number' && typeof longitude === 'number';
+  if (hasCoordinates && input.gps && isStale(input.gps.readAt, now)) fail(errors, 'position', 'A posição foi lida há mais de 2 minutos. Leia de novo para registrar.');
+  const position: DeliveryPosition | null = input.atSiteAddress ? { source: 'site_address', accuracyM: null, readAt: null }
+    : hasCoordinates ? (input.gps ? { source: 'gps', accuracyM: input.gps.accuracyM, readAt: new Date(input.gps.readAt).toISOString() } : { source: 'typed', accuracyM: null, readAt: null })
+      : null;
+
   const correctionReason = options.correction === true ? normalizeText(input.correctionReason ?? '') : null;
   if (correctionReason !== null && (correctionReason.length < TRIP_LIMITS.justificationMin || correctionReason.length > TRIP_LIMITS.justificationMax)) {
     fail(errors, 'correctionReason', `Explique por que corrige a entrega, em ${TRIP_LIMITS.justificationMin} a ${TRIP_LIMITS.justificationMax} caracteres.`);
@@ -155,7 +176,10 @@ export function validateDeliveryForm(input: DeliveryFormInput, now: Date = new D
     longitude: typeof longitude === 'number' ? longitude : null,
     atSiteAddress: input.atSiteAddress,
     correctionReason,
-    results: input.results.map((result) => (result.delivered ? { itemId: result.itemId, delivered: true } : { itemId: result.itemId, delivered: false, reason: result.reason.trim() })),
+    ...(position ? { position } : {}),
+    results: input.results.map((result) => (result.delivered
+      ? { itemId: result.itemId, delivered: true, ...(result.source ? { source: result.source } : {}) }
+      : { itemId: result.itemId, delivered: false, reason: result.reason.trim() })),
   }));
 }
 

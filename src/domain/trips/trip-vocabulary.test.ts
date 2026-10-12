@@ -28,8 +28,9 @@ describe('vocabulário igual ao do banco', () => {
   it('bloqueio, custódia e origem da conferência', () => {
     expect(listAfter(/trip_items_lock_check check \(lock_status in \(([^)]*)\)/)).toEqual([...LOCK_STATUSES]);
     expect(listAfter(/cylinders_custody_check check \(custody_status in \(([^)]*)\)/)).toEqual([...CUSTODY_STATUSES]);
-    expect([...CHECK_SOURCES]).toEqual(['manual']);
-    expect(schema).toContain("check_source is null or check_source = 'manual'");
+    // Spec 009: a restrição da origem da conferência foi ampliada para os quatro métodos de leitura por uma migration própria.
+    expect([...CHECK_SOURCES]).toEqual(['manual', 'typed', 'camera', 'nfc']);
+    expect(read('_field_reading_source.sql')).toContain("check_source is null or check_source in ('manual', 'typed', 'camera', 'nfc')");
   });
 
   it('tipos de evento da viagem e do cilindro', () => {

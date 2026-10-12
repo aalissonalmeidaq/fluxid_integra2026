@@ -33,6 +33,7 @@ export type Rule =
   | (Common & { t: 'enum'; values: readonly string[]; nullable?: boolean })
   | (Common & { t: 'int-list'; min: number; max: number; maxItems: number; nullable?: boolean })
   | (Common & { t: 'uuid-list'; maxItems: number; minItems?: number; nullable?: boolean })
+  | (Common & { t: 'text-list'; maxItems: number; minItems?: number; maxLength: number; nullable?: boolean })
   | (Common & { t: 'object'; fields: Record<string, Rule>; nullable?: boolean })
   | (Common & { t: 'objects'; fields: Record<string, Rule>; maxItems: number; minItems?: number; nullable?: boolean })
   | (Common & { t: 'identifier' });
@@ -143,6 +144,17 @@ function check(rule: Rule, value: unknown): Checked {
       if (!Array.isArray(value) || value.length > rule.maxItems || value.length < (rule.minItems ?? 0)) return { ok: false, message: 'Lista inválida.' };
       const allUuids = value.every((item) => typeof item === 'string' && UUID_PATTERN.test(item));
       return allUuids ? { ok: true, value } : { ok: false, message: 'Lista inválida.' };
+    }
+    case 'text-list': {
+      if (!Array.isArray(value) || value.length > rule.maxItems || value.length < (rule.minItems ?? 0)) return { ok: false, message: 'Lista inválida.' };
+      const texts: string[] = [];
+      for (const item of value) {
+        if (typeof item !== 'string' || /[\r\n]/.test(item)) return { ok: false, message: 'Lista inválida.' };
+        const text = item.trim();
+        if (text === '' || text.length > rule.maxLength) return { ok: false, message: 'Lista inválida.' };
+        texts.push(text);
+      }
+      return { ok: true, value: texts };
     }
     case 'object': {
       if (!isObject(value)) return { ok: false, message: 'Objeto inválido.' };

@@ -18,6 +18,7 @@ import { HydrostaticTestForm } from './components/hydrostatic-test-form';
 import { HydrostaticTests } from './components/hydrostatic-tests';
 import { IdentifierList } from './components/identifier-list';
 import { ReasonDialog } from './components/reason-dialog';
+import { ReadCylinderControl } from '@/pages/field/read-cylinder-control';
 import { CustodyInfo } from './components/custody-info';
 import { IdentifierWarning, StatusBadges } from './components/status-badges';
 import { typeLabel } from './type-label';
@@ -35,6 +36,8 @@ export interface CylinderDetailViewProps {
   can: DetailAbilities;
   // Serviço das viagens, para o bloco "Viagens"; sem ele o bloco não aparece.
   tripService?: TripService | null;
+  // Ações extras do cabeçalho (o "Ler cilindro" da Spec 009).
+  extraActions?: React.ReactNode;
 }
 
 type Load = 'loading' | 'ready' | 'not_found' | 'error';
@@ -82,7 +85,7 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-export function CylinderDetailView({ organizationId, service, online, cylinderId, can, tripService = null }: CylinderDetailViewProps): React.JSX.Element {
+export function CylinderDetailView({ organizationId, service, online, cylinderId, can, tripService = null, extraActions }: CylinderDetailViewProps): React.JSX.Element {
   const [detail, setDetail] = useState<CylinderDetail | null>(null);
   const [load, setLoad] = useState<Load>('loading');
   const [testForm, setTestForm] = useState<{ mode: 'register' } | { mode: 'rectify'; test: TestView } | null>(null);
@@ -185,6 +188,7 @@ export function CylinderDetailView({ organizationId, service, online, cylinderId
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          {extraActions}
           {can.write && !inactive && (
             <a className="inline-flex min-h-alvo items-center justify-center rounded-controle border border-azul-profundo bg-branco px-4 text-corpo font-semibold text-azul-profundo hover:bg-info-fundo" href={`/cilindros/${cylinder.id}/editar`}>
               Editar
@@ -392,6 +396,7 @@ export function CylinderDetailPage({ cylinderId }: { cylinderId: string }): Reac
         online={online}
         cylinderId={cylinderId}
         tripService={tripService}
+        extraActions={<ReadCylinderControl />}
         can={{ write: has('cylinder.write'), deactivate: has('cylinder.deactivate'), identifier: has('cylinder.identifier'), test: has('cylinder.test'), history: has('cylinder.history'), trips: has('trip.read') }}
       />
     </AccessGate>

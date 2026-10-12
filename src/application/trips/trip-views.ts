@@ -1,3 +1,5 @@
+import { POSITION_ORIGINS, type PositionOrigin } from '@/domain/field/position-quality';
+import { READING_SOURCES, type ReadingSource } from '@/domain/field/reading-source';
 import type { ValidityStatus } from '@/domain/shared/validity-status';
 import type { VehicleStatus } from '@/domain/registry/registry-vocabulary';
 import {
@@ -80,6 +82,15 @@ export interface TripHeader {
 }
 export interface TripVehicleView { id: string; plate: string; capacityCylinders: number; status: VehicleStatus; licensingDueOn: string | null; licensingStatus: ValidityStatus }
 export interface TripDriverView { id: string; fullName: string; status: 'active' | 'inactive'; cnhValidUntil: string; cnhStatus: ValidityStatus }
+// Posição lida na chegada (Spec 009). Só `gps` ou `typed`: a chegada não tem "no endereço da unidade".
+export interface ArrivalPositionView {
+  latitude: number;
+  longitude: number;
+  accuracyM: number | null;
+  positionSource: 'gps' | 'typed';
+  positionReadAt: string | null;
+  outsideGeofence: boolean | null;
+}
 export interface TripStopView {
   id: string;
   position: number | null;
@@ -87,6 +98,8 @@ export interface TripStopView {
   arrivedAt: string | null;
   outOfOrder: boolean;
   closedAt: string | null;
+  // Posição da chegada; nula quando a chegada não teve posição (inclusive nas anteriores à Spec 009).
+  arrival?: ArrivalPositionView | null;
   site: { id: string; name: string; city: string; state: string; customerId: string; customerName: string };
 }
 export interface TripItemView {
@@ -96,13 +109,15 @@ export interface TripItemView {
   lockStatus: LockStatus;
   checkedAt: string | null;
   checkedByName: string | null;
+  // Método de leitura da conferência (Spec 009); nulo enquanto não conferido.
+  checkSource?: ReadingSource | null;
   divergenceReason: string | null;
   cylinder: {
     id: string; serialNumber: string; gas: string; capacityValue: number; capacityUnit: string; status: CylinderStatus; stockStatus: StockStatus;
     custodyStatus: CustodyStatus; hydroStatus: HydrostaticStatus;
   };
 }
-export interface DeliveryResultView { itemId: string; delivered: boolean; reason: string | null }
+export interface DeliveryResultView { itemId: string; delivered: boolean; reason: string | null; source?: ReadingSource | null }
 export interface TripDeliveryView {
   id: string;
   stopId: string;
@@ -113,6 +128,10 @@ export interface TripDeliveryView {
   longitude: number | null;
   atSiteAddress: boolean;
   outsideGeofence: boolean | null;
+  // Precisão, origem e horário da leitura da posição (Spec 009); nulos nas entregas anteriores.
+  accuracyM?: number | null;
+  positionSource?: PositionOrigin | null;
+  positionReadAt?: string | null;
   results: DeliveryResultView[];
   supersedesId: string | null;
   recordedByName: string | null;
@@ -159,12 +178,28 @@ function toDriver(value: unknown): TripDriverView | null {
   return { id: value.id, fullName: value.full_name, status: value.status, cnhValidUntil: until, cnhStatus: value.cnh_status };
 }
 
+// Posição da chegada: nula quando não houve; `undefined` (detalhe inválido) quando veio incompleta ou com origem desconhecida.
+function toArrival(value: unknown): ArrivalPositionView | null | undefined {
+  if (value === null || value === undefined) return null;
+  if (!isObject(value)) return undefined;
+  const latitude = num(value.latitude);
+  const longitude = num(value.longitude);
+  if (latitude === null || longitude === null || (value.position_source !== 'gps' && value.position_source !== 'typed')) return undefined;
+  return {
+    latitude, longitude, accuracyM: num(value.accuracy_m), positionSource: value.position_source, positionReadAt: str(value.position_read_at),
+    outsideGeofence: typeof value.outside_geofence === 'boolean' ? value.outside_geofence : null,
+  };
+}
+
 function toStop(value: unknown): TripStopView | null {
   if (!isObject(value) || typeof value.id !== 'string' || !oneOf(STOP_STATUSES, value.status) || !isObject(value.site)) return null;
   const site = value.site;
+  const arrival = toArrival(value.arrival);
+  if (arrival === undefined) return null;
   if (typeof site.id !== 'string' || typeof site.name !== 'string' || typeof site.city !== 'string' || typeof site.state !== 'string' || typeof site.customer_id !== 'string' || typeof site.customer_name !== 'string') return null;
   return {
     id: value.id, position: num(value.position), status: value.status, arrivedAt: str(value.arrived_at), outOfOrder: value.out_of_order === true, closedAt: str(value.closed_at),
+    arrival: arrival,
     site: { id: site.id, name: site.name, city: site.city, state: site.state, customerId: site.customer_id, customerName: site.customer_name },
   };
 }
@@ -172,11 +207,14 @@ function toStop(value: unknown): TripStopView | null {
 function toItem(value: unknown): TripItemView | null {
   if (!isObject(value) || typeof value.id !== 'string' || typeof value.stop_id !== 'string' || !oneOf(ITEM_STATUSES, value.item_status) || !oneOf(LOCK_STATUSES, value.lock_status) || !isObject(value.cylinder)) return null;
   const c = value.cylinder;
+  const checkSource = value.check_source === undefined || value.check_source === null ? null : oneOf(READING_SOURCES, value.check_source) ? value.check_source : undefined;
+  if (checkSource === undefined) return null;
   const capacity = num(c.capacity_value);
   if (typeof c.id !== 'string' || typeof c.serial_number !== 'string' || typeof c.gas !== 'string' || capacity === null || typeof c.capacity_unit !== 'string') return null;
   if ((c.status !== 'active' && c.status !== 'inactive') || (c.stock_status !== 'in_stock' && c.stock_status !== 'out_of_stock') || !oneOf(CUSTODY_STATUSES, c.custody_status) || !oneOf(HYDRO, c.hydro_status)) return null;
   return {
     id: value.id, stopId: value.stop_id, itemStatus: value.item_status, lockStatus: value.lock_status, checkedAt: str(value.checked_at), checkedByName: str(value.checked_by_name),
+    checkSource: checkSource,
     divergenceReason: str(value.divergence_reason),
     cylinder: {
       id: c.id, serialNumber: c.serial_number, gas: c.gas, capacityValue: capacity, capacityUnit: c.capacity_unit, status: c.status, stockStatus: c.stock_status,
@@ -193,11 +231,16 @@ function toDelivery(value: unknown): TripDeliveryView | null {
   const results: DeliveryResultView[] = [];
   for (const entry of value.results) {
     if (!isObject(entry) || typeof entry.item_id !== 'string' || typeof entry.delivered !== 'boolean') return null;
-    results.push({ itemId: entry.item_id, delivered: entry.delivered, reason: str(entry.reason) });
+    const source = entry.source === undefined || entry.source === null ? null : oneOf(READING_SOURCES, entry.source) ? entry.source : undefined;
+    if (source === undefined) return null;
+    results.push({ itemId: entry.item_id, delivered: entry.delivered, reason: str(entry.reason), source });
   }
+  const positionSource = value.position_source === undefined || value.position_source === null ? null : oneOf(POSITION_ORIGINS, value.position_source) ? value.position_source : undefined;
+  if (positionSource === undefined) return null;
   return {
     id: value.id, stopId: value.stop_id, deliveredAt, recipientName: value.recipient_name, recipientRole: str(value.recipient_role), latitude: num(value.latitude), longitude: num(value.longitude),
-    atSiteAddress: value.at_site_address === true, outsideGeofence: typeof value.outside_geofence === 'boolean' ? value.outside_geofence : null, results,
+    atSiteAddress: value.at_site_address === true, outsideGeofence: typeof value.outside_geofence === 'boolean' ? value.outside_geofence : null,
+    accuracyM: num(value.accuracy_m), positionSource, positionReadAt: str(value.position_read_at), results,
     supersedesId: str(value.supersedes_id), recordedByName: str(value.recorded_by_name), recordedAt,
   };
 }

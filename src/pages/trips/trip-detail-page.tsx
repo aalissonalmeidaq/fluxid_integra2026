@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import type { FieldService, ResolveOutcome } from '@/application/field/field-service';
 import { newRequestId, type TripFailure, type TripOutcome, type TripService } from '@/application/trips/trip-service';
 import type { TripDeliveryView, TripDetail, TripItemView, TripStopView, TripWarning } from '@/application/trips/trip-views';
 import { resolveTripRoute } from '@/app/trips/trip-routes';
 import { useAuth } from '@/app/auth/auth-context';
 import { usePermissions } from '@/app/navigation/permissions-context';
 import { Alert, Button, Card, ErrorState, Loading } from '@/design-system';
+import { decideConference } from '@/domain/field/reading-result';
 import type { FieldErrors } from '@/domain/registry/registry-validation';
+import type { ReadEvent, ReadFeedback } from '@/pages/field/identifier-reader-dialog';
+import { useFieldService } from '@/pages/field/use-field-service';
 import type { DeliveryFormValue } from '@/domain/trips/trip-validation';
 import { formatPlate } from '@/domain/registry/plate';
 import { formatDate, formatDateTime } from '@/domain/cylinders/format';
@@ -38,7 +42,7 @@ const WARNING_TEXT: Record<TripWarning, string> = {
 // Nome dos campos do servidor nos nomes do formulário de entrega.
 const DELIVERY_SERVER_FIELDS: Record<string, string> = {
   recipient_name: 'recipientName', recipient_role: 'recipientRole', delivered_at: 'deliveredAt', latitude: 'latitude', longitude: 'longitude', results: 'results',
-  correction_reason: 'correctionReason', at_site_address: 'atSiteAddress',
+  correction_reason: 'correctionReason', at_site_address: 'atSiteAddress', accuracy_m: 'position', position_source: 'position', position_read_at: 'position',
 };
 
 type Load = 'loading' | 'ready' | 'not_found' | 'offline' | 'error';
@@ -51,6 +55,8 @@ export interface TripDetailViewProps {
   abilities: TripAbilities;
   // Chamado quando o servidor diz que a sessão expirou: a tela de entrada assume (nada foi gravado).
   onSessionExpired?: () => void;
+  // Resolve o código lido (Spec 009). Sem ele, a conferência fica só por toque.
+  fieldService?: FieldService | null;
 }
 
 type Pending =
@@ -60,7 +66,7 @@ type Pending =
 
 type Performed = { ok: true } | { ok: false; failure: TripFailure; text: ActionFailureText };
 
-export function TripDetailView({ organizationId, tripId, service, online, abilities, onSessionExpired }: TripDetailViewProps): React.JSX.Element {
+export function TripDetailView({ organizationId, tripId, service, online, abilities, onSessionExpired, fieldService = null }: TripDetailViewProps): React.JSX.Element {
   const [detail, setDetail] = useState<TripDetail | null>(null);
   const [load, setLoad] = useState<Load>('loading');
   const [live, setLive] = useState('');
@@ -142,6 +148,26 @@ export function TripDetailView({ organizationId, tripId, service, online, abilit
   const toShip = detail.items.filter((item) => item.itemStatus === 'checked');
   const anyChecked = detail.items.some((item) => ['checked', 'removed'].includes(item.itemStatus));
   const startBlocker = toConfer.length > 0 ? `Faltam ${toConfer.length} ${toConfer.length === 1 ? 'cilindro' : 'cilindros'} para conferir.` : toShip.length === 0 ? 'Não há cilindros conferidos para levar.' : null;
+  // Identifica o código lido (conferência e entrega): a resposta do servidor, sem decidir nada; a decisão é do domínio. Sessão expirada avisa a tela de entrada.
+  const resolveRead = async (event: ReadEvent): Promise<ResolveOutcome> => {
+    const outcome = await fieldService!.resolveIdentifier(organizationId, event.candidates, event.source === 'nfc' ? 'nfc_tag' : undefined);
+    if (outcome.kind === 'session_expired') sessionExpired.current?.();
+    return outcome;
+  };
+  // Conferência por leitura (Spec 009): o código identifica o cilindro; quem confere é a mesma operação do toque, com o método da leitura.
+  // O leitor em diálogo anuncia o resultado na sua própria região; só o código digitado é anunciado na região da tela.
+  const readCylinder = async (event: ReadEvent): Promise<ReadFeedback> => {
+    if (!fieldService) return { tone: 'error', message: 'Não foi possível consultar agora. Tente de novo.' };
+    const outcome = await resolveRead(event);
+    const decision = decideConference(outcome, detail.items.map((item) => ({ id: item.id, cylinderId: item.cylinder.id, status: item.itemStatus })), trip.id, event.source);
+    if (decision.action === 'none') {
+      if (event.source === 'typed') setLive(decision.message.message);
+      return decision.message;
+    }
+    const done = `Cilindro ${decision.serial} conferido.`;
+    const result = await perform(`check:${decision.itemId}`, (id) => service.checkItem(organizationId, trip.id, decision.itemId, id, event.source), event.source === 'typed' ? done : '', false);
+    return result.ok ? { tone: 'success', message: done } : { tone: 'error', message: result.text.message };
+  };
   const busy = busyKey !== null;
   // O que impede concluir, em texto (RF-021): paradas sem encerrar e cilindros não entregues sem decisão.
   const openStops = activeStops.filter((stop) => stop.status === 'pending' || stop.status === 'on_site').length;
@@ -238,7 +264,8 @@ export function TripDetailView({ organizationId, tripId, service, online, abilit
         <LoadingPanel stops={activeStops} items={detail.items} canOperate={abilities.operate} canRemove={abilities.exception} online={online} busyKey={busyKey} highlighted={highlighted}
           onCheck={(item) => void perform(`check:${item.id}`, (id) => service.checkItem(organizationId, trip.id, item.id, id), `Cilindro ${item.cylinder.serialNumber} conferido.`)}
           onUncheck={(item) => void perform(`uncheck:${item.id}`, (id) => service.uncheckItem(organizationId, trip.id, item.id, id), `Conferência de ${item.cylinder.serialNumber} desfeita.`)}
-          onRemove={(item, trigger) => { setDialogError(null); setPending({ kind: 'remove', item, trigger }); }} />
+          onRemove={(item, trigger) => { setDialogError(null); setPending({ kind: 'remove', item, trigger }); }}
+          {...(fieldService ? { onReadCylinder: readCylinder } : {})} />
       )}
 
       <DetailBlock title="Dados da viagem" titleId="trip-data-title" rows={[
@@ -265,6 +292,8 @@ export function TripDetailView({ organizationId, tripId, service, online, abilit
                 onUnlock={(item, trigger) => { setDialogError(null); setPending({ kind: 'unlock', item, trigger }); }}
                 onArrive={(target) => void perform(`arrive:${target.id}`, (id) => service.arriveStop(organizationId, trip.id, target.id, id),
                   (value) => `Chegada registrada na parada ${target.position ?? ''}${value.outOfOrder ? ', fora da ordem planejada' : ''}.`)}
+                onArriveWithPosition={(target, payload) => void perform(`arrive:${target.id}`, (id) => service.arriveStop(organizationId, trip.id, target.id, id, payload),
+                  (value) => `Chegada registrada na parada ${target.position ?? ''}${value.outOfOrder ? ', fora da ordem planejada' : ''}.${value.outsideGeofence === true ? ' Atenção: a posição está fora da geocerca da unidade.' : ''}`)}
                 onDeliver={(target, trigger) => { setDialogError(null); setDialogFields({}); setPending({ kind: 'deliver', stop: target, trigger }); }}
                 onCorrect={(target, trigger) => { setDialogError(null); setDialogFields({}); setPending({ kind: 'correct', stop: target, trigger }); }} />
             ))}
@@ -346,6 +375,7 @@ export function TripDetailView({ organizationId, tripId, service, online, abilit
         const items = detail.items.filter((item) => item.stopId === pending.stop.id && item.itemStatus === (correction ? 'not_delivered' : 'in_transit'));
         return (
           <DeliveryDialog stop={pending.stop} items={items} previous={previous} busy={busy} error={dialogError} serverErrors={dialogFields} returnFocusTo={pending.trigger}
+            online={online} {...(fieldService ? { resolve: resolveRead } : {})}
             onCancel={closeDialog} onSubmit={(value) => void submitDelivery(pending.stop, correction, value)} />
         );
       })()}
@@ -355,6 +385,7 @@ export function TripDetailView({ organizationId, tripId, service, online, abilit
 
 export function TripDetailPage(): React.JSX.Element {
   const { service, organizationId, online } = useTripService();
+  const fieldService = useFieldService();
   const { permissions } = usePermissions();
   const { logout } = useAuth();
   const route = resolveTripRoute(window.location.pathname);
@@ -367,7 +398,7 @@ export function TripDetailPage(): React.JSX.Element {
   };
   return (
     <AccessGate permission="trip.read">
-      <TripDetailView key={`${organizationId}:${tripId}`} organizationId={organizationId} tripId={tripId} service={service} online={online} abilities={abilities} onSessionExpired={() => void logout()} />
+      <TripDetailView key={`${organizationId}:${tripId}`} organizationId={organizationId} tripId={tripId} service={service} online={online} abilities={abilities} onSessionExpired={() => void logout()} fieldService={fieldService} />
     </AccessGate>
   );
 }
