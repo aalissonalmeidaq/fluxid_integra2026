@@ -198,7 +198,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-O PWA instala no computador (versão de produção em 127.0.0.1:4173, o Chrome mostra "Abrir no app"), mas não no Moto Edge 50 Pro por localhost via adb reverse ("Não é possível instalar o app"); a causa no aparelho não foi confirmada e a instalação no Android continua sem confirmação. Versão do Chrome, larguras e fluxos detalhados e justificativa da decisão além de 'funcional' não foram informados. Entregar o DOCX do RIA depois do merge.
+O PWA instala no computador (versão de produção em 127.0.0.1:4173, o Chrome mostra "Abrir no app"), mas não no Moto Edge 50 Pro por localhost via adb reverse ("Não é possível instalar o app"); a causa no aparelho não foi confirmada e a instalação no Android continua sem confirmação. Por decisão da pessoa responsável em 12/10/2026, a spec foi fechada com essa pendência; a confirmação da instalação em Android segue para a Spec 010. Versão do Chrome, larguras e fluxos detalhados e justificativa da decisão além de 'funcional' não foram informados. Entregar o DOCX do RIA depois do merge.
 
 ## Validação humana
 
