@@ -9,9 +9,9 @@
 - Ferramenta de IA utilizada: Claude Code (modelo Claude Sonnet 5.5), duas sessões em paralelo na mesma branch, cada uma com um conjunto de tarefas
 - Objetivo do uso: implementar a Spec 010 com TDD: fila offline das operações de campo, viagem guardada no aparelho, envio idempotente, conflitos com decisão humana, fotos e assinatura da entrega, tela Sincronização, acesso offline restrito e instalação do PWA.
 - Prompt utilizado, em síntese sanitizada: executar o fluxo `/speckit-implement` sobre o `tasks.md` da Spec 010 (T001 a T088), respeitando o escopo protegido, o padrão visual da Spec 005, a privacidade (nenhuma coordenada, recebedor, foto ou assinatura em log, URL ou auditoria) e o isolamento por tenant com RLS testada com dois tenants.
-- Resposta gerada pela IA: código, testes e documentação da spec: 4 migrations (trilha de sincronização, horário informado em chegada e entrega, leitura offline da viagem e anexos da entrega com bucket privado), a função `trip-attachments` e ajustes em `manage-trips` e `query-trips`; no cliente, a fila, a viagem guardada, o envio e os conflitos, os anexos, o acesso offline restrito, a tela Sincronização, o indicador e os blocos de fotos e assinatura. Inclui testes unitários, pgTAP com dois tenants, contratos, testes ao vivo, E2E e capturas visuais, mais `validation.md` e `roteiro-android.md`. Resumo e revisão pelo pull request (link abaixo; enquanto ele não existe, vale a branch, e a troca pelo link do PR é pendência obrigatória antes do merge).
+- Resposta gerada pela IA: código, testes e documentação da spec: 4 migrations (trilha de sincronização, horário informado em chegada e entrega, leitura offline da viagem e anexos da entrega com bucket privado), a função `trip-attachments` e ajustes em `manage-trips` e `query-trips`; no cliente, a fila, a viagem guardada, o envio e os conflitos, os anexos, o acesso offline restrito, a tela Sincronização, o indicador e os blocos de fotos e assinatura. Inclui testes unitários, pgTAP com dois tenants, contratos, testes ao vivo, E2E e capturas visuais, mais `validation.md` e `roteiro-android.md`. Resumo e revisão pelo pull request (link abaixo).
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/010-fila-offline-fotos-assinatura (trocar pelo link do pull request antes do merge)
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/35
 - Análise crítica da equipe: a suíte completa passou (lint, tipos, 5.208 testes unitários, pgTAP, testes ao vivo, E2E e capturas no Linux) e as medições em 4G ficaram dentro das metas. Alisson Almeida conferiu o resultado na prática e aprovou, sem apontar itens a corrigir. O roteiro completo em aparelho Android (foto pela câmera, perda e retorno de sinal, instalação e abertura offline do aplicativo instalado) não foi executado nesta validação e segue como pendência.
 - Validação humana realizada: Alisson Almeida validou em 13/10/2026, por cerca de 5 minutos, com perfis de administrador nas telas de cilindros e de viagens, e aprovou.
 - Decisão final: utilizado
@@ -303,7 +303,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - Validação humana da spec (entrevista da pessoa responsável): pendente.
 - Roteiro em Android real (foto pela câmera, perda e retorno de sinal, instalação e abertura offline do aplicativo instalado, métricas MS-001, MS-004 e MS-007): pendente, com `roteiro-android.md`.
 - Endereço HTTPS de homologação para a instalação (T068): pendente de decisão.
-- Troca do link da branch pelo link do pull request antes do merge: pendente.
+- Troca do link da branch pelo link do pull request (#35): feita.
 
 ## Validação humana
 
