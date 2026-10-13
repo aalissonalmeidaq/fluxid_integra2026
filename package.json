@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:rede": "vite --host",
+    "dev:rede": "node scripts/dev/rede-https.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "tokens:gerar": "node scripts/design-system/gerar-tokens-css.mjs",

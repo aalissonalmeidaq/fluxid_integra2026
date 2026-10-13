@@ -35,3 +35,6 @@ dist-catalogo/
 # Build da medição ao vivo da Spec 006 (E2E_AO_VIVO=1)
 dist-ao-vivo/
 tests/support/tmp/
+
+# Certificado autoassinado de desenvolvimento (npm run dev:rede)
+.certs/

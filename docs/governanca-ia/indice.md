@@ -68,3 +68,5 @@
 > Atualização do RIA-026: em 10/10/2026 foram corrigidos o cilindro já reservado, o selo Em trânsito repetido e o estado offline na barra superior; as correções aguardam confirmação da pessoa responsável.
 
 > Atualização do RIA-028: em 12/10/2026 o PWA foi instalado no computador (produção em 127.0.0.1:4173), mas não no Moto Edge 50 Pro por localhost via adb reverse; a causa no aparelho segue pendente (detalhes em specs/009-leitura-gps-campo/validation.md).
+
+> Atualização do RIA-028: `npm run dev:rede` passou a servir em HTTPS com certificado autoassinado de desenvolvimento, a pedido da pessoa responsável, para testar câmera, NFC e GPS no celular sem cabo (não torna o app instalável como PWA).
