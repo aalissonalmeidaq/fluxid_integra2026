@@ -7,6 +7,9 @@ import { AuthProvider } from './app/auth/auth-provider';
 import { SyncGate } from './app/sync-gate';
 import { TenantProvider } from './app/tenant/tenant-provider';
 import { PermissionsProvider } from './app/navigation/permissions-provider';
+import { OfflineFieldProvider } from './app/field/offline-field-provider';
+import { FieldSyncProvider } from './app/field/field-sync-provider';
+import { OfflineAccessRecorder } from './app/auth/offline-access-recorder';
 import './styles/globals.css';
 
 const rootElement = document.getElementById('root');
@@ -19,9 +22,14 @@ if (rootElement) {
           <AuthProvider>
             <TenantProvider>
               <PermissionsProvider>
-                <SyncGate>
-                  <App />
-                </SyncGate>
+                <OfflineAccessRecorder />
+                <OfflineFieldProvider>
+                  <FieldSyncProvider>
+                    <SyncGate>
+                      <App />
+                    </SyncGate>
+                  </FieldSyncProvider>
+                </OfflineFieldProvider>
               </PermissionsProvider>
             </TenantProvider>
           </AuthProvider>

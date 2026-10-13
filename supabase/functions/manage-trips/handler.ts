@@ -58,8 +58,8 @@ export const MANAGE_OPERATIONS: Record<string, OperationSpec> = {
   // Carregamento e início (US2): conferência manual, retirada com exceção e início com revalidação.
   start_loading: { rpc: 'start_loading', action: 'trip.start_loading', fields: { request_id: requestId, ...tripAndVersion() } },
   revert_loading: { rpc: 'revert_loading', action: 'trip.revert_loading', fields: { request_id: requestId, ...tripAndVersion() } },
-  check_item: { rpc: 'check_item', action: 'trip.check_item', fields: { request_id: requestId, ...tripAndItem(), source: [source, 'p_source'] } },
-  uncheck_item: { rpc: 'uncheck_item', action: 'trip.uncheck_item', fields: { request_id: requestId, ...tripAndItem() } },
+  check_item: { rpc: 'check_item', action: 'trip.check_item', fields: { request_id: requestId, ...tripAndItem(), source: [source, 'p_source'] }, queuedAt: { forward: false, operation: 'check_item' } },
+  uncheck_item: { rpc: 'uncheck_item', action: 'trip.uncheck_item', fields: { request_id: requestId, ...tripAndItem() }, queuedAt: { forward: false, operation: 'uncheck_item' } },
   remove_item: { rpc: 'remove_item', action: 'trip.remove_item', fields: { request_id: requestId, ...tripAndItem(), justification: [justification, 'p_justification'] } },
   start_trip: { rpc: 'start_trip', action: 'trip.start', fields: { request_id: requestId, ...tripAndVersion() } },
   // Encerramento (US5): concluir, cancelar (a exceção em andamento é conferida pelo banco) e devolver ao estoque.
@@ -68,9 +68,18 @@ export const MANAGE_OPERATIONS: Record<string, OperationSpec> = {
   return_item: { rpc: 'return_item', action: 'trip.return_item', fields: { request_id: requestId, ...tripAndItem(), justification: [justification, 'p_justification'] } },
   // Desbloqueio como ato independente (US4). O segundo fator do desbloqueio excepcional é decidido pelo banco (MFA_REQUIRED), não pela borda.
   register_unlock: { rpc: 'register_unlock', action: 'trip.unlock', fields: { request_id: requestId, ...tripAndItem(), justification: [justification, 'p_justification'] } },
+  // Spec 010: decisão sobre uma operação de campo recusada pelo servidor (descartar com justificativa, ou reenviar). A justificativa de 5 a 500 caracteres e a
+  // permissão `trip.operate` são conferidas pelo banco; a decisão não é uma operação da fila e não grava a trilha pela borda.
+  resolve_sync_conflict: {
+    rpc: 'resolve_sync_conflict', action: 'trip.sync_conflict_resolve',
+    fields: {
+      request_id: requestId, trip_id: [{ t: 'uuid' }, 'p_trip'], source_request_id: [{ t: 'uuid' }, 'p_source_request'],
+      decision: [{ t: 'enum', values: ['discard', 'resubmit'] }, 'p_decision'], justification: [justification, 'p_justification'],
+    },
+  },
   // Chegada e entrega por parada (US3). O nome do recebedor nunca é registrado nem devolvido por esta borda.
   arrive_stop: {
-    rpc: 'arrive_stop', action: 'trip.arrive_stop',
+    rpc: 'arrive_stop', action: 'trip.arrive_stop', queuedAt: { forward: true, operation: 'arrive_stop' },
     fields: {
       request_id: requestId, trip_id: [{ t: 'uuid' }, 'p_trip'], stop_id: [{ t: 'uuid' }, 'p_stop'], arrived_at: [{ ...instant, nullable: true, optional: true }, 'p_arrived_at'],
       latitude: [coordinate(90), 'p_latitude'], longitude: [coordinate(180), 'p_longitude'], accuracy_m: [accuracy, 'p_accuracy_m'],
@@ -78,7 +87,7 @@ export const MANAGE_OPERATIONS: Record<string, OperationSpec> = {
     },
   },
   register_delivery: {
-    rpc: 'register_delivery', action: 'trip.deliver',
+    rpc: 'register_delivery', action: 'trip.deliver', queuedAt: { forward: true, operation: 'register_delivery' },
     fields: {
       request_id: requestId, trip_id: [{ t: 'uuid' }, 'p_trip'], stop_id: [{ t: 'uuid' }, 'p_stop'], delivered_at: [instant, 'p_delivered_at'],
       recipient_name: [{ t: 'text', max: 120 }, 'p_recipient_name'], recipient_role: [{ t: 'text', max: 80, nullable: true, optional: true }, 'p_recipient_role'],

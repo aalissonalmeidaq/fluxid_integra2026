@@ -27,6 +27,8 @@ export function describeActionFailure(failure: TripFailure, serialOf: (id: strin
   switch (failure.kind) {
     case 'offline':
       return { tone: 'info', message: 'Sem conexão. Esta operação exige conexão e nada é guardado neste aparelho.' };
+    case 'offline_refused':
+      return { tone: 'error', message: failure.message ?? 'Não foi possível guardar neste aparelho. Tente de novo.' };
     case 'session_expired':
       return { tone: 'error', title: 'Sessão expirada', message: 'Sua sessão expirou e nada foi gravado. Entre de novo para continuar.' };
     case 'mfa_required':

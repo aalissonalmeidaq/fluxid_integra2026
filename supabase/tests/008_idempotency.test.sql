@@ -24,26 +24,26 @@ insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_
   ('95000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'AAA1111', 'truck', 10),
   ('95000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'BBB1111', 'truck', 10);
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until) values
-  ('96000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Motorista A', 'x', 'x', 'D', current_date + 365),
-  ('96000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Motorista B', 'x', 'x', 'D', current_date + 365);
+  ('96000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Motorista A', 'x', 'x', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365),
+  ('96000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Motorista B', 'x', 'x', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365);
 insert into public.cylinder_types (id, organization_id, gas, capacity_value, capacity_unit, classification) values
   ('97000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Oxigênio', 10, 'l', 'medicinal'),
   ('97000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Oxigênio', 10, 'l', 'medicinal');
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on) values
-  ('98000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'IDM-001', 'in_stock', 'approved', current_date + 200),
-  ('98000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'IDM-002', 'in_stock', 'approved', current_date + 200),
-  ('98000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'IDM-003', 'in_stock', 'approved', current_date + 200),
-  ('98000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', '97000000-0000-0000-0000-00000000000b', 'IDM-B-001', 'in_stock', 'approved', current_date + 200);
+  ('98000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'IDM-001', 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200),
+  ('98000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'IDM-002', 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200),
+  ('98000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'IDM-003', 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200),
+  ('98000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', '97000000-0000-0000-0000-00000000000b', 'IDM-B-001', 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200);
 
 create function pg_temp.stops_a(p_cyls integer[]) returns jsonb language sql as $$
   select jsonb_build_array(jsonb_build_object('site_id', '92000000-0000-0000-0000-00000000000a', 'cylinder_ids', (select jsonb_agg(('98000000-0000-0000-0000-' || lpad(c::text, 12, '0'))::uuid) from unnest(p_cyls) c)))
 $$;
 create function pg_temp.create_a(p_req uuid, p_cyls integer[]) returns jsonb language sql as $$
-  select public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', p_req, current_date,
+  select public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', p_req, (now() at time zone 'America/Sao_Paulo')::date,
     '95000000-0000-0000-0000-00000000000a', '96000000-0000-0000-0000-00000000000a', null, pg_temp.stops_a(p_cyls))
 $$;
 create function pg_temp.update_a(p_req uuid, p_trip uuid, p_version bigint, p_cyls integer[]) returns jsonb language sql as $$
-  select public.update_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', p_req, p_trip, p_version, current_date,
+  select public.update_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', p_req, p_trip, p_version, (now() at time zone 'America/Sao_Paulo')::date,
     '95000000-0000-0000-0000-00000000000a', '96000000-0000-0000-0000-00000000000a', null,
     jsonb_build_array(jsonb_build_object('id', (select s.id from public.trip_stops s where s.trip_id = p_trip and s.status <> 'removed' order by s.position limit 1),
       'site_id', '92000000-0000-0000-0000-00000000000a', 'cylinder_ids', (select jsonb_agg(('98000000-0000-0000-0000-' || lpad(c::text, 12, '0'))::uuid) from unnest(p_cyls) c))))
@@ -75,24 +75,24 @@ create temp table c2 as select pg_temp.create_a((select shared_req from req), ar
 select is(pg_temp.update_a((select shared_req from req), (select (r ->> 'trip_id')::uuid from c1), 2, array[1]) ->> 'code', 'REQUEST_REUSED', 'o mesmo request_id em outra viagem');
 
 -- Outra organização não colide: o mesmo request_id vale de novo no Tenant B.
-select is(public.create_trip('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000800b3', '20000000-0000-0000-0000-00000000000b', (select create_req from req), current_date,
+select is(public.create_trip('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000800b3', '20000000-0000-0000-0000-00000000000b', (select create_req from req), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-00000000000b', '96000000-0000-0000-0000-00000000000b', null,
   jsonb_build_array(jsonb_build_object('site_id', '92000000-0000-0000-0000-00000000000b', 'cylinder_ids', jsonb_build_array('98000000-0000-0000-0000-00000000000b')))) ->> 'code', 'CREATED', 'o request_id de outra organização não colide');
 
 -- ===== US2: carregamento e início =====
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on)
-  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'IDM-' || n, 'in_stock', 'approved', current_date + 200
+  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'IDM-' || n, 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200
     from generate_series(11, 16) n;
 insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_cylinders) values
   ('95000000-0000-0000-0000-0000000000a3', '20000000-0000-0000-0000-00000000000a', 'AAA3333', 'truck', 10),
   ('95000000-0000-0000-0000-0000000000a4', '20000000-0000-0000-0000-00000000000a', 'AAA4444', 'truck', 10);
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until) values
-  ('96000000-0000-0000-0000-0000000000a3', '20000000-0000-0000-0000-00000000000a', 'Motorista A3', 'z', 'z', 'D', current_date + 365),
-  ('96000000-0000-0000-0000-0000000000a4', '20000000-0000-0000-0000-00000000000a', 'Motorista A4', 'w', 'w', 'D', current_date + 365);
+  ('96000000-0000-0000-0000-0000000000a3', '20000000-0000-0000-0000-00000000000a', 'Motorista A3', 'z', 'z', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365),
+  ('96000000-0000-0000-0000-0000000000a4', '20000000-0000-0000-0000-00000000000a', 'Motorista A4', 'w', 'w', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365);
 
 create function pg_temp.cyl(n integer) returns uuid language sql as $$ select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid $$;
 create function pg_temp.plan2(p_cyls integer[], p_vehicle uuid default '95000000-0000-0000-0000-00000000000a', p_driver uuid default '96000000-0000-0000-0000-00000000000a') returns uuid language sql as $$
-  select (public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date, p_vehicle, p_driver, null,
+  select (public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date, p_vehicle, p_driver, null,
     jsonb_build_array(jsonb_build_object('site_id', '92000000-0000-0000-0000-00000000000a', 'cylinder_ids', (select jsonb_agg(pg_temp.cyl(c)) from unnest(p_cyls) c)))) ->> 'trip_id')::uuid
 $$;
 create function pg_temp.item2(p_trip uuid, p_cyl integer) returns uuid language sql as $$ select id from public.trip_items where trip_id = p_trip and cylinder_id = pg_temp.cyl(p_cyl) $$;

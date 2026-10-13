@@ -1,6 +1,8 @@
 import type { Page, Route } from '@playwright/test';
 import { CylinderMock } from './mock-cylinders';
 import { createRegistryMock } from './mock-registry-customers';
+import { createHash } from 'node:crypto';
+import { ATTACHMENT_SIGN_PATH, uploadAttachment } from './mock-trips-attachments';
 import { createTripMock } from './mock-trips-plan';
 
 // Backend simulado por rede para os E2E de autenticação: exercita a interface e o cliente Supabase reais
@@ -204,6 +206,16 @@ export class MockBackend {
     if (pathname === '/functions/v1/query-trips' || pathname === '/functions/v1/manage-trips') {
       const reply = this.trips.handle(pathname.endsWith('query-trips') ? 'query' : 'manage', (body ?? {}) as Record<string, unknown>, (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code));
       return respond(reply.status, reply.json);
+    }
+    // Fotos e assinatura da entrega (Spec 010): envio multipart e leitura por URL assinada.
+    if (pathname === '/functions/v1/trip-attachments') {
+      const reply = uploadAttachment(this.trips, request.postDataBuffer() ?? Buffer.alloc(0), request.headers()['content-type'] ?? '',
+        (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code), (data) => createHash('sha256').update(data).digest('hex'));
+      return respond(reply.status, reply.json);
+    }
+    if (pathname.startsWith(ATTACHMENT_SIGN_PATH)) {
+      const found = this.trips.attachments.find((attachment) => attachment.id === pathname.slice(ATTACHMENT_SIGN_PATH.length));
+      return found ? route.fulfill({ status: 200, body: found.bytes, headers: { ...CORS, 'content-type': found.content_type } }) : respond(404, { code: 'NOT_FOUND' });
     }
     if (pathname === '/functions/v1/query-audit') {
       if (this.auditDenied) return respond(403, { code: 'ACCESS_DENIED' });

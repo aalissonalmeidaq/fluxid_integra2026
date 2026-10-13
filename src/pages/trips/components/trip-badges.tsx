@@ -20,16 +20,17 @@ export function TripStatusBadge({ status }: { status: TripStatus }): React.JSX.E
   return <StatusBadge variant={TRIP[status]}><VisuallyHidden>Situação da viagem: </VisuallyHidden>{TRIP_STATUS_LABELS[status]}</StatusBadge>;
 }
 
-export function StopStatusBadge({ status }: { status: StopStatus }): React.JSX.Element {
-  return <StatusBadge variant={STOP[status]}><VisuallyHidden>Situação da parada: </VisuallyHidden>{STOP_STATUS_LABELS[status]}</StatusBadge>;
+export function StopStatusBadge({ status, pending = false }: { status: StopStatus; pending?: boolean }): React.JSX.Element {
+  return <StatusBadge variant={STOP[status]}><VisuallyHidden>Situação da parada: </VisuallyHidden>{STOP_STATUS_LABELS[status]}{pending ? ', pendente de envio' : ''}</StatusBadge>;
 }
 
 // Com `withCustody`, o selo vale também para a custódia (item e cilindro "em trânsito" dizem a mesma coisa): o prefixo para leitor de
 // tela nomeia os dois estados e o selo da custódia não se repete.
-export function ItemStatusBadge({ status, withCustody = false }: { status: ItemStatus; withCustody?: boolean }): React.JSX.Element {
+// `pending` (Spec 010): a mudança só existe neste aparelho, na fila; o texto diz isso em vez de mostrar como feita.
+export function ItemStatusBadge({ status, withCustody = false, pending = false }: { status: ItemStatus; withCustody?: boolean; pending?: boolean }): React.JSX.Element {
   return (
     <StatusBadge variant={ITEM[status]}>
-      <VisuallyHidden>{withCustody ? 'Situação do cilindro na viagem e custódia: ' : 'Situação do cilindro na viagem: '}</VisuallyHidden>{ITEM_STATUS_LABELS[status]}
+      <VisuallyHidden>{withCustody ? 'Situação do cilindro na viagem e custódia: ' : 'Situação do cilindro na viagem: '}</VisuallyHidden>{ITEM_STATUS_LABELS[status]}{pending ? ', pendente de envio' : ''}
     </StatusBadge>
   );
 }
@@ -46,11 +47,11 @@ export function CustodyBadge({ status }: { status: CustodyStatus }): React.JSX.E
 
 // Situação do item na viagem, bloqueio e custódia do cilindro, nesta ordem. Quando o item e a custódia dizem o mesmo ("em trânsito"), o
 // selo é um só, para não mostrar dois selos idênticos; nos demais casos os três estados aparecem, cada um com o seu rótulo.
-export function ItemBadges({ itemStatus, lockStatus, custodyStatus }: { itemStatus: ItemStatus; lockStatus: LockStatus; custodyStatus: CustodyStatus }): React.JSX.Element {
+export function ItemBadges({ itemStatus, lockStatus, custodyStatus, pending = false }: { itemStatus: ItemStatus; lockStatus: LockStatus; custodyStatus: CustodyStatus; pending?: boolean }): React.JSX.Element {
   const repeated = custodyRepeatsItemStatus(itemStatus, custodyStatus);
   return (
     <>
-      <ItemStatusBadge status={itemStatus} withCustody={repeated} />
+      <ItemStatusBadge status={itemStatus} withCustody={repeated} pending={pending} />
       <LockBadge status={lockStatus} />
       {!repeated && <CustodyBadge status={custodyStatus} />}
     </>

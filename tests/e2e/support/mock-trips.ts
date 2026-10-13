@@ -8,6 +8,8 @@ import { fail, ORG_A, ORG_B, type Can, type Json, type Reply, type RegistryMock 
 // `register(...)` (planejamento na US1, carregamento e início na US2, entrega na US3, desbloqueio na US4, encerramento na US5 e
 // histórico na US6). As regras de banco de verdade são provadas nas suítes pgTAP e `.live`.
 
+import type { MockAttachment } from './mock-trips-attachments';
+
 export type TripFunctionKind = 'query' | 'manage';
 
 export interface TripOperationContext {
@@ -121,6 +123,8 @@ export class TripMock {
   stops: TripStopRow[] = [];
   items: TripItemRow[] = [];
   deliveries: TripDeliveryRow[] = [];
+  // Anexos das entregas (Spec 010): o simulado guarda os bytes para a miniatura, como o bucket faria.
+  attachments: MockAttachment[] = [];
   unlocks: TripUnlockRow[] = [];
   events: TripEventRow[] = [];
   // Pedidos já atendidos, por organização e `request_id` (idempotência de comando).
@@ -139,6 +143,8 @@ export class TripMock {
   sessionExpired = false;
   // Todo `request_id` recebido, na ordem, para provar que cada tentativa leva o seu e a repetição leva o mesmo.
   readonly receivedRequestIds: string[] = [];
+  // Trilha de sincronização (Spec 010): uma linha por pedido vindo da fila (`queued_at` informado), sem nenhum dado sensível.
+  readonly syncEvents: { requestId: string; operation: string; tripId: string | null; outcome: 'applied' | 'replayed' | 'conflict'; queuedAt: string }[] = [];
 
   constructor(readonly registry: RegistryMock, readonly cylinders: CylinderMock) {
     cylinders.custodyOf = (cylinderId) => this.custodyOf(cylinderId);
@@ -195,6 +201,10 @@ export class TripMock {
     return event;
   }
 
+  private trace(body: Json, requestId: string, operation: string, tripId: string | null, outcome: 'applied' | 'replayed' | 'conflict'): void {
+    if (typeof body.queued_at === 'string') this.syncEvents.push({ requestId, operation, tripId, outcome, queuedAt: body.queued_at });
+  }
+
   handle(kind: TripFunctionKind, body: Json, can: Can): Reply {
     const org = typeof body.organization_id === 'string' ? body.organization_id : '';
     if (org !== ORG_A && org !== ORG_B) return fail('VALIDATION_FAILED', 400);
@@ -218,9 +228,11 @@ export class TripMock {
     if (previous) {
       // Mesmo pedido: devolve o resultado gravado. Outra operação ou outra viagem com o mesmo `request_id`: REQUEST_REUSED.
       if (previous.operation !== operation || previous.tripId !== tripId) return fail('REQUEST_REUSED', 409);
+      this.trace(body, requestId, operation, tripId, 'replayed');
       return { status: previous.reply.status, json: { ...previous.reply.json, replayed: true } };
     }
     const result = definition.run({ org, body, can, mock: this });
+    this.trace(body, requestId, operation, tripId, result.status < 300 ? 'applied' : 'conflict');
     if (result.status < 300) {
       this.requests.set(key, { operation, tripId, reply: result });
       if (this.loseNextCommandResponse) {

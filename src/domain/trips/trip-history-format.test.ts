@@ -137,3 +137,23 @@ describe('describeTripEvent', () => {
     expect(describeTripEvent('item_returned', { from: 'in_transit' })).toBe('Cilindro devolvido ao estoque.');
   });
 });
+
+// Spec 010 (RF-023): o histórico mostra só a contagem dos anexos, nunca nome de arquivo, caminho nem imagem.
+describe('anexos da entrega no histórico', () => {
+  it('diz quantas fotos e se há assinatura', () => {
+    expect(describeTripEvent('evidence_attached', { photo_count: 2, has_signature: true })).toBe('Fotos anexadas à entrega (2), com assinatura.');
+    expect(describeTripEvent('evidence_attached', { photo_count: 1, has_signature: false })).toBe('Fotos anexadas à entrega (1).');
+    expect(describeTripEvent('evidence_attached', { photo_count: 0, has_signature: true })).toBe('com assinatura.');
+  });
+
+  it('marca o que foi acrescentado depois e nunca cita arquivo ou caminho', () => {
+    const text = describeTripEvent('evidence_attached', { photo_count: 1, has_signature: false, added_later: true, storage_path: 'x/y.jpg', file_name: 'foto.jpg' });
+    expect(text).toBe('Fotos anexadas à entrega (1) (acrescentado depois).');
+    expect(text).not.toMatch(/jpg|storage|foto\.jpg/);
+  });
+
+  it('as decisões sobre registros da fila têm rótulo próprio', () => {
+    expect(describeTripEvent('sync_conflict_discarded', {})).toBe('Registro offline descartado.');
+    expect(describeTripEvent('sync_conflict_resubmitted', {})).toBe('Registro offline reenviado.');
+  });
+});

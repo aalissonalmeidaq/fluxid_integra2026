@@ -4,6 +4,8 @@ import { fail, ok, ORG_A, type Json, type RegistryMock, type Reply } from './moc
 import { registerCloseOperations } from './mock-trips-close';
 import { registerDeliveryOperations } from './mock-trips-delivery';
 import { registerLoadingOperations } from './mock-trips-loading';
+import { deliveryEvidence } from './mock-trips-attachments';
+import { registerOfflineOperations } from './mock-trips-offline';
 import { registerQueryOperations } from './mock-trips-query';
 import { registerUnlockOperations } from './mock-trips-unlock';
 import { TripMock, TRIP_ACTOR_NAME, type TripItemRow, type TripOperationContext, type TripRow, type TripStopRow } from './mock-trips';
@@ -257,6 +259,7 @@ function getTrip({ org, body, can, mock }: TripOperationContext): Reply {
     items: mock.itemsOf(trip.id).filter((item) => item.item_status !== 'released' && stopIds.has(item.stop_id)).map((item) => itemView(mock, item)),
     deliveries: mock.deliveries.filter((delivery) => stopIds.has(delivery.stop_id)).map((delivery) => ({
       ...delivery, organization_id: undefined, recipient_name: recipient ? delivery.recipient_name : '(restrito)', recipient_role: recipient ? delivery.recipient_role : '(restrito)',
+      ...deliveryEvidence(mock, delivery.id, recipient),
     })),
     unlocks: mock.unlocks.filter((unlock) => mock.items.some((item) => item.id === unlock.item_id && item.trip_id === trip.id)).map((unlock) => ({ ...unlock, organization_id: undefined })),
     warnings,
@@ -368,5 +371,6 @@ export function createTripMock(registry: RegistryMock, cylinders: CylinderMock):
   registerUnlockOperations(mock);
   registerCloseOperations(mock);
   registerQueryOperations(mock);
+  registerOfflineOperations(mock);
   return mock;
 }

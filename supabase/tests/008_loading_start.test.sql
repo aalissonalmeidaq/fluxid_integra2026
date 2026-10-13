@@ -41,11 +41,11 @@ insert into public.customer_sites (id, organization_id, customer_id, name, posta
 insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_cylinders)
   select ('95000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'AAA' || (1000 + n), 'truck', 10 from generate_series(1, 9) n;
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until)
-  select ('96000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'Motorista ' || n, 'x' || n, 'y' || n, 'D', current_date + 365 from generate_series(1, 9) n;
+  select ('96000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'Motorista ' || n, 'x' || n, 'y' || n, 'D', (now() at time zone 'America/Sao_Paulo')::date + 365 from generate_series(1, 9) n;
 insert into public.cylinder_types (id, organization_id, gas, capacity_value, capacity_unit, classification) values
   ('97000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Oxigênio', 10, 'l', 'medicinal');
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on)
-  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'LDG-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', current_date + 200
+  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'LDG-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200
     from generate_series(1, 60) n;
 
 create function pg_temp.cy(n integer) returns uuid language sql as $$ select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid $$;
@@ -54,7 +54,7 @@ create function pg_temp.stop(p_site integer, p_cyls integer[]) returns jsonb lan
 $$;
 -- Ator padrão: administrador do A. Os papéis restritos passam o usuário e a sessão.
 create function pg_temp.plan(p_stops jsonb, p_vehicle integer, p_driver integer) returns uuid language sql as $$
-  select (public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date,
+  select (public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
     ('95000000-0000-0000-0000-' || lpad(p_vehicle::text, 12, '0'))::uuid, ('96000000-0000-0000-0000-' || lpad(p_driver::text, 12, '0'))::uuid, null, p_stops) ->> 'trip_id')::uuid
 $$;
 create function pg_temp.ver(p_trip uuid) returns bigint language sql as $$ select version from public.trips where id = p_trip $$;
@@ -181,26 +181,26 @@ select is((select count(*)::int from public.audit_logs where action = 'trip.star
 select is((select status from public.trip_stops where trip_id = (select t from k3) and site_id = '92000000-0000-0000-0000-000000000002'), 'removed', 'a parada sem cilindro a levar sai do roteiro');
 select is((select status from public.trip_stops where trip_id = (select t from k3) and site_id = '92000000-0000-0000-0000-000000000001'), 'pending', 'a outra segue pendente');
 select is(pg_temp.st((select t from k3)) ->> 'code', 'INVALID_TRANSITION', 'iniciar de novo: INVALID_TRANSITION');
-select is(public.update_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (select t from k3), 3, current_date,
+select is(public.update_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (select t from k3), 3, (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-000000000006', '96000000-0000-0000-0000-000000000006', null, jsonb_build_array(pg_temp.stop(1, array[20, 21]))) ->> 'code', 'INVALID_TRANSITION', 'depois de sair, a viagem não é mais editável');
 select is(public.stock_in_cylinder('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', 'inexistente-xyz', gen_random_uuid()) ->> 'code', 'NOT_FOUND', 'a entrada no estoque continua funcionando para cilindro fora de viagem');
 select is((public.get_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', (select t from k3)) -> 'items' -> 0 -> 'cylinder' ->> 'custody_status'), 'in_transit', 'o detalhe mostra a custódia em trânsito');
 
 -- 6. Revalidação no início: nada muda se qualquer verificação falha.
 create temp table r1 as select pg_temp.ready(jsonb_build_array(pg_temp.stop(1, array[30])), 7, 7, array[30]) as t;
-update public.drivers set cnh_valid_until = current_date - 1 where id = '96000000-0000-0000-0000-000000000007';
+update public.drivers set cnh_valid_until = (now() at time zone 'America/Sao_Paulo')::date - 1 where id = '96000000-0000-0000-0000-000000000007';
 select is(pg_temp.st((select t from r1)) ->> 'code', 'DRIVER_LICENSE_EXPIRED', 'CNH vencida impede iniciar');
 select is(pg_temp.status_of((select t from r1)) || '/' || (select stock_status from public.cylinders where id = pg_temp.cy(30)), 'loading/in_stock', 'nada mudou: viagem carregando e cilindro em estoque');
-update public.drivers set cnh_valid_until = current_date + 20 where id = '96000000-0000-0000-0000-000000000007';
+update public.drivers set cnh_valid_until = (now() at time zone 'America/Sao_Paulo')::date + 20 where id = '96000000-0000-0000-0000-000000000007';
 select is(pg_temp.st((select t from r1)) ->> 'code', 'STARTED', 'CNH a vencer só avisa: inicia');
 
 create temp table r2 as select pg_temp.ready(jsonb_build_array(pg_temp.stop(1, array[31, 32])), 8, 8, array[31, 32]) as t;
-update public.cylinders set hydro_next_due_on = current_date - 1 where id = pg_temp.cy(32);
+update public.cylinders set hydro_next_due_on = (now() at time zone 'America/Sao_Paulo')::date - 1 where id = pg_temp.cy(32);
 select is(pg_temp.st((select t from r2)) ->> 'code', 'CYLINDER_NOT_ELIGIBLE', 'teste que venceu depois do planejamento impede');
 select is(pg_temp.st((select t from r2)) ->> 'reason', 'hydro_expired', 'com o motivo');
 select is(pg_temp.st((select t from r2)) ->> 'cylinder_id', pg_temp.cy(32)::text, 'e o cilindro');
 select is((select count(*)::int from public.cylinders where id in (pg_temp.cy(31), pg_temp.cy(32)) and stock_status = 'out_of_stock'), 0, 'nenhum cilindro saiu do estoque');
-update public.cylinders set hydro_next_due_on = current_date + 100 where id = pg_temp.cy(32);
+update public.cylinders set hydro_next_due_on = (now() at time zone 'America/Sao_Paulo')::date + 100 where id = pg_temp.cy(32);
 update public.vehicles set status = 'maintenance' where id = '95000000-0000-0000-0000-000000000008';
 select is(pg_temp.st((select t from r2)) ->> 'entity', 'vehicle', 'veículo que saiu de "disponível" impede');
 update public.vehicles set status = 'available' where id = '95000000-0000-0000-0000-000000000008';

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { AppShell } from './app-shell';
 import { AuthContext, type AuthContextValue } from '../auth/auth-context';
 import { ConnectivityContext, initialResult, type ConnectivityContextValue } from '../connectivity-context';
@@ -110,7 +110,7 @@ describe('AppShell', () => {
     expect(screen.queryByRole('button', { name: 'Sair' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Minha conta' }));
     fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
-    expect(logout).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
   });
 
   it('com sessão limitada à verificação em duas etapas não há menu', () => {

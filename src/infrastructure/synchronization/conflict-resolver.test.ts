@@ -127,4 +127,72 @@ describe('ConflictResolver', () => {
     database.unlock('tenant-b');
     expect(await resolver.hasOpenConflicts()).toBe(false);
   });
+
+  // Spec 010, T013: conflitos das operações de campo. O registro guarda só um resumo sem dado sensível; os dados originais ficam no item da fila.
+  describe('conflitos de campo (Spec 010)', () => {
+    const summary = { operation: 'trip.deliver', serial: '12345', queuedAt: '2026-10-12T12:00:00Z', positionInformed: true, recipientInformed: true };
+    const field = { organizationId: 'tenant-a', outboxItemId: 'item-1', tripId: 'trip-1', reasonCode: 'TRIP_CLOSED', summary, remote: { tripStatus: 'cancelled' } };
+
+    it.each([
+      ['TRIP_CLOSED', 'trip_closed'], ['INVALID_TRANSITION', 'invalid_transition'], ['STOP_CLOSED', 'stop_closed'], ['NOT_FOUND', 'item_not_found'],
+      ['STALE_OFFLINE_OPERATION', 'stale_operation'], ['VERSION_CONFLICT', 'version_conflict'], ['VALIDATION_FAILED', 'validation_rejected'], ['CODIGO_NOVO', 'validation_rejected'],
+    ] as const)('o código %s vira o tipo %s', async (reasonCode, kind) => {
+      const { database, resolver } = await setup();
+      const conflict = await resolver.registerFieldConflict({ ...field, reasonCode });
+      expect(conflict).toMatchObject({ kind, entity: 'trip', entity_id: 'trip-1', status: 'open', decision: null, outbox_item_id: 'item-1' });
+      expect(resolver.classify(kind).outboxOutcome).toBe('conflict');
+      await database.close();
+    });
+
+    it('guarda só o resumo sem dado sensível e o estado atual do servidor', async () => {
+      const { database, resolver } = await setup();
+      const conflict = await resolver.registerFieldConflict(field);
+      expect(conflict.local_version.data).toEqual(summary);
+      expect(conflict.remote_version.data).toEqual({ tripStatus: 'cancelled' });
+      await database.close();
+    });
+
+    it.each(['latitude', 'longitude', 'recipient_name', 'recipientName', 'signature', 'photo', 'position', 'results', 'value'])('recusa o campo sensível %s no resumo', async (key) => {
+      const { database, resolver } = await setup();
+      await expect(resolver.registerFieldConflict({ ...field, summary: { ...summary, [key]: 'x' } as never })).rejects.toThrow(/sensível/i);
+      expect(await resolver.list()).toEqual([]);
+      await database.close();
+    });
+
+    it('fechar o conflito grava a decisão e limpa o resumo (nada fica no registro)', async () => {
+      const { database, resolver } = await setup();
+      const conflict = await resolver.registerFieldConflict(field);
+      const closed = await resolver.closeFieldConflict(conflict.id, 'discard_local');
+      expect(closed).toMatchObject({ status: 'resolved', decision: 'discard_local', resolved_at: '2026-09-29T12:00:00.000Z' });
+      expect(closed.local_version.data).toBeNull();
+      expect(closed.remote_version.data).toBeNull();
+      expect(await resolver.hasOpenConflicts()).toBe(false);
+      await database.close();
+    });
+
+    it('reenviar também fecha o conflito, com a decisão keep_local', async () => {
+      const { database, resolver } = await setup();
+      const conflict = await resolver.registerFieldConflict(field);
+      expect((await resolver.closeFieldConflict(conflict.id, 'keep_local')).decision).toBe('keep_local');
+      await database.close();
+    });
+
+    it('o conflito de campo de um item já fechado não fecha duas vezes', async () => {
+      const { database, resolver } = await setup();
+      const conflict = await resolver.registerFieldConflict(field);
+      await resolver.closeFieldConflict(conflict.id, 'discard_local');
+      await expect(resolver.closeFieldConflict(conflict.id, 'discard_local')).rejects.toThrow(/já resolvido/i);
+      await database.close();
+    });
+
+    it('um segundo conflito do mesmo item da fila reaproveita o registro aberto (sem duplicar)', async () => {
+      const { database, resolver } = await setup();
+      const first = await resolver.registerFieldConflict(field);
+      const second = await resolver.registerFieldConflict({ ...field, reasonCode: 'INVALID_TRANSITION' });
+      expect(second.id).toBe(first.id);
+      expect(second.kind).toBe('invalid_transition');
+      expect(await resolver.list()).toHaveLength(1);
+      await database.close();
+    });
+  });
 });

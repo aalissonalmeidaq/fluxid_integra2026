@@ -3,6 +3,12 @@ import { ProfileService } from '@/application/identity/profile-service';
 import { Button, Icon } from '@/design-system';
 import { createProfilePorts } from '@/infrastructure/supabase/profile-adapter';
 import { useAuth } from '../auth/auth-context';
+import { LogoutGuard } from '../auth/logout-guard';
+import { useGuardedLogout } from '../auth/use-guarded-logout';
+import { useFieldSync } from '../field/field-sync-context';
+import { useOfflineField } from '../field/offline-field-context';
+import { useOnlineStatus } from '../use-online-status';
+import { usePwaInstall } from '../use-pwa-install';
 import { useConnectivity } from '../connectivity-context';
 import { useTenant } from '../tenant/tenant-context';
 import { markMenuNavigation } from './menu-navigation-focus';
@@ -20,11 +26,25 @@ export interface UserMenuProps {
 export function UserMenu({ service: provided }: UserMenuProps): React.JSX.Element {
   const { logout } = useAuth();
   const { selection } = useTenant();
+  const field = useOfflineField();
+  const fieldSync = useFieldSync();
+  const online = useOnlineStatus();
+  const { isInstalled } = usePwaInstall();
+  // Instalado pelo navegador agora, ou aberto como aplicativo (janela própria, sem barra do navegador): o estado aparece em texto (RF-028).
+  const standalone = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches;
   const { client, config, result } = useConnectivity();
   const endpoint = config?.endpoints.find((candidate) => candidate.kind === result.selectedEndpoint);
   const built = useMemo(() => (endpoint && client ? new ProfileService(createProfilePorts(endpoint, client)) : null), [client, endpoint]);
   const service = provided === undefined ? built : provided;
 
+  // Sair com registros ainda não enviados avisa antes (Spec 010): a fila fica no aparelho, só a cópia da viagem sai.
+  const guard = useGuardedLogout({
+    pendingCount: async () => (field ? (await field.queue.counts(true)).total : 0),
+    sendAll: async () => { await fieldSync?.sync.syncNow(); },
+    removeCopies: async () => { await field?.trips.removeAll(); },
+    logout,
+    online,
+  });
   const [open, setOpen] = useState(false);
   const [name, setName] = useState<string | null>(null);
   const panelId = useId();
@@ -76,6 +96,7 @@ export function UserMenu({ service: provided }: UserMenuProps): React.JSX.Elemen
           <div className="flex min-w-0 flex-col gap-1">
             <span title={displayName} className="truncate text-corpo font-semibold text-navy">{displayName}</span>
             {organization && <span className="break-words text-legenda text-grafite">{organization}</span>}
+            {(isInstalled || standalone) && <span className="text-legenda text-grafite">Aplicativo instalado neste aparelho.</span>}
           </div>
           <a
             href="/perfil"
@@ -84,8 +105,12 @@ export function UserMenu({ service: provided }: UserMenuProps): React.JSX.Elemen
           >
             Meu perfil
           </a>
-          <Button variant="secundario" onClick={() => void logout()} className="w-full">Sair</Button>
+          <Button variant="secundario" onClick={() => void guard.request()} className="w-full">Sair</Button>
         </div>
+      )}
+      {guard.warning && (
+        <LogoutGuard pending={guard.warning.pending} online={online} busy={guard.busy} message={guard.warning.message ?? null} returnFocusTo={null}
+          onSend={() => void guard.sendFirst()} onLeave={() => void guard.leaveAnyway()} onStay={guard.stay} />
       )}
     </div>
   );

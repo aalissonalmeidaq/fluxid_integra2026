@@ -34,15 +34,15 @@ insert into public.customer_sites (id, organization_id, customer_id, name, posta
 insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_cylinders) values
   ('95000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 'FLD1001', 'truck', 20);
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until) values
-  ('96000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 'Motorista 1', 'x1', 'y1', 'D', current_date + 365);
+  ('96000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 'Motorista 1', 'x1', 'y1', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365);
 insert into public.cylinder_types (id, organization_id, gas, capacity_value, capacity_unit, classification) values
   ('97000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Oxigênio', 10, 'l', 'medicinal'),
   ('97000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Oxigênio', 10, 'l', 'medicinal');
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on)
-  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'FLD-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', current_date + 200
+  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'FLD-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200
     from generate_series(1, 6) n;
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on) values
-  ('98000000-0000-0000-0000-0000000000b1', '20000000-0000-0000-0000-00000000000b', '97000000-0000-0000-0000-00000000000b', 'FLD-B01', 'in_stock', 'approved', current_date + 200);
+  ('98000000-0000-0000-0000-0000000000b1', '20000000-0000-0000-0000-00000000000b', '97000000-0000-0000-0000-00000000000b', 'FLD-B01', 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200);
 update public.cylinders set status = 'inactive', stock_status = 'out_of_stock', inactivation_reason = 'written_off' where id = '98000000-0000-0000-0000-000000000005';
 insert into public.cylinder_identifiers (id, organization_id, cylinder_id, kind, value) values
   ('99000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', '98000000-0000-0000-0000-000000000001', 'qr_code', 'QR-009-0001'),
@@ -56,7 +56,7 @@ insert into public.cylinder_identifiers (id, organization_id, cylinder_id, kind,
   ('99000000-0000-0000-0000-000000000004', '20000000-0000-0000-0000-00000000000a', '98000000-0000-0000-0000-000000000004', 'qr_code', 'QR-009-OLD', 'deactivated', now(), '10000000-0000-0000-0000-000000000002', 'etiqueta trocada');
 
 -- Viagem planejada com o cilindro 1 (reserva aberta), criada pelo administrador do A.
-select public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000900a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date,
+select public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000900a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001', null,
   jsonb_build_array(jsonb_build_object('site_id', '92000000-0000-0000-0000-000000000001', 'cylinder_ids', jsonb_build_array('98000000-0000-0000-0000-000000000001'))));
 

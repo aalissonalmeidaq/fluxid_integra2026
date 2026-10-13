@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { AuthContext, type AuthContextValue } from './auth-context';
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { AuthContext, type AuthContextValue, type OfflineAccessStorePort } from './auth-context';
 import { useConnectivity } from '@/app/connectivity-context';
 import { authReducer, initialAuthState, type AuthEvent } from '@/domain/identity/session';
 import { SessionService, type SessionCheck } from '@/application/identity/session-service';
 import { MfaService } from '@/application/identity/mfa-service';
+import { restoreOfflineAccess, type OfflineAccessRecord } from '@/domain/identity/offline-access';
+import { OfflineAccessStore } from '@/infrastructure/local-database/offline-access-store';
 import { createFetchSessionTransport, createMfaClient, createSupabaseSessionStore } from '@/infrastructure/supabase/session-adapters';
 
 export interface AuthServices { service: SessionService; mfa: MfaService }
@@ -13,6 +15,9 @@ export interface AuthProviderProps {
   // Injeção para testes; em produção os serviços vêm do cliente único ativo da conectividade.
   services?: AuthServices | null;
   heartbeatMs?: number;
+  // Acesso offline restrito (Spec 010): `undefined` usa a base real (só em produção); `null` desliga (testes, sem o recurso).
+  offlineAccess?: OfflineAccessStorePort | null;
+  now?: () => Date;
 }
 
 const DEFAULT_HEARTBEAT_MS = 60_000;
@@ -28,10 +33,14 @@ function eventFromCheck(result: SessionCheck): AuthEvent | null {
   }
 }
 
-export function AuthProvider({ children, services: injected, heartbeatMs = DEFAULT_HEARTBEAT_MS }: AuthProviderProps): React.JSX.Element {
+export function AuthProvider({ children, services: injected, heartbeatMs = DEFAULT_HEARTBEAT_MS, offlineAccess: offlineInjected, now = () => new Date() }: AuthProviderProps): React.JSX.Element {
   const { client, config, result: connectivity } = useConnectivity();
   const [state, dispatch] = useReducer(authReducer, initialAuthState);
   const activitySinceCheck = useRef(false);
+  const [offlineRecord, setOfflineRecord] = useState<OfflineAccessRecord | null>(null);
+  // Em produção a base é a real; com serviços injetados (testes) o recurso só liga se o teste o fornecer.
+  const offlineStore = useMemo<OfflineAccessStorePort | null>(
+    () => (offlineInjected !== undefined ? offlineInjected : injected === undefined ? new OfflineAccessStore() : null), [offlineInjected, injected]);
 
   const endpoint = config?.endpoints.find((candidate) => candidate.kind === connectivity.selectedEndpoint);
   const built = useMemo<AuthServices | null>(() => {
@@ -45,18 +54,39 @@ export function AuthProvider({ children, services: injected, heartbeatMs = DEFAU
 
   const resolving = connectivity.state === 'idle' || connectivity.state === 'probing';
 
-  // Restaura somente sessão confirmada pelo servidor; sem servidor alcançável nenhum acesso é concedido.
+  // Restaura a sessão confirmada pelo servidor. Sem servidor alcançável, só volta pelo acesso offline restrito (Spec 010, RF-016a): registro válido e
+  // a menos de 8 horas da última confirmação; sem ele, nenhum acesso é concedido.
   useEffect(() => {
-    if (!built) {
-      if (!resolving) dispatch({ type: 'session_missing' });
-      return;
-    }
     let cancelled = false;
-    void built.service.check().then((result) => {
+    const restoreOrSignOut = async () => {
+      const stored = offlineStore ? await offlineStore.read() : null;
       if (cancelled) return;
+      const restored = restoreOfflineAccess(stored, now());
+      if (restored.ok) {
+        setOfflineRecord(restored.record);
+        dispatch({ type: 'session_offline_restored', aal: restored.record.aal });
+        return;
+      }
+      setOfflineRecord(null);
+      if (restored.reason === 'expired') {
+        await offlineStore?.clear();
+        dispatch({ type: 'session_expired', reason: 'timebox' });
+      } else dispatch({ type: 'session_missing' });
+    };
+    if (!built) {
+      if (!resolving) void restoreOrSignOut();
+      return () => { cancelled = true; };
+    }
+    void built.service.check().then(async (result) => {
+      if (cancelled) return;
+      if (result.kind === 'unreachable') { await restoreOrSignOut(); return; }
+      setOfflineRecord(null);
+      // Sessão expirada, revogada ou ausente: o aparelho deixa de poder abrir offline.
+      if (result.kind !== 'active') await offlineStore?.clear();
       dispatch(eventFromCheck(result) ?? { type: 'session_missing' });
     });
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `now` e a base do acesso offline não mudam a decisão de restaurar
   }, [built, resolving]);
 
   // Atividade confiável: só confirma a sessão no servidor quando o usuário realmente interagiu.
@@ -89,8 +119,11 @@ export function AuthProvider({ children, services: injected, heartbeatMs = DEFAU
 
   const logout = useCallback(async () => {
     await built?.service.logout();
+    // Sair da conta tira a permissão de abrir offline; a fila e os anexos pendentes não são tocados.
+    await offlineStore?.clear();
+    setOfflineRecord(null);
     dispatch({ type: 'logout' });
-  }, [built]);
+  }, [built, offlineStore]);
 
   const confirmMfa = useCallback(async () => {
     if (!built) return false;
@@ -112,8 +145,8 @@ export function AuthProvider({ children, services: injected, heartbeatMs = DEFAU
   }, [built]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ state, login, logout, confirmMfa, verifySession, mfa: built?.mfa ?? null }),
-    [state, login, logout, confirmMfa, verifySession, built],
+    () => ({ state, login, logout, confirmMfa, verifySession, mfa: built?.mfa ?? null, offlineAccess: state.status === 'authenticated' && state.offline ? offlineRecord : null, offlineAccessStore: offlineStore }),
+    [state, login, logout, confirmMfa, verifySession, built, offlineRecord, offlineStore],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

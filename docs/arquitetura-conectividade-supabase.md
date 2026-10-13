@@ -78,6 +78,23 @@ O contrato completo e sem valores reais está em `.env.example`. Cada endpoint p
 
 Com `npm run dev:rede`, o servidor do Vite aceita conexões da rede local **em HTTPS** (certificado autoassinado gerado em `.certs/`, fora do Git, por `scripts/dev/rede-https.mjs`; exige o `openssl`, que vem com o Git para Windows). O HTTPS dá contexto seguro ao celular: câmera, NFC e GPS funcionam sem cabo. O Chrome avisa que a conexão não é particular na primeira abertura ("Avançado" e "Continuar"), e por isso o app **não** é instalável como PWA por esse caminho; a instalação se testa com `npm run build` e `npm run preview`. Quando a página é aberta por um endereço que não é a própria máquina (por exemplo, um celular), o destino `local` passa a apontar para a mesma origem da página, no caminho `/supabase-local`, e o próprio Vite repassa essas chamadas ao Supabase CLI desta máquina (`server.proxy` em `vite.config.ts`). Assim o Supabase CLI **não é exposto à rede**: só a porta 3000 precisa estar liberada no firewall. A troca só acontece em desenvolvimento (`import.meta.env.DEV`), nunca no build de produção, e não altera a chave publicável. Não use esta pilha como servidor de produção na rede local.
 
+## Fila offline das operações de campo (Spec 010)
+
+Primeiras capacidades classificadas como `offline-safe` (a política `OfflineOperationPolicy` aceita **exatamente** estas e recusa o resto com "Exige conexão"):
+
+| Operação | Permissão | Observação |
+|---|---|---|
+| `trip.check_item` e `trip.uncheck_item` | `trip.operate` | só viagem em carregamento guardada no aparelho |
+| `trip.arrive_stop` | `trip.operate` | leva `queued_at` e a posição só no corpo do pedido |
+| `trip.deliver` | `trip.operate` | só o registro original (a correção exige conexão) |
+| anexos da entrega (foto e assinatura) | `trip.operate` | enviados **depois** do registro, pela função `trip-attachments` |
+
+- **Fila por dono.** Cada item da fila e cada anexo pertencem a **conta, organização e destino Supabase de origem**. Outra conta, organização ou destino nunca os vê nem os envia (`endpoint_id`), e a fila nunca vai a dois destinos.
+- **Troca de destino com pendência.** A regra é que a promoção de LAN ou local para cloud espere a fila: o `EndpointPromotionCoordinator` só troca o cliente ativo quando a porta `settleOperations` confirma que não há pendência (a fila de campo conta como pendência), e a fila é enviada ao destino de origem antes. Hoje o aplicativo não promove destino sozinho, então a regra vale quando esse fluxo for ligado. Não se transfere sessão entre projetos por troca de URL.
+- **Envio.** Só com a sessão reconfirmada no servidor, sob uma trava de aba (`navigator.locks`), uma operação por vez por viagem; falha de rede ou 5xx volta a pendente com espera crescente e 401 ou 403 interrompe sem perder nada. O envio usa `manage-trips` (não o `sync-command`), com o `request_id` igual à chave de idempotência.
+- **Sessão offline.** O acesso offline restrito guarda só identificadores e códigos de permissão (nunca token) e vale até 8 horas desde a última confirmação do servidor; o servidor decide quando a fila é enviada.
+- **Escrita única.** Nada é escrito em duas instâncias ao mesmo tempo: o conflito de estado é decidido pelo servidor e a decisão humana fica na trilha `private.trip_sync_events` e na auditoria.
+
 ## Critérios de aceitação futuros
 
 - selecionar corretamente cada modo explícito;

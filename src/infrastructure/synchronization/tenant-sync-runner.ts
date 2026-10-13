@@ -4,6 +4,7 @@ import type { SupabaseClientManager } from '@/infrastructure/connectivity/supaba
 import { PushSynchronizer } from './push-synchronizer';
 import { SyncCoordinator, type SyncPhase } from './sync-coordinator';
 import { SyncOutbox } from './sync-outbox';
+import { isOfflineOperation } from '@/domain/field/offline-queue-rules';
 
 export interface TenantSyncRunnerDeps {
   database: LocalDatabase;
@@ -22,20 +23,22 @@ export function createTenantSyncRunner(deps: TenantSyncRunnerDeps) {
   const { database, clientManager, organizationId } = deps;
   return (onPhase: (phase: SyncPhase) => void): SyncCoordinator => {
     const outbox = new SyncOutbox(database);
-    const push = new PushSynchronizer(outbox, clientManager);
+    // As operações de campo (Spec 010) têm envio próprio, em segundo plano e com trava de aba: o portão da inicialização não as envia nem para por
+    // causa delas (conflito de campo é decidido na tela Sincronização, sem bloquear a área protegida).
+    const push = new PushSynchronizer(outbox, clientManager, { skip: (item) => isOfflineOperation(item.operation) });
     return new SyncCoordinator({
       outbox,
       onPhase,
       push: () => push.push(),
       pull: async () => undefined,
-      hasOpenConflicts: async () => (await database.list('local_sync_conflicts')).some((conflict) => !conflict.resolved_at),
+      hasOpenConflicts: async () => (await database.list('local_sync_conflicts')).some((conflict) => !conflict.resolved_at && conflict.entity !== 'trip'),
       gates: {
         session: deps.verifySession,
         tenant: deps.confirmTenant,
         consistency: async () => {
           try {
             if (database.activeTenant !== organizationId) return false;
-            return (await outbox.list()).every((item) => item.status !== 'syncing' && item.status !== 'conflict');
+            return (await outbox.list()).every((item) => isOfflineOperation(item.operation) || (item.status !== 'syncing' && item.status !== 'conflict'));
           } catch {
             return false;
           }

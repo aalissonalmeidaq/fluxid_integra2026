@@ -15,6 +15,10 @@ import { TRIP_LIMITS } from '@/domain/trips/trip-limits';
 import { formatDateTime } from '@/domain/cylinders/format';
 import { validateDeliveryForm, type DeliveryFormInput, type DeliveryFormValue, type DeliveryResultInput } from '@/domain/trips/trip-validation';
 import type { FieldErrors } from '@/domain/registry/registry-validation';
+import type { CapturedSignature } from '@/infrastructure/attachments/signature-canvas';
+import { DeliveryPhotos, type DraftPhoto } from './delivery-photos';
+import { DeliverySignature } from './delivery-signature';
+import type { DeliveryEvidence, EvidenceOptions } from './delivery-evidence';
 
 export interface DeliveryDialogProps {
   stop: TripStopView;
@@ -28,7 +32,9 @@ export interface DeliveryDialogProps {
   serverErrors: FieldErrors;
   returnFocusTo: HTMLElement | null;
   onCancel: () => void;
-  onSubmit: (value: DeliveryFormValue) => void;
+  onSubmit: (value: DeliveryFormValue, evidence?: DeliveryEvidence) => void;
+  // Spec 010: com isto, o diálogo oferece fotos e assinatura (opcionais) no registro original; sem isto, nada muda.
+  evidence?: EvidenceOptions;
   // Identifica o código lido (Spec 009). Sem ele, a entrega fica só com o resultado marcado à mão.
   resolve?: (event: ReadEvent) => Promise<ResolutionLike>;
   // Sem conexão a leitura abre, mas registrar exige conexão.
@@ -47,7 +53,7 @@ const localNow = (): string => {
 // Diálogo de entrega por parada (RF-013 a RF-017): resultado de cada cilindro, recebedor, horário, posição opcional e justificativa por
 // cilindro não entregue. Na correção, o registro anterior fica à vista e só os cilindros que faltaram entram na lista. Não guarda
 // nada no aparelho: o nome do recebedor vive só neste estado até o envio.
-export function DeliveryDialog({ stop, items, previous, busy, error, serverErrors, returnFocusTo, onCancel, onSubmit, resolve, online = true, geolocation, now }: DeliveryDialogProps): React.JSX.Element {
+export function DeliveryDialog({ stop, items, previous, busy, error, serverErrors, returnFocusTo, onCancel, onSubmit, resolve, online = true, geolocation, now, evidence }: DeliveryDialogProps): React.JSX.Element {
   const formId = useId();
   const correction = previous !== null;
   const restricted = previous?.recipientName === RECIPIENT_RESTRICTED;
@@ -92,6 +98,8 @@ export function DeliveryDialog({ stop, items, previous, busy, error, serverError
   };
   const readCount = results.filter((result) => result.delivered && result.source).length;
 
+  const [photos, setPhotos] = useState<DraftPhoto[]>([]);
+  const [signature, setSignature] = useState<CapturedSignature | null>(null);
   const finish = (position: PositionDraft): void => {
     const parsed = validateDeliveryForm({ ...form, latitude: position.latitude, longitude: position.longitude, atSiteAddress: position.atSiteAddress, gps: position.gps, results }, new Date(), { allowNoResults: correction, correction });
     if (!parsed.ok) {
@@ -100,7 +108,8 @@ export function DeliveryDialog({ stop, items, previous, busy, error, serverError
       return;
     }
     setErrors({});
-    onSubmit(parsed.value);
+    if (evidence && !correction) onSubmit(parsed.value, { photos: photos.map((entry) => entry.photo), signature });
+    else onSubmit(parsed.value);
   };
   // Leitura do GPS com mais de 2 minutos é descartada e lida de novo antes de salvar (RF-011); se a nova leitura falha, nada é enviado.
   // Sem leitura velha o envio é imediato, sem espera.
@@ -205,6 +214,9 @@ export function DeliveryDialog({ stop, items, previous, busy, error, serverError
           <PositionField draft={draft} onChange={setDraft} position={position} allowSiteAddress disabled={busy}
             errors={{ latitude: shown.latitude, longitude: shown.longitude, atSiteAddress: shown.atSiteAddress, position: shown.position }} />
         </fieldset>
+
+        {evidence && !correction && <DeliveryPhotos photos={photos} onChange={setPhotos} disabled={busy} usedBytes={evidence.usedBytes} />}
+        {evidence && !correction && <DeliverySignature value={signature} onChange={setSignature} disabled={busy} />}
       </form>
       </div>
     </Dialog>

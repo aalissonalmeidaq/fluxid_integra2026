@@ -125,6 +125,7 @@ describe('Contrato de idempotência da sincronização (T032)', () => {
 
     expect(policy.isAllowed(SYNTHETIC_OPERATION)).toBe(false);
     expect(() => policy.assertAllowed(SYNTHETIC_OPERATION)).toThrow();
-    expect(policy.allowedOperations()).toHaveLength(0);
+    // Spec 010: a lista deixou de ser vazia e tem exatamente as quatro operações de campo; a operação sintética continua de fora.
+    expect([...policy.allowedOperations()].sort()).toEqual(['trip.arrive_stop', 'trip.check_item', 'trip.deliver', 'trip.uncheck_item']);
   });
 });

@@ -33,11 +33,11 @@ insert into public.customer_sites (id, organization_id, customer_id, name, posta
 insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_cylinders)
   select ('95000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'DLV' || (1000 + n), 'truck', 20 from generate_series(1, 6) n;
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until)
-  select ('96000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'Motorista ' || n, 'x' || n, 'y' || n, 'D', current_date + 365 from generate_series(1, 6) n;
+  select ('96000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'Motorista ' || n, 'x' || n, 'y' || n, 'D', (now() at time zone 'America/Sao_Paulo')::date + 365 from generate_series(1, 6) n;
 insert into public.cylinder_types (id, organization_id, gas, capacity_value, capacity_unit, classification) values
   ('97000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Oxigênio', 10, 'l', 'medicinal');
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on)
-  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'DEL-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', current_date + 200
+  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'DEL-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200
     from generate_series(1, 40) n;
 
 create function pg_temp.cy(n integer) returns uuid language sql as $$ select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid $$;
@@ -61,7 +61,7 @@ select public.start_user_session('10000000-0000-0000-0000-0000000008e1', '600000
 -- Planejamento de um operador: usuário, sessão e organização escolhidos; o pedido novo a cada chamada.
 create function pg_temp.plan(p_stops jsonb, p_vehicle integer, p_driver integer, p_user uuid default '10000000-0000-0000-0000-000000000002',
   p_session uuid default '60000000-0000-0000-0000-0000000800a2', p_org uuid default '20000000-0000-0000-0000-00000000000a') returns jsonb language sql as $$
-  select public.create_trip(p_user, p_session, p_org, gen_random_uuid(), current_date, ('95000000-0000-0000-0000-' || lpad(p_vehicle::text, 12, '0'))::uuid,
+  select public.create_trip(p_user, p_session, p_org, gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date, ('95000000-0000-0000-0000-' || lpad(p_vehicle::text, 12, '0'))::uuid,
     ('96000000-0000-0000-0000-' || lpad(p_driver::text, 12, '0'))::uuid, null, p_stops)
 $$;
 create function pg_temp.eligible(p_user uuid default '10000000-0000-0000-0000-000000000002', p_session uuid default '60000000-0000-0000-0000-0000000800a2') returns jsonb language sql as $$
@@ -110,14 +110,14 @@ select is((select count(*)::int from public.trip_items where cylinder_id in (pg_
 create temp table base as select pg_temp.plan(jsonb_build_array(pg_temp.stop(1, array[20])), 5, 5) as r;
 create temp table outro as select pg_temp.plan(jsonb_build_array(pg_temp.stop(2, array[21])), 6, 6) as r;
 select is(public.update_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(),
-  (select (r ->> 'trip_id')::uuid from base), 1, current_date, '95000000-0000-0000-0000-000000000005', '96000000-0000-0000-0000-000000000005', null,
+  (select (r ->> 'trip_id')::uuid from base), 1, (now() at time zone 'America/Sao_Paulo')::date, '95000000-0000-0000-0000-000000000005', '96000000-0000-0000-0000-000000000005', null,
   jsonb_build_array(jsonb_build_object('id', (select id from public.trip_stops where trip_id = (select (r ->> 'trip_id')::uuid from base)), 'site_id', '92000000-0000-0000-0000-000000000001',
     'cylinder_ids', jsonb_build_array(pg_temp.cy(20), pg_temp.cy(21), pg_temp.cy(22)))))
   ->> 'code', 'CYLINDER_RESERVED', 'a edição que inclui o cilindro 21, já reservado, também é recusada');
 select is((select count(*)::int from public.trip_items where trip_id = (select (r ->> 'trip_id')::uuid from base) and item_status <> 'removed'), 1, 'e a viagem em edição continua com o cilindro 20, só');
 
 -- 7. Permissões: quem planeja mas não lê viagens sabe que o cilindro foi reservado, não por qual viagem.
-create temp table sem_leitura as select public.create_trip('10000000-0000-0000-0000-0000000008e1', '60000000-0000-0000-0000-0000000800e1', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date,
+create temp table sem_leitura as select public.create_trip('10000000-0000-0000-0000-0000000008e1', '60000000-0000-0000-0000-0000000800e1', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001', null, jsonb_build_array(pg_temp.stop(1, array[1]))) as r;
 select is((select r ->> 'code' from sem_leitura), 'CYLINDER_RESERVED', 'sem a permissão de leitura, o cilindro reservado é recusado do mesmo jeito');
 select is((select r ->> 'trip_id' from sem_leitura), null, 'mas a viagem que o reservou não é revelada (sem id)');
@@ -126,9 +126,9 @@ select is(pg_temp.conflict_ids((select r from sem_leitura)), array[pg_temp.cy(1)
 select is(((select r -> 'conflicts' -> 0 from sem_leitura) ? 'trip_id'), false, 'e a lista de conflitos também não leva a viagem');
 
 -- 8. Isolamento: o Tenant B não alcança nem descobre as reservas do Tenant A.
-select is(public.create_trip('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000800b3', '20000000-0000-0000-0000-00000000000b', gen_random_uuid(), current_date,
+select is(public.create_trip('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000800b3', '20000000-0000-0000-0000-00000000000b', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001', null, jsonb_build_array(pg_temp.stop(1, array[1]))) ->> 'code', 'NOT_FOUND', 'o Tenant B não enxerga o cilindro do A (nem o seu conflito)');
-select is(public.create_trip('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000800b3', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date,
+select is(public.create_trip('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000800b3', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001', null, jsonb_build_array(pg_temp.stop(1, array[1]))) ->> 'code', 'ACCESS_DENIED', 'e fingir ser da organização A é negado');
 select is(pg_temp.plan(jsonb_build_array(pg_temp.stop(1, array[1])), 1, 1, '10000000-0000-0000-0000-0000000008d1', '60000000-0000-0000-0000-0000000800d1') ->> 'code', 'ACCESS_DENIED', 'o auditor não planeja');
 

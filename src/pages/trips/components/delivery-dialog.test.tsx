@@ -39,7 +39,7 @@ const typeCode = async (value: string): Promise<void> => {
 // Spec 009, US2 (RF-009 a RF-014): a posição da entrega pelo GPS do aparelho, por coordenadas digitadas ou no endereço da unidade, sempre
 // opcional; a origem, a precisão e o horário da leitura seguem no envio; leitura com mais de 2 minutos é lida de novo antes de enviar.
 describe('diálogo de entrega: posição (Spec 009)', () => {
-  const READING: PositionReading = { latitude: -23.55052, longitude: -46.633309, accuracyM: 12.4, readAt: Date.UTC(2026, 9, 13, 15, 29, 30) };
+  const READING: PositionReading = { latitude: -23.55052, longitude: -46.633309, accuracyM: 12.4, readAt: Date.now() - 30_000 };  // relativo ao relógio real: a validação compara a leitura com a hora da entrega (no máximo 10 min antes)
   const geolocation = (fail?: ReaderErrorKind): GeolocationReader & { read: ReturnType<typeof vi.fn> } => ({
     isSupported: () => true, read: vi.fn(async () => { if (fail) throw new ReaderError(fail); return READING; }),
   }) as never;
@@ -438,5 +438,28 @@ describe('diálogo de entrega: posição por coordenadas ou no endereço da unid
   it('explica a regra ao lado das opções', () => {
     setup();
     expect(screen.getByText(/ou marque que a entrega foi no endereço da unidade/)).toBeInTheDocument();
+  });
+});
+
+// Spec 010, T054 e T061: fotos e assinatura são opcionais, só no registro original, e a entrega vale sem elas.
+describe('fotos e assinatura no diálogo (Spec 010)', () => {
+  it('sem a opção de anexos, o diálogo é o de sempre', () => {
+    setup();
+    expect(screen.queryByRole('group', { name: 'Fotos da entrega (opcional)' })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Assinatura de quem recebeu (opcional)' })).toBeNull();
+  });
+
+  it('com a opção, mostra os dois blocos e a entrega salva sem nenhum anexo', () => {
+    const { onSubmit } = setup({ evidence: { usedBytes: 0 } });
+    expect(screen.getByRole('group', { name: 'Fotos da entrega (opcional)' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Assinatura de quem recebeu (opcional)' })).toBeInTheDocument();
+    name('Recebedor Fictício');
+    submit();
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ recipientName: 'Recebedor Fictício' }), { photos: [], signature: null });
+  });
+
+  it('na correção os anexos não aparecem', () => {
+    setup({ previous, evidence: { usedBytes: 0 } });
+    expect(screen.queryByRole('group', { name: 'Fotos da entrega (opcional)' })).toBeNull();
   });
 });

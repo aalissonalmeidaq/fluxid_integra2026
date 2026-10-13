@@ -2,6 +2,10 @@ import { compact, isObject, num, str, type Raw } from '../registry/registry-serv
 import type { CylinderRefusalReason } from '@/domain/trips/trip-vocabulary';
 import type { PositionPayload } from '@/domain/field/position-draft';
 import type { ReadingSource } from '@/domain/field/reading-source';
+import type { QueueRequest, QueueResult } from '@/application/field/offline-queue-service';
+import type { SaveOptions } from '@/application/field/offline-trip-store';
+import type { OfflineTrip } from '@/domain/field/offline-trip';
+import { offlineTripToDetail } from './offline-trip-view';
 import type { DeliveryFormValue, TripFormValue } from '@/domain/trips/trip-validation';
 import {
   toEligibleCylinder, toPage, toTripEventPage, toTripOfCylinder, toTripOfSite, toTripDetail, toTripListItem, toTripOptions,
@@ -22,10 +26,15 @@ export interface TripTransport {
 export type TripFailureKind =
   | 'offline' | 'unavailable' | 'unknown' | 'session_expired' | 'access_denied' | 'mfa_required' | 'not_found' | 'invalid' | 'justification_required'
   | 'version_conflict' | 'cylinder_reserved' | 'cylinder_not_eligible' | 'capacity_exceeded' | 'parent_inactive' | 'driver_license_expired'
-  | 'resource_busy' | 'invalid_transition' | 'items_pending' | 'stops_open' | 'trip_closed' | 'stop_closed' | 'request_reused';
+  | 'resource_busy' | 'invalid_transition' | 'items_pending' | 'stops_open' | 'trip_closed' | 'stop_closed' | 'request_reused'
+  // Spec 010: a fila offline recusou o registro (sem permissão, sessão offline expirada, viagem não guardada...); `message` traz o motivo em texto.
+  | 'offline_refused';
 
 export interface TripFailure {
   kind: TripFailureKind;
+  // Motivo em texto da recusa da fila (`offline_refused`) e a razão estável para a tela decidir o que mostrar.
+  message?: string;
+  refusal?: string;
   // Erros de validação do servidor por campo (nomes do contrato, em snake_case).
   fields?: Record<string, string>;
   // Viagem que causou o conflito (`cylinder_reserved`, `resource_busy`).
@@ -47,7 +56,22 @@ export interface TripFailure {
   stopIds?: string[];
 }
 
-export type TripOutcome<T> = { kind: 'success'; value: T } | TripFailure;
+// `pending` só existe offline (Spec 010): a operação entrou na fila do aparelho e ainda NÃO foi confirmada pelo servidor.
+export type TripOutcome<T> = { kind: 'success'; value: T; pending?: { queueItemId: string } } | TripFailure;
+
+// Porta da fila offline (Spec 010, RF-001): o serviço entrega o pedido já montado e a fila valida, grava e responde. Implementada por
+// `application/field/offline-queue-service`; tipada aqui só pelo que o serviço usa.
+export interface OfflineQueuePort {
+  enqueue(request: QueueRequest): Promise<QueueResult>;
+  // Cilindros e paradas com mudança ainda na fila: a cópia nova da viagem não pode desfazê-la.
+  pendingRefs?(tripId: string): Promise<{ itemIds: Set<string>; stopIds: Set<string> }>;
+}
+
+// Porta da viagem guardada no aparelho (Spec 010, RF-006, RF-007), implementada por `application/field/offline-trip-store`.
+export interface OfflineTripPort {
+  get(tripId: string): Promise<OfflineTrip | null>;
+  save(raw: unknown, options?: SaveOptions): Promise<OfflineTrip | null>;
+}
 
 export interface TripFilters {
   search?: string;
@@ -95,7 +119,29 @@ const STRING_LIST = (value: unknown): string[] | undefined =>
 export const newRequestId = (): string => crypto.randomUUID();
 
 export class TripService {
-  constructor(protected readonly transport: TripTransport, protected readonly isOnline: () => boolean = () => true) {}
+  // `queue` (Spec 010) é opcional: sem ela, o serviço se comporta como na Spec 008 e toda escrita offline devolve `offline`.
+  constructor(
+    protected readonly transport: TripTransport,
+    protected readonly isOnline: () => boolean = () => true,
+    protected readonly queue?: OfflineQueuePort,
+    protected readonly clock: () => Date = () => new Date(),
+    protected readonly offlineTrips?: OfflineTripPort,
+    // Endereço público do destino ativo: a URL assinada sai da borda com o endereço interno do servidor (no Supabase local, o da rede dos contêineres), então o
+    // navegador troca só a origem e mantém caminho e assinatura.
+    protected readonly publicBase?: string,
+  ) {}
+
+  // Só as quatro operações de campo entram na fila, e só quando não há conexão.
+  protected get queueing(): OfflineQueuePort | null {
+    return this.queue && !this.isOnline() ? this.queue : null;
+  }
+
+  // Resposta da fila -> resultado de tela. A recusa vira `offline_refused` com o motivo em texto; "enfileirado" é sucesso **pendente**.
+  protected fromQueue<T>(result: QueueResult, success: (counts: { checked: number; total: number }) => T): TripOutcome<T> {
+    if (result.kind === 'refused') return { kind: 'offline_refused', refusal: result.reason, message: result.message };
+    if (result.kind === 'cancelled') return { kind: 'success', value: success(result.counts) };
+    return { kind: 'success', value: success(result.counts), pending: { queueItemId: result.itemId } };
+  }
 
   protected failureOf(response: { status: number; body: unknown }, write: boolean): TripFailure {
     const body = isObject(response.body) ? response.body : {};
@@ -182,8 +228,45 @@ export class TripService {
     }, (payload) => toPage(payload, 'items', toTripListItem));
   }
 
-  getTrip(organizationId: string, tripId: string): Promise<TripOutcome<TripDetail>> {
+  // Sem conexão, abre a cópia guardada no aparelho (só viagens em carregamento ou em andamento); sem cópia, devolve `offline`.
+  async getTrip(organizationId: string, tripId: string): Promise<TripOutcome<TripDetail>> {
+    if (!this.isOnline() && this.offlineTrips) {
+      const copy = await this.offlineTrips.get(tripId).catch(() => null);
+      if (copy) return { kind: 'success', value: offlineTripToDetail(copy) };
+    }
     return this.query(organizationId, 'get_trip', { trip_id: tripId }, toTripDetail);
+  }
+
+  // Grava (ou renova) a cópia da viagem para operar sem conexão. É melhor esforço: quem não tem `trip.operate`, a viagem encerrada ou a rede
+  // fora do ar só ficam sem a cópia, e a tela segue normalmente.
+  async rememberTrip(organizationId: string, tripId: string): Promise<void> {
+    if (!this.offlineTrips || !this.isOnline()) return;
+    try {
+      const outcome = await this.query(organizationId, 'get_trip_offline', { trip_id: tripId }, (payload) => payload);
+      if (outcome.kind !== 'success') return;
+      const refs = await this.queue?.pendingRefs?.(tripId);
+      await this.offlineTrips.save(outcome.value, refs ? { pendingItemIds: refs.itemIds, pendingStopIds: refs.stopIds } : {});
+    } catch {
+      // Sem cópia: a viagem continua abrindo com conexão.
+    }
+  }
+
+  private publicUrl(url: string): string {
+    if (!this.publicBase) return url;
+    try {
+      const parsed = new URL(url);
+      return `${this.publicBase.replace(/\/+$/, '')}${parsed.pathname}${parsed.search}`;
+    } catch {
+      return url;
+    }
+  }
+
+  // URL assinada de vida curta (60 segundos) de uma foto ou da assinatura; a permissão do tipo é conferida no servidor. Nunca é guardada.
+  attachmentUrl(organizationId: string, attachmentId: string): Promise<TripOutcome<{ url: string; expiresAt: string }>> {
+    return this.query(organizationId, 'get_attachment_url', { attachment_id: attachmentId }, (payload) => {
+      const url = str(payload.url);
+      return payload.code === 'FOUND' && url !== null ? { url: this.publicUrl(url), expiresAt: str(payload.expires_at) ?? '' } : null;
+    });
   }
 
   // ----- Histórico e consultas cruzadas (US6) -----
@@ -267,11 +350,15 @@ export class TripService {
   }
 
   // Confere um cilindro previsto. `source` é o método de leitura (Spec 009); sem ele, o servidor assume "manual".
-  checkItem(organizationId: string, tripId: string, itemId: string, requestId?: string, source?: ReadingSource): Promise<TripOutcome<ItemCounts>> {
+  async checkItem(organizationId: string, tripId: string, itemId: string, requestId?: string, source?: ReadingSource): Promise<TripOutcome<ItemCounts>> {
+    const queue = this.queueing;
+    if (queue) return this.fromQueue(await queue.enqueue({ operation: 'trip.check_item', tripId, itemId, body: { trip_id: tripId, item_id: itemId, ...(source ? { source } : {}) } }), (counts) => counts);
     return this.itemCommand(organizationId, 'check_item', 'CHECKED', tripId, itemId, requestId, source ? { source } : {});
   }
 
-  uncheckItem(organizationId: string, tripId: string, itemId: string, requestId?: string): Promise<TripOutcome<ItemCounts>> {
+  async uncheckItem(organizationId: string, tripId: string, itemId: string, requestId?: string): Promise<TripOutcome<ItemCounts>> {
+    const queue = this.queueing;
+    if (queue) return this.fromQueue(await queue.enqueue({ operation: 'trip.uncheck_item', tripId, itemId, body: { trip_id: tripId, item_id: itemId } }), (counts) => counts);
     return this.itemCommand(organizationId, 'uncheck_item', 'UNCHECKED', tripId, itemId, requestId);
   }
 
@@ -284,10 +371,16 @@ export class TripService {
 
   // A posição é opcional (Spec 009): com ela vão as coordenadas, a origem e, no GPS, a precisão e o horário da leitura. O servidor responde também
   // se a chegada foi fora da geocerca da unidade (só quando há posição e geocerca ativa).
-  arriveStop(organizationId: string, tripId: string, stopId: string, requestId?: string, position?: PositionPayload): Promise<TripOutcome<ArrivedStop>> {
+  async arriveStop(organizationId: string, tripId: string, stopId: string, requestId?: string, position?: PositionPayload): Promise<TripOutcome<ArrivedStop>> {
     const where = position
       ? { latitude: position.latitude, longitude: position.longitude, accuracy_m: position.accuracyM ?? undefined, position_source: position.source, position_read_at: position.readAt ?? undefined }
       : {};
+    const queue = this.queueing;
+    if (queue) {
+      // Offline, a chegada leva o horário do aparelho, porque o servidor só a recebe depois (RF-014); a posição vai só no corpo do pedido da fila.
+      const arrivedAt = this.clock().toISOString();
+      return this.fromQueue(await queue.enqueue({ operation: 'trip.arrive_stop', tripId, stopId, arrivedAt, body: compact({ trip_id: tripId, stop_id: stopId, arrived_at: arrivedAt, ...where }) }), () => ({ outOfOrder: false }));
+    }
     return this.command(organizationId, 'arrive_stop', { trip_id: tripId, stop_id: stopId, ...where }, (payload) => (payload.code === 'ARRIVED'
       ? { outOfOrder: payload.out_of_order === true, ...(typeof payload.outside_geofence === 'boolean' ? { outsideGeofence: payload.outside_geofence } : {}) }
       : null), requestId);
@@ -295,8 +388,8 @@ export class TripService {
 
   // Entrega por parada inteira. Com `supersedesId`, é a correção de um registro anterior (novo registro; o original fica intacto).
   // O nome do recebedor e a justificativa da correção seguem só no corpo do pedido: o serviço não os guarda nem os repete em lugar algum.
-  registerDelivery(organizationId: string, tripId: string, stopId: string, value: DeliveryFormValue, supersedesId?: string, requestId?: string): Promise<TripOutcome<RegisteredDelivery>> {
-    return this.command(organizationId, 'register_delivery', {
+  async registerDelivery(organizationId: string, tripId: string, stopId: string, value: DeliveryFormValue, supersedesId?: string, requestId?: string): Promise<TripOutcome<RegisteredDelivery>> {
+    const body: Raw = {
       trip_id: tripId, stop_id: stopId, delivered_at: value.deliveredAt, recipient_name: value.recipientName, recipient_role: value.recipientRole,
       latitude: value.latitude, longitude: value.longitude, at_site_address: value.atSiteAddress,
       accuracy_m: value.position?.accuracyM ?? undefined, position_source: value.position?.source, position_read_at: value.position?.readAt ?? undefined,
@@ -304,7 +397,15 @@ export class TripService {
         ? { item_id: result.itemId, delivered: true, ...(result.source ? { source: result.source } : {}) }
         : { item_id: result.itemId, delivered: false, reason: result.reason })),
       supersedes_id: supersedesId, correction_reason: value.correctionReason ?? undefined,
-    }, (payload) => {
+    };
+    // Só o registro original da entrega entra na fila; a correção depende de revalidação do servidor e exige conexão (RF-003).
+    const queue = supersedesId === undefined ? this.queueing : null;
+    if (queue) {
+      const allDelivered = value.results.length > 0 && value.results.every((result) => result.delivered);
+      const result = await queue.enqueue({ operation: 'trip.deliver', tripId, stopId, results: value.results.map((entry) => ({ itemId: entry.itemId, delivered: entry.delivered })), body: compact(body) });
+      return this.fromQueue(result, () => ({ deliveryId: '', stopStatus: allDelivered ? 'delivered' as const : 'with_divergence' as const, outsideGeofence: null }));
+    }
+    return this.command(organizationId, 'register_delivery', body, (payload) => {
       const deliveryId = str(payload.delivery_id);
       const stopStatus = payload.stop_status;
       if (payload.code !== 'DELIVERED' || deliveryId === null || (stopStatus !== 'delivered' && stopStatus !== 'with_divergence')) return null;

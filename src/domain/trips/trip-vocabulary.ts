@@ -36,6 +36,8 @@ export const TRIP_EVENT_TYPES = [
   'trip_created', 'trip_updated', 'loading_started', 'loading_reverted', 'item_checked', 'item_unchecked', 'item_removed',
   'trip_started', 'stop_arrived', 'delivery_registered', 'delivery_corrected', 'unlock_registered', 'item_returned',
   'trip_completed', 'trip_cancelled',
+  // Spec 010: decisões sobre registros da fila e anexos da entrega.
+  'sync_conflict_discarded', 'sync_conflict_resubmitted', 'evidence_attached',
 ] as const;
 export type TripEventType = (typeof TRIP_EVENT_TYPES)[number];
 export const TRIP_EVENT_LABELS: Record<TripEventType, string> = {
@@ -43,6 +45,7 @@ export const TRIP_EVENT_LABELS: Record<TripEventType, string> = {
   item_checked: 'Cilindro conferido', item_unchecked: 'Conferência desfeita', item_removed: 'Cilindro retirado', trip_started: 'Viagem iniciada',
   stop_arrived: 'Chegada à parada', delivery_registered: 'Entrega registrada', delivery_corrected: 'Entrega corrigida', unlock_registered: 'Desbloqueio registrado',
   item_returned: 'Cilindro devolvido ao estoque', trip_completed: 'Viagem concluída', trip_cancelled: 'Viagem cancelada',
+  sync_conflict_discarded: 'Registro offline descartado', sync_conflict_resubmitted: 'Registro offline reenviado', evidence_attached: 'Anexos da entrega',
 };
 
 // Tipos de evento que a viagem acrescenta ao histórico do cilindro (Spec 006).

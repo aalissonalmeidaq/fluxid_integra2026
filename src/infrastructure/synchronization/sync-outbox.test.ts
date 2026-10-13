@@ -86,4 +86,112 @@ describe('SyncOutbox', () => {
     expect(audit).toHaveBeenCalledWith(expect.objectContaining({ action: 'outbox.discard', itemId: item.id, actorId: 'actor-1' }));
     await database.close();
   });
+
+  // Spec 010, T011: partição por conta e destino, e nada sensível sobrevive à confirmação nem ao descarte (RF-002, RF-016, RF-025).
+  describe('fila de campo (Spec 010)', () => {
+    const owner = { actorId: 'actor-1', endpointId: 'local' };
+    const field = { ...command, operation: 'trip.check_item', endpointId: 'local', tripId: 'trip-1', payload: { item_id: 'I1', latitude: -23.55, recipient_name: 'Recebedor Fictício' } };
+
+    it('guarda o destino de origem, a viagem e a hora da fila', async () => {
+      const { database, outbox } = await setup();
+      const item = await outbox.enqueue(field);
+      expect(item).toMatchObject({ endpoint_id: 'local', trip_id: 'trip-1', queued_at: '2026-09-29T12:00:00.000Z' });
+      await database.close();
+    });
+
+    it('sem destino nem viagem, mantém o comportamento da Spec 002', async () => {
+      const { database, outbox } = await setup();
+      const item = await outbox.enqueue(command);
+      expect(item).toMatchObject({ endpoint_id: null, trip_id: null });
+      await database.close();
+    });
+
+    it('listOwned devolve só os itens da conta e do destino', async () => {
+      const { database, outbox } = await setup();
+      const mine = await outbox.enqueue(field);
+      await outbox.enqueue({ ...field, actorId: 'actor-2' });
+      await outbox.enqueue({ ...field, endpointId: 'cloud' });
+      expect((await outbox.listOwned(owner)).map((item) => item.id)).toEqual([mine.id]);
+      await database.close();
+    });
+
+    it('confirmar remove o item por inteiro: nenhum payload sobrevive', async () => {
+      const { database, outbox } = await setup();
+      const item = await outbox.enqueue(field);
+      await outbox.transition(item.id, 'syncing');
+      await outbox.confirm(item.id, '2026-09-29T12:01:00Z');
+      expect(await outbox.list()).toEqual([]);
+      expect(await database.list('local_outbox')).toEqual([]);
+      await database.close();
+    });
+
+    it('confirmar exige o item em envio e a hora do servidor', async () => {
+      const { database, outbox } = await setup();
+      const item = await outbox.enqueue(field);
+      await expect(outbox.confirm(item.id, '2026-09-29T12:01:00Z')).rejects.toThrow(/transição/i);
+      await outbox.transition(item.id, 'syncing');
+      await expect(outbox.confirm(item.id, '')).rejects.toThrow(/confirmação/i);
+      expect(await outbox.list()).toHaveLength(1);
+      await database.close();
+    });
+
+    it('descartar com decisão remove o item por inteiro e audita; sem autorização não remove nada', async () => {
+      const { database, outbox, audit } = await setup();
+      const item = await outbox.enqueue(field);
+      await outbox.transition(item.id, 'syncing');
+      await outbox.transition(item.id, 'conflict');
+      await expect(outbox.discardAndRemove(item.id, { authorized: false, actorId: 'actor-1' })).rejects.toThrow(/autorização/i);
+      expect(await outbox.list()).toHaveLength(1);
+      await outbox.discardAndRemove(item.id, { authorized: true, actorId: 'actor-1' });
+      expect(await outbox.list()).toEqual([]);
+      expect(audit).toHaveBeenCalledWith(expect.objectContaining({ action: 'outbox.discard', itemId: item.id }));
+      await database.close();
+    });
+
+    it('descartar só vale para conflito ou falha (nunca para o que está pendente ou enviando)', async () => {
+      const { database, outbox } = await setup();
+      const item = await outbox.enqueue(field);
+      await expect(outbox.discardAndRemove(item.id, { authorized: true, actorId: 'actor-1' })).rejects.toThrow(/conflito|falha/i);
+      expect(await outbox.list()).toHaveLength(1);
+      await database.close();
+    });
+
+    it('reenviar devolve o conflito a pendente com a mesma chave de idempotência', async () => {
+      const { database, outbox } = await setup();
+      const item = await outbox.enqueue(field);
+      await outbox.transition(item.id, 'syncing');
+      await outbox.transition(item.id, 'conflict');
+      const again = await outbox.resubmit(item.id);
+      expect(again).toMatchObject({ status: 'pending', idempotency_key: item.idempotency_key, failure_reason: null });
+      await database.close();
+    });
+
+    it('reenviar só vale para conflito ou falha', async () => {
+      const { database, outbox } = await setup();
+      const item = await outbox.enqueue(field);
+      await expect(outbox.resubmit(item.id)).rejects.toThrow(/conflito|falha/i);
+      await database.close();
+    });
+
+    it('cancelar um pendente que nunca foi enviado remove o item sem evento no servidor', async () => {
+      const { database, outbox } = await setup();
+      const item = await outbox.enqueue(field);
+      await outbox.cancelPending(item.id);
+      expect(await outbox.list()).toEqual([]);
+      await database.close();
+    });
+
+    it('cancelar só vale para pendente (nunca para o que está sendo enviado, em conflito ou já tentado)', async () => {
+      const { database, outbox } = await setup();
+      const sending = await outbox.enqueue(field);
+      await outbox.transition(sending.id, 'syncing');
+      await expect(outbox.cancelPending(sending.id)).rejects.toThrow(/pendente/i);
+      const tried = await outbox.enqueue(field);
+      await outbox.transition(tried.id, 'syncing');
+      await outbox.registerFailure(tried.id, 'network');
+      await expect(outbox.cancelPending(tried.id)).rejects.toThrow(/enviado|tentativa/i);
+      expect(await outbox.list()).toHaveLength(2);
+      await database.close();
+    });
+  });
 });

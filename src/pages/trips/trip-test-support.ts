@@ -65,9 +65,10 @@ export function fakeTripService(overrides: Record<string, unknown> = {}) {
     removeItem: vi.fn(async () => ({ kind: 'success' as const, value: { checked: 0, total: 1 } })),
     arriveStop: vi.fn(async () => ({ kind: 'success' as const, value: { outOfOrder: false } })),
     registerDelivery: vi.fn(async () => ({ kind: 'success' as const, value: { deliveryId: 'd1', stopStatus: 'delivered' as const, outsideGeofence: null } })),
+    rememberTrip: vi.fn(async () => undefined),
     tripHistory: vi.fn(async () => ({ kind: 'success' as const, value: { events: [], next: null } })),
     tripsOfCylinder: vi.fn(async () => ({ kind: 'success' as const, value: { items: [], next: null } })),
     tripsOfSite: vi.fn(async () => ({ kind: 'success' as const, value: { items: [], next: null } })),
     ...overrides,
-  } as unknown as TripService & Record<'tripOptions' | 'getTrip' | 'listEligibleCylinders' | 'createTrip' | 'updateTrip' | 'listTrips' | 'completeTrip' | 'cancelTrip' | 'returnItem' | 'registerUnlock' | 'startLoading' | 'revertLoading' | 'startTrip' | 'checkItem' | 'uncheckItem' | 'removeItem' | 'arriveStop' | 'registerDelivery' | 'tripHistory' | 'tripsOfCylinder' | 'tripsOfSite', ReturnType<typeof vi.fn>>;
+  } as unknown as TripService & Record<'tripOptions' | 'getTrip' | 'listEligibleCylinders' | 'createTrip' | 'updateTrip' | 'listTrips' | 'completeTrip' | 'cancelTrip' | 'returnItem' | 'registerUnlock' | 'startLoading' | 'revertLoading' | 'startTrip' | 'checkItem' | 'uncheckItem' | 'removeItem' | 'arriveStop' | 'registerDelivery' | 'tripHistory' | 'tripsOfCylinder' | 'tripsOfSite' | 'rememberTrip', ReturnType<typeof vi.fn>>;
 }

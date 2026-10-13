@@ -97,6 +97,14 @@ function cancelled(data: Data): string {
   return `${base}.`;
 }
 
+// Anexos da entrega (Spec 010): só a contagem e se há assinatura, nunca nome de arquivo, caminho nem imagem.
+function evidenceAttached(data: Data): string {
+  const photos = count(data.photo_count) ?? 0;
+  const parts = [photos > 0 ? `Fotos anexadas à entrega (${photos})` : null, data.has_signature === true ? 'com assinatura' : null].filter((part): part is string => part !== null);
+  const later = data.added_later === true ? ' (acrescentado depois)' : '';
+  return `${parts.length > 0 ? parts.join(', ') : 'Anexos da entrega'}${later}.`;
+}
+
 /**
  * Descreve um evento do histórico em uma frase. `names` traduz ids de veículo e motorista para o texto exibido; sem ele a edição
  * diz só que o campo mudou.
@@ -116,6 +124,7 @@ export function describeTripEvent(type: TripEventType, data: Data, names: Record
     case 'unlock_registered': return data.exceptional === true ? 'Desbloqueio excepcional registrado.' : 'Desbloqueio registrado.';
     case 'trip_completed': return completed(data);
     case 'trip_cancelled': return cancelled(data);
+    case 'evidence_attached': return evidenceAttached(data);
     default: return `${TRIP_EVENT_LABELS[type]}.`;
   }
 }

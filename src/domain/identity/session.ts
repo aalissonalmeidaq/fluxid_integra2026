@@ -6,10 +6,12 @@ export type AuthState =
   | { status: 'checking' }
   | { status: 'signed_out'; notice?: AuthNotice; reason?: ExpiryReason }
   | { status: 'mfa_required' }
-  | { status: 'authenticated'; aal: AssuranceLevel };
+  // `offline` (Spec 010, RF-016a): sessão restaurada pelo acesso offline restrito, sem confirmação do servidor; some quando o servidor confirmar.
+  | { status: 'authenticated'; aal: AssuranceLevel; offline?: true };
 
 export type AuthEvent =
   | { type: 'session_active'; aal: AssuranceLevel; mfaRequired?: boolean }
+  | { type: 'session_offline_restored'; aal: AssuranceLevel }
   | { type: 'session_missing' }
   | { type: 'session_invalid' }
   | { type: 'session_expired'; reason?: ExpiryReason }
@@ -26,6 +28,8 @@ export function authReducer(state: AuthState, event: AuthEvent): AuthState {
   switch (event.type) {
     case 'session_active':
       return event.mfaRequired ? { status: 'mfa_required' } : { status: 'authenticated', aal: event.aal };
+    case 'session_offline_restored':
+      return { status: 'authenticated', aal: event.aal, offline: true };
     case 'session_missing':
     case 'session_invalid':
       return { status: 'signed_out' };

@@ -80,6 +80,7 @@ describe('describeUnresolved', () => {
   it.each([
     ['invalid', 'Código inválido. Tente ler de novo.'],
     ['offline', 'Sem conexão. Registrar exige conexão.'],
+    ['offline_unconfirmed', 'Não foi possível confirmar este código sem conexão.'],
     ['access_denied', 'Você não tem permissão para esta leitura.'],
     ['session_expired', 'Sua sessão expirou. Entre de novo para continuar.'],
     ['unavailable', 'Não foi possível consultar agora. Tente de novo.'],

@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { SelectionState, TenantOption } from '@/domain/identity/tenant-selection';
+import type { LocalDatabase } from '@/infrastructure/local-database/local-database';
 import type { SelectResult } from '@/application/identity/tenant-context-service';
 
 export interface TenantContextValue {
@@ -15,6 +16,8 @@ export interface TenantContextValue {
   beginSwitch: () => void;
   cancelSwitch: () => void;
   reload: () => Promise<void>;
+  // Base local aberta (Spec 010): a fila offline e a viagem guardada vivem nela. Nula enquanto não abriu.
+  database?: LocalDatabase | null;
 }
 
 export const TenantContext = createContext<TenantContextValue>({

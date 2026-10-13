@@ -101,7 +101,8 @@ describe('query-trips: operações do planejamento', () => {
     const gw = gateway({ code: 'FOUND' });
     expect((await handler(gw)(post({ operation: 'get_trip', organization_id: ORG }))).status).toBe(400);
     expect((await handler(gw)(post({ operation: 'get_trip', organization_id: ORG, trip_id: TRIP }))).status).toBe(200);
-    expect(gw.rpc.mock.calls[0]).toEqual(['get_trip', expect.objectContaining({ p_trip: TRIP })]);
+    // A consulta dos anexos (Spec 010) corre ao mesmo tempo: a ordem entre as duas chamadas não importa.
+    expect(gw.rpc.mock.calls.find((call) => call[0] === 'get_trip')).toEqual(['get_trip', expect.objectContaining({ p_trip: TRIP })]);
   });
 
   it('trip_options e list_eligible_cylinders levam busca, tipo e paginação', async () => {
