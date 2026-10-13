@@ -24,6 +24,27 @@ function fakeService(overrides: Record<string, unknown> = {}) {
 const renderList = (service: ReturnType<typeof fakeService> | null, extra: Record<string, unknown> = {}) =>
   render(<CylinderListView organizationId={ORG} service={service} online canCreate {...extra} />);
 
+// Spec 009, US3 (RF-006): o cabeçalho recebe as ações extras ("Ler cilindro"), junto de "Cadastrar cilindro".
+describe('lista de cilindros: ações do cabeçalho (Spec 009)', () => {
+  it('mostra a ação extra ao lado de "Cadastrar cilindro"', async () => {
+    renderList(fakeService(), { extraActions: <button type="button">Ler cilindro</button> });
+    expect(await screen.findByRole('button', { name: 'Ler cilindro' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Cadastrar cilindro' })).toBeInTheDocument();
+  });
+
+  it('sem a ação extra, a lista é a de antes', async () => {
+    renderList(fakeService());
+    await screen.findByRole('rowheader', { name: 'Q-001' });
+    expect(screen.queryByRole('button', { name: 'Ler cilindro' })).toBeNull();
+  });
+
+  it('a ação extra aparece mesmo para quem não pode cadastrar (só ver cilindros)', async () => {
+    renderList(fakeService(), { canCreate: false, extraActions: <button type="button">Ler cilindro</button> });
+    expect(await screen.findByRole('button', { name: 'Ler cilindro' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Cadastrar cilindro' })).toBeNull();
+  });
+});
+
 describe('lista de cilindros (história 2)', () => {
   it('mostra carregamento e depois a tabela com cabeçalhos e as três situações separadas, com texto', async () => {
     renderList(fakeService());

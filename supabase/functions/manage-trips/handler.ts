@@ -21,6 +21,15 @@ const stops: Rule = {
 
 // A justificativa vazia chega ao banco, que responde JUSTIFICATION_REQUIRED (5 a 500 caracteres).
 const justification: Rule = { t: 'text', max: 500, nullable: true, optional: true };
+// Método de leitura da conferência e da entrega (Spec 009, RF-001): o mesmo conjunto da restrição `trip_items_source_check` do banco,
+// que tests/contract/manage-trips-handler.test.ts confere contra o domínio. Declarado pelo cliente; o banco só valida o valor.
+export const READING_SOURCES = ['manual', 'typed', 'camera', 'nfc'] as const;
+const source: Rule = { t: 'enum', values: READING_SOURCES, optional: true };
+// Posição lida pelo aparelho (Spec 009, RF-009 a RF-014), sempre opcional: coordenadas em par, precisão em metros, origem e horário da
+// leitura. O banco repete as regras (par, intervalo, origem coerente com o dado, leitura sem futuro e com até 10 minutos).
+const coordinate = (limit: number): Rule => ({ t: 'number', min: -limit, max: limit, nullable: true, optional: true });
+const accuracy: Rule = { t: 'number', min: 0, max: 100000, nullable: true, optional: true };
+const positionSource = (values: readonly string[]): Rule => ({ t: 'enum', values, nullable: true, optional: true });
 const tripAndVersion = (): Record<string, [Rule, string]> => ({ trip_id: [{ t: 'uuid' }, 'p_trip'], expected_version: version });
 const tripAndItem = (): Record<string, [Rule, string]> => ({ trip_id: [{ t: 'uuid' }, 'p_trip'], item_id: [{ t: 'uuid' }, 'p_item'] });
 
@@ -29,7 +38,7 @@ const instant: Rule = { t: 'text', max: 40, pattern: /^\d{4}-\d{2}-\d{2}T\d{2}:\
 // Resultado de cada cilindro da parada: entregue ou não, com o motivo quando não foi (o banco exige o motivo e o tamanho).
 const results: Rule = {
   t: 'objects', maxItems: 200,
-  fields: { item_id: { t: 'uuid' }, delivered: { t: 'bool' }, reason: { t: 'text', max: 500, nullable: true, optional: true } },
+  fields: { item_id: { t: 'uuid' }, delivered: { t: 'bool' }, reason: { t: 'text', max: 500, nullable: true, optional: true }, source },
 };
 
 const planFields = (): Record<string, [Rule, string]> => ({
@@ -49,7 +58,7 @@ export const MANAGE_OPERATIONS: Record<string, OperationSpec> = {
   // Carregamento e início (US2): conferência manual, retirada com exceção e início com revalidação.
   start_loading: { rpc: 'start_loading', action: 'trip.start_loading', fields: { request_id: requestId, ...tripAndVersion() } },
   revert_loading: { rpc: 'revert_loading', action: 'trip.revert_loading', fields: { request_id: requestId, ...tripAndVersion() } },
-  check_item: { rpc: 'check_item', action: 'trip.check_item', fields: { request_id: requestId, ...tripAndItem() } },
+  check_item: { rpc: 'check_item', action: 'trip.check_item', fields: { request_id: requestId, ...tripAndItem(), source: [source, 'p_source'] } },
   uncheck_item: { rpc: 'uncheck_item', action: 'trip.uncheck_item', fields: { request_id: requestId, ...tripAndItem() } },
   remove_item: { rpc: 'remove_item', action: 'trip.remove_item', fields: { request_id: requestId, ...tripAndItem(), justification: [justification, 'p_justification'] } },
   start_trip: { rpc: 'start_trip', action: 'trip.start', fields: { request_id: requestId, ...tripAndVersion() } },
@@ -62,7 +71,11 @@ export const MANAGE_OPERATIONS: Record<string, OperationSpec> = {
   // Chegada e entrega por parada (US3). O nome do recebedor nunca é registrado nem devolvido por esta borda.
   arrive_stop: {
     rpc: 'arrive_stop', action: 'trip.arrive_stop',
-    fields: { request_id: requestId, trip_id: [{ t: 'uuid' }, 'p_trip'], stop_id: [{ t: 'uuid' }, 'p_stop'], arrived_at: [{ ...instant, nullable: true, optional: true }, 'p_arrived_at'] },
+    fields: {
+      request_id: requestId, trip_id: [{ t: 'uuid' }, 'p_trip'], stop_id: [{ t: 'uuid' }, 'p_stop'], arrived_at: [{ ...instant, nullable: true, optional: true }, 'p_arrived_at'],
+      latitude: [coordinate(90), 'p_latitude'], longitude: [coordinate(180), 'p_longitude'], accuracy_m: [accuracy, 'p_accuracy_m'],
+      position_source: [positionSource(['gps', 'typed']), 'p_position_source'], position_read_at: [{ ...instant, nullable: true, optional: true }, 'p_position_read_at'],
+    },
   },
   register_delivery: {
     rpc: 'register_delivery', action: 'trip.deliver',
@@ -71,6 +84,8 @@ export const MANAGE_OPERATIONS: Record<string, OperationSpec> = {
       recipient_name: [{ t: 'text', max: 120 }, 'p_recipient_name'], recipient_role: [{ t: 'text', max: 80, nullable: true, optional: true }, 'p_recipient_role'],
       latitude: [{ t: 'number', min: -90, max: 90, nullable: true, optional: true }, 'p_latitude'], longitude: [{ t: 'number', min: -180, max: 180, nullable: true, optional: true }, 'p_longitude'],
       at_site_address: [{ t: 'bool', optional: true }, 'p_at_site_address'], results: [results, 'p_results'],
+      accuracy_m: [accuracy, 'p_accuracy_m'], position_source: [positionSource(['gps', 'typed', 'site_address']), 'p_position_source'],
+      position_read_at: [{ ...instant, nullable: true, optional: true }, 'p_position_read_at'],
       supersedes_id: [{ t: 'uuid', optional: true }, 'p_supersedes'],
       correction_reason: [{ t: 'text', max: 4000, nullable: true, optional: true }, 'p_correction_reason'],
     },

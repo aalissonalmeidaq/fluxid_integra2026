@@ -47,6 +47,8 @@
 
 > Atualização do RIA-026: em 12/10/2026 Alisson Almeida revalidou as correções de 10/10 e aprovou (RIA-027). A pessoa não detalhou a amostra nem o resultado por fluxo; as lacunas estão nas pendências do RIA-027.
 
+| RIA-028 | 12/10/2026, 20:55:57 - America/Fortaleza | 009 | 01 | Leitura de identificadores e GPS no aplicativo de campo | `registros/RIA-028-leitura-de-identificadores-e-gps-no-aplicativo-de-campo.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
@@ -64,3 +66,9 @@
 > Atualização do RIA-026: o link de revisão foi trocado pelo do pull request #28 em 10/10/2026.
 
 > Atualização do RIA-026: em 10/10/2026 foram corrigidos o cilindro já reservado, o selo Em trânsito repetido e o estado offline na barra superior; as correções aguardam confirmação da pessoa responsável.
+
+> Atualização do RIA-028: em 12/10/2026 o PWA foi instalado no computador (produção em 127.0.0.1:4173), mas não no Moto Edge 50 Pro por localhost via adb reverse; a causa no aparelho segue pendente (detalhes em specs/009-leitura-gps-campo/validation.md).
+
+> Atualização do RIA-028: `npm run dev:rede` passou a servir em HTTPS com certificado autoassinado de desenvolvimento, a pedido da pessoa responsável, para testar câmera, NFC e GPS no celular sem cabo (não torna o app instalável como PWA).
+
+> Fechamento do RIA-028: em 12/10/2026 a pessoa responsável decidiu fechar a Spec 009 com a instalação do PWA em Android como pendência (confirmação na Spec 010).

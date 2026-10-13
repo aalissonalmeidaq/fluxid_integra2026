@@ -134,6 +134,20 @@ Depois de atualizar a branch, rode `npx supabase db reset` e, para as funções 
 
 ---
 
+## Leitura de identificadores e GPS no aplicativo de campo (Spec 009)
+
+A conferência da carga, a entrega e a consulta de cilindros aceitam a leitura do código e a posição do aparelho, sempre dentro da organização ativa.
+
+- **Ler cilindro.** Janela de leitura com **câmera** (QR Code e Data Matrix, detector nativo do navegador) e **NFC** (Chrome no Android), só quando o aparelho tem o recurso; sem suporte, o texto explica e o código digitado ou o leitor de código de barras continuam valendo. Nenhuma imagem é enviada nem guardada, e a leitura para sozinha após 2 minutos sem código.
+- **Conferência e entrega.** Cada cilindro lido é resolvido no servidor (`query-cylinders`, operação `resolve`) e conferido com o método registrado (`manual`, `typed`, `camera` ou `nfc`). Código de outra viagem, inexistente ou de outra organização é recusado, e o histórico mostra o método sem nunca mostrar o valor lido.
+- **Posição na chegada e na entrega.** "Usar minha posição" faz uma leitura por toque, mostra coordenadas, precisão e hora, avisa precisão pior que 100 m e descarta posição com mais de 2 minutos. A posição é opcional e fica na chegada e na entrega com origem (`gps`, `typed` ou `site_address`), faixa de precisão e, na chegada, se estava fora da geocerca.
+- **Consulta.** "Ler cilindro" na lista, no detalhe e nas viagens abre o cilindro certo, para quem tem `cylinder.read`.
+- **Privacidade.** Nenhuma coordenada, valor lido ou número de série de etiqueta em evento, auditoria, log, URL ou armazenamento do aparelho. Escritas continuam exigindo conexão; a fila offline é da Spec 010.
+
+Depois de atualizar a branch, rode `npx supabase db reset` e, para as funções novas serem servidas, `npx supabase stop` e `npx supabase start`. O contrato completo está em `specs/009-leitura-gps-campo/`.
+
+---
+
 ## Governança de IA por ciclo
 
 Ao final de cada ciclo Spec Kit, depois dos testes e antes do commit, gere e valide o Registro de Uso de IA:

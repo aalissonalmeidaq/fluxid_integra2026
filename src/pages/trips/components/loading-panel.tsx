@@ -1,6 +1,8 @@
 import React from 'react';
 import type { TripItemView, TripStopView } from '@/application/trips/trip-views';
 import { Button, Card } from '@/design-system';
+import { ReaderControls } from '@/pages/field/reader-controls';
+import type { ReadEvent, ReadFeedback } from '@/pages/field/identifier-reader-dialog';
 import { ItemStatusBadge } from './trip-badges';
 
 export interface LoadingPanelProps {
@@ -15,13 +17,16 @@ export interface LoadingPanelProps {
   onCheck: (item: TripItemView) => void;
   onUncheck: (item: TripItemView) => void;
   onRemove: (item: TripItemView, trigger: HTMLElement) => void;
+  // Leitura do cilindro por câmera, NFC, código digitado ou leitor (Spec 009): o tratador identifica o cilindro, confere o item e devolve o
+  // texto do resultado. Sem ele (ou sem trip.operate), o painel fica só com a conferência por toque.
+  onReadCylinder?: (event: ReadEvent) => Promise<ReadFeedback> | ReadFeedback;
 }
 
 const COUNTED = ['planned', 'checked'];
 
 // Painel de conferência do carregamento (RF-010): lista com "Conferir" e "Desfazer" por cilindro e o contador "x de y conferidos".
 // A contagem aparece em texto; o anúncio de cada ação vai à região de status única da tela.
-export function LoadingPanel({ stops, items, canOperate, canRemove, online, busyKey, highlighted, onCheck, onUncheck, onRemove }: LoadingPanelProps): React.JSX.Element {
+export function LoadingPanel({ stops, items, canOperate, canRemove, online, busyKey, highlighted, onCheck, onUncheck, onRemove, onReadCylinder }: LoadingPanelProps): React.JSX.Element {
   const counted = items.filter((item) => COUNTED.includes(item.itemStatus));
   const checked = counted.filter((item) => item.itemStatus === 'checked').length;
   const disabled = !online || busyKey !== null;
@@ -31,7 +36,10 @@ export function LoadingPanel({ stops, items, canOperate, canRemove, online, busy
         <h3 id="loading-panel-title" className="text-h3 font-semibold text-navy">Conferência da carga</h3>
         <p className="text-corpo font-semibold text-grafite">{`${checked} de ${counted.length} conferidos`}</p>
       </div>
-      <p className="text-corpo">Confira cada cilindro antes de iniciar a viagem. A conferência é manual e fica registrada com quem e quando.</p>
+      <p className="text-corpo">Confira cada cilindro antes de iniciar a viagem. Dá para conferir pelo botão, lendo o código com a câmera ou o NFC ou digitando o código; fica registrado com quem, quando e como.</p>
+      {canOperate && onReadCylinder && (
+        <ReaderControls onRead={onReadCylinder} online={online} disabled={busyKey !== null} summary={`${checked} de ${counted.length} conferidos`} submitLabel="Conferir código" />
+      )}
       {counted.length === 0 && <p className="text-corpo">Todos os cilindros foram retirados desta viagem.</p>}
       <ul role="list" aria-label="Cilindros a conferir" className="flex flex-col gap-2">
         {counted.map((item) => {

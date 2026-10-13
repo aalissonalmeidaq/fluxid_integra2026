@@ -2,10 +2,16 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 // Destino do repasse de desenvolvimento: o Supabase CLI desta máquina (mesmo valor de VITE_SUPABASE_LOCAL_URL).
 const SUPABASE_LOCAL = loadEnv('development', process.cwd(), 'VITE_').VITE_SUPABASE_LOCAL_URL || 'http://127.0.0.1:54321';
+
+// `npm run dev:rede` (scripts/dev/rede-https.mjs) informa o certificado autoassinado de desenvolvimento; sem ele o servidor segue em HTTP.
+const HTTPS_CHAVE = process.env.FLUXID_DEV_HTTPS_KEY;
+const HTTPS_CERT = process.env.FLUXID_DEV_HTTPS_CERT;
+const https = HTTPS_CHAVE && HTTPS_CERT ? { key: readFileSync(HTTPS_CHAVE), cert: readFileSync(HTTPS_CERT) } : undefined;
 
 export default defineConfig({
   plugins: [
@@ -56,6 +62,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    https,
     // Só em desenvolvimento: um aparelho da rede (celular) acessa o Supabase local pela porta do Vite, sem abrir o
     // Supabase CLI para a rede. O prefixo é o mesmo de LOCAL_SUPABASE_PROXY_PATH em src/config/dev-network.ts.
     proxy: {

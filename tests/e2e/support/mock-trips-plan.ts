@@ -216,12 +216,13 @@ function cylinderView(mock: TripMock, item: TripItemRow): Json {
 export function itemView(mock: TripMock, item: TripItemRow): Json {
   return {
     id: item.id, stop_id: item.stop_id, item_status: item.item_status, lock_status: item.lock_status, checked_at: item.checked_at, checked_by_name: item.checked_by_name,
+    check_source: item.check_source ?? null,
     divergence_reason: item.divergence_reason, cylinder: cylinderView(mock, item),
   };
 }
 
 export function stopView(mock: TripMock, stop: TripStopRow): Json {
-  return { id: stop.id, position: stop.position, status: stop.status, arrived_at: stop.arrived_at, out_of_order: stop.out_of_order, closed_at: stop.closed_at, site: siteView(mock, stop.site_id) };
+  return { id: stop.id, position: stop.position, status: stop.status, arrived_at: stop.arrived_at, out_of_order: stop.out_of_order, closed_at: stop.closed_at, arrival: stop.arrival ?? null, site: siteView(mock, stop.site_id) };
 }
 
 const isOverdue = (mock: TripMock, trip: TripRow): boolean => (trip.status === 'planned' || trip.status === 'loading') && trip.planned_date < mock.today();

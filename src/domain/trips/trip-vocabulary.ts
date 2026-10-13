@@ -1,6 +1,8 @@
 // Vocabulário das viagens da Fase 4 (data-model.md). O banco tem as mesmas listas nas restrições de
 // supabase/migrations/*trips_schema.sql; trip-vocabulary.test.ts reprova divergência.
 
+import { READING_SOURCES } from '../field/reading-source';
+
 export const TRIP_STATUSES = ['planned', 'loading', 'in_progress', 'completed', 'cancelled'] as const;
 export type TripStatus = (typeof TRIP_STATUSES)[number];
 export const TRIP_STATUS_LABELS: Record<TripStatus, string> = {
@@ -51,7 +53,8 @@ export const CYLINDER_TRIP_EVENT_LABELS: Record<CylinderTripEventType, string> =
   trip_delivered: 'Entregue ao cliente', trip_returned: 'Devolvido ao estoque pela viagem',
 };
 
-export const CHECK_SOURCES = ['manual'] as const;
+// Origem da conferência: os quatro métodos de leitura da Spec 009 (a Spec 008 só tinha "manual"). A lista é a de `domain/field/reading-source.ts`.
+export const CHECK_SOURCES = READING_SOURCES;
 export type CheckSource = (typeof CHECK_SOURCES)[number];
 
 // Situações em que o item reserva o cilindro (índice único parcial `is_open`).

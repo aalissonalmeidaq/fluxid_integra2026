@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:rede": "vite --host",
+    "dev:rede": "node scripts/dev/rede-https.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "tokens:gerar": "node scripts/design-system/gerar-tokens-css.mjs",
@@ -24,7 +24,9 @@
     "ia:hooks": "node scripts/governanca-ia/instalar-hooks.mjs",
     "test:desempenho:cilindros": "node scripts/cilindros/medir-desempenho-4g.mjs",
     "test:desempenho:registro": "node scripts/registro/medir-desempenho-4g.mjs",
-    "test:desempenho:viagens": "node scripts/viagens/medir-desempenho-4g.mjs"
+    "test:desempenho:viagens": "node scripts/viagens/medir-desempenho-4g.mjs",
+    "test:desempenho:campo": "node scripts/campo/medir-desempenho-4g.mjs",
+    "campo:semear-roteiro": "node scripts/campo/semear-roteiro.mjs"
   },
   "dependencies": {
     "@fontsource-variable/montserrat": "5.3.0",

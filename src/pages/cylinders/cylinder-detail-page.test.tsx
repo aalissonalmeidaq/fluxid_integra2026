@@ -35,6 +35,23 @@ function fakeService(overrides: Record<string, unknown> = {}) {
 const renderDetail = (service: ReturnType<typeof fakeService> | null, can: DetailAbilities = ALL) =>
   render(<CylinderDetailView organizationId={ORG} service={service} online cylinderId={CYL} can={can} />);
 
+// Spec 009, US3 (RF-006, CA-006): o cabeçalho do detalhe recebe a ação "Ler cilindro", e o auditor, que só vê, continua sem nenhuma ação de escrita.
+describe('detalhe do cilindro: ações do cabeçalho (Spec 009)', () => {
+  const NONE: DetailAbilities = { write: false, deactivate: false, identifier: false, test: false, history: true, stockIn: false } as unknown as DetailAbilities;
+
+  it('mostra a ação extra', async () => {
+    render(<CylinderDetailView organizationId={ORG} service={fakeService()} online cylinderId={CYL} can={ALL} extraActions={<button type="button">Ler cilindro</button>} />);
+    expect(await screen.findByRole('button', { name: 'Ler cilindro' })).toBeInTheDocument();
+  });
+
+  it('quem só pode ver cilindros usa a leitura e não recebe nenhuma ação de escrita', async () => {
+    render(<CylinderDetailView organizationId={ORG} service={fakeService()} online cylinderId={CYL} can={NONE} extraActions={<button type="button">Ler cilindro</button>} />);
+    expect(await screen.findByRole('button', { name: 'Ler cilindro' })).toBeInTheDocument();
+    for (const name of ['Editar', 'Inativar cilindro', 'Reativar cilindro']) expect(screen.queryByRole('button', { name })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Editar' })).toBeNull();
+  });
+});
+
 describe('detalhe do cilindro (história 2)', () => {
   it('mostra carregamento e depois cada bloco com nome acessível', async () => {
     renderDetail(fakeService());

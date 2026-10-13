@@ -77,6 +77,26 @@ describe('query-trips: operações do planejamento', () => {
     expect(gw.rpc).not.toHaveBeenCalled();
   });
 
+  // Spec 009 (RF-010, RF-013): o detalhe da viagem traz a posição da chegada, a origem e a precisão da entrega e o método da conferência. A borda
+  // só repassa o que o banco devolve (e o banco só devolve a quem tem trip.read).
+  it('get_trip repassa a posição, a origem, a precisão e o método sem alterar nada', async () => {
+    const body = {
+      code: 'FOUND',
+      stops: [{ id: 's1', arrival: { latitude: -23.55, longitude: -46.63, accuracy_m: 12.4, position_source: 'gps', position_read_at: '2026-10-13T15:29:30Z', outside_geofence: false } }],
+      items: [{ id: 'i1', check_source: 'camera' }],
+      deliveries: [{ id: 'd1', accuracy_m: 9.5, position_source: 'site_address', position_read_at: null }],
+    };
+    const response = await handler(gateway(body))(post({ operation: 'get_trip', organization_id: ORG, trip_id: TRIP }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(body);
+  });
+
+  it('get_trip negado a quem não tem trip.read não devolve posição alguma', async () => {
+    const response = await handler(gateway({ code: 'ACCESS_DENIED' }))(post({ operation: 'get_trip', organization_id: ORG, trip_id: TRIP }));
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ code: 'ACCESS_DENIED' });
+  });
+
   it('get_trip exige o id da viagem', async () => {
     const gw = gateway({ code: 'FOUND' });
     expect((await handler(gw)(post({ operation: 'get_trip', organization_id: ORG }))).status).toBe(400);

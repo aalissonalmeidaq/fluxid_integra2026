@@ -211,6 +211,8 @@ Frontend React, TypeScript, Vite e Tailwind. Aplicativo de campo com PWA e Capac
 
 > **Situação da Fase 4 (Spec 008).** Entregue: planejamento de viagens com paradas e cilindros e reserva única por cilindro (RF009), conferência de carga, início com cilindros em trânsito e bloqueados em modo lógico, chegada, entrega por cilindro com recebedor protegido, divergência e correção, desbloqueio lógico, devolução ao estoque, cancelamento e conclusão, histórico imutável e consultas por cilindro e unidade. Ficam para as próximas fases: leitura por QR Code, Data Matrix e NFC, GPS, fotos, assinatura e fila offline (Fase 5); comando e confirmação da trava física do lacre (Fase 6); proximidade, alertas e relatórios (Fase 7).
 
+> **Situação da Fase 5, parte 1 (Spec 009).** Entregue: leitura de QR Code e Data Matrix pela câmera e de etiquetas NFC na conferência da carga, na entrega e na consulta de cilindros, com o método de leitura registrado no histórico; resolução do código no servidor sem revelar cilindros de outra organização; posição do GPS na chegada e na entrega, com origem, precisão, validade e aviso de geocerca; privacidade das coordenadas e dos valores lidos. Ficam para a Spec 010: fila offline com sincronização idempotente, fotos e assinatura de entrega. Ficam para as próximas fases: comando e confirmação da trava física do lacre (Fase 6); rastreamento contínuo, proximidade, alertas e relatórios (Fase 7); leitura por câmera em navegadores sem detector nativo; prazo de retenção das coordenadas (spec de privacidade).
+
 
 ## 16 Critérios de pronto
 

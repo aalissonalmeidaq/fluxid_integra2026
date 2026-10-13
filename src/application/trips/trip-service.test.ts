@@ -246,6 +246,68 @@ describe('carregamento e início', () => {
     expect(await new TripService(transport(reply(200, { code: 'UNCHECKED', checked: 1, total: 3 }))).uncheckItem(ORG, 't1', 'i1')).toEqual({ kind: 'success', value: { checked: 1, total: 3 } });
   });
 
+  it('checkItem envia o método de leitura quando informado e o omite quando não', async () => {
+    const t = transport(reply(200, { code: 'CHECKED', checked: 1, total: 3 }));
+    await new TripService(t).checkItem(ORG, 't1', 'i1', 'r3', 'camera');
+    expect(t.call).toHaveBeenCalledWith('manage-trips', { operation: 'check_item', organization_id: ORG, request_id: 'r3', trip_id: 't1', item_id: 'i1', source: 'camera' });
+  });
+
+  // Spec 009 (RF-009, RF-010): a posição da chegada vai com a origem, a precisão e o horário da leitura; sem posição, nada disso vai.
+  it('arriveStop envia a posição lida, a precisão, a origem e o horário da leitura', async () => {
+    const t = transport(reply(200, { code: 'ARRIVED', out_of_order: false, outside_geofence: true }));
+    const outcome = await new TripService(t).arriveStop(ORG, 't1', 's1', 'r5', { latitude: -23.55, longitude: -46.63, accuracyM: 12.4, source: 'gps', readAt: '2026-10-13T15:29:30.000Z' });
+    expect(outcome).toEqual({ kind: 'success', value: { outOfOrder: false, outsideGeofence: true } });
+    expect(t.call).toHaveBeenCalledWith('manage-trips', {
+      operation: 'arrive_stop', organization_id: ORG, request_id: 'r5', trip_id: 't1', stop_id: 's1',
+      latitude: -23.55, longitude: -46.63, accuracy_m: 12.4, position_source: 'gps', position_read_at: '2026-10-13T15:29:30.000Z',
+    });
+  });
+
+  it('arriveStop com coordenadas digitadas não manda precisão nem horário', async () => {
+    const t = transport(reply(200, { code: 'ARRIVED', out_of_order: false }));
+    await new TripService(t).arriveStop(ORG, 't1', 's1', 'r6', { latitude: -23.5, longitude: -46.6, accuracyM: null, source: 'typed', readAt: null });
+    const body = t.call.mock.calls.at(-1)![1] as Record<string, unknown>;
+    expect(body).toMatchObject({ latitude: -23.5, longitude: -46.6, position_source: 'typed' });
+    expect('accuracy_m' in body).toBe(false);
+    expect('position_read_at' in body).toBe(false);
+  });
+
+  it('arriveStop sem posição continua igual à Spec 008 e a geocerca só vem quando o servidor a devolve', async () => {
+    const t = transport(reply(200, { code: 'ARRIVED', out_of_order: true }));
+    expect(await new TripService(t).arriveStop(ORG, 't1', 's1', 'r7')).toEqual({ kind: 'success', value: { outOfOrder: true } });
+    expect(t.call).toHaveBeenCalledWith('manage-trips', { operation: 'arrive_stop', organization_id: ORG, request_id: 'r7', trip_id: 't1', stop_id: 's1' });
+  });
+
+  it('registerDelivery envia a origem, a precisão e o horário da leitura da posição', async () => {
+    const t = transport(reply(200, { code: 'DELIVERED', delivery_id: 'd1', stop_status: 'delivered' }));
+    const base = { deliveredAt: '2026-10-09T15:30:00.000Z', recipientName: 'Recebedor Fictício', recipientRole: null, latitude: -23.55, longitude: -46.63, atSiteAddress: false, correctionReason: null, results: [{ itemId: 'i1', delivered: true as const }] };
+    await new TripService(t).registerDelivery(ORG, 't1', 's1', { ...base, position: { source: 'gps', accuracyM: 9.5, readAt: '2026-10-13T15:30:00.000Z' } }, undefined, 'r8');
+    expect(t.call).toHaveBeenCalledWith('manage-trips', expect.objectContaining({ accuracy_m: 9.5, position_source: 'gps', position_read_at: '2026-10-13T15:30:00.000Z' }));
+    await new TripService(t).registerDelivery(ORG, 't1', 's1', { ...base, latitude: null, longitude: null, atSiteAddress: true, position: { source: 'site_address', accuracyM: null, readAt: null } }, undefined, 'r9');
+    const body = t.call.mock.calls.at(-1)![1] as Record<string, unknown>;
+    expect(body).toMatchObject({ position_source: 'site_address', at_site_address: true });
+    expect('accuracy_m' in body).toBe(false);
+  });
+
+  it('registerDelivery sem posição não manda origem, precisão nem horário', async () => {
+    const t = transport(reply(200, { code: 'DELIVERED', delivery_id: 'd1', stop_status: 'delivered' }));
+    await new TripService(t).registerDelivery(ORG, 't1', 's1', { deliveredAt: '2026-10-09T15:30:00.000Z', recipientName: 'Recebedor Fictício', recipientRole: null, latitude: null, longitude: null, atSiteAddress: false, correctionReason: null, results: [] }, undefined, 'r10');
+    const body = t.call.mock.calls.at(-1)![1] as Record<string, unknown>;
+    expect(['accuracy_m', 'position_source', 'position_read_at'].some((key) => key in body)).toBe(false);
+  });
+
+  it('registerDelivery leva o método de cada cilindro entregue e nunca o do não entregue', async () => {
+    const t = transport(reply(200, { code: 'DELIVERED', delivery_id: 'd1', stop_status: 'delivered' }));
+    const base = { deliveredAt: '2026-10-09T15:30:00.000Z', recipientName: 'Recebedor Fictício', recipientRole: null, latitude: null, longitude: null, atSiteAddress: false, correctionReason: null };
+    await new TripService(t).registerDelivery(ORG, 't1', 's1', {
+      ...base, results: [{ itemId: 'i1', delivered: true, source: 'nfc' }, { itemId: 'i2', delivered: true }, { itemId: 'i3', delivered: false, reason: 'Cilindro não estava no endereço' }],
+    }, undefined, 'r4');
+    const sent = (t.call.mock.calls.at(-1)![1] as { results: Record<string, unknown>[] }).results;
+    expect(sent).toEqual([
+      { item_id: 'i1', delivered: true, source: 'nfc' }, { item_id: 'i2', delivered: true }, { item_id: 'i3', delivered: false, reason: 'Cilindro não estava no endereço' },
+    ]);
+  });
+
   it('removeItem envia a justificativa', async () => {
     const t = transport(reply(200, { code: 'REMOVED' }));
     expect(await new TripService(t).removeItem(ORG, 't1', 'i1', 'Cilindro avariado', 'r3')).toEqual({ kind: 'success', value: { checked: 0, total: 0 } });

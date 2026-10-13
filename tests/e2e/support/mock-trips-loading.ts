@@ -64,10 +64,14 @@ function toggle(from: 'planned' | 'checked', to: 'checked' | 'planned', code: st
     const item = mock.itemsOf(trip.id).find((candidate) => candidate.id === body.item_id);
     if (!item) return fail('NOT_FOUND', 404, { entity: 'item' });
     if (item.item_status !== from) return fail('INVALID_TRANSITION', 409, { from: item.item_status, to });
+    // Spec 009: o método de leitura é validado como no banco; sem ele vale "manual".
+    const source = body.source === undefined || body.source === null ? 'manual' : body.source;
+    if (to === 'checked' && !['manual', 'typed', 'camera', 'nfc'].includes(String(source))) return fail('VALIDATION_FAILED', 400, { fields: [{ field: 'source', message: 'Método de leitura inválido.' }] });
     item.item_status = to;
+    item.check_source = to === 'checked' ? String(source) : null;
     item.checked_at = to === 'checked' ? mock.now().toISOString() : null;
     item.checked_by_name = to === 'checked' ? TRIP_ACTOR_NAME : null;
-    mock.appendEvent(trip, eventType, null, { item_id: item.id });
+    mock.appendEvent(trip, eventType, null, to === 'checked' ? { item_id: item.id, source: item.check_source } : { item_id: item.id });
     return ok(code, counts(mock, trip));
   };
 }

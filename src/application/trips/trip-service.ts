@@ -1,5 +1,7 @@
 import { compact, isObject, num, str, type Raw } from '../registry/registry-service';
 import type { CylinderRefusalReason } from '@/domain/trips/trip-vocabulary';
+import type { PositionPayload } from '@/domain/field/position-draft';
+import type { ReadingSource } from '@/domain/field/reading-source';
 import type { DeliveryFormValue, TripFormValue } from '@/domain/trips/trip-validation';
 import {
   toEligibleCylinder, toPage, toTripEventPage, toTripOfCylinder, toTripOfSite, toTripDetail, toTripListItem, toTripOptions,
@@ -62,7 +64,7 @@ export interface TripFilters {
 }
 export interface EligibleFilters { search?: string; cylinderTypeId?: string; cursor?: string | null; limit?: number }
 export interface HistoryFilters { eventType?: string; from?: string; to?: string; order?: 'asc' | 'desc'; cursor?: string | null; limit?: number }
-export interface ArrivedStop { outOfOrder: boolean }
+export interface ArrivedStop { outOfOrder: boolean; outsideGeofence?: boolean }
 export interface RegisteredDelivery { deliveryId: string; stopStatus: 'delivered' | 'with_divergence'; outsideGeofence: boolean | null }
 export interface UnlockResult { exceptional: boolean }
 export interface CancelledTrip { version: number; released: number; inTransit: number }
@@ -264,8 +266,9 @@ export class TripService {
     }, requestId);
   }
 
-  checkItem(organizationId: string, tripId: string, itemId: string, requestId?: string): Promise<TripOutcome<ItemCounts>> {
-    return this.itemCommand(organizationId, 'check_item', 'CHECKED', tripId, itemId, requestId);
+  // Confere um cilindro previsto. `source` é o método de leitura (Spec 009); sem ele, o servidor assume "manual".
+  checkItem(organizationId: string, tripId: string, itemId: string, requestId?: string, source?: ReadingSource): Promise<TripOutcome<ItemCounts>> {
+    return this.itemCommand(organizationId, 'check_item', 'CHECKED', tripId, itemId, requestId, source ? { source } : {});
   }
 
   uncheckItem(organizationId: string, tripId: string, itemId: string, requestId?: string): Promise<TripOutcome<ItemCounts>> {
@@ -279,8 +282,15 @@ export class TripService {
 
   // ----- Chegada e entrega (US3) -----
 
-  arriveStop(organizationId: string, tripId: string, stopId: string, requestId?: string): Promise<TripOutcome<ArrivedStop>> {
-    return this.command(organizationId, 'arrive_stop', { trip_id: tripId, stop_id: stopId }, (payload) => (payload.code === 'ARRIVED' ? { outOfOrder: payload.out_of_order === true } : null), requestId);
+  // A posição é opcional (Spec 009): com ela vão as coordenadas, a origem e, no GPS, a precisão e o horário da leitura. O servidor responde também
+  // se a chegada foi fora da geocerca da unidade (só quando há posição e geocerca ativa).
+  arriveStop(organizationId: string, tripId: string, stopId: string, requestId?: string, position?: PositionPayload): Promise<TripOutcome<ArrivedStop>> {
+    const where = position
+      ? { latitude: position.latitude, longitude: position.longitude, accuracy_m: position.accuracyM ?? undefined, position_source: position.source, position_read_at: position.readAt ?? undefined }
+      : {};
+    return this.command(organizationId, 'arrive_stop', { trip_id: tripId, stop_id: stopId, ...where }, (payload) => (payload.code === 'ARRIVED'
+      ? { outOfOrder: payload.out_of_order === true, ...(typeof payload.outside_geofence === 'boolean' ? { outsideGeofence: payload.outside_geofence } : {}) }
+      : null), requestId);
   }
 
   // Entrega por parada inteira. Com `supersedesId`, é a correção de um registro anterior (novo registro; o original fica intacto).
@@ -289,7 +299,10 @@ export class TripService {
     return this.command(organizationId, 'register_delivery', {
       trip_id: tripId, stop_id: stopId, delivered_at: value.deliveredAt, recipient_name: value.recipientName, recipient_role: value.recipientRole,
       latitude: value.latitude, longitude: value.longitude, at_site_address: value.atSiteAddress,
-      results: value.results.map((result) => (result.delivered ? { item_id: result.itemId, delivered: true } : { item_id: result.itemId, delivered: false, reason: result.reason })),
+      accuracy_m: value.position?.accuracyM ?? undefined, position_source: value.position?.source, position_read_at: value.position?.readAt ?? undefined,
+      results: value.results.map((result) => (result.delivered
+        ? { item_id: result.itemId, delivered: true, ...(result.source ? { source: result.source } : {}) }
+        : { item_id: result.itemId, delivered: false, reason: result.reason })),
       supersedes_id: supersedesId, correction_reason: value.correctionReason ?? undefined,
     }, (payload) => {
       const deliveryId = str(payload.delivery_id);

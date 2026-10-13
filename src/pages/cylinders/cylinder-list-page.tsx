@@ -6,6 +6,7 @@ import { HYDROSTATIC_LABELS, HYDROSTATIC_STATUSES, STOCK_LABELS, STOCK_STATUSES,
 import { Alert, Button, Card, DataTable, ErrorState, Select, TextField, type ColunaDaTabela } from '@/design-system';
 import { CUSTODY_STATUSES, CUSTODY_STATUS_LABELS, type CustodyStatus } from '@/domain/trips/trip-vocabulary';
 import { AccessGate } from './components/access-gate';
+import { ReadCylinderControl } from '@/pages/field/read-cylinder-control';
 import { CameraScanButton } from './components/camera-scan-button';
 import { CustodyInfo } from './components/custody-info';
 import { IdentifierWarning, StatusBadges } from './components/status-badges';
@@ -66,9 +67,11 @@ export interface CylinderListViewProps {
   online: boolean;
   // Mostra "Cadastrar cilindro" só a quem tem `cylinder.write` (a decisão final é do servidor).
   canCreate: boolean;
+  // Ações extras do cabeçalho (o "Ler cilindro" da Spec 009).
+  extraActions?: React.ReactNode;
 }
 
-export function CylinderListView({ organizationId, service, canCreate }: CylinderListViewProps): React.JSX.Element {
+export function CylinderListView({ organizationId, service, canCreate, extraActions }: CylinderListViewProps): React.JSX.Element {
   const [query, setQuery] = useState<Query>(INITIAL);
   const [searchDraft, setSearchDraft] = useState('');
   const [types, setTypes] = useState<CylinderTypeView[]>([]);
@@ -130,16 +133,19 @@ export function CylinderListView({ organizationId, service, canCreate }: Cylinde
   return (
     <section aria-labelledby="cyl-list-title" className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-legenda font-semibold uppercase text-azul-profundo">Cilindros</p>
           <h2 id="cyl-list-title" className="mt-1 text-h2 font-bold text-navy">Cilindros da organização</h2>
           <p className="mt-1 text-corpo">Busque por identificador ou número de série e confira as situações cadastral, de estoque e do teste.</p>
         </div>
-        {canCreate && !showEmpty && (
-          <a className="inline-flex min-h-alvo items-center justify-center rounded-controle border border-azul-profundo bg-azul-profundo px-4 text-corpo font-semibold text-branco hover:bg-navy tablet:shrink-0" href="/cilindros/novo">
-            Cadastrar cilindro
-          </a>
-        )}
+        <div className="flex flex-wrap items-center gap-2 tablet:justify-end">
+          {extraActions}
+          {canCreate && !showEmpty && (
+            <a className="inline-flex min-h-alvo items-center justify-center rounded-controle border border-azul-profundo bg-azul-profundo px-4 text-corpo font-semibold text-branco hover:bg-navy" href="/cilindros/novo">
+              Cadastrar cilindro
+            </a>
+          )}
+        </div>
       </div>
 
       <Card>
@@ -251,6 +257,7 @@ export function CylinderListPage(): React.JSX.Element {
         service={service}
         online={online}
         canCreate={permissions?.tenant.includes('cylinder.write') ?? false}
+        extraActions={<ReadCylinderControl />}
       />
     </AccessGate>
   );
