@@ -80,3 +80,9 @@ Respostas da pessoa responsável, gravadas com a autorização dela ("sim"):
 - **Resultado:** aprovado.
 - **Decisão:** `utilizado`. Justificativa informada: "funcional".
 - **Pendência registrada:** o PWA **não foi instalado** no aparelho, nem depois da correção do convite de instalação. A instalação no Android continua sem confirmação em aparelho.
+
+### PWA: nova tentativa no aparelho (T046)
+
+Informado, com captura de tela: no Moto Edge 50 Pro, o menu do Chrome "Instalar e criar atalho" mostrou **"Instalar: Não é possível instalar o app."** e ofereceu só "Criar atalho". Diagnóstico no computador, na mesma build (`vite preview`): o Chromium não aponta nenhum erro de instalabilidade (`Page.getInstallabilityErrors` vazio), o manifesto é lido com `id`, ícones de 192 e 512 px e `display: standalone`, e o service worker fica ativo. A causa no aparelho **não foi identificada**; a origem era `http://localhost` por `adb reverse`, que pode impedir o Chrome do Android de gerar o app instalável (WebAPK). Segue pendente: ver o motivo em `chrome://inspect` (Application > Manifest) ou repetir por um endereço HTTPS público.
+
+Informado depois: no computador, na versão de produção (`npm run build` e `npm run preview`, em `127.0.0.1:4173`), o Chrome instalou o aplicativo e a barra de endereço mostra "Abrir no app". Antes, na porta 3001, o que rodava era o servidor de desenvolvimento (`npm run dev`), que não é instalável: o manifesto e o service worker respondiam como HTML. **A instalação funciona no computador e continua sem funcionar no Moto Edge 50 Pro por `localhost` via `adb reverse`**; a causa no aparelho segue sem confirmação.
