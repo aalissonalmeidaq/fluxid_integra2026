@@ -51,6 +51,8 @@
 
 | RIA-029 | 13/10/2026, 14:16:54 - America/Fortaleza | 010 | 01 | Fila offline, fotos e assinatura de entrega no aplicativo de campo | `registros/RIA-029-fila-offline-fotos-e-assinatura-de-entrega-no-aplicativo-de-.md` | Utilizado |
 
+| RIA-030 | 13/10/2026, 19:00:41 - America/Fortaleza | 010 | 02 | Conectividade com o Supabase em nuvem e primeiro Master | `registros/RIA-030-conectividade-com-o-supabase-em-nuvem-e-primeiro-master.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

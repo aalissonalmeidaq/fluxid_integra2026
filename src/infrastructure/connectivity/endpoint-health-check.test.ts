@@ -12,6 +12,12 @@ describe('EndpointHealthCheck', () => {
     await expect(checkEndpointHealth('https://example.test', 3000, { fetcher })).resolves.toEqual({ ok: false, failure: 'service_unavailable', fallbackAllowed: true, statusCode: 503 });
   });
 
+  it('envia a chave publicável no cabeçalho apikey quando informada', async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+    await checkEndpointHealth('https://example.test', 3000, { fetcher, publishableKey: 'sb_publishable_sintetica' });
+    expect(fetcher).toHaveBeenCalledWith('https://example.test/auth/v1/health', expect.objectContaining({ headers: { apikey: 'sb_publishable_sintetica' } }));
+  });
+
   it('classifica rede e respeita cancelamento externo', async () => {
     const network = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
     await expect(checkEndpointHealth('https://example.test', 3000, { fetcher: network })).resolves.toMatchObject({ failure: 'network', fallbackAllowed: true });
