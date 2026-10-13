@@ -22,6 +22,10 @@ Consequência prática: enquanto o workflow estiver desativado, os avatares anon
 3. **Segredos das funções que dependem da URL do app:** `INVITATION_REDIRECT_URL` e `PASSWORD_RECOVERY_REDIRECT_URL`. Dependem do endereço público definitivo (Vercel).
 4. **Tipo do projeto cloud:** teste ou produção, antes de aplicar migrations.
 
+## Decisão de 13/10/2026 (Spec 010)
+
+A publicação passa a ser feita **depois do merge da Spec 010 na `main`**, primeiro em um projeto Supabase de **teste** (migrations e funções, **sem seed**) e no frontend da Vercel, para homologar a instalação em Android por HTTPS real, a RLS com dois tenants e a medição. O `vercel.json` da raiz já traz o build, o fallback de rotas do app de página única, os cabeçalhos do service worker e do manifesto e as permissões de câmera, GPS e NFC. Quem faz o login (`supabase login` e `vercel login`) é a pessoa responsável; nenhum token entra em arquivo versionado. As quatro definições acima (primeiro Master, Auth, segredos de redirecionamento e tipo do projeto) continuam obrigatórias antes do primeiro uso.
+
 ## Roteiro de publicação (Supabase)
 
 Execute no terminal, na raiz do repositório. A senha do banco é digitada por quem executa; não a registre em lugar nenhum.

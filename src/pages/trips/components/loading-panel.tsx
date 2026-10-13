@@ -11,6 +11,8 @@ export interface LoadingPanelProps {
   canOperate: boolean;
   canRemove: boolean;
   online: boolean;
+  // Spec 010: sem conexão, conferir e desfazer entram na fila do aparelho (só com trip.operate); o resto continua exigindo conexão.
+  queueable?: boolean;
   // Chave da ação em andamento (`check:<item>`, `uncheck:<item>`), para mostrar o carregando só no botão certo.
   busyKey: string | null;
   highlighted: ReadonlySet<string>;
@@ -26,10 +28,12 @@ const COUNTED = ['planned', 'checked'];
 
 // Painel de conferência do carregamento (RF-010): lista com "Conferir" e "Desfazer" por cilindro e o contador "x de y conferidos".
 // A contagem aparece em texto; o anúncio de cada ação vai à região de status única da tela.
-export function LoadingPanel({ stops, items, canOperate, canRemove, online, busyKey, highlighted, onCheck, onUncheck, onRemove, onReadCylinder }: LoadingPanelProps): React.JSX.Element {
+export function LoadingPanel({ stops, items, canOperate, canRemove, online, queueable = false, busyKey, highlighted, onCheck, onUncheck, onRemove, onReadCylinder }: LoadingPanelProps): React.JSX.Element {
   const counted = items.filter((item) => COUNTED.includes(item.itemStatus));
   const checked = counted.filter((item) => item.itemStatus === 'checked').length;
-  const disabled = !online || busyKey !== null;
+  const usable = online || queueable;
+  const disabled = !usable || busyKey !== null;
+  const removeDisabled = !online || busyKey !== null;
   return (
     <Card as="section" aria-labelledby="loading-panel-title" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -38,7 +42,7 @@ export function LoadingPanel({ stops, items, canOperate, canRemove, online, busy
       </div>
       <p className="text-corpo">Confira cada cilindro antes de iniciar a viagem. Dá para conferir pelo botão, lendo o código com a câmera ou o NFC ou digitando o código; fica registrado com quem, quando e como.</p>
       {canOperate && onReadCylinder && (
-        <ReaderControls onRead={onReadCylinder} online={online} disabled={busyKey !== null} summary={`${checked} de ${counted.length} conferidos`} submitLabel="Conferir código" />
+        <ReaderControls onRead={onReadCylinder} online={usable} disabled={busyKey !== null} summary={`${checked} de ${counted.length} conferidos`} submitLabel="Conferir código" />
       )}
       {counted.length === 0 && <p className="text-corpo">Todos os cilindros foram retirados desta viagem.</p>}
       <ul role="list" aria-label="Cilindros a conferir" className="flex flex-col gap-2">
@@ -54,13 +58,16 @@ export function LoadingPanel({ stops, items, canOperate, canRemove, online, busy
                 {highlighted.has(item.id) && <span className="ml-2 font-semibold text-erro">Falta conferir</span>}
               </span>
               <span className="flex flex-wrap items-center gap-2">
-                <ItemStatusBadge status={item.itemStatus} />
+                <ItemStatusBadge status={item.itemStatus} pending={item.pending === true} />
                 {canOperate && (isChecked
                   ? <Button variant="secundario" disabled={disabled} loading={busyKey === `uncheck:${item.id}`} loadingLabel="Desfazendo…" aria-label={`Desfazer a conferência de ${item.cylinder.serialNumber}`} onClick={() => onUncheck(item)}>Desfazer</Button>
                   : <Button variant="secundario" disabled={disabled} loading={busyKey === `check:${item.id}`} loadingLabel="Conferindo…" aria-label={`Conferir ${item.cylinder.serialNumber}`} onClick={() => onCheck(item)}>Conferir</Button>)}
                 {canRemove && (
-                  <Button variant="secundario" disabled={disabled} aria-label={`Retirar ${item.cylinder.serialNumber} da viagem`}
-                    onClick={(event) => onRemove(item, event.currentTarget)}>Retirar da viagem</Button>
+                  <>
+                    <Button variant="secundario" disabled={removeDisabled} aria-label={`Retirar ${item.cylinder.serialNumber} da viagem`}
+                      onClick={(event) => onRemove(item, event.currentTarget)}>Retirar da viagem</Button>
+                    {!online && <span className="text-legenda text-texto-secundario">Exige conexão</span>}
+                  </>
                 )}
               </span>
             </li>

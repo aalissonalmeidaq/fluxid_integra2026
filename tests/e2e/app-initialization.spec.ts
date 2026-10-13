@@ -87,7 +87,7 @@ async function seedOutbox(page: Page, items: unknown[]): Promise<void> {
 
 interface StoredItem { id: string; status: string; attempt_count: number; organization_id: string }
 const outboxState = (page: Page): Promise<StoredItem[]> => page.evaluate(() => new Promise<StoredItem[]>((resolve, reject) => {
-  const request = indexedDB.open('fluxid-local', 1);
+  const request = indexedDB.open('fluxid-local');
   request.onerror = () => reject(request.error);
   request.onsuccess = () => {
     const read = request.result.transaction('local_outbox', 'readonly').objectStore('local_outbox').getAll();

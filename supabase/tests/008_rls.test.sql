@@ -23,8 +23,8 @@ insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_
   ('95000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'AAA1111', 'truck', 10),
   ('95000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'AAA1111', 'truck', 10);
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until) values
-  ('96000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Motorista A', 'x', 'x', 'D', current_date + 365),
-  ('96000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Motorista B', 'x', 'x', 'D', current_date + 365);
+  ('96000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Motorista A', 'x', 'x', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365),
+  ('96000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Motorista B', 'x', 'x', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365);
 insert into public.cylinder_types (id, organization_id, gas, capacity_value, capacity_unit, classification) values
   ('97000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Oxigênio', 10, 'l', 'medicinal'),
   ('97000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Oxigênio', 10, 'l', 'medicinal');
@@ -32,8 +32,8 @@ insert into public.cylinders (id, organization_id, cylinder_type_id, serial_numb
   ('98000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'TRIP-A-001'),
   ('98000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', '97000000-0000-0000-0000-00000000000b', 'TRIP-B-001');
 insert into public.trips (id, organization_id, number, planned_date, vehicle_id, driver_id, created_by) values
-  ('99000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 1, current_date, '95000000-0000-0000-0000-00000000000a', '96000000-0000-0000-0000-00000000000a', '10000000-0000-0000-0000-000000000002'),
-  ('99000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 1, current_date, '95000000-0000-0000-0000-00000000000b', '96000000-0000-0000-0000-00000000000b', '10000000-0000-0000-0000-000000000003');
+  ('99000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 1, (now() at time zone 'America/Sao_Paulo')::date, '95000000-0000-0000-0000-00000000000a', '96000000-0000-0000-0000-00000000000a', '10000000-0000-0000-0000-000000000002'),
+  ('99000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 1, (now() at time zone 'America/Sao_Paulo')::date, '95000000-0000-0000-0000-00000000000b', '96000000-0000-0000-0000-00000000000b', '10000000-0000-0000-0000-000000000003');
 insert into public.trip_stops (id, organization_id, trip_id, site_id, position) values
   ('9a000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', '99000000-0000-0000-0000-00000000000a', '92000000-0000-0000-0000-00000000000a', 1),
   ('9a000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', '99000000-0000-0000-0000-00000000000b', '92000000-0000-0000-0000-00000000000b', 1);
@@ -77,7 +77,7 @@ select throws_ok($$ select count(*) from public.trip_events $$, '42501', null, '
 select throws_ok($$ select count(*) from private.trip_counters $$, '42501', null, 'Tenant A não lê o contador privado');
 select throws_ok($$ select count(*) from private.trip_requests $$, '42501', null, 'Tenant A não lê os pedidos privados');
 select throws_ok($$ insert into public.trips (organization_id, number, planned_date, vehicle_id, driver_id, created_by) values
-  ('20000000-0000-0000-0000-00000000000a', 2, current_date, '95000000-0000-0000-0000-00000000000a', '96000000-0000-0000-0000-00000000000a', '10000000-0000-0000-0000-000000000002') $$,
+  ('20000000-0000-0000-0000-00000000000a', 2, (now() at time zone 'America/Sao_Paulo')::date, '95000000-0000-0000-0000-00000000000a', '96000000-0000-0000-0000-00000000000a', '10000000-0000-0000-0000-000000000002') $$,
   '42501', null, 'Tenant A não escreve em trips direto');
 select throws_ok($$ update public.trip_items set item_status = 'checked' $$, '42501', null, 'Tenant A não altera trip_items direto');
 

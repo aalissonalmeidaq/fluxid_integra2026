@@ -35,10 +35,10 @@ insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_
   ('95000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-00000000000a', 'AAA3333', 'truck', 300, 'available', null),
   ('95000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'BBB1111', 'truck', 10, 'available', null);
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until, status, inactivated_at) values
-  ('96000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 'Motorista A1', 'x', 'x', 'D', current_date + 365, 'active', null),
-  ('96000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-00000000000a', 'Motorista A2 inativo', 'y', 'y', 'D', current_date + 365, 'inactive', now()),
-  ('96000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-00000000000a', 'Motorista A3', 'z', 'z', 'D', current_date + 365, 'active', null),
-  ('96000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Motorista B', 'x', 'x', 'D', current_date + 365, 'active', null);
+  ('96000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 'Motorista A1', 'x', 'x', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365, 'active', null),
+  ('96000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-00000000000a', 'Motorista A2 inativo', 'y', 'y', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365, 'inactive', now()),
+  ('96000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-00000000000a', 'Motorista A3', 'z', 'z', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365, 'active', null),
+  ('96000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Motorista B', 'x', 'x', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365, 'active', null);
 insert into public.cylinder_types (id, organization_id, gas, capacity_value, capacity_unit, classification) values
   ('97000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Oxigênio', 10, 'l', 'medicinal'),
   ('97000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Oxigênio', 10, 'l', 'medicinal');
@@ -46,30 +46,30 @@ insert into public.cylinder_types (id, organization_id, gas, capacity_value, cap
 create function pg_temp.cy(n integer) returns uuid language sql as $$ select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid $$;
 -- 1 a 12 e 40 a 280: elegíveis. 21 fora do estoque, 22 inativo, 23 teste vencido, 24 reprovado, 25 sem teste, 26 teste a vencer.
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on)
-  select pg_temp.cy(n), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-' || lpad(n::text, 4, '0'), 'in_stock', 'approved', current_date + 200
+  select pg_temp.cy(n), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-' || lpad(n::text, 4, '0'), 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200
     from generate_series(1, 12) n;
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on)
-  select pg_temp.cy(n), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-' || lpad(n::text, 4, '0'), 'in_stock', 'approved', current_date + 200
+  select pg_temp.cy(n), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-' || lpad(n::text, 4, '0'), 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200
     from generate_series(40, 280) n;
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on) values
-  (pg_temp.cy(21), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-0021', 'out_of_stock', 'approved', current_date + 200),
-  (pg_temp.cy(23), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-0023', 'in_stock', 'approved', current_date - 1),
+  (pg_temp.cy(21), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-0021', 'out_of_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200),
+  (pg_temp.cy(23), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-0023', 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date - 1),
   (pg_temp.cy(24), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-0024', 'in_stock', 'rejected', null),
   (pg_temp.cy(25), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-0025', 'in_stock', null, null),
-  (pg_temp.cy(26), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-0026', 'in_stock', 'approved', current_date + 10),
-  (pg_temp.cy(30), '20000000-0000-0000-0000-00000000000b', '97000000-0000-0000-0000-00000000000b', 'PLN-B-0030', 'in_stock', 'approved', current_date + 200);
+  (pg_temp.cy(26), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-0026', 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 10),
+  (pg_temp.cy(30), '20000000-0000-0000-0000-00000000000b', '97000000-0000-0000-0000-00000000000b', 'PLN-B-0030', 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200);
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, status, inactivation_reason, stock_status, hydro_last_result, hydro_next_due_on) values
-  (pg_temp.cy(22), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-0022', 'inactive', 'lost', 'out_of_stock', 'approved', current_date + 200);
+  (pg_temp.cy(22), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'PLN-0022', 'inactive', 'lost', 'out_of_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200);
 
 create function pg_temp.stop(p_site integer, p_cyls integer[]) returns jsonb language sql as $$
   select jsonb_build_object('site_id', ('92000000-0000-0000-0000-' || lpad(p_site::text, 12, '0'))::uuid, 'cylinder_ids', (select jsonb_agg(pg_temp.cy(c)) from unnest(p_cyls) c))
 $$;
-create function pg_temp.mk(p_stops jsonb, p_vehicle integer default 1, p_driver integer default 1, p_date date default current_date, p_notes text default null, p_req uuid default gen_random_uuid())
+create function pg_temp.mk(p_stops jsonb, p_vehicle integer default 1, p_driver integer default 1, p_date date default (now() at time zone 'America/Sao_Paulo')::date, p_notes text default null, p_req uuid default gen_random_uuid())
 returns jsonb language sql as $$
   select public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', p_req, p_date,
     ('95000000-0000-0000-0000-' || lpad(p_vehicle::text, 12, '0'))::uuid, ('96000000-0000-0000-0000-' || lpad(p_driver::text, 12, '0'))::uuid, p_notes, p_stops)
 $$;
-create function pg_temp.upd(p_trip uuid, p_version bigint, p_stops jsonb, p_vehicle integer default 1, p_driver integer default 1, p_date date default current_date, p_notes text default null, p_req uuid default gen_random_uuid())
+create function pg_temp.upd(p_trip uuid, p_version bigint, p_stops jsonb, p_vehicle integer default 1, p_driver integer default 1, p_date date default (now() at time zone 'America/Sao_Paulo')::date, p_notes text default null, p_req uuid default gen_random_uuid())
 returns jsonb language sql as $$
   select public.update_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', p_req, p_trip, p_version, p_date,
     ('95000000-0000-0000-0000-' || lpad(p_vehicle::text, 12, '0'))::uuid, ('96000000-0000-0000-0000-' || lpad(p_driver::text, 12, '0'))::uuid, p_notes, p_stops)
@@ -77,7 +77,7 @@ $$;
 create function pg_temp.trips_a() returns integer language sql as $$ select count(*)::int from public.trips where organization_id = '20000000-0000-0000-0000-00000000000a' $$;
 
 -- 1. Criação feliz: duas paradas e quatro cilindros.
-create temp table t1 as select pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[1, 2]), pg_temp.stop(2, array[3, 4])), 1, 1, current_date, 'Observação sigilosa XYZ') as r;
+create temp table t1 as select pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[1, 2]), pg_temp.stop(2, array[3, 4])), 1, 1, (now() at time zone 'America/Sao_Paulo')::date, 'Observação sigilosa XYZ') as r;
 select is((select r ->> 'code' from t1), 'CREATED', 'create_trip cria a viagem');
 select is((select (r ->> 'number')::int from t1), 1, 'o primeiro número da organização é 1');
 select is((select (r ->> 'version')::int from t1), 1, 'a versão começa em 1');
@@ -130,14 +130,14 @@ select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(3, array[8])), 1, 3) ->> 'en
 select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(4, array[8])), 1, 3) ->> 'entity', 'customer', 'cliente inativo');
 
 -- 7. Isolamento: cadastro de outra organização responde NOT_FOUND.
-select is(public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date,
+select is(public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-00000000000b', '96000000-0000-0000-0000-000000000001', null, jsonb_build_array(pg_temp.stop(1, array[8]))) ->> 'code', 'NOT_FOUND', 'veículo de outra organização');
-select is(public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date,
+select is(public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-00000000000b', null, jsonb_build_array(pg_temp.stop(1, array[8]))) ->> 'code', 'NOT_FOUND', 'motorista de outra organização');
-select is(public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date,
+select is(public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001', null,
   jsonb_build_array(jsonb_build_object('site_id', '92000000-0000-0000-0000-00000000000b', 'cylinder_ids', jsonb_build_array(pg_temp.cy(8))))) ->> 'code', 'NOT_FOUND', 'unidade de outra organização');
-select is(public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date,
+select is(public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001', null,
   jsonb_build_array(jsonb_build_object('site_id', '92000000-0000-0000-0000-000000000001', 'cylinder_ids', jsonb_build_array(pg_temp.cy(30))))) ->> 'code', 'NOT_FOUND', 'cilindro de outra organização');
 
@@ -148,14 +148,14 @@ select is(pg_temp.mk((select jsonb_agg(pg_temp.stop(1, array[40 + n])) from gene
 select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, (select array_agg(n) from generate_series(40, 240) n))), 3, 3) ->> 'code', 'VALIDATION_FAILED', '201 cilindros numa parada');
 select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, (select array_agg(n) from generate_series(40, 239) n))), 3, 3) ->> 'code', 'CREATED', '200 cilindros numa parada passam');
 select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[8]), pg_temp.stop(2, array[8])), 3, 3) ->> 'code', 'VALIDATION_FAILED', 'o mesmo cilindro em duas paradas');
-select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[8])), 1, 3, current_date - 1) ->> 'code', 'VALIDATION_FAILED', 'data anterior a hoje na criação');
-select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[8])), 1, 3, current_date, repeat('n', 501)) ->> 'code', 'VALIDATION_FAILED', 'observações com 501 caracteres');
+select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[8])), 1, 3, (now() at time zone 'America/Sao_Paulo')::date - 1) ->> 'code', 'VALIDATION_FAILED', 'data anterior a hoje na criação');
+select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[8])), 1, 3, (now() at time zone 'America/Sao_Paulo')::date, repeat('n', 501)) ->> 'code', 'VALIDATION_FAILED', 'observações com 501 caracteres');
 select is(pg_temp.mk((select jsonb_agg(pg_temp.stop(1, array[250 + n])) from generate_series(0, 29) n), 3, 3) ->> 'code', 'CREATED', '30 paradas passam');
 
 -- 9. Permissão: motorista (sem trip.write) é negado e nada é criado.
-select is(public.create_trip('10000000-0000-0000-0000-0000000008c1', '60000000-0000-0000-0000-0000000800c1', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date,
+select is(public.create_trip('10000000-0000-0000-0000-0000000008c1', '60000000-0000-0000-0000-0000000800c1', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001', null, jsonb_build_array(pg_temp.stop(1, array[8]))) ->> 'code', 'ACCESS_DENIED', 'sem trip.write: negado');
-select is(public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-000000000000', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), current_date,
+select is(public.create_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-000000000000', '20000000-0000-0000-0000-00000000000a', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001', null, jsonb_build_array(pg_temp.stop(1, array[8]))) ->> 'code', 'AUTH_REQUIRED', 'sessão inválida: AUTH_REQUIRED');
 
 -- 10. Edição.
@@ -165,7 +165,7 @@ create temp table stops1 as
 create temp table u1 as select pg_temp.upd((select (r ->> 'trip_id')::uuid from t1), 1, jsonb_build_array(
   jsonb_build_object('id', (select s.id from public.trip_stops s where s.trip_id = (select (r ->> 'trip_id')::uuid from t1) and s.position = 2), 'site_id', '92000000-0000-0000-0000-000000000002', 'cylinder_ids', jsonb_build_array(pg_temp.cy(3), pg_temp.cy(4))),
   jsonb_build_object('id', (select s.id from public.trip_stops s where s.trip_id = (select (r ->> 'trip_id')::uuid from t1) and s.position = 1), 'site_id', '92000000-0000-0000-0000-000000000001', 'cylinder_ids', jsonb_build_array(pg_temp.cy(1), pg_temp.cy(8)))),
-  1, 1, current_date, null) as r;
+  1, 1, (now() at time zone 'America/Sao_Paulo')::date, null) as r;
 select is((select r ->> 'code' from u1), 'UPDATED', 'update_trip responde UPDATED');
 select is((select (r ->> 'version')::int from u1), 2, 'a versão sobe para 2');
 select is((select position from public.trip_stops where trip_id = (select (r ->> 'trip_id')::uuid from t1) and site_id = '92000000-0000-0000-0000-000000000002'), 1::smallint, 'as paradas foram reordenadas');
@@ -182,7 +182,7 @@ select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[2])), 3, 3) ->> 'co
 -- Edição com data passada é aceita em viagem já planejada; os campos mudados vão ao evento.
 create temp table u2 as select pg_temp.upd((select (r ->> 'trip_id')::uuid from t2), 1, jsonb_build_array(jsonb_build_object(
   'id', (select s.id from public.trip_stops s where s.trip_id = (select (r ->> 'trip_id')::uuid from t2) and s.position = 1), 'site_id', '92000000-0000-0000-0000-000000000001', 'cylinder_ids', jsonb_build_array(pg_temp.cy(5), pg_temp.cy(6)))),
-  3, 3, current_date - 3, 'novo texto sigiloso') as r;
+  3, 3, (now() at time zone 'America/Sao_Paulo')::date - 3, 'novo texto sigiloso') as r;
 select is((select r ->> 'code' from u2), 'UPDATED', 'data passada é aceita na edição');
 select is((select jsonb_array_length(data -> 'changes') from public.trip_events where trip_id = (select (r ->> 'trip_id')::uuid from t2) and event_type = 'trip_updated'), 2, 'o evento lista data e observações alteradas');
 select is((select count(*)::int from public.trip_events where data::text like '%sigiloso%'), 0, 'o texto das observações não vai ao evento');
@@ -190,8 +190,8 @@ select is((select count(*)::int from public.audit_logs where metadata::text like
 
 -- Edição: estados que não aceitam, item já conferido, retirado e outra organização.
 insert into public.trips (id, organization_id, number, planned_date, vehicle_id, driver_id, created_by, status, started_at, started_by, completed_at, completed_by) values
-  ('99000000-0000-0000-0000-0000000000c1', '20000000-0000-0000-0000-00000000000a', 91, current_date, '95000000-0000-0000-0000-000000000003', '96000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', 'completed', now(), '10000000-0000-0000-0000-000000000002', now(), '10000000-0000-0000-0000-000000000002'),
-  ('99000000-0000-0000-0000-0000000000c2', '20000000-0000-0000-0000-00000000000a', 92, current_date, '95000000-0000-0000-0000-000000000003', '96000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', 'in_progress', now(), '10000000-0000-0000-0000-000000000002', null, null);
+  ('99000000-0000-0000-0000-0000000000c1', '20000000-0000-0000-0000-00000000000a', 91, (now() at time zone 'America/Sao_Paulo')::date, '95000000-0000-0000-0000-000000000003', '96000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', 'completed', now(), '10000000-0000-0000-0000-000000000002', now(), '10000000-0000-0000-0000-000000000002'),
+  ('99000000-0000-0000-0000-0000000000c2', '20000000-0000-0000-0000-00000000000a', 92, (now() at time zone 'America/Sao_Paulo')::date, '95000000-0000-0000-0000-000000000003', '96000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', 'in_progress', now(), '10000000-0000-0000-0000-000000000002', null, null);
 select is(pg_temp.upd('99000000-0000-0000-0000-0000000000c1', 1, jsonb_build_array(pg_temp.stop(1, array[8])), 3, 3) ->> 'code', 'TRIP_CLOSED', 'viagem concluída não aceita edição');
 select is(pg_temp.upd('99000000-0000-0000-0000-0000000000c2', 1, jsonb_build_array(pg_temp.stop(1, array[8])), 3, 3) ->> 'code', 'INVALID_TRANSITION', 'viagem em andamento não aceita edição');
 select is(pg_temp.upd(gen_random_uuid(), 1, jsonb_build_array(pg_temp.stop(1, array[8]))) ->> 'code', 'NOT_FOUND', 'viagem inexistente');
@@ -219,10 +219,10 @@ select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[11])), 3, 3) ->> 'c
 
 -- Idempotência de create_trip: o mesmo request_id devolve a mesma viagem.
 create temp table idem as select gen_random_uuid() as req;
-create temp table c1 as select pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[12])), 3, 3, current_date, null, (select req from idem)) as r;
+create temp table c1 as select pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[12])), 3, 3, (now() at time zone 'America/Sao_Paulo')::date, null, (select req from idem)) as r;
 select is((select r ->> 'code' from c1), 'CREATED', 'primeira chamada cria');
-select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[12])), 3, 3, current_date, null, (select req from idem)) ->> 'trip_id', (select r ->> 'trip_id' from c1), 'a repetição devolve a mesma viagem');
-select is((pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[12])), 3, 3, current_date, null, (select req from idem)) ->> 'replayed')::boolean, true, 'marcada como repetida');
+select is(pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[12])), 3, 3, (now() at time zone 'America/Sao_Paulo')::date, null, (select req from idem)) ->> 'trip_id', (select r ->> 'trip_id' from c1), 'a repetição devolve a mesma viagem');
+select is((pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[12])), 3, 3, (now() at time zone 'America/Sao_Paulo')::date, null, (select req from idem)) ->> 'replayed')::boolean, true, 'marcada como repetida');
 select is((select count(*)::int from public.trips where id = (select (r ->> 'trip_id')::uuid from c1)), 1, 'sem viagem duplicada');
 select is((select count(*)::int from public.cylinder_events where cylinder_id = pg_temp.cy(12) and event_type = 'trip_reserved'), 1, 'sem evento duplicado');
 

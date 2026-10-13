@@ -40,29 +40,29 @@ insert into public.customer_sites (id, organization_id, customer_id, name, posta
   ('92000000-0000-0000-0000-000000000005', '20000000-0000-0000-0000-00000000000a', '91000000-0000-0000-0000-0000000000a3', 'Residência', '01001000', 'Rua Fictícia', '5', 'Santos', 'SP', 'active', null),
   ('92000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', '91000000-0000-0000-0000-00000000000b', 'Unidade B', '01001000', 'Praça da Sé', '1', 'São Paulo', 'SP', 'active', null);
 insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_cylinders, status, inactivated_at, licensing_due_on) values
-  ('95000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 'AAA1111', 'truck', 10, 'available', null, current_date - 2),
+  ('95000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 'AAA1111', 'truck', 10, 'available', null, (now() at time zone 'America/Sao_Paulo')::date - 2),
   ('95000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-00000000000a', 'AAA2222', 'truck', 10, 'maintenance', null, null),
-  ('95000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-00000000000a', 'AAA3333', 'van', 10, 'available', null, current_date + 400),
+  ('95000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-00000000000a', 'AAA3333', 'van', 10, 'available', null, (now() at time zone 'America/Sao_Paulo')::date + 400),
   ('95000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'BBB1111', 'truck', 10, 'available', null, null);
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until, status, inactivated_at) values
-  ('96000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 'Motorista Alfa', 'x', 'x', 'D', current_date - 1, 'active', null),
-  ('96000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-00000000000a', 'Motorista Inativo', 'y', 'y', 'D', current_date + 365, 'inactive', now()),
-  ('96000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-00000000000a', 'Motorista Beta', 'z', 'z', 'D', current_date + 365, 'active', null),
-  ('96000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Motorista do B', 'x', 'x', 'D', current_date + 365, 'active', null);
+  ('96000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 'Motorista Alfa', 'x', 'x', 'D', (now() at time zone 'America/Sao_Paulo')::date - 1, 'active', null),
+  ('96000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-00000000000a', 'Motorista Inativo', 'y', 'y', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365, 'inactive', now()),
+  ('96000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-00000000000a', 'Motorista Beta', 'z', 'z', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365, 'active', null),
+  ('96000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Motorista do B', 'x', 'x', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365, 'active', null);
 insert into public.cylinder_types (id, organization_id, gas, capacity_value, capacity_unit, classification) values
   ('97000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Oxigênio', 10, 'l', 'medicinal'),
   ('97000000-0000-0000-0000-00000000000b', '20000000-0000-0000-0000-00000000000b', 'Oxigênio', 10, 'l', 'medicinal');
 create function pg_temp.cy(n integer) returns uuid language sql as $$ select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid $$;
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on)
-  select pg_temp.cy(n), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'RD-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', current_date + 200
+  select pg_temp.cy(n), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'RD-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200
     from generate_series(1, 12) n;
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on) values
-  (pg_temp.cy(21), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'RD-021', 'out_of_stock', 'approved', current_date + 200),
-  (pg_temp.cy(23), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'RD-023', 'in_stock', 'approved', current_date - 1),
+  (pg_temp.cy(21), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'RD-021', 'out_of_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200),
+  (pg_temp.cy(23), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'RD-023', 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date - 1),
   (pg_temp.cy(24), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'RD-024', 'in_stock', 'rejected', null),
-  (pg_temp.cy(30), '20000000-0000-0000-0000-00000000000b', '97000000-0000-0000-0000-00000000000b', 'RD-B-030', 'in_stock', 'approved', current_date + 200);
+  (pg_temp.cy(30), '20000000-0000-0000-0000-00000000000b', '97000000-0000-0000-0000-00000000000b', 'RD-B-030', 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200);
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, status, inactivation_reason, stock_status, hydro_last_result, hydro_next_due_on) values
-  (pg_temp.cy(22), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'RD-022', 'inactive', 'lost', 'out_of_stock', 'approved', current_date + 200);
+  (pg_temp.cy(22), '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'RD-022', 'inactive', 'lost', 'out_of_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200);
 insert into public.cylinder_identifiers (organization_id, cylinder_id, kind, value) values
   ('20000000-0000-0000-0000-00000000000a', pg_temp.cy(3), 'qr_code', 'QR-LEITURA-3');
 
@@ -81,14 +81,14 @@ $$;
 
 -- Três viagens do Tenant A (uma delas atrasada) e uma do Tenant B.
 create temp table ta as select
-  pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[1, 2])), 1, 1, current_date + 2) as r1,
-  pg_temp.mk(jsonb_build_array(pg_temp.stop(5, array[3])), 3, 3, current_date + 5) as r2;
-create temp table tb as select public.create_trip('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000800b3', '20000000-0000-0000-0000-00000000000b', gen_random_uuid(), current_date,
+  pg_temp.mk(jsonb_build_array(pg_temp.stop(1, array[1, 2])), 1, 1, (now() at time zone 'America/Sao_Paulo')::date + 2) as r1,
+  pg_temp.mk(jsonb_build_array(pg_temp.stop(5, array[3])), 3, 3, (now() at time zone 'America/Sao_Paulo')::date + 5) as r2;
+create temp table tb as select public.create_trip('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000800b3', '20000000-0000-0000-0000-00000000000b', gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date,
   '95000000-0000-0000-0000-00000000000b', '96000000-0000-0000-0000-00000000000b', null, jsonb_build_array(jsonb_build_object('site_id', '92000000-0000-0000-0000-00000000000b', 'cylinder_ids', jsonb_build_array(pg_temp.cy(30))))) as r;
 -- Viagem atrasada (data prevista no passado) e outra concluída: inseridas direto, como o resto da massa.
 insert into public.trips (id, organization_id, number, planned_date, vehicle_id, driver_id, created_by, status, started_at, started_by, completed_at, completed_by) values
-  ('99000000-0000-0000-0000-0000000000c1', '20000000-0000-0000-0000-00000000000a', 71, current_date - 4, '95000000-0000-0000-0000-000000000003', '96000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', 'planned', null, null, null, null),
-  ('99000000-0000-0000-0000-0000000000c2', '20000000-0000-0000-0000-00000000000a', 72, current_date - 9, '95000000-0000-0000-0000-000000000003', '96000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', 'completed', now(), '10000000-0000-0000-0000-000000000002', now(), '10000000-0000-0000-0000-000000000002');
+  ('99000000-0000-0000-0000-0000000000c1', '20000000-0000-0000-0000-00000000000a', 71, (now() at time zone 'America/Sao_Paulo')::date - 4, '95000000-0000-0000-0000-000000000003', '96000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', 'planned', null, null, null, null),
+  ('99000000-0000-0000-0000-0000000000c2', '20000000-0000-0000-0000-00000000000a', 72, (now() at time zone 'America/Sao_Paulo')::date - 9, '95000000-0000-0000-0000-000000000003', '96000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', 'completed', now(), '10000000-0000-0000-0000-000000000002', now(), '10000000-0000-0000-0000-000000000002');
 
 select is((select r1 ->> 'code' from ta), 'CREATED', 'preparação: primeira viagem do A');
 select is((select r ->> 'code' from tb), 'CREATED', 'preparação: viagem do B');

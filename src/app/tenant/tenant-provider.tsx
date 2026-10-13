@@ -3,6 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { useAuth } from '@/app/auth/auth-context';
 import { useConnectivity } from '@/app/connectivity-context';
 import { SyncContext, type SyncContextValue } from '@/app/sync-context';
+import type { OrganizationKind } from '@/domain/identity/authorization';
+import type { TenantOption } from '@/domain/identity/tenant-selection';
 import { TenantContext, type TenantContextValue } from './tenant-context';
 import { TenantContextService, type TenantSnapshot } from '@/application/identity/tenant-context-service';
 import { SupabaseClientManager } from '@/infrastructure/connectivity/supabase-client-manager';
@@ -25,8 +27,10 @@ const IDLE: TenantSnapshot = { status: 'idle', selection: { kind: 'none' }, opti
 // por organização e oferece o executor de sincronização do tenant ativo ao SyncGate (RF-026, RF-027, RF-051).
 export function TenantProvider({ children, service: injected, createRunnerFor, refreshMs = DEFAULT_REFRESH_MS }: TenantProviderProps): React.JSX.Element {
   const { client, config, result } = useConnectivity();
-  const { state: authState, verifySession } = useAuth();
+  const { state: authState, verifySession, offlineAccess } = useAuth();
   const authenticated = authState.status === 'authenticated';
+  // Sessão restaurada offline (Spec 010, RF-016a): o tenant ativo vem do registro de acesso offline, sem consultar o servidor.
+  const offlineMode = authState.status === 'authenticated' && authState.offline === true && offlineAccess != null;
   const endpoint = config?.endpoints.find((candidate) => candidate.kind === result.selectedEndpoint);
 
   const [database] = useState(() => new LocalDatabase());
@@ -39,6 +43,15 @@ export function TenantProvider({ children, service: injected, createRunnerFor, r
       .catch(() => { if (active) setDatabaseState('failed'); });
     return () => { active = false; };
   }, [database, injected]);
+
+  // No modo offline a base local desbloqueia só a organização do registro; ao sair do modo (sessão encerrada ou servidor de volta), trava de novo.
+  // Com o servidor de volta, o serviço troca o tenant do jeito de sempre (trava e desbloqueia).
+  const offlineOrganizationId = offlineMode ? offlineAccess.organizationId : null;
+  useEffect(() => {
+    if (!offlineOrganizationId || databaseState !== 'open') return;
+    database.unlock(offlineOrganizationId);
+    return () => { if (database.isUnlocked()) database.lock(); };
+  }, [database, databaseState, offlineOrganizationId]);
 
   const service = useMemo(() => {
     if (injected !== undefined) return injected;
@@ -64,17 +77,18 @@ export function TenantProvider({ children, service: injected, createRunnerFor, r
   // Sem sessão autenticada o contexto é liberado e a base local travada; a pendência do tenant fica preservada e inacessível.
   useEffect(() => {
     if (!service) return;
+    if (offlineMode) return;
     if (authenticated) void service.load();
     else void service.release();
-  }, [service, authenticated]);
+  }, [service, authenticated, offlineMode]);
 
   useEffect(() => () => { void service?.release(); }, [service]);
 
   useEffect(() => {
-    if (!service || !authenticated) return;
+    if (!service || !authenticated || offlineMode) return;
     const timer = setInterval(() => void service.load(), refreshMs);
     return () => clearInterval(timer);
-  }, [service, authenticated, refreshMs]);
+  }, [service, authenticated, offlineMode, refreshMs]);
 
   const select = useCallback<TenantContextValue['select']>(async (organizationId) => {
     if (!service) return { ok: false, reason: 'unavailable' };
@@ -88,21 +102,33 @@ export function TenantProvider({ children, service: injected, createRunnerFor, r
   const beginSwitch = useCallback(() => setSwitching(true), []);
   const cancelSwitch = useCallback(() => setSwitching(false), []);
 
-  const activeOrganizationId = snapshot.activeOrganizationId;
+  // Contexto offline: o tenant do registro, só quando a base local abriu (e a organização está desbloqueada). Nunca inventa vínculos.
+  const offlineOption = useMemo<TenantOption | null>(() => (offlineMode
+    ? { organizationId: offlineAccess.organizationId, displayName: offlineAccess.organizationName, kind: offlineAccess.organizationKind as OrganizationKind }
+    : null), [offlineMode, offlineAccess]);
+  const offlineReady = offlineOption !== null && databaseState === 'open';
+  const activeOrganizationId = offlineMode ? (offlineReady ? offlineOption.organizationId : null) : snapshot.activeOrganizationId;
   // Sem base local não há contexto de tenant: erro recuperável em vez de bloqueio indefinido.
   const databaseFailed = injected === undefined && databaseState === 'failed';
-  const status = authenticated && databaseFailed ? 'error' : authenticated && service && snapshot.status === 'idle' ? 'loading' : snapshot.status;
+  const status = offlineMode
+    ? (databaseFailed ? 'error' : offlineReady ? 'ready' : 'loading')
+    : authenticated && databaseFailed ? 'error' : authenticated && service && snapshot.status === 'idle' ? 'loading' : snapshot.status;
   // Resolvendo: autenticado e o serviço ainda não terminou a primeira carga (ou a base local ainda está abrindo).
-  const resolving = authenticated && !databaseFailed && (service ? snapshot.status === 'idle' : injected === undefined && Boolean(client));
+  const resolving = !offlineMode && authenticated && !databaseFailed && (service ? snapshot.status === 'idle' : injected === undefined && Boolean(client));
 
   const value = useMemo<TenantContextValue>(
-    () => ({ status, selection: snapshot.selection, options: snapshot.options, activeOrganizationId, switching, select, beginSwitch, cancelSwitch, reload }),
-    [status, snapshot.selection, snapshot.options, activeOrganizationId, switching, select, beginSwitch, cancelSwitch, reload],
+    () => ({
+      status, selection: offlineMode ? (offlineReady ? { kind: 'selected' as const, option: offlineOption } : { kind: 'none' as const }) : snapshot.selection,
+      options: offlineMode ? (offlineReady ? [offlineOption] : []) : snapshot.options, activeOrganizationId, switching, select, beginSwitch, cancelSwitch, reload,
+      database: databaseState === 'open' ? database : null,
+    }),
+    [status, offlineMode, offlineReady, offlineOption, snapshot.selection, snapshot.options, activeOrganizationId, switching, select, beginSwitch, cancelSwitch, reload, database, databaseState],
   );
 
   // Um executor por tenant ativo: trocar de tenant troca o executor e o SyncGate bloqueia e sincroniza o novo contexto.
   const createRunner = useMemo<SyncContextValue['createRunner']>(() => {
-    if (!activeOrganizationId) return null;
+    // Sem rede não há o que sincronizar: o modo offline não tem executor (a fila é enviada quando a sessão for reconfirmada).
+    if (offlineMode || !activeOrganizationId) return null;
     if (createRunnerFor) return createRunnerFor(activeOrganizationId);
     if (!client || !endpoint || !service) return null;
     const manager = new SupabaseClientManager<SupabaseClient>(() => client);
@@ -114,7 +140,7 @@ export function TenantProvider({ children, service: injected, createRunnerFor, r
       verifySession: verifySession ?? (async () => false),
       confirmTenant: () => service.confirm(),
     });
-  }, [activeOrganizationId, createRunnerFor, client, endpoint, service, database, verifySession]);
+  }, [offlineMode, activeOrganizationId, createRunnerFor, client, endpoint, service, database, verifySession]);
 
   const syncValue = useMemo<SyncContextValue>(() => ({ createRunner, resolving, retryResolving: reloadVoid }), [createRunner, resolving, reloadVoid]);
 

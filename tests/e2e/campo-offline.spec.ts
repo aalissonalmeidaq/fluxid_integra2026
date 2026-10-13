@@ -6,7 +6,7 @@ import { entrar, planejar } from './support/trips-scenario';
 test.use({ serviceWorkers: 'block' });
 
 // Spec 009, US4 (RF-015, RF-022, CA-005, CA-007): sem conexão, a leitura e a posição abrem, mas conferir, entregar e consultar ficam
-// desabilitados com o motivo em texto; nada é gravado e nada fica no aparelho (a fila offline é da Spec 010); ao reconectar, volta a funcionar.
+// agora seguem à mão e entram na fila do aparelho (Spec 010), exceto a consulta, que exige conexão.
 async function guardadoNoAparelho(page: Page): Promise<string> {
   return page.evaluate(async () => {
     const partes: string[] = [JSON.stringify({ ...localStorage }), JSON.stringify({ ...sessionStorage })];
@@ -44,7 +44,7 @@ async function preCarregarLeitor(page: Page): Promise<void> {
 }
 
 test.describe('Leitura e posição sem conexão', () => {
-  test('conferência: o campo de código fica desabilitado com o motivo, o leitor abre e não confere nada, e volta ao reconectar', async ({ page, context }) => {
+  test('conferência sem conexão: o código da viagem guardada entra na fila, o de fora dela não confere nada', async ({ page, context }) => {
     const readers = await installFieldReaders(page, { camera: true });
     const backend = await entrar(page);
     const carregando = planejar(backend, [['CIL-006', 'CIL-007']]);
@@ -53,25 +53,27 @@ test.describe('Leitura e posição sem conexão', () => {
     await expect(page.getByLabel('Código do cilindro')).toBeVisible();
     await preCarregarLeitor(page);
 
+    // A cópia da viagem é guardada ao abri-la com conexão; só então a rede cai (Spec 010).
+    await expect.poll(() => guardadoNoAparelho(page)).toContain('QR-006');
     await context.setOffline(true);
-    await expect(page.getByRole('button', { name: 'Conferir código' })).toBeDisabled();
-    await expect(page.getByText('Sem conexão. Registrar exige conexão.').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Conferir código' })).toBeEnabled();
 
+    // Código fora da viagem guardada: sem conexão não dá para confirmar, e nada é conferido nem enviado.
     await page.getByRole('button', { name: 'Ler cilindro' }).click();
     await expect(leitor(page)).toBeVisible();
-    await readers.scan('QR-006');
-    await expect(leitor(page).getByRole('status')).toContainText('Sem conexão. Registrar exige conexão.');
+    await readers.scan('QR-099');
+    await expect(leitor(page).getByRole('status')).toContainText('Não foi possível confirmar este código sem conexão.');
     expect(backend.trips.itemsOf(carregando.id).filter((item) => item.item_status === 'checked')).toHaveLength(0);
     await leitor(page).getByRole('button', { name: 'Fechar' }).click();
-
-    await context.setOffline(false);
-    await expect(page.getByRole('button', { name: 'Conferir código' })).toBeEnabled();
+    // Código da viagem guardada: entra na fila do aparelho como pendente, sem chamar o servidor.
     await page.getByLabel('Código do cilindro').fill('QR-006');
     await page.getByRole('button', { name: 'Conferir código' }).click();
-    await expect(page.getByText('1 de 2 conferidos')).toBeVisible();
+    await expect(page.getByText('Conferido, pendente de envio').first()).toBeVisible();
+    expect(backend.trips.itemsOf(carregando.id).filter((item) => item.item_status === 'checked')).toHaveLength(0);
+    await context.setOffline(false);
   });
 
-  test('chegada e entrega com posição: desabilitadas sem conexão, e nenhum código nem coordenada fica no aparelho', async ({ page, context }) => {
+  test('chegada e entrega com posição: seguem à mão sem conexão, e nenhum código nem coordenada fica no aparelho antes de registrar', async ({ page, context }) => {
     await installFieldReaders(page, { camera: true });
     await allowLocation(page, { latitude: -23.55, longitude: -46.633, accuracy: 12 });
     const backend = await entrar(page);
@@ -86,10 +88,11 @@ test.describe('Leitura e posição sem conexão', () => {
     await dialogo.getByLabel('Código do cilindro').fill('QR-008');
 
     await context.setOffline(true);
-    await expect(dialogo.getByRole('button', { name: 'Marcar como entregue' })).toBeDisabled();
-    await expect(dialogo.getByText('Sem conexão. Registrar exige conexão.').first()).toBeVisible();
+    await expect(dialogo.getByRole('button', { name: 'Marcar como entregue' })).toBeEnabled();
     const guardado = await guardadoNoAparelho(page);
-    expect(guardado).not.toMatch(/23[.,]55|46[.,]63|QR-008/);
+    // Antes de registrar, nenhuma coordenada nem pedido está no aparelho (os identificadores da viagem guardada fazem parte da cópia, não são valor lido).
+    expect(guardado).not.toMatch(/23[.,]55|46[.,]63/);
+    expect(guardado).toContain('local_outbox:[]');
     await context.setOffline(false);
   });
 
@@ -117,14 +120,14 @@ test.describe('Leitura e posição sem conexão', () => {
     await expect(leitor(page).getByText(/Aponte a câmera/)).toBeVisible();
   });
 
-  test('chegada com a posição fica desabilitada sem conexão', async ({ page, context }) => {
+  test('chegada com a posição segue habilitada sem conexão (entra na fila)', async ({ page, context }) => {
     const backend = await entrar(page);
     const andamento = planejar(backend, [['CIL-008'], ['CIL-009']], { placa: 'GHI1J23', motorista: 'Bruno Condutor', unidades: [1, 2], iniciar: true });
     await page.goto(`/viagens/${andamento.id}`);
     const botao = page.getByRole('button', { name: 'Chegada com a posição da parada 1 (Matriz)' });
     await expect(botao).toBeEnabled();
     await context.setOffline(true);
-    await expect(botao).toBeDisabled();
+    await expect(botao).toBeEnabled();
     await context.setOffline(false);
     await expect(botao).toBeEnabled();
   });

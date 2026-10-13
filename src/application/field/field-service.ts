@@ -20,6 +20,8 @@ export type ResolveOutcome =
   | { kind: 'deactivated'; cylinder: { id: string; serialNumber: string } }
   | { kind: 'invalid' }
   | { kind: 'offline' }
+  // Spec 010: sem conexão, o código não está entre os da viagem guardada e não dá para dizer mais que isso.
+  | { kind: 'offline_unconfirmed' }
   | { kind: 'access_denied' }
   | { kind: 'session_expired' }
   | { kind: 'unavailable' };

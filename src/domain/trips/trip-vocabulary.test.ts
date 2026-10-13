@@ -34,7 +34,11 @@ describe('vocabulário igual ao do banco', () => {
   });
 
   it('tipos de evento da viagem e do cilindro', () => {
-    expect(listAfter(/trip_events_type_check check \(event_type in \(([^)]*)\)/)).toEqual([...TRIP_EVENT_TYPES]);
+    // Spec 010: a restrição foi recriada, com o conjunto completo, pela última migration que acrescenta tipos (anexos da entrega).
+    const latest = read('_trip_delivery_attachments.sql');
+    expect([...(/trip_events_type_check check \(event_type in \(([^)]*)\)/.exec(latest)![1]!).matchAll(/'([a-z_]+)'/g)].map((match) => match[1])).toEqual([...TRIP_EVENT_TYPES]);
+    // O conjunto original (Spec 008) continua um prefixo do atual.
+    expect([...TRIP_EVENT_TYPES].slice(0, listAfter(/trip_events_type_check check \(event_type in \(([^)]*)\)/).length)).toEqual(listAfter(/trip_events_type_check check \(event_type in \(([^)]*)\)/));
     const cylinderTypes = listAfter(/cylinder_events_type_check check \(event_type in \(([^)]*)\)/);
     expect(cylinderTypes.slice(-CYLINDER_TRIP_EVENT_TYPES.length)).toEqual([...CYLINDER_TRIP_EVENT_TYPES]);
     expect(cylinderTypes).toHaveLength(17);

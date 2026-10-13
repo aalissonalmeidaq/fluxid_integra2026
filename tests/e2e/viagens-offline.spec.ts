@@ -3,8 +3,8 @@ import { entrar, entregar, planejar } from './support/trips-scenario';
 
 test.use({ serviceWorkers: 'block' });
 
-// Spec 008, história 7: sem conexão a estrutura aparece, as escritas ficam desabilitadas com o motivo e nada é guardado no aparelho (a
-// fila offline é da Fase 5); resposta perdida mostra "resultado desconhecido" e repetir não duplica; sessão expirada não grava nada.
+// Spec 008, história 7: sem conexão a estrutura aparece, as quatro operações de campo entram na fila do aparelho e o resto fica desabilitado com o motivo
+// (a fila offline é da Spec 010); resposta perdida mostra "resultado desconhecido" e repetir não duplica; sessão expirada não grava nada.
 const RECEBEDOR = 'Recebedor Sigiloso';
 
 // Tudo o que o aparelho guarda (localStorage, sessionStorage e IndexedDB), em texto, para provar que nenhum dado de viagem ficou nele.
@@ -34,34 +34,34 @@ async function guardadoNoAparelho(page: Page): Promise<string> {
 }
 
 test.describe('Viagens sem conexão e com falhas', () => {
-  test('sem conexão a estrutura continua na tela, as escritas ficam desabilitadas com o motivo e voltam ao reconectar', async ({ page, context }) => {
+  test('sem conexão a estrutura continua na tela, conferir entra na fila do aparelho e o resto fica desabilitado com o motivo', async ({ page, context }) => {
     const backend = await entrar(page);
     const carregando = planejar(backend, [['CIL-006', 'CIL-007']]);
     carregando.chamar('start_loading', { expected_version: 1 });
     await page.goto(`/viagens/${carregando.id}`);
     const conferir = page.getByRole('button', { name: 'Conferir CIL-006' });
     await expect(conferir).toBeEnabled();
+    // A cópia da viagem é guardada ao abri-la com conexão (Spec 010); só depois a rede cai.
+    await expect.poll(() => guardadoNoAparelho(page)).toContain('CIL-006');
 
     await context.setOffline(true);
-    await expect(page.getByText('Sem conexão. As ações que alteram a viagem exigem conexão.')).toBeVisible();
+    await expect(page.getByText('Sem conexão. O que você registrar fica neste aparelho e será enviado quando houver conexão.')).toBeVisible();
     await expect(page.getByText('Esta operação exige conexão.')).toBeVisible();
     // A estrutura continua: título, paradas e cilindros.
     await expect(page.getByRole('heading', { level: 2, name: 'Viagem n.º 1' })).toBeVisible();
     await expect(page.getByRole('list', { name: 'Paradas da viagem' })).toBeVisible();
-    for (const nome of ['Conferir CIL-006', 'Conferir CIL-007', 'Iniciar viagem', 'Cancelar viagem', 'Desfazer carregamento']) {
+    for (const nome of ['Iniciar viagem', 'Cancelar viagem', 'Desfazer carregamento']) {
       await expect(page.getByRole('button', { name: nome })).toBeDisabled();
     }
-    // Nada é enviado nem guardado enquanto a conexão não volta.
+    // Conferir fica na fila, como "pendente de envio", e nada chega ao servidor.
     const pedidos = backend.trips.receivedRequestIds.length;
-    await conferir.click({ force: true }).catch(() => undefined);
-    expect(backend.trips.receivedRequestIds).toHaveLength(pedidos);
-    const guardado = await guardadoNoAparelho(page);
-    for (const dado of [carregando.id, 'CIL-006', 'CIL-007', RECEBEDOR]) expect(guardado, `guardou "${dado}" no aparelho`).not.toContain(dado);
-
-    await context.setOffline(false);
     await expect(conferir).toBeEnabled();
     await conferir.click();
-    await expect(page.getByRole('status').filter({ hasText: 'Cilindro CIL-006 conferido.' })).toHaveCount(1);
+    await expect(page.getByText('Conferido, pendente de envio').first()).toBeVisible();
+    expect(backend.trips.receivedRequestIds).toHaveLength(pedidos);
+    expect(backend.trips.itemsOf(carregando.id).filter((item) => item.item_status === 'checked')).toHaveLength(0);
+    const guardado = await guardadoNoAparelho(page);
+    expect(guardado).not.toContain(RECEBEDOR);
   });
 
   test('o formulário sem conexão avisa e não envia', async ({ page, context }) => {
@@ -115,7 +115,7 @@ test.describe('Viagens sem conexão e com falhas', () => {
     await page.goto(`/viagens/${id}`);
     await expect(page.getByText(RECEBEDOR)).toBeVisible();
     const guardado = await guardadoNoAparelho(page);
+    // O nome do recebedor nunca fica no aparelho; a cópia da viagem guarda só o que serve para operar (série do cilindro, parada, unidade).
     expect(guardado).not.toContain(RECEBEDOR);
-    expect(guardado).not.toContain('CIL-006');
   });
 });

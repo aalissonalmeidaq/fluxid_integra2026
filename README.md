@@ -146,6 +146,21 @@ A conferência da carga, a entrega e a consulta de cilindros aceitam a leitura d
 
 Depois de atualizar a branch, rode `npx supabase db reset` e, para as funções novas serem servidas, `npx supabase stop` e `npx supabase start`. O contrato completo está em `specs/009-leitura-gps-campo/`.
 
+## Fila offline, fotos e assinatura de entrega (Spec 010)
+
+O aplicativo de campo passa a funcionar sem conexão, com a viagem já aberta no aparelho.
+
+- **Viagem guardada.** Ao abrir uma viagem em carregamento ou em andamento com conexão, o aparelho guarda uma cópia de leitura (situação, paradas, cilindros e os identificadores ativos), sem nome de recebedor, coordenadas ou anexos. Sem conexão a viagem abre dessa cópia, e o código lido só confere o cilindro se for um dos da viagem.
+- **Quatro operações na fila:** conferir, desfazer a conferência, registrar a chegada e registrar a entrega. Aparecem como "pendente de envio", nunca como feitas, e sobrevivem a fechar o aplicativo. O resto (planejar, iniciar, cancelar, concluir, desbloquear, corrigir entrega) continua exigindo conexão, com o motivo à vista.
+- **Envio idempotente.** Ao voltar a conexão a fila é enviada em ordem, uma operação por vez por viagem, com a mesma chave de idempotência (reenviar nunca duplica). A hora do aparelho vai como evidência auxiliar (`queued_at`); a hora que vale é a de recebimento. Registro com mais de 7 dias vira conflito.
+- **Conflito.** Quando o servidor recusa por regra de negócio (viagem cancelada, cilindro já conferido), o item vira conflito, preservado, e só uma pessoa com `trip.operate` decide: **Descartar** (justificativa de 5 a 500 caracteres, exige conexão, fica na trilha e na auditoria) ou **Reenviar**. Nada é descartado por tempo, sessão ou limite.
+- **Tela Sincronização** (`/sincronizacao`, aberta pelo indicador na barra superior, sem item de menu): o que está pendente por viagem, enviar agora, tentar de novo, ver conflito, fotos e assinatura pendentes e os avisos de espaço (80% de 200 operações e de 50 MB de anexos) e de armazenamento não persistente.
+- **Sessão offline.** O aplicativo abre sem servidor com a última sessão confirmada (acesso offline restrito, sem token no registro) por até **8 horas**; passado o teto, pede nova entrada e **a fila continua** no aparelho. Sair com pendências avisa e mantém a fila presa à conta, à organização e ao destino de origem.
+- **Fotos e assinatura.** Até 3 fotos (JPEG, lado maior de 1.600 px, até 1,5 MB, sem EXIF) e 1 assinatura (PNG de até 200 KB) por entrega, ambas opcionais. Seguem **depois** do registro, um anexo por vez, pela função `trip-attachments` (bytes reais, resumo SHA-256, bucket privado `trip-evidence`). A foto é vista com `trip.read` e a assinatura só com `trip.recipient`, por URL assinada de 60 segundos. Dá para acrescentar depois enquanto a viagem estiver em andamento ou concluída há até 7 dias.
+- **Privacidade.** Nenhuma coordenada, nome de recebedor, foto, assinatura ou caminho em evento, auditoria, log ou URL; no aparelho esses dados só existem na fila e nos anexos pendentes e saem na confirmação do servidor. O prazo de retenção e a cifra do conteúdo da fila ficam para a spec de privacidade.
+
+Depois de atualizar a branch, rode `npx supabase db reset` e, para as funções novas serem servidas, `npx supabase stop` e `npx supabase start`. O contrato completo está em `specs/010-fila-offline-fotos-assinatura/`.
+
 ---
 
 ## Governança de IA por ciclo

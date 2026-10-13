@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { resetPwaInstallForTests } from '../use-pwa-install';
 import { describe, expect, it, vi } from 'vitest';
 import type { ProfileOutcome, ProfileService } from '@/application/identity/profile-service';
 import { AuthContext, type AuthContextValue } from '../auth/auth-context';
@@ -58,11 +59,11 @@ describe('UserMenu', () => {
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
   });
 
-  it('"Sair" chama o logout existente', () => {
+  it('"Sair" chama o logout existente', async () => {
     const { logout } = renderMenu(servico(async () => ANA));
     fireEvent.click(botao());
     fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
-    expect(logout).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
   });
 
   it('falha ou demora na leitura mostra "Minha conta" sem bloquear as ações', async () => {
@@ -118,5 +119,22 @@ describe('UserMenu', () => {
     fireEvent.click(botao());
     await screen.findByText('Ana Souza');
     expect(screen.queryByText(/organização/i)).not.toBeInTheDocument();
+  });
+});
+
+// Spec 010, T065 (RF-028): o estado "instalado" aparece em texto no menu da pessoa.
+describe('estado do aplicativo instalado', () => {
+  it('não diz nada enquanto o navegador abre o aplicativo numa aba', () => {
+    renderMenu(servico(async () => ANA));
+    fireEvent.click(botao());
+    expect(screen.queryByText('Aplicativo instalado neste aparelho.')).toBeNull();
+  });
+
+  it('depois de instalado (evento do navegador), diz em texto', async () => {
+    renderMenu(servico(async () => ANA));
+    act(() => { window.dispatchEvent(new Event('appinstalled')); });
+    fireEvent.click(botao());
+    expect(await screen.findByText('Aplicativo instalado neste aparelho.')).toBeInTheDocument();
+    act(() => resetPwaInstallForTests());
   });
 });

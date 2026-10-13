@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { decodeClaims } from '../_shared/http.ts';
-import { createQueryTripsHandler, type OperationsGateway } from './handler.ts';
+import { createQueryTripsHandler, type AttachmentStorage, type OperationsGateway } from './handler.ts';
 
 interface RuntimeEnvironment { Deno?: { env: { get(name: string): string | undefined } } }
 const env = (name: string) => {
@@ -11,8 +11,11 @@ const env = (name: string) => {
 
 // A chave de serviço fica só aqui, no servidor. O ator, a sessão e o nível de autenticação (aal) vêm do token validado pelo Auth; o
 // banco confere vínculo, papel e permissão a cada chamada (contracts/operacoes-servidor.md).
-function createGateway(): OperationsGateway {
-  const admin = createClient(env('SUPABASE_URL'), env('SUPABASE_SERVICE_ROLE_KEY'), { auth: { persistSession: false, autoRefreshToken: false } });
+function createAdmin() {
+  return createClient(env('SUPABASE_URL'), env('SUPABASE_SERVICE_ROLE_KEY'), { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
+function createGateway(admin = createAdmin()): OperationsGateway {
   return {
     async authenticate(token) {
       const { data, error } = await admin.auth.getUser(token);
@@ -36,4 +39,19 @@ function createGateway(): OperationsGateway {
   };
 }
 
-export default { fetch: (request: Request) => createQueryTripsHandler(createGateway())(request) };
+// URL assinada de vida curta do bucket privado `trip-evidence`; só a borda a emite, depois de a permissão do tipo ser conferida no banco.
+function createStorage(admin = createAdmin()): AttachmentStorage {
+  return {
+    async signUrl(path, ttlSeconds) {
+      const { data, error } = await admin.storage.from('trip-evidence').createSignedUrl(path, ttlSeconds);
+      return error || !data?.signedUrl ? null : data.signedUrl;
+    },
+  };
+}
+
+export default {
+  fetch: (request: Request) => {
+    const admin = createAdmin();
+    return createQueryTripsHandler(createGateway(admin), createStorage(admin))(request);
+  },
+};

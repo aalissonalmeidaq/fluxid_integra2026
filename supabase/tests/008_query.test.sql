@@ -33,11 +33,11 @@ insert into public.customer_sites (id, organization_id, customer_id, name, posta
 insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_cylinders)
   select ('95000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'DLV' || (1000 + n), 'truck', 20 from generate_series(1, 6) n;
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until)
-  select ('96000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'Motorista ' || n, 'x' || n, 'y' || n, 'D', current_date + 365 from generate_series(1, 6) n;
+  select ('96000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'Motorista ' || n, 'x' || n, 'y' || n, 'D', (now() at time zone 'America/Sao_Paulo')::date + 365 from generate_series(1, 6) n;
 insert into public.cylinder_types (id, organization_id, gas, capacity_value, capacity_unit, classification) values
   ('97000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Oxigênio', 10, 'l', 'medicinal');
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on)
-  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'DEL-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', current_date + 200
+  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'DEL-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200
     from generate_series(1, 40) n;
 
 create function pg_temp.cy(n integer) returns uuid language sql as $$ select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid $$;
@@ -51,7 +51,7 @@ declare
   u constant uuid := '10000000-0000-0000-0000-000000000002'; s constant uuid := '60000000-0000-0000-0000-0000000800a2'; o constant uuid := '20000000-0000-0000-0000-00000000000a';
   t uuid; c integer;
 begin
-  t := (public.create_trip(u, s, o, gen_random_uuid(), current_date, ('95000000-0000-0000-0000-' || lpad(p_vehicle::text, 12, '0'))::uuid, ('96000000-0000-0000-0000-' || lpad(p_driver::text, 12, '0'))::uuid, null, p_stops) ->> 'trip_id')::uuid;
+  t := (public.create_trip(u, s, o, gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date, ('95000000-0000-0000-0000-' || lpad(p_vehicle::text, 12, '0'))::uuid, ('96000000-0000-0000-0000-' || lpad(p_driver::text, 12, '0'))::uuid, null, p_stops) ->> 'trip_id')::uuid;
   perform public.start_loading(u, s, o, gen_random_uuid(), t, pg_temp.ver(t));
   foreach c in array p_cyls loop
     perform public.check_item(u, s, o, gen_random_uuid(), t, (select id from public.trip_items where trip_id = t and cylinder_id = pg_temp.cy(c)));
@@ -122,8 +122,8 @@ select is(pg_temp.all_pages((select t from q), 'desc', 3), (select array_agg(seq
 -- Filtros por tipo e período.
 select is((select count(*)::int from jsonb_array_elements(pg_temp.adm_hist((select t from q), 'item_checked') -> 'events') e where e ->> 'event_type' <> 'item_checked'), 0, 'o filtro por tipo devolve só aquele tipo');
 select is(jsonb_array_length(pg_temp.adm_hist((select t from q), 'item_checked') -> 'events'), 3, 'três conferências na viagem');
-select is(jsonb_array_length(pg_temp.hist('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', (select t from q), p_from => current_date + 2) -> 'events'), 0, 'período no futuro: nada');
-select is(jsonb_array_length(pg_temp.hist('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', (select t from q), p_from => current_date - 1, p_to => current_date + 1) -> 'events') > 0, true, 'período que cobre hoje: traz eventos');
+select is(jsonb_array_length(pg_temp.hist('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', (select t from q), p_from => (now() at time zone 'America/Sao_Paulo')::date + 2) -> 'events'), 0, 'período no futuro: nada');
+select is(jsonb_array_length(pg_temp.hist('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', (select t from q), p_from => (now() at time zone 'America/Sao_Paulo')::date - 1, p_to => (now() at time zone 'America/Sao_Paulo')::date + 1) -> 'events') > 0, true, 'período que cobre hoje: traz eventos');
 
 -- Sem dado pessoal, e o autor aparece pelo nome de exibição.
 select is(pg_temp.adm_hist((select t from q))::text !~* 'Nome-reservado|-23\.55', true, 'o histórico não traz o nome do recebedor nem a posição');

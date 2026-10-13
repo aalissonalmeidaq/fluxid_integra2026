@@ -41,14 +41,16 @@ describe('nenhuma operação de exclusão de viagens (RF-033)', () => {
     }
   });
 
-  it('nenhuma migration das Specs 008 e 009 apaga linhas das tabelas de viagem', () => {
+  it('nenhuma migration das Specs 008, 009 e 010 apaga linhas das tabelas de viagem, de trilha ou de anexo', () => {
     const dir = join(ROOT, 'supabase', 'migrations');
-    const migrations = readdirSync(dir).filter((file) => /^202610091.*_trips_.*\.sql$/.test(file) || /^20261013.*\.sql$/.test(file));
+    const migrations = readdirSync(dir).filter((file) => /^202610091.*_trips_.*\.sql$/.test(file) || /^20261013.*\.sql$/.test(file) || /^20261014.*\.sql$/.test(file));
     expect(migrations.filter((file) => file.startsWith('20261013'))).toHaveLength(3);
+    // A Spec 010 cria quatro migrations (trilha, horário da posição, leitura offline e anexos); a verificação vale para todas as que existirem.
+    expect(migrations.filter((file) => file.startsWith('20261014')).length).toBeGreaterThanOrEqual(2);
     for (const name of migrations) {
       const text = readFileSync(join(dir, name), 'utf8');
-      expect(text, name).not.toMatch(/\bdelete\s+from\s+public\.trip/i);
-      expect(text, name).not.toMatch(/\btruncate\s+(table\s+)?public\.trip/i);
+      expect(text, name).not.toMatch(/\bdelete\s+from\s+(public|private)\.trip/i);
+      expect(text, name).not.toMatch(/\btruncate\s+(table\s+)?(public|private)\.trip/i);
     }
   });
 });

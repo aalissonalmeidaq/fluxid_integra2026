@@ -31,10 +31,12 @@ export function PermissionsProvider({
   children, service: injected, getUserId, refreshMs = PERMISSIONS_REFRESH_MS, timeoutMs = QUERY_TIMEOUT_MS,
 }: PermissionsProviderProps): React.JSX.Element {
   const { client, config, result } = useConnectivity();
-  const { state: authState } = useAuth();
+  const { state: authState, offlineAccess } = useAuth();
   const { activeOrganizationId } = useTenant();
   const online = useOnlineStatus();
   const authenticated = authState.status === 'authenticated';
+  // Sessão restaurada offline (Spec 010, RF-016a): vale o registro da última confirmação do servidor, só para o tenant ativo (nunca para o escopo global).
+  const offlinePermissions = authState.status === 'authenticated' && authState.offline === true && offlineAccess ? offlineAccess.permissions : null;
   const signedOut = authState.status === 'signed_out';
   const endpoint = config?.endpoints.find((candidate) => candidate.kind === result.selectedEndpoint);
   const cache = useMemo(() => createPermissionsCache(), []);
@@ -125,13 +127,14 @@ export function PermissionsProvider({
 
   const value = useMemo<PermissionsContextValue>(() => {
     if (!authenticated) return { status: 'loading', permissions: null, retry };
+    if (offlinePermissions) return { status: 'offline', permissions: { tenant: offlinePermissions, global: [] }, retry };
     if (!online) {
       const known = entry.key === key && entry.status === 'ready' ? entry.permissions : null;
       const stored = known ?? (userId ? cache.read(userId, activeOrganizationId)?.codes ?? null : null);
       return { status: 'offline', permissions: stored, retry };
     }
     return { status: entry.status, permissions: entry.status === 'ready' ? entry.permissions : null, retry };
-  }, [authenticated, online, entry, key, userId, activeOrganizationId, cache, retry]);
+  }, [authenticated, offlinePermissions, online, entry, key, userId, activeOrganizationId, cache, retry]);
 
   return <PermissionsContext.Provider value={value}>{children}</PermissionsContext.Provider>;
 }

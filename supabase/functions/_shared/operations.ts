@@ -48,6 +48,10 @@ export interface OperationSpec {
   fields: Record<string, [Rule, string]>;
   // Regra entre campos (ex.: uma justificativa que só vale numa correção). Recebe os argumentos já validados e devolve os problemas, ou nada.
   crossCheck?: (args: Record<string, unknown>) => FieldIssue[] | null;
+  // Spec 010: operação de campo que pode vir da fila do aparelho. Aceita `queued_at` (a hora do aparelho em que o pedido entrou na fila) e, com ele,
+  // registra o resultado na trilha de sincronização (`record_trip_sync_event`). `forward` repassa `p_queued_at` à função SQL (chegada e entrega);
+  // sem ele, o campo só alimenta a trilha. `operation` é o nome da operação na trilha. Sem `queued_at` nada muda para o uso online.
+  queuedAt?: { forward: boolean; operation: string };
 }
 
 export const IDENTIFIER_KINDS = ['qr_code', 'data_matrix', 'nfc_tag', 'hull_number'] as const;
@@ -57,6 +61,8 @@ const SUCCESS = new Set([
   'INACTIVATED', 'REACTIVATED', 'LINKED', 'UNLINKED', 'REVEALED', 'ANONYMIZED', 'STATUS_CHANGED',
   // Spec 008 (viagens).
   'LOADING', 'REVERTED', 'CHECKED', 'UNCHECKED', 'REMOVED', 'STARTED', 'ARRIVED', 'DELIVERED', 'UNLOCKED', 'RETURNED', 'COMPLETED', 'CANCELLED',
+  // Spec 010 (fila offline).
+  'RESOLVED',
 ]);
 const STATUS: Record<string, number> = {
   AUTH_REQUIRED: 401, ACCESS_DENIED: 403, MFA_REQUIRED: 403, NOT_FOUND: 404, VALIDATION_FAILED: 400, JUSTIFICATION_REQUIRED: 400,
@@ -69,6 +75,8 @@ const STATUS: Record<string, number> = {
   // Spec 008 (viagens, paradas, carga e entrega).
   CYLINDER_RESERVED: 409, CYLINDER_NOT_ELIGIBLE: 409, CAPACITY_EXCEEDED: 409, RESOURCE_BUSY: 409, DRIVER_LICENSE_EXPIRED: 409, INVALID_TRANSITION: 409,
   ITEMS_PENDING: 409, STOPS_OPEN: 409, TRIP_CLOSED: 409, STOP_CLOSED: 409, REQUEST_REUSED: 409, CYLINDER_IN_TRIP: 409,
+  // Spec 010 (fila offline): operação de origem offline com horário informado de mais de 7 dias.
+  STALE_OFFLINE_OPERATION: 409, TRIP_STATE_INVALID: 409, ALREADY_RESOLVED: 409,
 };
 
 // Exceções do banco (gatilhos) que a borda traduz em código de negócio, sem reescrever as RPCs que as provocam.
@@ -208,6 +216,17 @@ function buildArgs(spec: OperationSpec, body: Record<string, unknown>): Built {
   return fields.length > 0 ? { ok: false, fields } : { ok: true, args };
 }
 
+// `queued_at`: instante ISO 8601 com fuso, não no futuro (tolerância de 1 minuto para o relógio do aparelho). Nulo ou ausente vale como ausente.
+const QUEUED_AT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,6})?)?(Z|[+-]\d{2}:\d{2})$/;
+function parseQueuedAt(value: unknown): { ok: true; value: string | null } | { ok: false; message: string } {
+  if (value === undefined || value === null) return { ok: true, value: null };
+  if (typeof value !== 'string' || value.length > 40 || !QUEUED_AT.test(value)) return { ok: false, message: 'Informe um instante ISO 8601 com fuso.' };
+  const time = Date.parse(value);
+  if (Number.isNaN(time)) return { ok: false, message: 'Informe um instante válido.' };
+  if (time > Date.now() + 60_000) return { ok: false, message: 'O horário da fila não pode estar no futuro.' };
+  return { ok: true, value };
+}
+
 export interface OperationsHandlerOptions {
   // Prefixo do nome de auditoria e da operação desconhecida (`cylinder`, `registry`).
   prefix?: string;
@@ -247,6 +266,14 @@ export function createOperationsHandler(gateway: OperationsGateway, operations: 
     const crossed = spec.crossCheck?.(built.args);
     if (crossed && crossed.length > 0) return json({ code: 'VALIDATION_FAILED', fields: crossed }, 400);
 
+    let queuedAt: string | null = null;
+    if (spec.queuedAt) {
+      const parsed = parseQueuedAt(body.queued_at);
+      if (!parsed.ok) return json({ code: 'VALIDATION_FAILED', fields: [{ field: 'queued_at', message: parsed.message }] }, 400);
+      queuedAt = parsed.value;
+      if (spec.queuedAt.forward) built.args.p_queued_at = queuedAt;
+    }
+
     let result: Record<string, unknown>;
     try {
       result = await gateway.rpc(spec.rpc, { p_actor: identity.userId, p_session: identity.sessionId, p_organization: organizationId, ...built.args });
@@ -258,8 +285,29 @@ export function createOperationsHandler(gateway: OperationsGateway, operations: 
     }
 
     const code = typeof result.code === 'string' ? result.code : '';
-    if (SUCCESS.has(code)) return json(result, 200);
     const status = STATUS[code];
+    // Trilha de sincronização (Spec 010, RF-012): só para pedido vindo da fila e só com resultado de domínio (sucesso ou conflito). Falta de
+    // sessão ou de permissão interrompe o envio e não é conflito. Se a trilha falhar depois do sucesso, responde 500 para a fila reenviar:
+    // o reenvio é idempotente e a trilha registra o resultado quando houver.
+    if (spec.queuedAt && queuedAt !== null) {
+      const success = SUCCESS.has(code);
+      const conflict = !success && (status === 400 || status === 404 || status === 409);
+      if (success || conflict) {
+        try {
+          const recorded = await gateway.rpc('record_trip_sync_event', {
+            p_actor: identity.userId, p_session: identity.sessionId, p_organization: organizationId, p_request: built.args.p_request,
+            p_operation: spec.queuedAt.operation, p_trip: built.args.p_trip, p_outcome: success ? (result.replayed === true ? 'replayed' : 'applied') : 'conflict',
+            p_reason: success ? null : code, p_queued_at: queuedAt,
+          });
+          // NOT_FOUND: a própria viagem não existe nesta organização, então não há o que registrar.
+          if (recorded.code !== 'RECORDED' && recorded.code !== 'NOT_FOUND') throw new Error('sync_event_not_recorded');
+        } catch {
+          await gateway.audit({ actorId: identity.userId, action, result: 'failed', reason: 'internal_error' }).catch(() => undefined);
+          return json({ code: 'INTERNAL_ERROR' }, 500);
+        }
+      }
+    }
+    if (SUCCESS.has(code)) return json(result, 200);
     if (status === undefined) return json({ code: 'INTERNAL_ERROR' }, 500);
     if (code === 'ACCESS_DENIED' || code === 'AUTH_REQUIRED') {
       await gateway.audit({ actorId: identity.userId, action, result: 'denied', reason: 'permission_denied' }).catch(() => undefined);

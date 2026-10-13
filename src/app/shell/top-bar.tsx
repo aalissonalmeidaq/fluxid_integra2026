@@ -6,6 +6,7 @@ import { usePwaInstall } from '../use-pwa-install';
 import { useMinWidth } from '../use-min-width';
 import { ConnectionBar } from './connection-bar';
 import { LogoLink } from './logo-link';
+import { ConnectedSyncIndicator } from './sync-indicator';
 import { UserMenu } from './user-menu';
 
 export interface TopBarProps {
@@ -31,6 +32,7 @@ export function TopBar({ menuToggle }: TopBarProps): React.JSX.Element {
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <ConnectionBar inline />
+        <ConnectedSyncIndicator />
         <TenantIndicator />
         {isInstallable && <Button variant="secundario" onClick={() => void promptInstall()}>Instalar App</Button>}
         <UserMenu />

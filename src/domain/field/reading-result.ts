@@ -11,7 +11,7 @@ export type ResolutionLike =
   | { kind: 'found'; value: { cylinder: { id: string; serialNumber: string; status: string }; trip: { id: string; number: number } | null } }
   | { kind: 'not_found' }
   | { kind: 'deactivated'; cylinder: { serialNumber: string } }
-  | { kind: 'invalid' | 'offline' | 'access_denied' | 'session_expired' | 'unavailable' };
+  | { kind: 'invalid' | 'offline' | 'offline_unconfirmed' | 'access_denied' | 'session_expired' | 'unavailable' };
 
 export interface ItemLike { id: string; cylinderId: string; status: string }
 
@@ -24,6 +24,7 @@ export function describeUnresolved(outcome: Exclude<ResolutionLike, { kind: 'fou
     case 'deactivated': return { tone: 'warning', message: `Este identificador foi desativado. Valia para o cilindro ${outcome.cylinder.serialNumber}.` };
     case 'invalid': return { tone: 'error', message: 'Código inválido. Tente ler de novo.' };
     case 'offline': return { tone: 'error', message: 'Sem conexão. Registrar exige conexão.' };
+    case 'offline_unconfirmed': return { tone: 'error', message: 'Não foi possível confirmar este código sem conexão.' };
     case 'access_denied': return { tone: 'error', message: 'Você não tem permissão para esta leitura.' };
     case 'session_expired': return { tone: 'error', message: 'Sua sessão expirou. Entre de novo para continuar.' };
     case 'unavailable': return { tone: 'error', message: 'Não foi possível consultar agora. Tente de novo.' };

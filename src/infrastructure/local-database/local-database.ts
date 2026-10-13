@@ -1,6 +1,13 @@
-export const LOCAL_STORES = ['local_outbox', 'local_sync_cursors', 'local_sync_conflicts'] as const;
+// Versão 2 (Spec 010): `local_trips` guarda a cópia da viagem para operar offline e `local_attachments` guarda foto e assinatura até o envio.
+// As três lojas da versão 1 continuam como estavam, com os registros que já tinham.
+export const LOCAL_DB_VERSION = 2;
+export const LOCAL_STORES = ['local_outbox', 'local_sync_cursors', 'local_sync_conflicts', 'local_trips', 'local_attachments'] as const;
 export type LocalStore = typeof LOCAL_STORES[number];
 export interface LocalRecord { id: string; organization_id: string; [key: string]: unknown }
+// Quem é dono do registro: a conta e o destino Supabase de origem (a organização vem da base desbloqueada). Outra conta, organização ou destino
+// nunca vê nem envia o registro (Spec 010, RF-016).
+export interface RecordOwner { actorId: string; endpointId: string }
+const OWNER_INDEX = 'owner';
 
 function requestResult<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -24,13 +31,16 @@ export class LocalDatabase {
 
   async open(): Promise<void> {
     if (this.database) return;
-    const request = indexedDB.open(this.name, 1);
+    const request = indexedDB.open(this.name, LOCAL_DB_VERSION);
     request.onupgradeneeded = () => {
       for (const storeName of LOCAL_STORES) {
-        if (!request.result.objectStoreNames.contains(storeName)) {
-          const store = request.result.createObjectStore(storeName, { keyPath: 'id' });
-          store.createIndex('organization_id', 'organization_id', { unique: false });
-        }
+        // Na atualização da versão 1, as lojas antigas são mantidas (com os registros) e só ganham o índice novo.
+        const store = request.result.objectStoreNames.contains(storeName)
+          ? request.transaction!.objectStore(storeName)
+          : request.result.createObjectStore(storeName, { keyPath: 'id' });
+        if (!store.indexNames.contains('organization_id')) store.createIndex('organization_id', 'organization_id', { unique: false });
+        // Índice composto: só entram registros que têm conta, organização e destino (os da versão 1 continuam visíveis por `list`).
+        if (!store.indexNames.contains(OWNER_INDEX)) store.createIndex(OWNER_INDEX, ['actor_id', 'organization_id', 'endpoint_id'], { unique: false });
       }
     };
     this.database = await requestResult(request);
@@ -42,6 +52,7 @@ export class LocalDatabase {
   }
 
   unlock(organizationId: string): void { this.activeOrganizationId = organizationId; }
+  isUnlocked(): boolean { return this.activeOrganizationId !== undefined; }
   lock(): void { this.activeOrganizationId = undefined; }
   
   get activeTenant(): string { return this.assertUnlocked(); }
@@ -64,6 +75,13 @@ export class LocalDatabase {
     const tenant = this.assertUnlocked();
     const transaction = this.database!.transaction(store, 'readonly');
     return requestResult(transaction.objectStore(store).index('organization_id').getAll(tenant)) as Promise<LocalRecord[]>;
+  }
+
+  // Registros do tenant ativo que pertencem a esta conta e a este destino.
+  async listOwned(store: LocalStore, owner: RecordOwner): Promise<LocalRecord[]> {
+    const tenant = this.assertUnlocked();
+    const transaction = this.database!.transaction(store, 'readonly');
+    return requestResult(transaction.objectStore(store).index(OWNER_INDEX).getAll([owner.actorId, tenant, owner.endpointId])) as Promise<LocalRecord[]>;
   }
 
   async transaction(stores: LocalStore[], operation: (tx: { put: (store: LocalStore, record: LocalRecord) => Promise<void> }) => Promise<void>): Promise<void> {

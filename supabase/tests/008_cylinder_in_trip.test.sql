@@ -15,7 +15,7 @@ insert into public.customer_sites (id, organization_id, customer_id, name, posta
 insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_cylinders) values
   ('95000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'AAA1111', 'truck', 10);
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until) values
-  ('96000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Motorista A', 'x', 'x', 'D', current_date + 365);
+  ('96000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Motorista A', 'x', 'x', 'D', (now() at time zone 'America/Sao_Paulo')::date + 365);
 insert into public.cylinder_types (id, organization_id, gas, capacity_value, capacity_unit, classification) values
   ('97000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Oxigênio', 10, 'l', 'medicinal');
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status) values
@@ -27,7 +27,7 @@ insert into public.cylinder_identifiers (organization_id, cylinder_id, kind, val
   ('20000000-0000-0000-0000-00000000000a', '98000000-0000-0000-0000-000000000002', 'qr_code', 'QR-INT-2'),
   ('20000000-0000-0000-0000-00000000000a', '98000000-0000-0000-0000-000000000003', 'qr_code', 'QR-INT-3');
 insert into public.trips (id, organization_id, number, planned_date, vehicle_id, driver_id, created_by, status, started_at, started_by) values
-  ('99000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 7, current_date, '95000000-0000-0000-0000-00000000000a', '96000000-0000-0000-0000-00000000000a',
+  ('99000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', 7, (now() at time zone 'America/Sao_Paulo')::date, '95000000-0000-0000-0000-00000000000a', '96000000-0000-0000-0000-00000000000a',
    '10000000-0000-0000-0000-000000000002', 'in_progress', now(), '10000000-0000-0000-0000-000000000002');
 insert into public.trip_stops (id, organization_id, trip_id, site_id, position) values
   ('9a000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-00000000000a', '99000000-0000-0000-0000-000000000001', '92000000-0000-0000-0000-00000000000a', 1);

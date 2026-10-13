@@ -566,3 +566,31 @@ describe('detalhe: devolver ao estoque', () => {
     expect(screen.getByText('Devolvido ao estoque')).toBeInTheDocument();
   });
 });
+
+describe('detalhe: fotos e assinatura na entrega (Spec 010)', () => {
+  const attachments = () => ({ add: vi.fn(async () => ({ ok: true as const, position: 1 })), upload: vi.fn(async () => ({ sent: 0, waiting: 0, failed: 0, retry: false, interrupted: null })), usage: vi.fn(async () => ({ count: 0, bytes: 0, level: 'ok' as const })) });
+  const open = async (extra: Record<string, unknown>) => {
+    const getTrip = vi.fn().mockResolvedValueOnce({ kind: 'success', value: sailing('on_site') }).mockResolvedValue({ kind: 'success', value: sailing('delivered') });
+    const service = fakeTripService({ getTrip, registerDelivery: vi.fn(async () => ({ kind: 'success', value: { deliveryId: 'd1', stopStatus: 'delivered', outsideGeofence: null } })) });
+    renderDetail(service, { abilities: OPERATOR, ...extra });
+    fireEvent.click(await screen.findByRole('button', { name: 'Registrar entrega da parada 1' }));
+    return { service, dialog: await screen.findByRole('dialog', { name: 'Registrar entrega · Parada 1' }) };
+  };
+
+  it('com os anexos ligados, o diálogo oferece fotos e assinatura, e a entrega vale sem nenhum', async () => {
+    const files = attachments();
+    const { service, dialog } = await open({ attachments: files });
+    expect(within(dialog).getByRole('group', { name: 'Fotos da entrega (opcional)' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('group', { name: 'Assinatura de quem recebeu (opcional)' })).toBeInTheDocument();
+    fillRecipient();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Registrar entrega' }));
+    await waitFor(() => expect(service.registerDelivery).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(files.add).not.toHaveBeenCalled();
+  });
+
+  it('sem os anexos ligados (sem trip.operate ou sem a fila), o diálogo é o de sempre', async () => {
+    const { dialog } = await open({});
+    expect(within(dialog).queryByRole('group', { name: 'Fotos da entrega (opcional)' })).toBeNull();
+  });
+});

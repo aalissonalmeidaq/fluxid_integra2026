@@ -33,11 +33,11 @@ insert into public.customer_sites (id, organization_id, customer_id, name, posta
 insert into public.vehicles (id, organization_id, plate, vehicle_type, capacity_cylinders)
   select ('95000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'POS' || (3000 + n), 'truck', 20 from generate_series(1, 3) n;
 insert into public.drivers (id, organization_id, full_name, cpf_display, cnh_display, cnh_category, cnh_valid_until)
-  select ('96000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'Motorista ' || n, 'x' || n, 'y' || n, 'D', current_date + 365 from generate_series(1, 3) n;
+  select ('96000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', 'Motorista ' || n, 'x' || n, 'y' || n, 'D', (now() at time zone 'America/Sao_Paulo')::date + 365 from generate_series(1, 3) n;
 insert into public.cylinder_types (id, organization_id, gas, capacity_value, capacity_unit, classification) values
   ('97000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'Oxigênio', 10, 'l', 'medicinal');
 insert into public.cylinders (id, organization_id, cylinder_type_id, serial_number, stock_status, hydro_last_result, hydro_next_due_on)
-  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'POS-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', current_date + 200
+  select ('98000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, '20000000-0000-0000-0000-00000000000a', '97000000-0000-0000-0000-00000000000a', 'POS-' || lpad(n::text, 3, '0'), 'in_stock', 'approved', (now() at time zone 'America/Sao_Paulo')::date + 200
     from generate_series(1, 16) n;
 -- Geocerca circular de 200 m na unidade 1.
 insert into public.geofences (id, organization_id, site_id, name, shape, center, radius_m, area) values
@@ -52,7 +52,7 @@ declare
   u constant uuid := '10000000-0000-0000-0000-000000000002'; s constant uuid := '60000000-0000-0000-0000-0000000900a2'; o constant uuid := '20000000-0000-0000-0000-00000000000a';
   t uuid; c integer;
 begin
-  t := (public.create_trip(u, s, o, gen_random_uuid(), current_date, ('95000000-0000-0000-0000-' || lpad(p_unit::text, 12, '0'))::uuid, ('96000000-0000-0000-0000-' || lpad(p_unit::text, 12, '0'))::uuid, null,
+  t := (public.create_trip(u, s, o, gen_random_uuid(), (now() at time zone 'America/Sao_Paulo')::date, ('95000000-0000-0000-0000-' || lpad(p_unit::text, 12, '0'))::uuid, ('96000000-0000-0000-0000-' || lpad(p_unit::text, 12, '0'))::uuid, null,
     (select jsonb_agg(jsonb_build_object('site_id', ('92000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid, 'cylinder_ids', jsonb_build_array(pg_temp.cy(x.cyl)))) from unnest(p_cyls) with ordinality as x(cyl, n))) ->> 'trip_id')::uuid;
   perform public.start_loading(u, s, o, gen_random_uuid(), t, pg_temp.ver(t));
   foreach c in array p_cyls loop
@@ -139,7 +139,7 @@ select throws_ok($$ update public.trip_stops set arrival_latitude = -23.5 where 
 select is(pg_temp.arrive((select trip from t_bad), 1, -23.55, -46.6, 10, 'gps', now(), '10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000900b3', '20000000-0000-0000-0000-00000000000b') ->> 'code', 'NOT_FOUND', 'o Tenant B não registra chegada no Tenant A');
 select is(pg_temp.arrive((select trip from t_bad), 1, -23.55, -46.6, 10, 'gps', now(), '10000000-0000-0000-0000-0000000009d1', '60000000-0000-0000-0000-0000000900d1') ->> 'code', 'ACCESS_DENIED', 'o auditor não registra chegada');
 select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname in ('arrive_stop', 'register_delivery')), 2, 'uma só assinatura de arrive_stop e de register_delivery');
-select is(has_function_privilege('authenticated', 'public.arrive_stop(uuid, uuid, uuid, uuid, uuid, uuid, timestamptz, numeric, numeric, numeric, text, timestamptz)', 'execute'), false, 'só o servidor executa arrive_stop');
+select is(has_function_privilege('authenticated', 'public.arrive_stop(uuid, uuid, uuid, uuid, uuid, uuid, timestamptz, numeric, numeric, numeric, text, timestamptz, timestamptz)', 'execute'), false, 'só o servidor executa arrive_stop');
 
 -- Detalhe da viagem: origem, precisão e geocerca, só a quem tem trip.read.
 select is(public.get_trip('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000900a2', '20000000-0000-0000-0000-00000000000a', (select trip from t_arrive)) -> 'stops' -> 0 -> 'arrival' ->> 'position_source', 'gps',

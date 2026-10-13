@@ -92,6 +92,8 @@ export interface ArrivalPositionView {
   outsideGeofence: boolean | null;
 }
 export interface TripStopView {
+  // Só na cópia guardada: a chegada ou a entrega desta parada ainda está só neste aparelho, na fila (Spec 010).
+  pending?: boolean;
   id: string;
   position: number | null;
   status: StopStatus;
@@ -103,6 +105,11 @@ export interface TripStopView {
   site: { id: string; name: string; city: string; state: string; customerId: string; customerName: string };
 }
 export interface TripItemView {
+  // Item vindo da cópia guardada no aparelho (Spec 010): sem teste hidrostático nem dados do cadastro.
+  offline?: boolean;
+  // Só na cópia guardada: identificadores ativos (maiúsculas) para ler o código sem conexão, e a marca de "só neste aparelho, ainda na fila".
+  identifiers?: string[];
+  pending?: boolean;
   id: string;
   stopId: string;
   itemStatus: ItemStatus;
@@ -118,7 +125,13 @@ export interface TripItemView {
   };
 }
 export interface DeliveryResultView { itemId: string; delivered: boolean; reason: string | null; source?: ReadingSource | null }
+// Anexo de uma entrega (Spec 010): só o que a pessoa pode ver; nunca o caminho nem o nome do arquivo.
+export interface DeliveryAttachmentView { id: string; kind: 'photo' | 'signature'; position: number; capturedAt: string | null; addedLater: boolean }
 export interface TripDeliveryView {
+  // Spec 010: quantas fotos a entrega tem, se há assinatura e a lista do que a pessoa pode ver.
+  photoCount?: number;
+  hasSignature?: boolean;
+  attachments?: DeliveryAttachmentView[];
   id: string;
   stopId: string;
   deliveredAt: string;
@@ -140,6 +153,10 @@ export interface TripDeliveryView {
 export interface TripUnlockView { id: string; itemId: string; exceptional: boolean; justification: string | null; aal: 'aal1' | 'aal2'; actorName: string | null; occurredAt: string }
 
 export interface TripDetail {
+  // Só na cópia guardada: as entregas que o servidor já tem (id e parada), para acrescentar fotos e assinatura sem conexão. Sem recebedor nem posição.
+  knownDeliveries?: { id: string; stopId: string }[];
+  // Detalhe montado da cópia guardada no aparelho, sem falar com o servidor (Spec 010).
+  offline?: boolean;
   trip: TripHeader;
   overdue: boolean;
   vehicle: TripVehicleView;
@@ -242,7 +259,19 @@ function toDelivery(value: unknown): TripDeliveryView | null {
     atSiteAddress: value.at_site_address === true, outsideGeofence: typeof value.outside_geofence === 'boolean' ? value.outside_geofence : null,
     accuracyM: num(value.accuracy_m), positionSource, positionReadAt: str(value.position_read_at), results,
     supersedesId: str(value.supersedes_id), recordedByName: str(value.recorded_by_name), recordedAt,
+    ...(num(value.photo_count) !== null ? { photoCount: num(value.photo_count) as number } : {}),
+    ...(typeof value.has_signature === 'boolean' ? { hasSignature: value.has_signature } : {}),
+    ...(Array.isArray(value.attachments) ? { attachments: toAttachments(value.attachments) } : {}),
   };
+}
+
+function toAttachments(list: unknown[]): DeliveryAttachmentView[] {
+  const out: DeliveryAttachmentView[] = [];
+  for (const entry of list) {
+    if (!isObject(entry) || typeof entry.id !== 'string' || (entry.kind !== 'photo' && entry.kind !== 'signature')) continue;
+    out.push({ id: entry.id, kind: entry.kind, position: num(entry.position) ?? 0, capturedAt: str(entry.captured_at), addedLater: entry.added_later === true });
+  }
+  return out;
 }
 
 function toUnlock(value: unknown): TripUnlockView | null {

@@ -1,0 +1,343 @@
+# Registro do uso de inteligência artificial e validação humana
+
+**FluxID | RIA-029 | Fila offline, fotos e assinatura de entrega no aplicativo de campo**
+
+> Ponto de atenção: a IA apoia a equipe, mas a responsabilidade final é humana.
+
+## Registro da interação
+
+- Ferramenta de IA utilizada: Claude Code (modelo Claude Sonnet 5.5), duas sessões em paralelo na mesma branch, cada uma com um conjunto de tarefas
+- Objetivo do uso: implementar a Spec 010 com TDD: fila offline das operações de campo, viagem guardada no aparelho, envio idempotente, conflitos com decisão humana, fotos e assinatura da entrega, tela Sincronização, acesso offline restrito e instalação do PWA.
+- Prompt utilizado, em síntese sanitizada: executar o fluxo `/speckit-implement` sobre o `tasks.md` da Spec 010 (T001 a T088), respeitando o escopo protegido, o padrão visual da Spec 005, a privacidade (nenhuma coordenada, recebedor, foto ou assinatura em log, URL ou auditoria) e o isolamento por tenant com RLS testada com dois tenants.
+- Resposta gerada pela IA: código, testes e documentação da spec: 4 migrations (trilha de sincronização, horário informado em chegada e entrega, leitura offline da viagem e anexos da entrega com bucket privado), a função `trip-attachments` e ajustes em `manage-trips` e `query-trips`; no cliente, a fila, a viagem guardada, o envio e os conflitos, os anexos, o acesso offline restrito, a tela Sincronização, o indicador e os blocos de fotos e assinatura. Inclui testes unitários, pgTAP com dois tenants, contratos, testes ao vivo, E2E e capturas visuais, mais `validation.md` e `roteiro-android.md`. Resumo e revisão pelo pull request (link abaixo).
+
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/35
+- Análise crítica da equipe: a suíte completa passou (lint, tipos, 5.208 testes unitários, pgTAP, testes ao vivo, E2E e capturas no Linux) e as medições em 4G ficaram dentro das metas. Alisson Almeida conferiu o resultado na prática e aprovou, sem apontar itens a corrigir. O roteiro completo em aparelho Android (foto pela câmera, perda e retorno de sinal, instalação e abertura offline do aplicativo instalado) não foi executado nesta validação e segue como pendência.
+- Validação humana realizada: Alisson Almeida validou em 13/10/2026, por cerca de 5 minutos, com perfis de administrador nas telas de cilindros e de viagens, e aprovou.
+- Decisão final: utilizado
+- Justificativa: funcional (resposta da pessoa responsável)
+- Fontes verificadas: não houve fonte externa; as decisões seguem `specs/010-fila-offline-fotos-assinatura/` (spec, plano, pesquisa e contratos), o `AGENTS.md` e a documentação oficial dos recursos do navegador usados (IndexedDB, Web Locks, canvas e `navigator.storage`).
+- Identificador do registro: RIA-029
+- Data e hora da interação: 13/10/2026, 14:16:54 - America/Fortaleza
+
+## Rastreabilidade técnica do ciclo
+
+- Repositório: fluxid
+- Branch: feat/010-fila-offline-fotos-assinatura
+- Spec: 010
+- Ciclo: 01
+- Commit-base: fb06441314df355c84eb5d7129597e43909ee817
+- Hash do diff funcional preparado: 1f8c73d6f93ea06d65fce5fb3252c7848f22b0af1c2fb970fd536f03489ef38f
+- Arquivos e áreas afetadas:
+
+- `README.md`
+- `docs/arquitetura-conectividade-supabase.md`
+- `docs/prd.md`
+- `scripts/campo/medir-desempenho-4g.mjs`
+- `specs/010-fila-offline-fotos-assinatura/baseline.md`
+- `specs/010-fila-offline-fotos-assinatura/checklists/requirements.md`
+- `specs/010-fila-offline-fotos-assinatura/contracts/fila-local.md`
+- `specs/010-fila-offline-fotos-assinatura/contracts/operacoes-servidor.md`
+- `specs/010-fila-offline-fotos-assinatura/contracts/telas-e-fluxos.md`
+- `specs/010-fila-offline-fotos-assinatura/data-model.md`
+- `specs/010-fila-offline-fotos-assinatura/plan.md`
+- `specs/010-fila-offline-fotos-assinatura/quickstart.md`
+- `specs/010-fila-offline-fotos-assinatura/research.md`
+- `specs/010-fila-offline-fotos-assinatura/roteiro-android.md`
+- `specs/010-fila-offline-fotos-assinatura/spec.md`
+- `specs/010-fila-offline-fotos-assinatura/tasks.md`
+- `specs/010-fila-offline-fotos-assinatura/validation.md`
+- `src/app/App.tsx`
+- `src/app/auth/auth-context.ts`
+- `src/app/auth/auth-provider-offline.test.tsx`
+- `src/app/auth/auth-provider.tsx`
+- `src/app/auth/logout-guard.test.tsx`
+- `src/app/auth/logout-guard.tsx`
+- `src/app/auth/offline-access-recorder.test.tsx`
+- `src/app/auth/offline-access-recorder.tsx`
+- `src/app/auth/use-guarded-logout.ts`
+- `src/app/field/field-sync-context.ts`
+- `src/app/field/field-sync-factory.ts`
+- `src/app/field/field-sync-provider.tsx`
+- `src/app/field/offline-field-context.ts`
+- `src/app/field/offline-field-factory.ts`
+- `src/app/field/offline-field-provider.tsx`
+- `src/app/field/use-sync-counts.ts`
+- `src/app/navigation/permissions-provider-offline.test.tsx`
+- `src/app/navigation/permissions-provider.tsx`
+- `src/app/shell/app-shell.test.tsx`
+- `src/app/shell/sync-indicator.test.tsx`
+- `src/app/shell/sync-indicator.tsx`
+- `src/app/shell/top-bar.tsx`
+- `src/app/shell/user-menu.test.tsx`
+- `src/app/shell/user-menu.tsx`
+- `src/app/sync-gate-offline.test.tsx`
+- `src/app/tenant/tenant-context.ts`
+- `src/app/tenant/tenant-provider-offline.test.tsx`
+- `src/app/tenant/tenant-provider.tsx`
+- `src/application/field/attachment-service.test.ts`
+- `src/application/field/attachment-service.ts`
+- `src/application/field/conflict-service.test.ts`
+- `src/application/field/conflict-service.ts`
+- `src/application/field/conflict-summary.test.ts`
+- `src/application/field/conflict-summary.ts`
+- `src/application/field/field-service.ts`
+- `src/application/field/field-sync-service.test.ts`
+- `src/application/field/field-sync-service.ts`
+- `src/application/field/offline-queue-service.test.ts`
+- `src/application/field/offline-queue-service.ts`
+- `src/application/field/offline-trip-store.test.ts`
+- `src/application/field/offline-trip-store.ts`
+- `src/application/field/sync-overview.test.ts`
+- `src/application/field/sync-overview.ts`
+- `src/application/trips/offline-trip-view.ts`
+- `src/application/trips/trip-service-offline-copy.test.ts`
+- `src/application/trips/trip-service-offline.test.ts`
+- `src/application/trips/trip-service.ts`
+- `src/application/trips/trip-views.ts`
+- `src/domain/field/attachment-limits.test.ts`
+- `src/domain/field/attachment-limits.ts`
+- `src/domain/field/offline-queue-rules.test.ts`
+- `src/domain/field/offline-queue-rules.ts`
+- `src/domain/field/offline-session.test.ts`
+- `src/domain/field/offline-session.ts`
+- `src/domain/field/offline-trip.test.ts`
+- `src/domain/field/offline-trip.ts`
+- `src/domain/field/reading-result.test.ts`
+- `src/domain/field/reading-result.ts`
+- `src/domain/field/sync-status.test.ts`
+- `src/domain/field/sync-status.ts`
+- `src/domain/identity/offline-access.test.ts`
+- `src/domain/identity/offline-access.ts`
+- `src/domain/identity/session-offline.test.ts`
+- `src/domain/identity/session.ts`
+- `src/domain/trips/trip-history-format.test.ts`
+- `src/domain/trips/trip-history-format.ts`
+- `src/domain/trips/trip-vocabulary.test.ts`
+- `src/domain/trips/trip-vocabulary.ts`
+- `src/infrastructure/attachments/attachment-transport.test.ts`
+- `src/infrastructure/attachments/attachment-transport.ts`
+- `src/infrastructure/attachments/photo-capture.test.ts`
+- `src/infrastructure/attachments/photo-capture.ts`
+- `src/infrastructure/attachments/preview.ts`
+- `src/infrastructure/attachments/signature-canvas.test.ts`
+- `src/infrastructure/attachments/signature-canvas.ts`
+- `src/infrastructure/local-database/device-id.test.ts`
+- `src/infrastructure/local-database/device-id.ts`
+- `src/infrastructure/local-database/local-database.test.ts`
+- `src/infrastructure/local-database/local-database.ts`
+- `src/infrastructure/local-database/offline-access-store.test.ts`
+- `src/infrastructure/local-database/offline-access-store.ts`
+- `src/infrastructure/local-database/storage-persistence.test.ts`
+- `src/infrastructure/local-database/storage-persistence.ts`
+- `src/infrastructure/synchronization/conflict-resolver.test.ts`
+- `src/infrastructure/synchronization/conflict-resolver.ts`
+- `src/infrastructure/synchronization/offline-operation-policy.test.ts`
+- `src/infrastructure/synchronization/offline-operation-policy.ts`
+- `src/infrastructure/synchronization/operation-executors.test.ts`
+- `src/infrastructure/synchronization/operation-executors.ts`
+- `src/infrastructure/synchronization/push-synchronizer-field.test.ts`
+- `src/infrastructure/synchronization/push-synchronizer.ts`
+- `src/infrastructure/synchronization/sender-lock.test.ts`
+- `src/infrastructure/synchronization/sender-lock.ts`
+- `src/infrastructure/synchronization/sync-outbox.test.ts`
+- `src/infrastructure/synchronization/sync-outbox.ts`
+- `src/infrastructure/synchronization/tenant-sync-runner-field.test.ts`
+- `src/infrastructure/synchronization/tenant-sync-runner.ts`
+- `src/main.tsx`
+- `src/pages/sync/conflict-panel.test.tsx`
+- `src/pages/sync/conflict-panel.tsx`
+- `src/pages/sync/sync-page.test.tsx`
+- `src/pages/sync/sync-page.tsx`
+- `src/pages/trips/components/add-evidence-action.test.tsx`
+- `src/pages/trips/components/add-evidence-action.tsx`
+- `src/pages/trips/components/delivery-dialog.test.tsx`
+- `src/pages/trips/components/delivery-dialog.tsx`
+- `src/pages/trips/components/delivery-evidence.ts`
+- `src/pages/trips/components/delivery-photos.test.tsx`
+- `src/pages/trips/components/delivery-photos.tsx`
+- `src/pages/trips/components/delivery-signature.test.tsx`
+- `src/pages/trips/components/delivery-signature.tsx`
+- `src/pages/trips/components/delivery-thumbs.test.tsx`
+- `src/pages/trips/components/delivery-thumbs.tsx`
+- `src/pages/trips/components/loading-panel.tsx`
+- `src/pages/trips/components/offline-actions.test.tsx`
+- `src/pages/trips/components/stop-card.test.tsx`
+- `src/pages/trips/components/stop-card.tsx`
+- `src/pages/trips/components/trip-badges.tsx`
+- `src/pages/trips/trip-detail-offline.test.tsx`
+- `src/pages/trips/trip-detail-page.test.tsx`
+- `src/pages/trips/trip-detail-page.tsx`
+- `src/pages/trips/trip-failure-text.ts`
+- `src/pages/trips/trip-test-support.ts`
+- `src/pages/trips/use-trip-service.ts`
+- `supabase/functions/_shared/operations.ts`
+- `supabase/functions/manage-trips/handler.ts`
+- `supabase/functions/query-trips/handler.ts`
+- `supabase/functions/query-trips/index.ts`
+- `supabase/functions/trip-attachments/deno.json`
+- `supabase/functions/trip-attachments/handler.ts`
+- `supabase/functions/trip-attachments/index.ts`
+- `supabase/migrations/20261014100000_trip_sync_events.sql`
+- `supabase/migrations/20261014100100_trip_offline_position_time.sql`
+- `supabase/migrations/20261014100150_trip_offline_read.sql`
+- `supabase/migrations/20261014100200_trip_delivery_attachments.sql`
+- `supabase/tests/008_close.test.sql`
+- `supabase/tests/008_constraints.test.sql`
+- `supabase/tests/008_cylinder_custody_read.test.sql`
+- `supabase/tests/008_cylinder_in_trip.test.sql`
+- `supabase/tests/008_delivery.test.sql`
+- `supabase/tests/008_delivery_correction.test.sql`
+- `supabase/tests/008_delivery_geofence.test.sql`
+- `supabase/tests/008_history_audit.test.sql`
+- `supabase/tests/008_idempotency.test.sql`
+- `supabase/tests/008_immutability.test.sql`
+- `supabase/tests/008_loading_start.test.sql`
+- `supabase/tests/008_plan.test.sql`
+- `supabase/tests/008_plan_read.test.sql`
+- `supabase/tests/008_query.test.sql`
+- `supabase/tests/008_reservation_concurrency.test.sql`
+- `supabase/tests/008_reservation_conflicts.test.sql`
+- `supabase/tests/008_rls.test.sql`
+- `supabase/tests/008_transitions.test.sql`
+- `supabase/tests/008_unlock.test.sql`
+- `supabase/tests/009_position.test.sql`
+- `supabase/tests/009_reading_source.test.sql`
+- `supabase/tests/009_resolve_identifier.test.sql`
+- `supabase/tests/010_attachments.test.sql`
+- `supabase/tests/010_offline_time.test.sql`
+- `supabase/tests/010_offline_trip.test.sql`
+- `supabase/tests/010_resolve_conflict.test.sql`
+- `supabase/tests/010_sync_events.test.sql`
+- `tests/contract/attachments-privacy.test.ts`
+- `tests/contract/field-queue-no-sensitive-storage.test.ts`
+- `tests/contract/manage-trips-queued-at.test.ts`
+- `tests/contract/manage-trips-resolve-conflict.test.ts`
+- `tests/contract/query-trips-attachments.test.ts`
+- `tests/contract/query-trips-handler.test.ts`
+- `tests/contract/query-trips-offline.test.ts`
+- `tests/contract/query-trips-sync-events.test.ts`
+- `tests/contract/synchronization-idempotency.live.test.ts`
+- `tests/contract/trip-attachments-handler.test.ts`
+- `tests/contract/trips-no-delete.test.ts`
+- `tests/e2e/app-initialization.spec.ts`
+- `tests/e2e/campo-abrir-offline.spec.ts`
+- `tests/e2e/campo-acessibilidade-fila.spec.ts`
+- `tests/e2e/campo-anexos-assinatura.spec.ts`
+- `tests/e2e/campo-anexos-fotos.spec.ts`
+- `tests/e2e/campo-fila-offline.spec.ts`
+- `tests/e2e/campo-fila-sincronizacao.spec.ts`
+- `tests/e2e/campo-offline.spec.ts`
+- `tests/e2e/campo-pwa-instalado.spec.ts`
+- `tests/e2e/desempenho-campo-leitura.spec.ts`
+- `tests/e2e/support/mock-backend.ts`
+- `tests/e2e/support/mock-camera.ts`
+- `tests/e2e/support/mock-offline.ts`
+- `tests/e2e/support/mock-trips-attachments.ts`
+- `tests/e2e/support/mock-trips-offline.ts`
+- `tests/e2e/support/mock-trips-plan.ts`
+- `tests/e2e/support/mock-trips.ts`
+- `tests/e2e/viagens-offline.spec.ts`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-fora-da-cerca-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-lida-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-precisao-ruim-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-vazia-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-assinatura-traco-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-assinatura-traco-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-assinatura-traco-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-assinatura-vazia-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-assinatura-vazia-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-assinatura-vazia-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-duas-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-duas-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-duas-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-limite-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-limite-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-limite-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-vazio-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-vazio-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-vazio-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-conflito-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-conflito-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-conflito-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-estados-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-estados-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-estados-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-conflito-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-conflito-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-conflito-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-offline-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-offline-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-offline-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-saida-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-saida-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-saida-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-vazia-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-vazia-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-vazia-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-concluida-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-concluida-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-concluida-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-desbloqueio-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-desbloqueio-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-desbloqueio-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-devolucao-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-devolucao-768-visual-chromium-linux.png`
+- `tests/integration/medicao-campo-fila-semear.live.test.ts`
+- `tests/integration/trip-attachments.live.test.ts`
+- `tests/integration/trips-offline-sync.live.test.ts`
+
+## Testes e evidências
+
+- Comando(s): `npm run lint`, `npm run typecheck`, `npm run test:coverage`, `npx supabase db reset` e `npx supabase test db`, `npm run test:live`, `npm run build`, `npm run catalogo:build`, `npm run test:e2e`, `npm run test:visual:atualizar` e `npm run test:desempenho:campo`.
+- Resultado: aprovado
+- Evidência: lint e tipos sem erros; 5.208 testes unitários (cobertura de 91,22% das instruções); pgTAP com 2.693 testes; testes ao vivo aprovados; E2E com 1.790 aprovados e 82 ignorados por limites do driver WebKit no Windows; 254 capturas aprovadas no Linux; em 4G, registrar na fila com p95 de 156 ms, enviar 16 operações em 3,9 s e enviar entrega com 3 fotos e assinatura em 2,3 s; pacote de entrada de 597.686 bytes (+3,5%, limite de 5%). Números e ajustes em `specs/010-fila-offline-fotos-assinatura/validation.md`.
+
+## Decisões e dados pendentes
+
+- Validação humana da spec (entrevista da pessoa responsável): pendente.
+- Roteiro em Android real (foto pela câmera, perda e retorno de sinal, instalação e abertura offline do aplicativo instalado, métricas MS-001, MS-004 e MS-007): pendente, com `roteiro-android.md`.
+- Endereço HTTPS de homologação para a instalação (T068): pendente de decisão.
+- Troca do link da branch pelo link do pull request (#35): feita.
+
+## Validação humana
+
+- Responsável pela revisão da equipe: Alisson Almeida
+- Data da validação humana: 13/10/2026
+- Amostra validada: perfis de administrador; telas de cilindros e de viagens (larguras e fluxos não detalhados além disso).
+- Ambiente da validação: o mesmo das validações anteriores, segundo a pessoa responsável (Moto Edge 50 Pro, Android 16, Chrome, versão não informada, como no RIA-028).
+- Duração da validação: 5 minutos, como informado.
+- Resultado da validação humana: aprovado
+- Itens a corrigir apontados pela pessoa responsável: nenhum informado
+- Confirmação do responsável: sim, confirmado por Alisson Almeida em 13/10/2026
+- Observações: a pessoa não escolheu o endereço HTTPS de homologação (T068) nem confirmou a abertura da issue (T001); ambos seguem pendentes. O RIA foi gravado em nome da pessoa com a confirmação dela na entrevista.
+
+## Regras de preenchimento
+
+- A validação humana é obrigatória para encerrar a spec. As respostas da seção acima vêm da pessoa responsável, em entrevista conduzida pelo agente de IA, e nunca são inventadas nem presumidas.
+- Registrar apenas interações relevantes para o projeto.
+- Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
+- Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
+- Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
+- Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
+- Evitar dados pessoais, sigilosos ou sensíveis.
+- Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
+
+## Checklist final
+
+- [x] Ferramentas de IA identificadas.
+- [x] Prompts relevantes registrados por síntese sanitizada.
+- [x] Respostas ou resultados documentados.
+- [x] Texto revisado para soar natural, claro e autêntico, sem alterar o sentido original.
+- [x] Quando houve geração de código, a resposta contém resumo e link para o repositório, branch ou, preferencialmente, pull request.
+- [x] Validação humana explicada.
+- [x] Fontes verificadas quando necessário.
+- [x] Decisão ou pendência registrada.
+- [x] O registro não contém segredos, credenciais ou tokens.
+- [x] Dados pessoais foram removidos ou minimizados.
