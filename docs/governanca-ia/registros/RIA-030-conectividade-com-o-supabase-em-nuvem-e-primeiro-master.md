@@ -9,9 +9,9 @@
 - Ferramenta de IA utilizada: Claude Code (Claude Sonnet 5.5)
 - Objetivo do uso: Corrigir o bloqueio de conexão com o Supabase em nuvem na versão da Vercel e preparar a criação do primeiro Master FluxID na nuvem.
 - Prompt utilizado, em síntese sanitizada: A pessoa informou que a versão publicada na Vercel não lia o Supabase online (aviso Conexão bloqueada por erro de configuração ou autorização) e pediu a correção, depois a criação do usuário Master na nuvem.
-- Resposta gerada pela IA: Código alterado em endpoint-health-check.ts, cloud-first-connection-resolver.ts e public-compatibility; novo script scripts/operacao/primeiro-master.mjs com testes; documentação atualizada. Revisão: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/fix/conectividade-nuvem-vercel (pendência: trocar pelo link do pull request antes do merge).
+- Resposta gerada pela IA: Código alterado em endpoint-health-check.ts, cloud-first-connection-resolver.ts e public-compatibility; novo script scripts/operacao/primeiro-master.mjs com testes; documentação atualizada. Revisão: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/37.
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/fix/conectividade-nuvem-vercel (trocar pelo link do pull request antes do merge).
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/37.
 - Análise crítica da equipe: a causa foi confirmada com testes reais contra a nuvem (health sem apikey devolve 401; a função sem CORS é bloqueada pelo navegador). A correção foi conferida na versão compilada, com o app mostrando Conectado: Nuvem (Cloud).
 - Validação humana realizada: Alisson Almeida abriu a versão compilada localmente, apontada para a nuvem, e confirmou o estado conectado. O login do Master com TOTP ainda não foi validado e ficou como pendência.
 - Decisão final: utilizado
@@ -47,7 +47,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Trocar o link da branch pelo link do PR antes do merge; validar login do Master com TOTP; configurar SMTP com fluxid.tec.br; trocar os segredos de redirecionamento quando o domínio estiver no ar.
+validar login do Master com TOTP; configurar SMTP com fluxid.tec.br; trocar os segredos de redirecionamento quando o domínio estiver no ar.
 
 ## Validação humana
 
