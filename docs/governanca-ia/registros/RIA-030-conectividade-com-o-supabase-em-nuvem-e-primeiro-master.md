@@ -44,6 +44,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - Comando(s): npm test; npx tsc -b; npx eslint src/infrastructure/connectivity
 - Resultado: aprovado. Suíte completa com 332 arquivos e 5214 testes passando; tsc e eslint sem erros. Uma primeira execução relatou 8 erros do vitest que não se repetiram na segunda.
 - Evidência: saída local da suíte e captura do app com Conectado: Nuvem (Cloud) na validação humana.
+- Ajuste de CI: o teste de busca de clientes de tests/contract/registry-volume.live.test.ts estourava o limite padrão de 30 s no runner (84 chamadas em sequência, critério p95 de 1 s inalterado); recebeu o limite de 120 s que os demais testes da suíte já usavam.
 
 ## Decisões e dados pendentes
 
