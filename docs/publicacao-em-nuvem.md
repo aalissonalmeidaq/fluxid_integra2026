@@ -17,7 +17,7 @@ Consequência prática: enquanto o workflow estiver desativado, os avatares anon
 
 ## O que falta definir antes de qualquer uso em nuvem
 
-1. **Primeiro Master FluxID.** O seed local cria o Master e os administradores, mas não vai para a nuvem. Não existe procedimento documentado para criar o primeiro Master lá; sem ele, ninguém consegue entrar.
+1. **Primeiro Master FluxID.** O seed local cria o Master e os administradores, mas não vai para a nuvem. O primeiro Master da nuvem é criado uma única vez por `npm run operacao:primeiro-master` (ver "Primeiro Master na nuvem" abaixo).
 2. **Configuração do Auth.** O `db push` não leva as configurações de autenticação do `config.toml`: MFA TOTP, URLs de redirecionamento de recuperação e convite, modelos de e-mail e SMTP. Em produção, SMTP homologado é obrigatório.
 3. **Segredos das funções que dependem da URL do app:** `INVITATION_REDIRECT_URL` e `PASSWORD_RECOVERY_REDIRECT_URL`. Dependem do endereço público definitivo (Vercel).
 4. **Tipo do projeto cloud:** teste ou produção, antes de aplicar migrations.
@@ -73,3 +73,25 @@ A Vercel hospeda apenas o frontend (build estático do Vite). O backend continua
 - Testes de RLS com dois tenants no destino, conforme `specs/002-autenticacao-multitenancy-rbac/quickstart.md`.
 - Medição de desempenho (T147) e registro no `validation.md`.
 - Workflow de retenção executado uma vez com sucesso (T149).
+
+## Primeiro Master na nuvem
+
+O script `scripts/operacao/primeiro-master.mjs` cria o usuário no Auth, o perfil, o vínculo ativo com a organização proprietária, o papel `master_fluxid` e o registro de auditoria `master.bootstrap`. Só age quando não existe Master (repetir é seguro) e desfaz o usuário do Auth se uma etapa falhar. Roda no terminal de quem opera; a chave secreta nunca vai para arquivo versionado nem para o navegador.
+
+PowerShell, na raiz do repositório (a senha é pedida sem eco; não a coloque em variável de ambiente se puder evitar):
+
+```powershell
+$env:SUPABASE_URL = "https://<ref-do-projeto>.supabase.co"
+$env:SUPABASE_SERVICE_ROLE_KEY = "<chave secreta do projeto: Settings > API Keys>"
+$env:FLUXID_MASTER_EMAIL = "<e-mail real do Master>"
+npm run operacao:primeiro-master
+Remove-Item Env:SUPABASE_SERVICE_ROLE_KEY
+```
+
+A senha exige 12 caracteres ou mais, com minúsculas, maiúsculas, números e símbolos.
+
+## E-mail de Auth na nuvem (provisório)
+
+Decisão de 13/10/2026: por enquanto o projeto usa o **SMTP embutido do Supabase**. Ele só entrega para membros da organização do Supabase e tem limite baixo por hora, então serve só para testes do Master (login, recuperação de senha). Não serve para convidar outras pessoas nem para produção.
+
+Pendente antes do uso real: configurar SMTP homologado com o domínio `fluxid.tec.br` (serviço transacional com SPF, DKIM e DMARC válidos) em *Authentication > Emails > SMTP Settings*. A chave do serviço fica só no painel do Supabase, nunca em arquivo versionado.

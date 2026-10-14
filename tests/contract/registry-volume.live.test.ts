@@ -80,7 +80,7 @@ describe('Volume de referência da Spec 007', () => {
     const { times, responses } = await measure(accessToken, calls);
     expect(responses.every((response) => response.status === 200 && response.body.total >= 1)).toBe(true);
     expect(report('clientes', times)).toBeLessThanOrEqual(1000);
-  });
+  }, 120_000);
 
   const searches: Array<[string, (index: number) => Record<string, unknown>]> = [
     ['unidades por nome', (index) => ({ operation: 'list_sites', organization_id: F, status: 'all', search: `unidade volume ${pad(1 + ((index * 977) % 50_000), 6)}` })],

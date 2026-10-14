@@ -8,7 +8,7 @@ interface Options { inspect?: (endpoint: EndpointConfiguration['endpoints'][numb
 interface Attempt { endpoint: EndpointConfiguration['endpoints'][number]['kind']; outcome: 'success' | ConnectionFailure }
 
 async function inspectDefault(endpoint: EndpointConfiguration['endpoints'][number], config: EndpointConfiguration, signal?: AbortSignal): Promise<Inspection> {
-  const health = await checkEndpointHealth(endpoint.url, config.probeTimeoutMs, { signal });
+  const health = await checkEndpointHealth(endpoint.url, config.probeTimeoutMs, { signal, publishableKey: endpoint.publishableKey });
   if (!health.ok) return health;
   return checkEndpointCompatibility(endpoint.url, config.contractVersion, { signal });
 }

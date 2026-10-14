@@ -5,7 +5,7 @@ export type HealthCheckResult =
   | { ok: true; statusCode: number }
   | { ok: false; failure: ConnectionFailure; fallbackAllowed: boolean; statusCode?: number };
 
-interface Options { fetcher?: typeof fetch; signal?: AbortSignal }
+interface Options { fetcher?: typeof fetch; signal?: AbortSignal; publishableKey?: string }
 
 export async function checkEndpointHealth(url: string, timeoutMs: number, options: Options = {}): Promise<HealthCheckResult> {
   if (options.signal?.aborted) return { ok: false, failure: 'cancelled', fallbackAllowed: false };
@@ -14,7 +14,11 @@ export async function checkEndpointHealth(url: string, timeoutMs: number, option
   options.signal?.addEventListener('abort', onAbort, { once: true });
   const timer = setTimeout(() => controller.abort('timeout'), timeoutMs);
   try {
-    const response = await (options.fetcher ?? fetch)(`${url.replace(/\/+$/, '')}/auth/v1/health`, { signal: controller.signal });
+    const response = await (options.fetcher ?? fetch)(`${url.replace(/\/+$/, '')}/auth/v1/health`, {
+      signal: controller.signal,
+      // O Supabase em nuvem recusa o health sem a chave publicável (401); ela é pública por definição.
+      headers: options.publishableKey ? { apikey: options.publishableKey } : undefined,
+    });
     if (response.ok) return { ok: true, statusCode: response.status };
     const failure: ConnectionFailure = response.status >= 500 ? 'service_unavailable' : 'configuration';
     return { ok: false, failure, fallbackAllowed: permitsEndpointFallback(failure), statusCode: response.status };
