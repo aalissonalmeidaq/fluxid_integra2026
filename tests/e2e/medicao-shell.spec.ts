@@ -27,7 +27,7 @@ test.describe('Medição do carregamento do shell (RNF-004 da Spec 003)', () => 
       });
       await new MockBackend().install(page);
       const startedAt = Date.now();
-      await page.goto('/');
+      await page.goto('/visao-geral');
       await page.getByRole('heading', { name: 'Bem-vindo de volta' }).waitFor();
       visible.push(Date.now() - startedAt);
       await page.waitForLoadState('networkidle');
@@ -56,7 +56,7 @@ test.describe('Medição do carregamento do shell (RNF-004 da Spec 003)', () => 
       backend.loginResponses = [backend.authenticated()];
       backend.statusResponse = backend.activeStatus('aal1');
       await backend.install(page);
-      await page.goto('/');
+      await page.goto('/visao-geral');
       await page.getByLabel('E-mail').fill('admin-a@example.invalid');
       await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
       await page.getByRole('button', { name: 'Entrar', exact: true }).click();

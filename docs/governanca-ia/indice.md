@@ -53,6 +53,8 @@
 
 | RIA-030 | 13/10/2026, 19:00:41 - America/Fortaleza | 010 | 02 | Conectividade com o Supabase em nuvem e primeiro Master (com ajuste de tempo do teste de volume no CI) | `registros/30_Conectividade_com_o_Supabase_em_Nuvem_e_Primeiro_Master.docx` (`RIA-030-conectividade-com-o-supabase-em-nuvem-e-primeiro-master.md`) | Utilizado |
 
+| RIA-031 | 16/10/2026, 15:39:34 - America/Fortaleza | 011 | 01 | Landing page institucional do FluxID | `registros/RIA-031-landing-page-institucional-do-fluxid.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
@@ -76,3 +78,7 @@
 > Atualização do RIA-028: `npm run dev:rede` passou a servir em HTTPS com certificado autoassinado de desenvolvimento, a pedido da pessoa responsável, para testar câmera, NFC e GPS no celular sem cabo (não torna o app instalável como PWA).
 
 > Fechamento do RIA-028: em 12/10/2026 a pessoa responsável decidiu fechar a Spec 009 com a instalação do PWA em Android como pendência (confirmação na Spec 010).
+
+> Atualização do RIA-031: em 16/10/2026, a pedido da pessoa responsável, foram corrigidos os checks do PR #39: um tipo `any` no prejuízo (lint) e o teste visual da landing, que esperava as cópias recortadas da faixa de logos das instituições; as capturas da landing foram regeneradas no Linux. Localmente, lint, typecheck e 5.462 testes unitários passaram, e os 261 testes visuais também (um teste da fila offline foi instável).
+
+> Atualização do RIA-031: em 16/10/2026, segunda rodada de correções do PR #39: contraste dos numerais e selos do piloto e da chamada final; faixa de logos parada com movimento reduzido (axe); cartões do piloto sem estouro horizontal a 360 px; LCP com captura própria da abertura (10,5 KB) e mascote de 320 px pré-carregados (mediana local de 2,45 s no computador e 2,48 s no celular; no CI o LCP passa a ser só anotado, como nas Specs 003 e 004); testes instáveis sob carga estabilizados (login antes da raiz, recuperação de acesso e conflito da fila). Capturas da landing regeneradas no Linux.

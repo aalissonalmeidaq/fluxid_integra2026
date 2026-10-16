@@ -38,6 +38,41 @@ h3 {
   text-wrap: balance;
 }
 
+/* Barra de rolagem fina e discreta, nas cores do FluxID: trilho no fundo da página e polegar arredondado em cinza-azulado
+   (contraste de 3:1 com o trilho), que escurece ao passar o mouse e fica azul ao arrastar. Chrome, Edge e Safari usam os
+   pseudoelementos; o Firefox, que não os conhece, recebe as propriedades padrão. */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background-color: var(--color-cinza-gelo);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-borda-controle);
+  background-clip: padding-box;
+  border: 3px solid transparent;
+  border-radius: var(--radius-controle);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-texto-secundario);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--color-azul-royal);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-borda-controle) var(--color-cinza-gelo);
+  }
+}
+
 #root {
   min-height: 100vh;
   display: flex;

@@ -15,7 +15,7 @@ test.describe('Fonte indisponível ou lenta no primeiro acesso', () => {
   test('sem a Montserrat a tela cai na fonte de reserva sem quebrar o layout', async ({ page }) => {
     await page.route(/\.woff2?(\?.*)?$/, (rota) => rota.abort('failed'));
     await new MockBackend().install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
     await page.evaluate(async () => { await document.fonts.ready; });
     const carregadas = await page.evaluate(() => [...document.fonts].filter((face) => face.status === 'loaded').length);
@@ -36,7 +36,7 @@ test.describe('Fonte indisponível ou lenta no primeiro acesso', () => {
       await rota.continue();
     });
     await new MockBackend().install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible({ timeout: 2000 });
     await page.getByLabel('E-mail').fill('ana@e2e.invalid');
     await expect(page.getByLabel('E-mail')).toHaveValue('ana@e2e.invalid');
@@ -50,7 +50,7 @@ test.describe('Teclado virtual aberto em tela pequena (simulado por altura reduz
     const backend = new MockBackend();
     backend.loginResponses = [{ status: 401, body: { code: 'INVALID_CREDENTIALS' } }];
     await backend.install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.getByLabel('E-mail').fill('ana@e2e.invalid');
     await page.getByLabel('Senha', { exact: true }).fill('Senha-E2E-Forte-1');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -72,7 +72,7 @@ test.describe('Diálogo com conteúdo longo', () => {
       const backend = new MockBackend();
       backend.loginResponses = [{ status: 409, body: { code: 'SESSION_LIMIT_REACHED', sessions: threeSessions } }];
       await backend.install(page);
-      await page.goto('/');
+      await page.goto('/visao-geral');
       await page.getByLabel('E-mail').fill('ana@e2e.invalid');
       await page.getByLabel('Senha', { exact: true }).fill('Senha-E2E-Forte-1');
       await page.getByRole('button', { name: 'Entrar', exact: true }).click();

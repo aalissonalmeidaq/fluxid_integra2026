@@ -17,7 +17,7 @@ async function signIn(page: Page, backend: MockBackend): Promise<void> {
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus('aal2');
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -58,7 +58,7 @@ for (const viewport of VIEWPORTS) {
     test('entrada e recuperação de senha', async ({ page }) => {
       const backend = new MockBackend();
       await backend.install(page);
-      await page.goto('/');
+      await page.goto('/visao-geral');
       await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
       await expectAdaptiveLayout(page, viewport.width);
 

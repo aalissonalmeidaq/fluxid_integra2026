@@ -3,7 +3,7 @@ import { MockBackend } from './support/mock-backend';
 
 test.describe('PWA e Funcionamento Offline (US4)', () => {
   test('inclui link para o manifest e tags essenciais de PWA no HTML', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/visao-geral');
 
     const manifestLink = page.locator('link[rel="manifest"]');
     await expect(manifestLink).toBeAttached();
@@ -23,7 +23,7 @@ test.describe('PWA e Funcionamento Offline (US4)', () => {
   });
 
   test('registra, ativa, controla a página e carrega o app shell', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/visao-geral');
 
     await page.evaluate(async () => {
       await navigator.serviceWorker.ready;
@@ -46,7 +46,7 @@ test.describe('PWA e Funcionamento Offline (US4)', () => {
       'O driver WebKit do Playwright no Windows apresenta falha de IPC ao combinar setOffline com service worker.'
     );
 
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.evaluate(async () => {
       await navigator.serviceWorker.ready;
     });
@@ -64,7 +64,7 @@ test.describe('PWA e Funcionamento Offline (US4)', () => {
   });
 
   test('mantém o shell previsível quando recurso remoto do Supabase falha', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.route('**/auth/v1/**', (route) => route.abort('failed'));
 
     const remoteResult = await page.evaluate(async () => {
@@ -86,7 +86,7 @@ test.describe('PWA e Funcionamento Offline (US4)', () => {
 const SUPABASE_PATHS = ['/auth/v1', '/rest/v1', '/storage/v1', '/functions/v1', '/graphql/v1', '/realtime/v1'];
 
 async function waitForControl(page: Page): Promise<void> {
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   await page.reload();
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);

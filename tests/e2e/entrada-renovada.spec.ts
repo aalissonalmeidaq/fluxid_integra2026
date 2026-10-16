@@ -8,7 +8,7 @@ test.use({ serviceWorkers: 'block' });
 
 async function abrir(page: Page, backend = new MockBackend()): Promise<void> {
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await expect(page.getByRole('heading', { level: 2, name: 'Bem-vindo de volta' })).toBeVisible();
 }
 
@@ -129,7 +129,7 @@ test.describe('Entrada renovada (Spec 005, US1)', () => {
 
   test('as telas de recuperação de senha usam a mesma moldura', async ({ page }) => {
     await new MockBackend().install(page);
-    await page.goto('/?recovery=1');
+    await page.goto('/login?recovery=1');
     await expect(page.getByRole('heading', { level: 2, name: 'Recuperar acesso' })).toBeVisible();
     await expect(page.getByText('Cada cilindro, uma identidade.')).toBeVisible();
     await page.goto('/recuperar-senha/confirmar');

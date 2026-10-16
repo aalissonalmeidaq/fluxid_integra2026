@@ -8,7 +8,7 @@ test.describe('Recuperação de acesso (US2)', () => {
   test('solicita recuperação com confirmação genérica e sem enumerar a conta', async ({ page }) => {
     const backend = new MockBackend();
     await backend.install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
 
     await page.getByRole('button', { name: /esqueci minha senha/i }).click();
     await page.getByLabel('E-mail').fill('inexistente@example.invalid');
@@ -25,6 +25,10 @@ test.describe('Recuperação de acesso (US2)', () => {
     backend.recoveryUpdateOk = false;
     await backend.install(page);
     await page.goto('/recuperar-senha/confirmar');
+    // Preenche só com a tela estável: com a máquina carregada (CI), a inicialização do aplicativo (sessão e conexão) ainda podia remontar o
+    // formulário entre o preenchimento e o envio, e o envio chegava com os campos vazios.
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('heading', { name: 'Definir nova senha' })).toBeVisible();
 
     await page.getByLabel('Nova senha', { exact: true }).fill('Senha-Nova-Forte-1!');
     await page.getByLabel('Confirmar nova senha').fill('Senha-Nova-Forte-1!');
@@ -42,7 +46,7 @@ test.describe('Recuperação de acesso (US2)', () => {
     backend.loginResponses = [backend.authenticated()];
     backend.statusResponse = backend.activeStatus();
     await backend.install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.getByLabel('E-mail').fill('admin-a@fluxid.local');
     await page.getByLabel('Senha', { exact: true }).fill('Senha-E2E-Forte-1!');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -64,7 +68,7 @@ test.describe('Recuperação de acesso (US2)', () => {
   test('fluxos de solicitação e conclusão não têm violações críticas ou graves', async ({ page }) => {
     const backend = new MockBackend();
     await backend.install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.getByRole('button', { name: /esqueci minha senha/i }).click();
     const requestScan = await new AxeBuilder({ page }).analyze();
     expect(requestScan.violations.filter((item) => ['critical', 'serious'].includes(item.impact ?? ''))).toEqual([]);

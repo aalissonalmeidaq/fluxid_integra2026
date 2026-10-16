@@ -39,7 +39,7 @@ export function RecoveryConfirmPage(): React.JSX.Element {
         {message && <Alert variant="sucesso">{message}</Alert>}
         {error && <Alert ref={alertRef} tabIndex={-1} variant="erro">{error}</Alert>}
         <Button type="submit" className="w-full">Definir nova senha</Button>
-        {error && <Button variant="secundario" onClick={() => { window.location.href = '/?recovery=1'; }} className="w-full">Solicitar novo link</Button>}
+        {error && <Button variant="secundario" onClick={() => { window.location.href = '/login?recovery=1'; }} className="w-full">Solicitar novo link</Button>}
       </form>
     </section>
     </AuthLayout>

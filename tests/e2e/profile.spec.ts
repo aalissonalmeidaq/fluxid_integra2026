@@ -12,7 +12,7 @@ async function enter(page: Page, backend: MockBackend, path = '/perfil'): Promis
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus('aal1');
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('operador-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();

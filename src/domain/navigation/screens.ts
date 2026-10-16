@@ -13,8 +13,11 @@ export interface Screen {
   requireAal2: boolean;
 }
 
+// A raiz "/" é da landing page pública (Spec 011); a Visão geral do sistema vive neste endereço.
+export const VISAO_GERAL = '/visao-geral';
+
 export const SCREENS: readonly Screen[] = [
-  { id: 'inicio', label: 'Visão geral', path: '/', tenantScoped: false, requireAal2: false },
+  { id: 'inicio', label: 'Visão geral', path: VISAO_GERAL, tenantScoped: false, requireAal2: false },
   { id: 'cilindros', label: 'Cilindros', path: '/cilindros', requires: { scope: 'tenant', code: 'cylinder.read' }, tenantScoped: true, requireAal2: false },
   { id: 'entrada-estoque', label: 'Entrada no estoque', path: '/estoque/entrada', requires: { scope: 'tenant', code: 'cylinder.stock_in' }, tenantScoped: true, requireAal2: false },
   { id: 'clientes', label: 'Clientes', path: '/clientes', requires: { scope: 'tenant', code: 'customer.read' }, tenantScoped: true, requireAal2: false },

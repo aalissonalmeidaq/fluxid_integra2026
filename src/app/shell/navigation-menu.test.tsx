@@ -48,7 +48,7 @@ describe('NavigationMenu: estrutura e itens por perfil (RF-005, RF-006, RF-009, 
     const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
     expect(within(nav).getByRole('list')).toBeInTheDocument();
     expect(within(nav).getAllByRole('listitem').length).toBeGreaterThan(0);
-    expect(within(nav).getByRole('link', { name: /^Visão geral/ })).toHaveAttribute('href', '/');
+    expect(within(nav).getByRole('link', { name: /^Visão geral/ })).toHaveAttribute('href', '/visao-geral');
     expect(within(nav).getByRole('link', { name: 'Meu perfil' })).toHaveAttribute('href', '/perfil');
     expect(within(nav).getByRole('link', { name: 'Papéis e permissões' })).toHaveAttribute('href', '/admin/papeis');
   });

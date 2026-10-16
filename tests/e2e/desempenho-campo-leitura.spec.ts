@@ -35,7 +35,7 @@ test.describe('Leitura de campo em 4G', () => {
     await context.setGeolocation({ latitude: -23.55, longitude: -46.633, accuracy: 15 });
     page = await context.newPage();
     readers = await installFieldReaders(page, { camera: true });
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.getByLabel('E-mail').fill('reg-g-admin@example.invalid');
     await page.getByLabel('Senha', { exact: true }).fill('Local-only-020!');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -144,7 +144,7 @@ test.describe('Fila offline em 4G', () => {
     page = await context.newPage();
     cdp = await context.newCDPSession(page);
     await cdp.send('Network.enable');
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.getByLabel('E-mail').fill('reg-g-admin@example.invalid');
     await page.getByLabel('Senha', { exact: true }).fill('Local-only-020!');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();

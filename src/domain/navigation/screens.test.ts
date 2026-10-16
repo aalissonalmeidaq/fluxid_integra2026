@@ -36,7 +36,7 @@ describe('catálogo de telas', () => {
   it('segue a tabela de rotas atual: tenant ativo e segundo fator', () => {
     const flags = Object.fromEntries(SCREENS.map((screen) => [screen.path, [screen.tenantScoped, screen.requireAal2]]));
     expect(flags).toEqual({
-      '/': [false, false], '/perfil': [false, false], '/cilindros': [true, false], '/estoque/entrada': [true, false],
+      '/visao-geral': [false, false], '/perfil': [false, false], '/cilindros': [true, false], '/estoque/entrada': [true, false],
       '/clientes': [true, false], '/geocercas': [true, false], '/veiculos': [true, false], '/motoristas': [true, false], '/viagens': [true, false],
       '/admin/membros': [true, true], '/admin/papeis': [true, true], '/admin/auditoria': [true, false],
       '/admin/tenants': [false, true], '/admin/auditoria-global': [false, true],

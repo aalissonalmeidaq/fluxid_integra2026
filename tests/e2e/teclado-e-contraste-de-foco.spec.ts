@@ -105,7 +105,7 @@ async function entrarComoAdministrador(page: Page, caminho: string): Promise<voi
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus('aal2');
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.keyboard.press('Tab');
   await page.keyboard.type('Local-only-002!');

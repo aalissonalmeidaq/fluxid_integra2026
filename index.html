@@ -5,8 +5,47 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1249B8" />
-    <meta name="description" content="FluxID - Plataforma de Identidade e Rastreabilidade" />
-    <title>FluxID</title>
+    <meta name="description" content="FluxID acompanha cilindros de gás do estoque ao cliente: identificação individual, viagens conferidas, entrega comprovada e funcionamento mesmo sem sinal." />
+    <link rel="canonical" href="https://fluxid.tec.br/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FluxID" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content="FluxID — Rastreabilidade de cilindros de gás" />
+    <meta property="og:description" content="Saiba onde está cada cilindro. Identificação, rastreio e evidências da saída ao retorno, mesmo sem sinal." />
+    <meta property="og:url" content="https://fluxid.tec.br/" />
+    <meta property="og:image" content="https://fluxid.tec.br/landing/og-fluxid.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Mascote do FluxID ao lado de um cilindro equipado com o dispositivo inteligente de rastreio." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FluxID — Rastreabilidade de cilindros de gás" />
+    <meta name="twitter:description" content="Saiba onde está cada cilindro, da saída ao retorno." />
+    <meta name="twitter:image" content="https://fluxid.tec.br/landing/og-fluxid.png" />
+    <title>FluxID — Rastreabilidade de cilindros de gás</title>
+    <script>
+      // Spec 011: na landing ("/" no navegador), as duas imagens da primeira tela (a captura do sistema e o mascote, o LCP) começam a ser buscadas
+      // aqui, junto com o JavaScript, em vez de esperar a página montar. Só na landing: as outras rotas e o PWA instalado não as baixam.
+      // O endereço é o mesmo de TELA_DA_ABERTURA (sections/hero.tsx); o teste do mascote confere que batem.
+      if (location.pathname === '/' && !matchMedia('(display-mode: standalone)').matches) {
+        var tela = document.createElement('link');
+        tela.rel = 'preload';
+        tela.as = 'image';
+        tela.type = 'image/webp';
+        tela.href = '/landing/telas/tela-viagem-hero.webp';
+        tela.setAttribute('fetchpriority', 'high');
+        document.head.appendChild(tela);
+        // O mascote com o cilindro, sobre a captura, ocupa a maior área visível e acaba sendo o LCP: entra junto, com o mesmo conjunto e os
+        // mesmos tamanhos do componente Mascote (uso "abertura").
+        var mascote = document.createElement('link');
+        mascote.rel = 'preload';
+        mascote.as = 'image';
+        mascote.type = 'image/webp';
+        mascote.setAttribute('imagesrcset', '/landing/mascote-cilindro-320.webp 320w, /landing/mascote-cilindro-400.webp 400w, /landing/mascote-cilindro-749.webp 749w');
+        mascote.setAttribute('imagesizes', '(min-width: 1024px) 19rem, 10rem');
+        mascote.setAttribute('fetchpriority', 'high');
+        document.head.appendChild(mascote);
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

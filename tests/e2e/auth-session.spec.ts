@@ -6,7 +6,7 @@ import { MockBackend, threeSessions } from './support/mock-backend';
 // limite de sessões e MFA é provado em tests/**/*.live.test.ts e supabase/tests.
 async function open(page: Page, backend: MockBackend) {
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
 }
 
 const signIn = async (page: Page, email = 'ana@e2e.invalid', password = 'Senha-E2E-Forte-1') => {

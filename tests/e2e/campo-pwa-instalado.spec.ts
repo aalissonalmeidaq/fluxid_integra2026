@@ -24,7 +24,7 @@ async function prepararAparelho(page: Page) {
 
 test.describe('aplicativo instalável', () => {
   test('o manifesto e o service worker de produção atendem ao que o navegador exige para instalar', async ({ page, request }) => {
-    await page.goto('/');
+    await page.goto('/visao-geral');
     const manifest = await (await request.get('/manifest.webmanifest')).json() as { name: string; short_name: string; display: string; start_url: string; icons: Array<{ sizes: string; type: string; purpose?: string }> };
     expect(manifest).toMatchObject({ name: 'FluxID', short_name: 'FluxID', display: 'standalone' });
     expect(manifest.start_url).toBeTruthy();

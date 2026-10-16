@@ -7,7 +7,17 @@ import { describe, expect, it } from 'vitest';
 const ROOT = path.resolve(import.meta.dirname, '../..');
 // Exceção decidida na Spec 007 (mapas): blocos do mapa (tile.openstreetmap.org) e links de direitos e de abertura do mapa
 // (www.openstreetmap.org). Nenhum dado de cadastro vai nessas requisições; só a região vista no mapa.
-const ALLOWED = [/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/, /^https?:\/\/www\.w3\.org\//, /^https?:\/\/[^/]*example\.invalid/, /^https:\/\/(tile|www)\.openstreetmap\.org\//];
+// Exceção decidida na Spec 011 (landing page): o domínio público do próprio projeto, usado nos metadados de compartilhamento do HTML base
+// (canonical, og:url e og:image), que apontam para o próprio aplicativo e não carregam nada de terceiros.
+const ALLOWED = [/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/, /^https?:\/\/www\.w3\.org\//, /^https?:\/\/[^/]*example\.invalid/, /^https:\/\/(tile|www)\.openstreetmap\.org\//, /^https:\/\/fluxid\.tec\.br\//];
+// Exceção decidida na Spec 011, só para o módulo de conteúdo da landing: os 8 links de materiais (Google Drive, GitHub e YouTube) são links de
+// navegação, abertos só quando a pessoa os ativa; nada deles é carregado pela página. O tests/contract/landing-sem-terceiros.test.ts garante que
+// nenhum outro arquivo da landing cita endereço externo e que o pacote gerado só cita esses hosts.
+const ALLOWED_POR_ARQUIVO: Record<string, RegExp[]> = {
+  [path.join('src', 'pages', 'landing', 'landing-content.ts')]: [/^https:\/\/(drive\.google\.com|github\.com|www\.youtube\.com|youtu\.be)\//],
+  // Player dos vídeos da landing, montado só depois do clique em "Assistir" (Spec 011, adaptação ao pitch).
+  [path.join('src', 'pages', 'landing', 'video-incorporado.ts')]: [/^https:\/\/www\.youtube-nocookie\.com\/embed\//],
+};
 
 function walk(dir: string): string[] {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -38,7 +48,7 @@ describe('Recursos de terceiros no cliente', { timeout: 30_000 }, () => {
     const offenders = FILES.flatMap((file) =>
       [...fs.readFileSync(file, 'utf8').matchAll(/https?:\/\/[^\s"'`)<>]+/g)]
         .map((match) => match[0])
-        .filter((url) => !ALLOWED.some((pattern) => pattern.test(url)))
+        .filter((url) => !ALLOWED.some((pattern) => pattern.test(url)) && !(ALLOWED_POR_ARQUIVO[path.relative(ROOT, file)] ?? []).some((pattern) => pattern.test(url)))
         .map((url) => `${path.relative(ROOT, file)}: ${url}`),
     );
     expect(offenders).toEqual([]);

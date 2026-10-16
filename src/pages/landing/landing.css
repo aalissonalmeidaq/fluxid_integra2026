@@ -1,0 +1,1216 @@
+/* Camadas visuais da landing page (Spec 011). Só tokens do design system (var(--color-*), var(--gradiente-*)): nenhuma cor literal. */
+
+/* Seção escura: o anel de foco azul-royal do estilo global não contrasta com o navy; aqui ele é branco (WCAG 2.4.7 e 1.4.11). */
+.landing-escuro :focus-visible {
+  outline-color: var(--color-branco);
+}
+
+/* O sanduíche fixo do celular fica dentro do cabeçalho escuro, mas passa sobre seções claras: ali o ícone é navy e o anel volta ao
+   azul-royal do estilo global. */
+.landing-sanduiche[data-tom='claro']:focus-visible {
+  outline-color: var(--color-azul-royal);
+}
+
+/* Superfícies do navegador com a cor da marca: seleção de texto e cursor de digitação. */
+[data-pagina='landing'] ::selection {
+  background: var(--color-verde-vivo);
+  color: var(--color-navy);
+}
+
+[data-pagina='landing'] {
+  caret-color: var(--color-azul-royal);
+}
+
+/* Medida de leitura confortável para parágrafos (65 a 75 caracteres). */
+.landing-medida {
+  max-width: 68ch;
+}
+
+/* Abertura: ocupa a tela inteira ao entrar (a altura visível do aparelho, sem contar as barras do navegador) e reserva o topo para o
+   cabeçalho, que fica sobre ela. Em telas baixas o conteúdo cresce além da tela, sem cortar nada. */
+.landing-hero {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: 7rem;
+}
+
+@media (min-width: 768px) {
+  .landing-hero {
+    padding-top: 8.5rem;
+  }
+}
+
+/* Logo em destaque no topo: grande no celular (cabe com "Entrar" e o menu) e maior no computador. */
+.landing-logo-topo {
+  width: 10.5rem;
+}
+
+@media (min-width: 768px) {
+  .landing-logo-topo {
+    width: 16rem;
+  }
+}
+
+/* Barra compacta do computador (layout de 15/10/2026): passada a abertura, o cabeçalho fica fixo no topo, sólido em navy e com a logo
+   menor, para o menu acompanhar toda a página. No celular ele continua rolando (o sanduíche é o atalho). */
+@media (min-width: 1024px) {
+  .landing-cabecalho[data-compacto] {
+    position: fixed;
+    z-index: 30;
+    padding-block: var(--spacing-2);
+    background: var(--color-navy);
+    box-shadow: var(--shadow-dialogo);
+  }
+
+  .landing-cabecalho[data-compacto] .landing-logo-topo {
+    width: 7rem;
+  }
+
+  /* Âncoras: quem chega por um link do menu não fica com o título sob a barra. */
+  [data-pagina='landing'] main [id] {
+    scroll-margin-top: calc(var(--spacing-alvo) + var(--spacing-8));
+  }
+
+}
+
+/* Apresentação em slides (pedido de 15/10/2026): cada slide ocupa ao menos a tela inteira, com o conteúdo centrado na vertical. No
+   computador a página anda slide a slide (apresentacao.tsx: roda, teclado e indicador) e o respiro de cima deixa espaço para a barra
+   compacta; no celular as seções também ocupam a tela, mas a rolagem é livre. O encaixe não usa scroll-snap: no Chromium ele travava a roda
+   em slides mais altos que a tela. */
+.landing-slide {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: var(--spacing-8);
+}
+
+@media (min-width: 1024px) {
+  .landing-slide {
+    padding-top: calc(var(--spacing-alvo) + var(--spacing-4));
+    /* Embaixo, espaço para o indicador da apresentação não cobrir o conteúdo. */
+    padding-bottom: calc(var(--spacing-alvo) + var(--spacing-4));
+  }
+
+  /* Telas de notebook mais baixas (até 880 px de altura): respiro compacto para garantir que o conteúdo caiba em 100% da tela visível. */
+  @media (max-height: 880px) {
+    .landing-slide {
+      padding-top: calc(var(--spacing-alvo) + var(--spacing-2));
+      padding-bottom: calc(var(--spacing-alvo) + var(--spacing-2));
+    }
+  }
+
+  /* Indicador ocioso: some (sem tomar cliques) até a próxima atividade; com foco de teclado ou o mouse em cima, continua à vista. */
+  .landing-apresentacao[data-ocioso='true']:not(:focus-within):not(:hover) {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+}
+
+/* A barra desce do topo ao aparecer, rápida e sem quique. */
+@media (prefers-reduced-motion: no-preference) {
+  /* O indicador da apresentação esmaece ao se recolher e ao voltar. */
+  .landing-apresentacao {
+    transition-property: opacity;
+    transition-duration: 300ms;
+  }
+
+  @media (min-width: 1024px) {
+    .landing-cabecalho[data-compacto] {
+      animation: landing-barra-entra 240ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+
+  @keyframes landing-barra-entra {
+    from {
+      transform: translateY(-100%);
+    }
+  }
+}
+
+/* Seção atual no menu: sublinhado verde, a cor de "aqui está certo"; o estado também vai para a tecnologia assistiva (aria-current). */
+.landing-ancora[aria-current='location'] {
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-verde-vivo);
+  text-decoration-thickness: 2px;
+}
+
+/* Grade da abertura. O palco reúne as duas provas do produto: o cilindro equipado e uma tela real do sistema, sempre marcada Exemplo. */
+.landing-hero-grade {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'texto'
+    'palco'
+    'fecho'
+    'cartao'
+    ;
+}
+
+.landing-hero-texto {
+  grid-area: texto;
+}
+
+.landing-hero-fecho {
+  grid-area: fecho;
+}
+
+.landing-hero-palco {
+  grid-area: palco;
+}
+
+.landing-hero-cartao {
+  grid-area: cartao;
+  width: min(100%, 20rem);
+}
+
+@media (min-width: 768px) {
+  .landing-hero-grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      'texto palco'
+      'fecho palco';
+  }
+
+  .landing-hero-cartao {
+    grid-area: palco;
+    align-self: end;
+    justify-self: end;
+    z-index: 1;
+    margin-bottom: 6%;
+    width: min(100%, 20rem);
+  }
+}
+
+.landing-hero-palco {
+  min-height: 14rem;
+  max-width: 38rem;
+}
+
+.landing-tela-hero {
+  width: 86%;
+  margin-left: auto;
+}
+
+.landing-tela-hero-imagem {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: top;
+}
+
+.landing-produto-hero {
+  position: absolute;
+  z-index: 2;
+  width: 42%;
+  left: 0;
+  bottom: calc(var(--spacing-6) * -1);
+}
+
+.landing-mascote-abertura {
+  filter: drop-shadow(0 1.5rem 2rem color-mix(in srgb, var(--color-navy) 70%, transparent));
+}
+
+@media (min-width: 768px) {
+  .landing-hero-palco {
+    min-height: 22rem;
+  }
+
+  .landing-tela-hero {
+    width: 88%;
+  }
+
+  .landing-produto-hero {
+    width: 48%;
+    bottom: calc(var(--spacing-8) * -1);
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-hero-grade {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+
+  .landing-hero-palco {
+    min-height: 26rem;
+  }
+}
+
+.landing-marcador {
+  width: 0.625rem;
+  height: 0.625rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 2px solid var(--color-azul-ciano);
+}
+
+[data-etapa='feita'] .landing-marcador {
+  background: var(--color-verde-vivo);
+  border-color: var(--color-verde-vivo);
+}
+
+[data-etapa='atual'] .landing-marcador {
+  background: var(--color-azul-ciano);
+  box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--color-azul-ciano) 35%, transparent);
+}
+
+/* Gaveta de âncoras do celular (landing-header.tsx): véu escurecido e painel pela direita. */
+.landing-veu {
+  background: color-mix(in srgb, var(--color-navy) 60%, transparent);
+}
+
+.landing-gaveta {
+  width: min(20rem, 85vw);
+}
+
+/* Linha do tempo da história: um traço liga as cenas, atrás dos círculos dos ícones. */
+.landing-linha-do-tempo > li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 1.5rem;
+  top: 3rem;
+  bottom: -1rem;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--color-borda-suave);
+}
+
+/* As dúvidas da história: lista tipográfica (não parecem botões), com um traço vermelho curto de marcador. */
+.landing-duvida::before {
+  content: '';
+  flex-shrink: 0;
+  width: 0.75rem;
+  height: 3px;
+  transform: translateY(-0.3em);
+  background: var(--color-erro);
+}
+
+/* Mascote de binóculos, procurando o C-262 no canto livre da rota (corpo inteiro, de pé na borda de baixo do quadro). */
+.landing-mascote-busca {
+  position: absolute;
+  right: 1rem;
+  bottom: 0;
+  width: 6rem;
+}
+
+@media (min-width: 768px) {
+  .landing-mascote-busca {
+    width: 9rem;
+  }
+}
+
+/* Mascote com o cilindro e o dispositivo, ao lado da frase final. */
+.landing-mascote-final {
+  width: 8rem;
+}
+
+@media (min-width: 768px) {
+  .landing-mascote-final {
+    width: 12rem;
+  }
+}
+
+/* Fotos da equipe: redondas e padronizadas, com o rosto no enquadramento. No celular a foto fica ao lado do texto. */
+.landing-foto-equipe {
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+@media (min-width: 768px) {
+  .landing-foto-equipe {
+    width: 7rem;
+    height: 7rem;
+  }
+}
+
+/* Linha do tempo dos marcos: um traço liga os pontos, vertical no celular e horizontal do tablet em diante. */
+.landing-marco:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  top: 2rem;
+  bottom: -1.5rem;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--color-borda-suave);
+}
+
+.landing-marco[data-situacao='cumprido']:not(:last-child)::before {
+  background: var(--color-verde-acessivel);
+}
+
+@media (min-width: 768px) {
+  .landing-marco:not(:last-child)::before {
+    left: 2rem;
+    right: -1rem;
+    top: 1rem;
+    bottom: auto;
+    width: auto;
+    height: 2px;
+    transform: translateY(-50%);
+  }
+}
+
+/* Logos institucionais e parceiras no fim da equipe: altura óptica harmoniosa e contenção proporcional. */
+.landing-logo-instituicao {
+  width: auto;
+  height: 2rem;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .landing-logo-instituicao {
+    height: 3rem;
+  }
+}
+
+/* No celular, o rosto do mascote acompanha o cartão do C-262 na primeira tela; do tablet em diante o mascote inteiro está ao lado. */
+.landing-avatar-cartao {
+  display: none;
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+@media (max-width: 767px) {
+  .landing-avatar-cartao {
+    display: block;
+  }
+}
+
+.landing-mascote-rosto {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Cadeia manual (prancheta, planilha, memória): conector entre etapas alinhado aos cabeçalhos e com direção clara. */
+.landing-elo:not([data-ultimo])::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -2rem;
+  width: 0;
+  height: 2rem;
+  border-left: 2px dashed var(--color-borda-controle);
+  transform: translateX(-50%);
+}
+
+.landing-elo:not([data-ultimo])::after {
+  content: '↓';
+  position: absolute;
+  left: 50%;
+  bottom: -1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-azul-profundo);
+  background: var(--color-branco);
+  border: 1px solid var(--color-borda-suave);
+  border-radius: 9999px;
+  transform: translate(-50%, 50%);
+  box-shadow: var(--shadow-card);
+  z-index: 10;
+}
+
+@media (min-width: 768px) {
+  .landing-elo:not([data-ultimo])::before {
+    left: auto;
+    right: -1.5rem;
+    top: 3rem;
+    bottom: auto;
+    width: 1.5rem;
+    height: 0;
+    border-left: 0;
+    border-top: 2px dashed var(--color-borda-controle);
+    transform: translateY(-50%);
+  }
+
+  .landing-elo:not([data-ultimo])::after {
+    left: auto;
+    right: -0.75rem;
+    top: 3rem;
+    bottom: auto;
+    content: '→';
+    transform: translate(50%, -50%);
+  }
+}
+
+/* Quatro frentes numa só superfície, separadas por divisórias. */
+.landing-frentes > li + li {
+  border-top: 1px solid var(--color-borda-suave);
+}
+
+@media (min-width: 768px) {
+  .landing-frentes > li:nth-child(2) {
+    border-top: 0;
+  }
+
+  .landing-frentes > li:nth-child(odd) {
+    border-right: 1px solid var(--color-borda-suave);
+  }
+}
+
+/* No computador, as quatro frentes ficam numa linha só, separadas por divisórias verticais. */
+@media (min-width: 1024px) {
+  .landing-frentes > li + li {
+    border-top: 0;
+  }
+
+  .landing-frentes > li:not(:last-child) {
+    border-right: 1px solid var(--color-borda-suave);
+  }
+}
+
+/* Itens do bloco "o que já funciona", separados por divisórias sobre o navy. */
+.landing-item-funciona + .landing-item-funciona {
+  border-top: 1px solid color-mix(in srgb, var(--color-azul-ciano) 45%, transparent);
+}
+
+/* Barras do patrimônio por capacidade: largura proporcional ao valor (o valor está escrito ao lado), em tom neutro. */
+.landing-barra-trilho {
+  display: block;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-branco) 12%, var(--color-navy));
+  border: 1px solid color-mix(in srgb, var(--color-branco) 15%, transparent);
+  overflow: hidden;
+}
+
+.landing-barra {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-cinza-gelo);
+  transform-origin: left center;
+  transform: scaleX(var(--proporcao, 1));
+}
+
+/* A barra anda até a nova proporção só com movimento liberado (contrato de movimento da landing). */
+@media (prefers-reduced-motion: no-preference) {
+  .landing-barra {
+    transition-property: transform;
+    transition-duration: 600ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+/* Jornada: um traço vertical liga as etapas de cada trecho, atrás dos números. */
+.landing-jornada > li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 1.5rem;
+  top: 3rem;
+  bottom: -1.5rem;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--color-azul-royal);
+}
+
+/* Cartão do C-262 ao lado da jornada: acompanha a leitura enquanto se rola, no computador. */
+.landing-cartao-jornada {
+  width: min(100%, 22rem);
+}
+
+/* Blocos recolhíveis (<details>): o marcador padrão do navegador some e o resumo ganha o anel de foco do sistema. */
+.landing-detalhes > summary {
+  list-style: none;
+}
+
+.landing-detalhes > summary::-webkit-details-marker {
+  display: none;
+}
+
+.landing-detalhes > summary::after {
+  content: '';
+  flex-shrink: 0;
+  /* No celular a dica "Ver as…" some e a seta vai sozinha para a direita; do tablet em diante a dica ocupa esse lugar. */
+  margin-inline-start: auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+/* Com a contagem empurrada para a direita, a seta vem logo depois dela em qualquer largura. */
+.landing-detalhes > summary:has(.landing-detalhes-contagem)::after {
+  margin-inline-start: 0;
+}
+
+.landing-detalhes[open] > summary::after {
+  transform: rotate(-135deg);
+}
+
+@media (min-width: 768px) {
+  .landing-detalhes > summary::after {
+    margin-inline-start: 0;
+  }
+}
+
+/* Trava: o pino recua para a carcaça ao liberar. */
+.landing-pino[data-recuado] {
+  transform: translateX(2.25rem);
+}
+
+.landing-volante {
+  transform-box: view-box;
+  transform-origin: 130px 130px;
+}
+
+.landing-area-trava {
+  max-width: 26rem;
+}
+
+/* No computador o desenho encolhe um pouco para o protótipo, os momentos e as garantias caberem num slide. */
+@media (min-width: 1024px) {
+  .landing-area-trava {
+    max-width: 18rem;
+  }
+}
+
+.landing-led {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--color-azul-ciano);
+}
+
+/* Capas dos vídeos (video-destaque.tsx). */
+.landing-capa-pergunta {
+  left: 1.5rem;
+  top: 30%;
+  max-width: 75%;
+  text-wrap: balance;
+}
+
+.landing-capa-tela {
+  position: absolute;
+  right: -6%;
+  top: 14%;
+  width: 78%;
+  height: auto;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-dialogo);
+  transform: rotate(-4deg);
+}
+
+/* Foto do protótipo na válvula, de pé no canto direito da capa (retrato): a prova física, em tamanho de ver. */
+.landing-capa-dispositivo {
+  position: absolute;
+  right: 6%;
+  bottom: 0;
+  height: 88%;
+  width: auto;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+}
+
+/* O caminhão é posicionado por transform, em unidades do desenho; sem movimento, fica parado no meio da rota, perto da interrogação. */
+.landing-caminhao {
+  transform-box: view-box;
+  transform: translate(250px, 120px);
+}
+
+/* Movimento (crítica de 14/10/2026): um só momento autoral, o caminhão que some na rota do C-262; o resto são entradas curtas. Nada fica em
+   repetição infinita (WCAG 2.2.2): cada animação termina em até cerca de 5 s e as cenas só começam quando entram na tela (data-revelar
+   "visivel"). Tudo só com "reduzir movimento" desligado e só com transform e opacity; em movimento reduzido nada é escondido nem animado. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-revelar='pendente'] {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  [data-revelar='visivel'] {
+    transition: opacity 500ms ease-out, transform 500ms ease-out;
+  }
+
+  .landing-mascote-abertura {
+    animation: landing-surgir 900ms ease-out both;
+  }
+
+  [data-revelar='visivel'] .landing-mascote-busca {
+    animation: landing-espiar 2.4s ease-in-out 2;
+    transform-origin: bottom center;
+  }
+
+  [data-etapa='atual'] .landing-marcador {
+    animation: landing-sinal 1.6s ease-in-out 3;
+  }
+
+  .landing-rolar svg {
+    animation: landing-quicar 1.8s ease-in-out 2;
+  }
+
+  [data-revelar='visivel'] .landing-caminhao {
+    animation: landing-percorrer 4.5s ease-in-out 400ms both;
+  }
+
+  [data-revelar='visivel'] .landing-interrogacao {
+    animation: landing-aparecer 4.5s ease-out 400ms both;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  [data-revelar] .landing-barra {
+    transition: transform 900ms ease-out 200ms;
+  }
+
+  [data-revelar='pendente'] .landing-barra {
+    transform: scaleX(0);
+  }
+
+  .landing-pino {
+    transition: transform 400ms ease-out;
+  }
+
+  .landing-volante[data-girando] {
+    animation: landing-girar 2.4s ease-out 1;
+  }
+
+  .landing-trava[data-estado='geocerca'] .landing-geocerca {
+    animation: landing-alerta 1s ease-in-out 3;
+  }
+
+  .landing-reproduzir {
+    transition: transform 200ms ease-out;
+  }
+
+  .landing-palco button:not(:disabled):hover .landing-reproduzir,
+  .landing-palco button:not(:disabled):focus-visible .landing-reproduzir {
+    transform: scale(1.04);
+  }
+
+  /* Segundo momento autoral (animate de 15/10/2026): quando a trava entra na tela, o pino do solenoide avança e encaixa no anel, uma vez,
+     como o texto ao lado descreve. Desaceleração firme, sem quique. */
+  [data-revelar='visivel'] .landing-pino-entrada {
+    animation: landing-encaixar 600ms cubic-bezier(0.16, 1, 0.3, 1) 500ms 1 both;
+  }
+
+  /* Estado: o texto do momento da trava troca por esmaecimento, junto com o pino e o volante. */
+  .landing-momento {
+    transition: opacity 200ms ease-out;
+  }
+
+  /* Blocos recolhíveis: a seta gira e o conteúdo desce um pouco ao abrir. */
+  .landing-detalhes > summary::after {
+    transition: transform 200ms ease-out;
+  }
+
+  .landing-detalhes[open] > :not(summary) {
+    animation: landing-abrir 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Gaveta do celular: entra pela direita e o véu escurece; ao fechar, some na hora (sair é mais rápido que entrar). */
+  .landing-gaveta {
+    animation: landing-gaveta-entra 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .landing-veu {
+    animation: landing-escurecer 200ms ease-out;
+  }
+
+  @keyframes landing-encaixar {
+    from {
+      transform: translateX(2.25rem);
+    }
+
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes landing-abrir {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+  }
+
+  @keyframes landing-gaveta-entra {
+    from {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes landing-escurecer {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes landing-surgir {
+    from {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes landing-espiar {
+    0%,
+    100% {
+      transform: rotate(0deg) translateY(0);
+    }
+
+    30% {
+      transform: rotate(-6deg) translateY(-0.5rem);
+    }
+
+    60% {
+      transform: rotate(4deg) translateY(-0.25rem);
+    }
+  }
+
+  @keyframes landing-sinal {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @keyframes landing-quicar {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(0.25rem);
+    }
+  }
+
+  /* Pontos da curva da rota (historia.tsx), em unidades do desenho: o caminhão sai da distribuidora e some perto da interrogação. */
+  @keyframes landing-percorrer {
+    0% {
+      transform: translate(70px, 196px);
+      opacity: 1;
+    }
+
+    15% {
+      transform: translate(121px, 184px);
+    }
+
+    30% {
+      transform: translate(160px, 158px);
+    }
+
+    45% {
+      transform: translate(199px, 132px);
+    }
+
+    65% {
+      transform: translate(250px, 120px);
+      opacity: 1;
+    }
+
+    85%,
+    100% {
+      transform: translate(302px, 111px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes landing-aparecer {
+    0%,
+    70% {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes landing-girar {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes landing-alerta {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.3;
+    }
+  }
+}
+
+/* Impressão: nada fica escondido à espera de rolagem. */
+@media print {
+  [data-revelar] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Mockup das telas reais (funcionalidades.tsx, 16/10/2026): o notebook e o celular sobreposto na borda direita, numa composição de largura
+   própria, calculada pela altura do slide (o par cabe numa tela). No celular só o aparelho de campo aparece, centrado. */
+.landing-mockup {
+  position: relative;
+  width: 100%;
+}
+
+.landing-mockup-notebook {
+  display: none;
+}
+
+.landing-mockup-celular {
+  width: min(100%, 17rem);
+  margin-inline: auto;
+}
+
+/* No celular a legenda do notebook não tem aparelho para descrever. */
+.landing-mockup-legenda [data-legenda='computador'] {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .landing-mockup {
+    width: min(100%, calc((100svh - 25rem) * 1.75));
+    padding-bottom: 1rem;
+  }
+
+  .landing-mockup-notebook {
+    display: block;
+    width: 84%;
+  }
+
+  .landing-mockup-celular {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 23%;
+    margin: 0;
+  }
+
+  .landing-mockup-legenda [data-legenda='computador'] {
+    display: flex;
+  }
+
+  /* O primeiro slide de “O que já funciona” reúne prova visual e capacidades: o palco reduz a altura, sem reduzir a tipografia. */
+  .landing-mockup-compacto {
+    width: min(100%, calc((100svh - 42rem) * 1.75));
+  }
+}
+
+/* Moldura de notebook: tampa escura com a tela (barra do navegador e captura) e a base mais larga, com o recorte de abrir. */
+.landing-moldura-notebook {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.landing-moldura-tampa {
+  width: 92%;
+  padding: 0.6rem;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: var(--color-grafite);
+  box-shadow: var(--shadow-dialogo), inset 0 0 0 1px color-mix(in srgb, var(--color-branco) 14%, transparent);
+}
+
+.landing-moldura-tampa > :last-child {
+  border-radius: 0 0 var(--radius-controle) var(--radius-controle);
+}
+
+.landing-moldura-base {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 0.9rem;
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+  background: linear-gradient(var(--color-borda-suave), var(--color-borda-controle));
+  box-shadow: var(--shadow-dialogo);
+}
+
+.landing-moldura-base::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 16%;
+  height: 0.35rem;
+  transform: translateX(-50%);
+  border-radius: 0 0 var(--radius-controle) var(--radius-controle);
+  background: var(--color-borda-controle);
+}
+
+/* Moldura de celular: corpo escuro arredondado e visor com cantos de aparelho. */
+.landing-moldura-celular {
+  padding: 0.55rem;
+  border-radius: 2.4rem;
+  background: var(--color-grafite);
+  box-shadow: var(--shadow-dialogo), inset 0 0 0 1px color-mix(in srgb, var(--color-branco) 14%, transparent);
+}
+
+.landing-moldura-visor {
+  border-radius: 1.9rem;
+}
+
+/* Barra de status: altura de aparelho, com o selo no canto, acima do conteúdo da captura. */
+.landing-moldura-status {
+  min-height: 2.25rem;
+}
+
+
+/* Símbolo da marca no palco do vídeo: em silhueta branca, como no logotipo negativo (o símbolo colorido some sobre o navy). */
+.landing-palco-marca {
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+/* Ponta do balão da pergunta da causa, apontando para o mascote. */
+.landing-balao::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  background: var(--color-navy);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* Mascote indicando a fila de envio, e com o tablet de contrato ao lado do modelo de contratação. */
+.landing-mascote-explica {
+  width: 9rem;
+  align-self: flex-end;
+}
+
+.landing-mascote-contrato {
+  width: 7rem;
+}
+
+@media (min-width: 768px) {
+  .landing-mascote-contrato {
+    width: 10rem;
+  }
+}
+
+/* O dispositivo instalado no cilindro (figura da seção da trava). */
+.landing-dispositivo {
+  width: 8rem;
+}
+
+/* Rosto do mascote dentro da moldura redonda: recorta pela cabeça, que fica no alto da imagem (vale também para o mascote preocupado). */
+.landing-avatar .landing-mascote-rosto,
+.landing-avatar-cartao .landing-mascote-rosto {
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0;
+}
+
+/* Moldura redonda do mascote ao lado do balão da pergunta da causa. */
+.landing-avatar {
+  display: block;
+  width: 5rem;
+  height: 5rem;
+}
+
+@media (min-width: 768px) {
+  .landing-avatar {
+    width: 7rem;
+    height: 7rem;
+  }
+}
+
+/* Mascote pensando na causa: sem moldura redonda, figura transparente do personagem */
+.landing-mascote-pensando {
+  width: 7.5rem;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0.5rem 1.25rem color-mix(in srgb, var(--color-navy) 75%, transparent));
+}
+
+@media (min-width: 768px) {
+  .landing-mascote-pensando {
+    width: 9.5rem;
+  }
+}
+
+
+/* Capa do vídeo do sistema: o mascote apontando, de pé no canto direito, e o título numa coluna que não chega até ele. */
+.landing-capa-mascote {
+  position: absolute;
+  right: 5%;
+  bottom: 0;
+  width: 26%;
+  max-height: 92%;
+  object-fit: contain;
+  object-position: bottom;
+}
+
+.landing-capa-estreita {
+  max-width: 58%;
+}
+
+/* No celular a capa é baixa demais para título: ele some e fica a imagem com o botão, que já diz o que toca (o título está na seção). */
+@media (max-width: 767px) {
+  .landing-capa-pergunta,
+  .landing-capa-tag {
+    display: none;
+  }
+}
+
+/* Capa do vídeo do pitch: o mascote em pose de busca ('video'), investigando o sumiço do C-262 com lupa */
+.landing-capa-mascote-pitch {
+  position: absolute;
+  right: 3%;
+  bottom: 0;
+  width: 34%;
+  max-height: 94%;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(0 0.75rem 1.5rem color-mix(in srgb, var(--color-navy) 60%, transparent));
+}
+
+@media (max-width: 1023px) {
+  .landing-capa-mascote-pitch {
+    width: 28%;
+    right: 2%;
+  }
+}
+
+@media (max-width: 767px) {
+  .landing-capa-mascote-pitch {
+    width: 38%;
+    right: 2%;
+    max-height: 88%;
+  }
+}
+
+
+/* Barra de rolagem no tom da seção que está na tela (pedido de 15/10/2026; o fundo vem de use-rolagem-da-secao.ts). Nas seções claras o
+   trilho é o próprio fundo (gelo ou branco) e o polegar, o padrão de base.css; nas escuras o trilho é navy e o polegar, um gelo apagado
+   com contraste de 3:1 sobre ele, que clareia ao passar o mouse e fica ciano ao arrastar. */
+html[data-rolagem="branco"]::-webkit-scrollbar-track,
+html[data-rolagem="branco"]::-webkit-scrollbar-corner {
+  background-color: var(--color-branco);
+}
+
+html[data-rolagem="escuro"]::-webkit-scrollbar-track,
+html[data-rolagem="escuro"]::-webkit-scrollbar-corner {
+  background-color: var(--color-navy);
+}
+
+html[data-rolagem="escuro"]::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--color-cinza-gelo) 45%, var(--color-navy));
+}
+
+html[data-rolagem="escuro"]::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--color-cinza-gelo) 70%, var(--color-navy));
+}
+
+html[data-rolagem="escuro"]::-webkit-scrollbar-thumb:active {
+  background-color: var(--color-azul-ciano);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  html[data-rolagem="branco"] {
+    scrollbar-color: var(--color-borda-controle) var(--color-branco);
+  }
+
+  html[data-rolagem="escuro"] {
+    scrollbar-color: color-mix(in srgb, var(--color-cinza-gelo) 45%, var(--color-navy)) var(--color-navy);
+  }
+}
+
+/* Logos institucionais e parceiras com altura consistente e preservação de proporção */
+.landing-logo-instituicao {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: contrast(1.05);
+}
+
+/* Faixa de passagem horizontal contínua das logos institucionais e parceiras (Marquee) */
+.landing-marquee-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  user-select: none;
+  mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+}
+
+.landing-marquee-trilho {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+/* A passagem só anda com movimento liberado (contrato de movimento da landing); com "reduzir movimento", a faixa rola com o dedo. */
+@media (prefers-reduced-motion: no-preference) {
+  .landing-marquee-trilho {
+    animation: landing-marquee-passagem 26s linear infinite;
+  }
+
+  .landing-marquee-container:hover .landing-marquee-trilho {
+    animation-play-state: paused;
+  }
+
+  @keyframes landing-marquee-passagem {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/* Com "reduzir movimento", a faixa não anda nem rola: os logos ficam parados, quebrando linha, e a cópia decorativa some. Uma área com rolagem
+   horizontal precisaria receber foco pelo teclado (axe: scrollable-region-focusable). */
+@media (prefers-reduced-motion: reduce) {
+  .landing-marquee-container {
+    overflow: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .landing-marquee-trilho {
+    width: auto;
+  }
+
+  .landing-marquee-trilho > ul {
+    flex-wrap: wrap;
+  }
+
+  .landing-marquee-trilho > ul[aria-hidden='true'] {
+    display: none;
+  }
+}
+

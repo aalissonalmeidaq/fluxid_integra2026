@@ -57,6 +57,9 @@ export const usosDeCor: readonly UsoDeCor[] = [
   ...usos(['grafite'], ['alerta-faixa'], 'texto-normal'),
   ...usos(['branco'], ['azul-profundo', 'azul-royal', 'navy', 'verde-acessivel', 'erro', 'ciano-acessivel'], 'texto-normal'),
   ...usos(['verde-vivo'], ['navy'], 'texto-normal'),
+  // Landing page (Spec 011): rótulo do botão principal (navy sobre verde-vivo, 5,46:1) e subtítulos sobre as seções escuras (cinza-gelo sobre navy, 10,25:1, e sobre azul-profundo, 7,30:1).
+  ...usos(['navy'], ['verde-vivo'], 'texto-normal'),
+  ...usos(['cinza-gelo'], ['navy', 'azul-profundo'], 'texto-normal'),
   ...usos(['azul-ciano'], ['navy'], 'texto-grande'),
   ...usos(['verde-vivo', 'azul-ciano'], ['azul-profundo'], 'texto-grande'),
   ...usos(['verde-escuro', 'borda-controle', 'azul-royal', 'erro', 'grafite'], CLAROS_BASE, 'componente'),

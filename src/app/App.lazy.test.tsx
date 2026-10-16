@@ -13,7 +13,7 @@ afterEach(() => window.history.pushState({}, '', '/'));
 
 describe('Rotas carregadas sob demanda (RNF-003)', () => {
   it.each([
-    ['/', 'Conteúdo da Visão geral'],
+    ['/visao-geral', 'Conteúdo da Visão geral'],
     ['/alertas', 'Conteúdo dos alertas'],
     ['/cilindros/novo', 'Conteúdo de cilindros: new'],
   ])('%s mostra o fallback acessível e depois a página', async (path, conteudo) => {
