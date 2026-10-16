@@ -24,8 +24,13 @@ async function abrir(page: Page): Promise<void> {
     await page.waitForTimeout(100);
   }
   await page.evaluate(() => window.scrollTo(0, 0));
-  // Só as imagens visíveis: o mascote da seção "sem sinal" fica oculto abaixo de 768 px e nunca carrega.
-  await page.waitForFunction(() => [...document.images].filter((imagem) => imagem.offsetParent !== null).every((imagem) => imagem.complete && imagem.naturalWidth > 0));
+  // Só as imagens que podem aparecer na captura: exibidas e dentro da largura da tela. As cópias da faixa de logos das instituições ficam à
+  // direita, recortadas pela faixa; com carregamento sob demanda, o navegador só as baixa quando entram na tela (com o movimento da faixa).
+  await page.waitForFunction(() =>
+    [...document.images]
+      .filter((imagem) => imagem.offsetParent !== null && imagem.getBoundingClientRect().left < window.innerWidth)
+      .every((imagem) => imagem.complete && imagem.naturalWidth > 0),
+  );
   await page.evaluate(() => document.fonts.ready);
 }
 

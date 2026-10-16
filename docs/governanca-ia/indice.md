@@ -78,3 +78,5 @@
 > Atualização do RIA-028: `npm run dev:rede` passou a servir em HTTPS com certificado autoassinado de desenvolvimento, a pedido da pessoa responsável, para testar câmera, NFC e GPS no celular sem cabo (não torna o app instalável como PWA).
 
 > Fechamento do RIA-028: em 12/10/2026 a pessoa responsável decidiu fechar a Spec 009 com a instalação do PWA em Android como pendência (confirmação na Spec 010).
+
+> Atualização do RIA-031: em 16/10/2026, a pedido da pessoa responsável, foram corrigidos os checks do PR #39: um tipo `any` no prejuízo (lint) e o teste visual da landing, que esperava as cópias recortadas da faixa de logos das instituições; as capturas da landing foram regeneradas no Linux. Localmente, lint, typecheck e 5.462 testes unitários passaram, e os 261 testes visuais também (um teste da fila offline foi instável).

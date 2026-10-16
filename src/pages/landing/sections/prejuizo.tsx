@@ -1,5 +1,6 @@
 import React from 'react';
 import { Icon } from '@/design-system';
+import type { IconName } from '@/design-system';
 import { PREJUIZO, TEXTOS } from '../landing-content';
 import { calcularPrejuizo, formatarInteiro, formatarReais } from '../prejuizo';
 import { Contador } from './contador';
@@ -163,19 +164,19 @@ export function Prejuizo(): React.JSX.Element {
 
           {/* Fatores que ilustram a ressalva de forma visual e escaneável */}
           <div className="grid grid-cols-2 gap-2 border-t border-branco/15 pt-4 tablet:grid-cols-3">
-            {[
+            {([
               { rotulo: 'Gás residual', icone: 'sensor' },
               { rotulo: 'Transporte', icone: 'caminhao' },
               { rotulo: 'Mão de obra', icone: 'usuario' },
               { rotulo: 'Tempo de busca', icone: 'historico' },
               { rotulo: 'Reposição', icone: 'cilindro' },
               { rotulo: 'Perda de aluguel', icone: 'relatorios' },
-            ].map((fator) => (
+            ] satisfies Array<{ rotulo: string; icone: IconName }>).map((fator) => (
               <div
                 key={fator.rotulo}
                 className="flex items-center gap-2 rounded-controle border border-branco/10 bg-branco/5 px-2 py-2 text-legenda text-cinza-gelo transition-colors hover:bg-branco/10"
               >
-                <Icon name={fator.icone as any} size={16} variant="negativa" />
+                <Icon name={fator.icone} size={16} variant="negativa" />
                 <span className="font-semibold text-branco">{fator.rotulo}</span>
               </div>
             ))}
