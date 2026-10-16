@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: Síntese dos pedidos da pessoa responsável no ciclo: criar a landing institucional com os materiais do projeto; adaptá-la ao roteiro do pitch preservando a essência; abertura ocupando a tela inteira; mascote nítido, sem desfoque, com outras poses; vídeos tocando na própria página, sem abrir o YouTube; cartões de prejuízo em vermelho; executar os planos de ação de duas críticas de design (impeccable); incorporar a apresentação do FluxID (poses do mascote, equipe e marcos); dar mais destaque à logo no topo; trocar a data da validação do protótipo para 20 a 22 out. 2026; fechar a spec com tudo aprovado e utilizado, dispensando a entrevista de validação e os testes de fechamento.
 - Resposta gerada pela IA: A IA gerou a landing em React com seções da história do C-047, prejuízo calculado de fonte única, causa, solução com a jornada, trava interativa, vídeos incorporados após o clique (youtube-nocookie), o que já funciona com telas reais regeneradas, piloto com simulação marcada como estimativa, equipe, materiais e chamada final; poses do mascote recortadas sem fundo; testes unitários, de contrato, E2E e visuais; e a atualização da spec, das tarefas e da validação.
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/011-landing-page-institucional (trocar pelo link do pull request antes do merge)
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/39
 - Análise crítica da equipe: Riscos: as alterações de 15/10/2026 (apresentação em slides, planos, contato e outros ajustes feitos em outras sessões) não passaram pela suíte local no fechamento; o LCP do computador tem folga pequena (cerca de 100 ms); a página publica o nome da Oxigênio Cariri, valores de perda e nomes e fotos da equipe, o que depende de autorização.
 - Validação humana realizada: A pessoa responsável acompanhou as versões da landing ao longo do ciclo (capturas, críticas e demonstrações) e, em 16/10/2026, aprovou o resultado e pediu o fechamento sem sessão formal de validação.
 - Decisão final: utilizado
@@ -267,7 +267,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Trocar o link de validação pelo link do pull request antes do merge. Registrar a autorização de cada integrante da equipe para publicar nome e foto (T089). Confirmar a publicação do nome da Oxigênio Cariri e dos valores de perda (T075). O marco de 20 a 22 out. 2026 aparece em "Marcos já cumpridos" antes de acontecer. Conferir no CI os testes das alterações de 15/10/2026. Gerar o DOCX do RIA após o merge.
+Registrar a autorização de cada integrante da equipe para publicar nome e foto (T089). Confirmar a publicação do nome da Oxigênio Cariri e dos valores de perda (T075). O marco de 20 a 22 out. 2026 aparece em "Marcos já cumpridos" antes de acontecer. Conferir no CI os testes das alterações de 15/10/2026. Gerar o DOCX do RIA após o merge.
 
 ## Validação humana
 
