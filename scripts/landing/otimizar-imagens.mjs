@@ -28,7 +28,7 @@ const POSES = [
   { origem: 'mascote-preocupado.png', nome: 'mascote-preocupado', larguras: [240, 303] },
   { origem: 'mascote-procurando.png', nome: 'mascote-procurando', larguras: [240, 323] },
   { origem: 'mascote-tablet.png', nome: 'mascote-tablet', larguras: [320, 588] },
-  { origem: 'mascote-cilindro.png', nome: 'mascote-cilindro', larguras: [400, 749] },
+  { origem: 'mascote-cilindro.png', nome: 'mascote-cilindro', larguras: [320, 400, 749] },
   { origem: 'mascote-indicando.png', nome: 'mascote-indicando', larguras: [240, 464] },
   { origem: 'dispositivo-no-cilindro.png', nome: 'dispositivo-no-cilindro', larguras: [240, 373] },
 ];
@@ -70,6 +70,33 @@ try {
       }
     }
   }
+
+  // Versão da captura da viagem para a abertura (o maior elemento da primeira tela, LCP): o mesmo recorte do topo em 16:9 que a abertura
+  // mostra (object-position: top), em 640 x 360, leve o bastante para o index.html pré-carregá-la sem atrasar o JavaScript.
+  const telaOriginal = `data:image/webp;base64,${readFileSync(join(DESTINO, 'telas', 'tela-viagem-desktop.webp')).toString('base64')}`;
+  const telaHero = await pagina.evaluate(
+    async ({ dados, qualidade }) => {
+      const imagem = new Image();
+      imagem.src = dados;
+      await imagem.decode();
+      const recorteAltura = Math.round((imagem.naturalWidth * 9) / 16);
+      const tela = document.createElement('canvas');
+      tela.width = 640;
+      tela.height = 360;
+      const contexto = tela.getContext('2d');
+      contexto.imageSmoothingQuality = 'high';
+      contexto.drawImage(imagem, 0, 0, imagem.naturalWidth, recorteAltura, 0, 0, 640, 360);
+      const blob = await new Promise((resolve) => tela.toBlob(resolve, 'image/webp', qualidade));
+      const buffer = new Uint8Array(await blob.arrayBuffer());
+      let texto = '';
+      for (let i = 0; i < buffer.length; i += 0x8000) texto += String.fromCharCode(...buffer.subarray(i, i + 0x8000));
+      return btoa(texto);
+    },
+    { dados: telaOriginal, qualidade: 0.8 },
+  );
+  const bytesHero = Buffer.from(telaHero, 'base64');
+  writeFileSync(join(DESTINO, 'telas', 'tela-viagem-hero.webp'), bytesHero);
+  console.log(`tela-viagem-hero.webp: ${(bytesHero.length / 1024).toFixed(1)} KB`);
 } finally {
   await navegador.close();
 }

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Mascote } from './mascote';
+import { TELA_DA_ABERTURA } from './sections/hero';
 
 // Spec 011, T037 (RF-009, casos de borda): o mascote é imagem otimizada com dimensões fixas, descrito só no primeiro uso, carregado
 // com prioridade só na abertura e substituído pelo logotipo se a imagem falhar.
@@ -32,11 +33,12 @@ describe('Mascote', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
-  it('usa WebP otimizado em duas larguras com sizes, sem recurso externo', () => {
+  it('usa WebP otimizado em três larguras com sizes, sem recurso externo (a de 320 px atende a abertura no computador)', () => {
     const { container } = render(<Mascote uso="abertura" />);
     const imagem = container.querySelector('img')!;
-    expect(imagem.getAttribute('src')).toBe('/landing/mascote-cilindro-749.webp');
+    expect(imagem.getAttribute('src')).toBe('/landing/mascote-cilindro-400.webp');
     const conjunto = imagem.getAttribute('srcset') ?? '';
+    expect(conjunto).toContain('/landing/mascote-cilindro-320.webp 320w');
     expect(conjunto).toContain('/landing/mascote-cilindro-400.webp 400w');
     expect(conjunto).toContain('/landing/mascote-cilindro-749.webp 749w');
     expect(imagem.getAttribute('sizes')).toBeTruthy();
@@ -90,9 +92,12 @@ describe('Mascote', () => {
     expect(container.querySelector('[tabindex]')).toBeNull();
   });
 
-  it('o index.html pré-carrega a imagem da abertura só na landing, com o mesmo conjunto e os mesmos tamanhos do componente', () => {
+  it('o index.html pré-carrega a captura da abertura (o LCP) só na landing, no mesmo endereço que a abertura usa', () => {
     const html = readFileSync(join(import.meta.dirname, '..', '..', '..', 'index.html'), 'utf8');
     expect(html).toMatch(/location\.pathname === '\/' && !matchMedia\('\(display-mode: standalone\)'\)\.matches/);
+    expect(/tela\.href = '([^']+)'/.exec(html)?.[1]).toBe(TELA_DA_ABERTURA);
+    expect(existsSync(join(import.meta.dirname, '..', '..', '..', 'public', TELA_DA_ABERTURA))).toBe(true);
+    // O mascote da abertura também é pré-carregado, com o mesmo conjunto e os mesmos tamanhos do componente.
     const { container } = render(<Mascote uso="abertura" />);
     const imagem = container.querySelector('img')!;
     expect(/setAttribute\('imagesrcset', '([^']+)'\)/.exec(html)?.[1]).toBe(imagem.getAttribute('srcset'));

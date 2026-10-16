@@ -1192,9 +1192,25 @@ html[data-rolagem="escuro"]::-webkit-scrollbar-thumb:active {
   }
 }
 
+/* Com "reduzir movimento", a faixa não anda nem rola: os logos ficam parados, quebrando linha, e a cópia decorativa some. Uma área com rolagem
+   horizontal precisaria receber foco pelo teclado (axe: scrollable-region-focusable). */
 @media (prefers-reduced-motion: reduce) {
   .landing-marquee-container {
-    overflow-x: auto;
+    overflow: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .landing-marquee-trilho {
+    width: auto;
+  }
+
+  .landing-marquee-trilho > ul {
+    flex-wrap: wrap;
+  }
+
+  .landing-marquee-trilho > ul[aria-hidden='true'] {
+    display: none;
   }
 }
 

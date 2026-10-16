@@ -25,6 +25,10 @@ test.describe('Recuperação de acesso (US2)', () => {
     backend.recoveryUpdateOk = false;
     await backend.install(page);
     await page.goto('/recuperar-senha/confirmar');
+    // Preenche só com a tela estável: com a máquina carregada (CI), a inicialização do aplicativo (sessão e conexão) ainda podia remontar o
+    // formulário entre o preenchimento e o envio, e o envio chegava com os campos vazios.
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('heading', { name: 'Definir nova senha' })).toBeVisible();
 
     await page.getByLabel('Nova senha', { exact: true }).fill('Senha-Nova-Forte-1!');
     await page.getByLabel('Confirmar nova senha').fill('Senha-Nova-Forte-1!');

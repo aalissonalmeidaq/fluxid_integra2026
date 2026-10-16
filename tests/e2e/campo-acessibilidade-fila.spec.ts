@@ -92,7 +92,8 @@ test.describe('Acessibilidade da fila offline', () => {
       await page.setViewportSize({ width: largura, height: 900 });
       await page.goto('/sincronizacao');
       const abrir = page.getByRole('button', { name: /Ver conflito/ });
-      await expect(abrir).toBeVisible();
+      // O conflito só aparece depois que a fila sincroniza ao religar a rede; com a máquina carregada (CI) isso passa dos 5 s padrão.
+      await expect(abrir).toBeVisible({ timeout: 20_000 });
       await abrir.focus();
       await page.keyboard.press('Enter');
       const painel = page.getByRole('dialog', { name: 'Conflito na sincronização' });

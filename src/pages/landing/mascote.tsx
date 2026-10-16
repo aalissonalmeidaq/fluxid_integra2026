@@ -27,7 +27,7 @@ const ARTES: Record<PoseDoMascote, ArteDaPose> = {
   procurando: { base: 'mascote-procurando', larguras: [240, 323], padrao: 323, largura: 323, altura: 482 },
   indicando: { base: 'mascote-indicando', larguras: [240, 464], padrao: 464, largura: 464, altura: 744 },
   tablet: { base: 'mascote-tablet', larguras: [320, 588], padrao: 588, largura: 588, altura: 665 },
-  cilindro: { base: 'mascote-cilindro', larguras: [400, 749], padrao: 749, largura: 749, altura: 804 },
+  cilindro: { base: 'mascote-cilindro', larguras: [320, 400, 749], padrao: 400, largura: 749, altura: 804 },
 };
 
 // Cada momento da história usa a pose que combina com ele: a abertura, o cartão e o fecho celebram; a perda e a causa mostram o mascote
@@ -51,7 +51,8 @@ const DESCRICAO =
 
 const TAMANHOS: Record<UsoDoMascote, string> = {
   // Igual ao limite do palco da abertura (landing.css): 30rem no computador, 22rem abaixo; o navegador baixa a largura certa, sem ampliar.
-  abertura: '(min-width: 1024px) 26rem, 18rem',
+  // Tamanho real do mascote sobre a captura da abertura (cerca de 18 rem no computador e 10 rem no celular): a versão de 400 px basta.
+  abertura: '(min-width: 1024px) 19rem, 10rem',
   cartao: '6rem',
   historia: '(min-width: 768px) 12rem, 9rem',
   causa: '8rem',

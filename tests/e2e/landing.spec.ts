@@ -28,6 +28,9 @@ async function entrarNoSistema(page: Page, backend: MockBackend): Promise<void> 
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
+  // O endereço passa a /visao-geral num efeito depois da entrada; sem esperar por ele, o WebKit sob carga ainda o aplicava depois de o teste
+  // ir para a raiz, e a tela voltava à Visão geral.
+  await expect(page).toHaveURL(/\/visao-geral$/);
 }
 
 test.describe('Landing page (Spec 011, História 1)', () => {

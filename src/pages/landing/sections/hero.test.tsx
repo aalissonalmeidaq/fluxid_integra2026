@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TELAS, TEXTOS } from '../landing-content';
-import { Hero } from './hero';
+import { Hero, TELA_DA_ABERTURA } from './hero';
 
 // Spec 011, T016 (RF-005, RF-010): a abertura tem o único h1 da página, a chamada, o subtítulo e os dois caminhos de ação.
 describe('Hero (abertura)', () => {
@@ -55,7 +55,7 @@ describe('Hero (abertura)', () => {
   it('mostra o produto real com o cilindro, o mascote e uma tela do sistema marcada como exemplo', () => {
     const { container } = render(<Hero />);
     expect(container.querySelector('[data-mascote="abertura"]')).toHaveAttribute('data-pose', 'cilindro');
-    expect(screen.getByRole('img', { name: TELAS[0]!.alt })).toHaveAttribute('src', TELAS[0]!.arquivo);
+    expect(screen.getByRole('img', { name: TELAS[0]!.alt })).toHaveAttribute('src', TELA_DA_ABERTURA);
     expect(container.querySelector('[data-tela-hero]')).toHaveTextContent('Exemplo');
   });
 

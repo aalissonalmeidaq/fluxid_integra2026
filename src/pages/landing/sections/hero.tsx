@@ -6,6 +6,7 @@ import { CadeiaDecorativa } from './cadeia-decorativa';
 import { CartaoC262 } from './cartao-c262';
 
 const TITULO_ID = 'landing-titulo';
+export const TELA_DA_ABERTURA = '/landing/telas/tela-viagem-hero.webp';
 
 // Abertura da landing (Spec 011, RF-005 e RF-016): ocupa a tela inteira ao entrar, escura, com o único h1 da página. A tensão do pitch vem
 // logo abaixo do título (o C-262 que sumiu), e a ação principal é a do público da página: assistir ao pitch; a segunda leva à trava. Quem já
@@ -56,10 +57,12 @@ export function Hero(): React.JSX.Element {
               <span>FluxID em operação</span>
               <span className="rounded-controle bg-alerta-fundo px-2 py-1 text-alerta-texto">Exemplo</span>
             </figcaption>
+            {/* Versão própria da abertura (o recorte 16:9 do topo, 640 x 360, scripts/landing/otimizar-imagens.mjs): é o maior elemento da
+                primeira tela (LCP) e o index.html a pré-carrega. */}
             <img
-              src={tela.arquivo}
-              width={tela.largura}
-              height={tela.altura}
+              src={TELA_DA_ABERTURA}
+              width={640}
+              height={360}
               alt={tela.alt}
               decoding="async"
               fetchPriority="high"

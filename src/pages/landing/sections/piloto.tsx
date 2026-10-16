@@ -77,7 +77,7 @@ export function Piloto(): React.JSX.Element {
                           {etapa.fase}
                         </span>
                       </span>
-                      <span aria-hidden="true" className="text-h2 font-extrabold leading-none tabular-nums text-borda-suave">
+                      <span aria-hidden="true" className="text-h2 font-extrabold leading-none tabular-nums text-azul-royal">
                         0{indice + 1}
                       </span>
                     </div>
@@ -148,7 +148,7 @@ export function Piloto(): React.JSX.Element {
       ]}
     >
       <div className="grid items-stretch gap-6 tablet:grid-cols-2 desktop:gap-8">
-        <article className="flex h-full flex-col justify-between gap-6 rounded-card border border-borda-suave bg-branco p-6 shadow-card desktop:p-8" data-revelar>
+        <article className="flex h-full min-w-0 flex-col justify-between gap-6 rounded-card border border-borda-suave bg-branco p-6 shadow-card desktop:p-8" data-revelar>
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <span className="inline-block size-2 rounded-full bg-azul-royal" aria-hidden="true" />
@@ -184,7 +184,7 @@ export function Piloto(): React.JSX.Element {
           </div>
         </article>
 
-        <div className="landing-escuro flex h-full flex-col justify-between gap-6 rounded-card border border-branco/15 bg-navy p-6 text-branco shadow-dialogo desktop:p-8" data-revelar data-simulador>
+        <div className="landing-escuro flex h-full min-w-0 flex-col justify-between gap-6 rounded-card border border-branco/15 bg-navy p-6 text-branco shadow-dialogo desktop:p-8" data-revelar data-simulador>
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -258,7 +258,7 @@ export function Piloto(): React.JSX.Element {
               <span className="text-legenda font-semibold uppercase tracking-wider text-cinza-gelo">
                 {piloto.simuladorResultado}
               </span>
-              <span className="rounded-controle border border-verde-vivo/40 bg-branco/10 px-2 py-0 text-legenda font-bold text-verde-vivo tabular-nums">
+              <span className="rounded-controle border border-verde-vivo/40 bg-navy px-2 py-0 text-legenda font-bold text-branco tabular-nums">
                 {((perdas / PREJUIZO.perdidosNoAno) * 100).toFixed(0)}% do prejuízo anual
               </span>
             </div>

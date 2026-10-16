@@ -17,7 +17,7 @@ export function ChamadaFinal(): React.JSX.Element {
           <div className="flex flex-col items-start gap-4 rounded-card border border-branco/15 bg-branco/5 p-6 shadow-dialogo backdrop-blur-xs tablet:flex-row tablet:items-center tablet:gap-6 desktop:p-8">
             <Mascote uso="final" className="landing-mascote-final shrink-0" />
             <div className="flex flex-col gap-2">
-              <span className="rounded-controle border border-verde-vivo/40 bg-branco/10 px-2 py-0 text-legenda font-bold text-verde-vivo self-start">
+              <span className="rounded-controle border border-verde-vivo/40 bg-navy px-2 py-0 text-legenda font-bold text-branco self-start">
                 Missão FluxID
               </span>
               <p className="landing-medida m-0 text-h3 font-extrabold leading-snug text-verde-vivo desktop:text-h2">
