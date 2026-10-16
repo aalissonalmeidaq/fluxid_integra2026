@@ -21,7 +21,7 @@ async function enter(page: Page, backend: MockBackend, path: string, aal: 'aal1'
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus(aal);
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -57,7 +57,7 @@ test.describe('Estados de interface', () => {
 
   test('o carregamento é anunciado uma vez e não bloqueia o teclado', async ({ page, browserName }) => {
     const backend = new MockBackend();
-    await enter(page, backend, '/');
+    await enter(page, backend, '/visao-geral');
     backend.delayByPath['/rest/v1/profiles'] = 2000;
     await page.goto('/perfil');
     const carregando = page.getByRole('status').filter({ hasText: /carregando perfil/i });
@@ -73,7 +73,7 @@ test.describe('Estados de interface', () => {
   test('com movimento reduzido nenhuma animação roda durante o carregamento', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const backend = new MockBackend();
-    await enter(page, backend, '/');
+    await enter(page, backend, '/visao-geral');
     backend.delayByPath['/rest/v1/profiles'] = 2000;
     await page.goto('/perfil');
     await expect(page.getByRole('status').filter({ hasText: /carregando perfil/i })).toBeVisible();

@@ -12,7 +12,7 @@ export async function entrar(page: Page, perfil: PermissionProfile = 'viagens-ad
   backend.statusResponse = backend.activeStatus('aal2');
   seedEligibleCylinders(backend.trips);
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();

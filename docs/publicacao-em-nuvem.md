@@ -67,6 +67,13 @@ A Vercel hospeda apenas o frontend (build estático do Vite). O backend continua
 - **Nunca** configure `service_role`, chaves `sb_secret_...`, `RETENTION_JOB_SECRET` ou qualquer credencial privilegiada nas variáveis da Vercel: tudo com prefixo `VITE_` vai para o bundle do navegador.
 - Depois do deploy, use a URL pública para definir `INVITATION_REDIRECT_URL` e `PASSWORD_RECOVERY_REDIRECT_URL` e cadastrá-las nas URLs de redirecionamento permitidas do Auth.
 
+### Página inicial pública e endereços (Spec 011)
+
+- A raiz `/` (por exemplo, `https://fluxid.tec.br/`) é a **landing page pública** do projeto: apresenta o FluxID, leva ao sistema e reúne os documentos, repositórios, evidências e vídeos. Ela não exige sessão nem faz chamada ao servidor.
+- A **Visão geral** do sistema fica em `/visao-geral`, e o login em `/login`. O aplicativo instalado (PWA) inicia em `/visao-geral`, não na landing.
+- As URLs de redirecionamento do Auth e os segredos `INVITATION_REDIRECT_URL` e `PASSWORD_RECOVERY_REDIRECT_URL` continuam apontando para o domínio público; a recuperação de senha usa `/recuperar-senha/confirmar`. Nenhum caminho que dependa de `/` como Visão geral deve ser cadastrado.
+- Os links de materiais da landing (Google Drive, GitHub e YouTube) ficam em `src/pages/landing/landing-content.ts`; as pastas do Drive precisam continuar compartilhadas para quem recebe o link.
+
 ## Verificação ao concluir a publicação
 
 - `public-compatibility` responde 200 e a versão bate com `VITE_SUPABASE_CONTRACT_VERSION`.

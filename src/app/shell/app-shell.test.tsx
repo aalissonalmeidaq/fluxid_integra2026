@@ -256,7 +256,7 @@ describe('AppShell', () => {
       vi.stubGlobal('matchMedia', (query: string) => ({ matches: /min-width/.test(query), media: query, addEventListener: () => undefined, removeEventListener: () => undefined }));
       renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
       const titulo = screen.getByRole('heading', { level: 1, name: 'FluxID' });
-      expect(within(titulo).getByRole('link', { name: 'FluxID' })).toHaveAttribute('href', '/');
+      expect(within(titulo).getByRole('link', { name: 'FluxID' })).toHaveAttribute('href', '/visao-geral');
       expect(within(titulo).getByRole('img', { name: 'FluxID' })).toHaveAttribute('width', '192');
     });
   });
@@ -264,7 +264,7 @@ describe('AppShell', () => {
   describe('abaixo de 768 px, autenticado', () => {
     it('o logotipo da barra superior leva à Visão geral', () => {
       renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
-      expect(within(screen.getByRole('banner')).getByRole('link', { name: 'FluxID' })).toHaveAttribute('href', '/');
+      expect(within(screen.getByRole('banner')).getByRole('link', { name: 'FluxID' })).toHaveAttribute('href', '/visao-geral');
     });
 
     it('tem a barra superior com o botão do menu e o logotipo (h1), e o menu como painel', () => {

@@ -56,7 +56,7 @@ describe('visibleScreens', () => {
   it('devolve caminhos e nomes iguais aos do modelo de dados', () => {
     const all = visibleScreens({ tenant: ['tenant.manage', 'audit.read'], global: ['platform.manage', 'audit.read'] });
     expect(all.map((screen) => [screen.label, screen.path])).toEqual([
-      ['Visão geral', '/'], ['Meu perfil', '/perfil'], ['Pessoas do tenant', '/admin/membros'], ['Papéis e permissões', '/admin/papeis'],
+      ['Visão geral', '/visao-geral'], ['Meu perfil', '/perfil'], ['Pessoas do tenant', '/admin/membros'], ['Papéis e permissões', '/admin/papeis'],
       ['Auditoria do tenant', '/admin/auditoria'], ['Organizações', '/admin/tenants'], ['Auditoria da plataforma', '/admin/auditoria-global'],
     ]);
   });

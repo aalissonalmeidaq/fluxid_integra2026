@@ -53,6 +53,8 @@
 
 | RIA-030 | 13/10/2026, 19:00:41 - America/Fortaleza | 010 | 02 | Conectividade com o Supabase em nuvem e primeiro Master (com ajuste de tempo do teste de volume no CI) | `registros/30_Conectividade_com_o_Supabase_em_Nuvem_e_Primeiro_Master.docx` (`RIA-030-conectividade-com-o-supabase-em-nuvem-e-primeiro-master.md`) | Utilizado |
 
+| RIA-031 | 16/10/2026, 15:39:34 - America/Fortaleza | 011 | 01 | Landing page institucional do FluxID | `registros/RIA-031-landing-page-institucional-do-fluxid.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

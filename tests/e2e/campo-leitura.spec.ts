@@ -24,7 +24,7 @@ async function entrar(page: Page, opcoes: { camera?: boolean; nfc?: boolean } = 
     created_at: '2026-10-01T10:00:00Z', deactivated_at: null, deactivation_justification: null, transferred: false,
   });
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();

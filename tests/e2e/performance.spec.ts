@@ -25,7 +25,7 @@ test.describe('Desempenho percebido (RNF-003, RNF-004)', () => {
       backend.loginResponses = [backend.authenticated()];
       backend.statusResponse = backend.activeStatus('aal1');
       await backend.install(page);
-      await page.goto('/');
+      await page.goto('/visao-geral');
       await page.getByLabel('E-mail').fill('operador-a@example.invalid');
       await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
       const submit = page.getByRole('button', { name: 'Entrar', exact: true });
@@ -48,7 +48,7 @@ test.describe('Desempenho percebido (RNF-003, RNF-004)', () => {
       const context = await browser.newContext({ serviceWorkers: 'block' });
       const page = await context.newPage();
       await new MockBackend().install(page);
-      await page.goto('/');
+      await page.goto('/visao-geral');
       await page.getByRole('link', { name: /esqueci minha senha/i }).or(page.getByRole('button', { name: /esqueci minha senha/i })).click();
       await page.getByLabel('E-mail').fill('operador-a@example.invalid');
       const submit = page.getByRole('button', { name: 'Enviar instruções' });

@@ -4,7 +4,7 @@ import { MockBackend } from './support/mock-backend';
 
 test.describe('Acessibilidade e Navegação por Teclado (US4)', () => {
   test('não possui violações críticas ou graves de acessibilidade (WCAG 2.2 AA / axe-core)', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/visao-geral');
 
     await page.waitForLoadState('networkidle');
 
@@ -28,7 +28,7 @@ test.describe('Acessibilidade e Navegação por Teclado (US4)', () => {
       browserName === 'webkit',
       'O driver WebKit do Playwright no Windows não encaminha Tab ao foco da página neste cenário automatizado.'
     );
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.getByRole('heading', { name: 'Bem-vindo de volta' }).waitFor();
 
     const skipLink = page.getByRole('link', { name: 'Pular para o conteúdo principal' });
@@ -62,7 +62,7 @@ test.describe('Acessibilidade e Navegação por Teclado (US4)', () => {
       abortedRequests += 1;
       return route.abort('failed');
     });
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.getByRole('heading', { name: 'Bem-vindo de volta' }).waitFor();
 
     const reconnectBtn = page.getByRole('button', { name: /reconectar|tentar reconectar/i });
@@ -100,7 +100,7 @@ async function signIn(page: Page, backend: MockBackend): Promise<void> {
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus('aal2');
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -121,7 +121,7 @@ test.describe('Acessibilidade das telas de identidade (Spec 002)', () => {
 
   test('entrada e recuperação de senha', async ({ page }) => {
     await new MockBackend().install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
     await expectNoBlockingViolations(page);
     await page.getByRole('link', { name: /esqueci minha senha/i }).or(page.getByRole('button', { name: /esqueci minha senha/i })).click();

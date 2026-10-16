@@ -28,28 +28,28 @@ test.use({ serviceWorkers: 'block' });
 test.describe('Inicialização da PWA: conexão (US9)', () => {
   test('libera o aplicativo e identifica a conexão após verificação saudável', async ({ page }) => {
     await mockSupabase(page, 'ok');
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await expect(page.getByRole('main')).toBeVisible();
     await expect(page.getByRole('status').filter({ hasText: /conectado/i })).toBeVisible();
   });
 
   test('exibe a tela de inicialização enquanto verifica a conexão', async ({ page }) => {
     await mockSupabase(page, 'slow', 300);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await expect(page.getByRole('status').filter({ hasText: /conectando/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible({ timeout: 10_000 });
   });
 
   test('mantém o shell com indicador de offline quando nenhum destino responde', async ({ page }) => {
     await mockSupabase(page, 'down');
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await expect(page.getByRole('main')).toBeVisible();
     await expect(page.getByText(/sem conexão/i).first()).toBeVisible();
   });
 
   test('bloqueia sem simular conexão quando o contrato do destino é incompatível', async ({ page }) => {
     await mockSupabase(page, 'incompatible');
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await expect(page.getByRole('alert').filter({ hasText: /bloqueada/i })).toBeVisible();
     await expect(page.getByText(/^Conectado/)).toHaveCount(0);
   });
@@ -112,7 +112,7 @@ async function login(page: Page, backend: MockBackend, aal: 'aal1' | 'aal2' = 'a
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus(aal);
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();

@@ -19,16 +19,16 @@ const vinculo = (organizationId: string, nome: string) => ({
 
 interface EntrarOpcoes { aal?: 'aal1' | 'aal2'; caminho?: string }
 
-async function entrar(page: Page, backend: MockBackend, { aal = 'aal2', caminho = '/' }: EntrarOpcoes = {}): Promise<void> {
+async function entrar(page: Page, backend: MockBackend, { aal = 'aal2', caminho = '/visao-geral' }: EntrarOpcoes = {}): Promise<void> {
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus(aal);
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Minha conta' })).toBeVisible();
-  if (caminho !== '/') await page.goto(caminho);
+  if (caminho !== '/visao-geral') await page.goto(caminho);
 }
 
 const menu = (page: Page): Locator => page.getByRole('navigation', { name: 'Navegação principal' });
@@ -74,7 +74,7 @@ test.describe('US1: só as telas que a pessoa pode usar (CA-001, MS-001)', () =>
   test('sem sessão não há menu nem consulta de permissões', async ({ page }) => {
     const backend = new MockBackend();
     await backend.install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
     await expect(page.getByRole('navigation')).toHaveCount(0);
     expect(consultas(backend)).toHaveLength(0);
@@ -291,7 +291,7 @@ test.describe('US3: o servidor continua decidindo (CA-003, MS-002)', () => {
     backend.loginResponses = [backend.authenticated('MFA_REQUIRED')];
     backend.statusResponse = backend.activeStatus('aal2', false);
     await backend.install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.getByLabel('E-mail').fill('global@e2e.invalid');
     await page.getByLabel('Senha', { exact: true }).fill('Senha-E2E-Global-1');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -469,7 +469,7 @@ test.describe('US5: aplicativo instalado, recarregando offline (RNF-002)', () =>
     await page.setViewportSize({ width: 1920, height: 1080 });
     const backend = new MockBackend();
     await backend.install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.evaluate(async () => { await navigator.serviceWorker.ready; });
     await page.reload();
     await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);

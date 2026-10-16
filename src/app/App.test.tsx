@@ -1,6 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { App } from './App';
+
+// A raiz "/" é a landing page pública (Spec 011); o shell do aplicativo é exercitado na Visão geral.
+beforeEach(() => window.history.pushState({}, '', '/visao-geral'));
+afterEach(() => window.history.pushState({}, '', '/'));
 
 describe('App Shell (História 1)', () => {
   it('renderiza o título do produto FluxID', () => {

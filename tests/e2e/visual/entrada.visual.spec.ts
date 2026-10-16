@@ -14,7 +14,7 @@ const LARGURAS = [
 
 async function abrir(page: Page, backend = new MockBackend()): Promise<void> {
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await expect(page.getByRole('heading', { level: 2, name: 'Bem-vindo de volta' })).toBeVisible();
 }
 

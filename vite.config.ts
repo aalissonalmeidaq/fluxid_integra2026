@@ -27,7 +27,7 @@ export default defineConfig({
         theme_color: '#1249B8',
         background_color: '#F3F7FA',
         display: 'standalone',
-        start_url: '/',
+        start_url: '/visao-geral',
         icons: [
           {
             src: '/icons/icon-192.png',
@@ -49,6 +49,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // A imagem de compartilhamento só serve a quem recebe o link; não precisa ficar guardada no aparelho (Spec 011).
+        globIgnores: ['**/landing/og-fluxid.png'],
         navigateFallback: '/index.html',
         // Nenhuma rota do Supabase (Auth, Data, Storage, Functions, Realtime) recebe o app shell como resposta.
         navigateFallbackDenylist: [/^\/rest\/v1/, /^\/auth\/v1/, /^\/graphql\/v1/, /^\/storage\/v1/, /^\/functions\/v1/, /^\/realtime\/v1/],

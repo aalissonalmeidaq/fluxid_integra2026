@@ -20,7 +20,7 @@ async function entrar(page: Page, backend = new MockBackend(), aal: 'aal1' | 'aa
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus(aal);
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -226,7 +226,7 @@ test.describe('US4: aplicativo instalado, recarregando offline (RF-030)', () => 
     test.skip(browserName === 'webkit', 'O driver WebKit do Playwright no Windows apresenta falha de IPC ao combinar setOffline com service worker.');
     const backend = new MockBackend();
     await backend.install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.evaluate(async () => { await navigator.serviceWorker.ready; });
     await page.reload();
     await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
@@ -311,7 +311,7 @@ test.describe('US5: menu da pessoa', () => {
     backend.loginResponses = [backend.authenticated()];
     backend.statusResponse = backend.activeStatus('aal2');
     await backend.install(page);
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await page.getByLabel('E-mail').fill('admin-a@example.invalid');
     await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();

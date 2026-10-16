@@ -7,7 +7,7 @@ async function enter(page: Page, backend: MockBackend): Promise<void> {
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus('aal1');
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('operador-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -25,7 +25,7 @@ const semRolagemHorizontal = (page: Page) => page.evaluate(() => document.docume
 test.describe('App Shell: responsividade e desempenho (US4 e Spec 003)', () => {
   test('shell carrega dentro do orçamento de 2000 ms e sem rolagem horizontal', async ({ page }) => {
     const startTime = Date.now();
-    await page.goto('/');
+    await page.goto('/visao-geral');
 
     const heading = page.getByRole('heading', { level: 1, name: 'FluxID' });
     await expect(heading).toBeVisible();
@@ -38,7 +38,7 @@ test.describe('App Shell: responsividade e desempenho (US4 e Spec 003)', () => {
   });
 
   test('deslogado: barra de conexão e reconectar, sem dados de organização, na largura do projeto', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await expect(page.getByTestId('connection-bar')).toBeVisible();
     await expect(page.getByText('Organização ativa:')).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Meu perfil' })).toHaveCount(0);
@@ -65,7 +65,7 @@ test.describe('App Shell: responsividade e desempenho (US4 e Spec 003)', () => {
   });
 
   test('o botão de instalar o PWA tem alvo de 44 px e contraste do botão do padrão', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/visao-geral');
     await expect(page.getByRole('heading', { name: 'Bem-vindo de volta' })).toBeVisible();
     await page.evaluate(() => {
       const evento = new Event('beforeinstallprompt') as Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };

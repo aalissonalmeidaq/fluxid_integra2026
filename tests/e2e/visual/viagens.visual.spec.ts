@@ -55,7 +55,7 @@ async function entrar(page: Page): Promise<{ backend: MockBackend; cenario: Cena
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus('aal2');
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();

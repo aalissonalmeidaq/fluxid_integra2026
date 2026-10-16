@@ -23,7 +23,7 @@ async function entrar(page: Page, backend: MockBackend, aal: 'aal1' | 'aal2'): P
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus(aal);
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -54,8 +54,8 @@ const cilindros = (caminho: string, titulo: string) =>
   };
 
 export const TELAS: readonly Tela[] = [
-  { nome: 'entrada', titulo: 'Bem-vindo de volta', abrir: publica('/', 'Bem-vindo de volta') },
-  { nome: 'recuperação: solicitação', titulo: 'Recuperar acesso', abrir: publica('/?recovery=1', 'Recuperar acesso') },
+  { nome: 'entrada', titulo: 'Bem-vindo de volta', abrir: publica('/visao-geral', 'Bem-vindo de volta') },
+  { nome: 'recuperação: solicitação', titulo: 'Recuperar acesso', abrir: publica('/login?recovery=1', 'Recuperar acesso') },
   { nome: 'recuperação: nova senha', titulo: 'Definir nova senha', abrir: publica('/recuperar-senha/confirmar', 'Definir nova senha') },
   {
     nome: 'verificação em duas etapas',
@@ -65,7 +65,7 @@ export const TELAS: readonly Tela[] = [
       backend.loginResponses = [backend.authenticated('MFA_REQUIRED')];
       backend.statusResponse = backend.activeStatus('aal2', false);
       await backend.install(page);
-      await page.goto('/');
+      await page.goto('/visao-geral');
       await page.getByLabel('E-mail').fill('global@e2e.invalid');
       await page.getByLabel('Senha', { exact: true }).fill('Senha-E2E-Global-1');
       await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -81,7 +81,7 @@ export const TELAS: readonly Tela[] = [
       backend.loginResponses = [{ status: 409, body: { code: 'SESSION_LIMIT_REACHED', sessions: threeSessions } }, backend.authenticated()];
       backend.statusResponse = backend.activeStatus();
       await backend.install(page);
-      await page.goto('/');
+      await page.goto('/visao-geral');
       await page.getByLabel('E-mail').fill('ana@e2e.invalid');
       await page.getByLabel('Senha', { exact: true }).fill('Senha-E2E-Forte-1');
       await page.getByRole('button', { name: 'Entrar', exact: true }).click();
@@ -99,7 +99,7 @@ export const TELAS: readonly Tela[] = [
       await expect(page.getByRole('heading', { name: 'Escolha a organização' })).toBeVisible();
     },
   },
-  { nome: 'visão geral', titulo: 'Visão geral', abrir: autenticada('/', 'Visão geral', 'aal1') },
+  { nome: 'visão geral', titulo: 'Visão geral', abrir: autenticada('/visao-geral', 'Visão geral', 'aal1') },
   { nome: 'perfil', titulo: 'Meu perfil', abrir: autenticada('/perfil', 'Meu perfil', 'aal1') },
   { nome: 'organizações', titulo: 'Organizações', abrir: autenticada('/admin/tenants', 'Organizações') },
   { nome: 'pessoas do tenant', titulo: 'Pessoas do tenant', abrir: autenticada('/admin/membros', 'Pessoas do tenant') },

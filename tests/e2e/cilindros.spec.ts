@@ -12,7 +12,7 @@ async function entrar(page: Page, perfil: PermissionProfile = 'cilindros-admin')
   backend.loginResponses = [backend.authenticated()];
   backend.statusResponse = backend.activeStatus('aal1');
   await backend.install(page);
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('admin-a@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-002!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();

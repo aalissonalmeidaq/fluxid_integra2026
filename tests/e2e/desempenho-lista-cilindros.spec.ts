@@ -21,7 +21,7 @@ const percentil = (valores: number[], p: number): number => {
 };
 
 async function entrar(page: Page): Promise<void> {
-  await page.goto('/');
+  await page.goto('/visao-geral');
   await page.getByLabel('E-mail').fill('cyl-f-admin@example.invalid');
   await page.getByLabel('Senha', { exact: true }).fill('Local-only-018!');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
