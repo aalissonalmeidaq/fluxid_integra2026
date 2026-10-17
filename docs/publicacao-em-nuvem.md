@@ -63,6 +63,17 @@ Depois da publicação, confirme sem credenciais: `GET <url>/functions/v1/public
 
 A Vercel hospeda apenas o frontend (build estático do Vite). O backend continua no Supabase.
 
+### Publicação automática a cada merge (17/10/2026)
+
+O projeto `fluxid` da Vercel não tem integração Git; até 13/10 ele era publicado à mão pela CLI, e por isso o merge da Spec 011 não chegou a `https://fluxid.tec.br`. Desde 17/10/2026 o workflow `.github/workflows/publicar-vercel.yml` publica em produção a cada push na `main` (ou seja, a cada pull request mergeado) e pode ser disparado à mão em *Actions > Publicação na Vercel (produção) > Run workflow*. Ele usa o build remoto da Vercel e confere que o domínio responde 200.
+
+Configuração no repositório do GitHub:
+
+- variáveis `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` (identificadores do `.vercel/project.json`; não são segredos), já cadastradas;
+- segredo `VERCEL_TOKEN`: um token criado pela pessoa responsável em *Vercel > Account Settings > Tokens*, com escopo só no time do projeto. Cadastre sem que ele apareça em arquivo ou histórico: `gh secret set VERCEL_TOKEN --repo aalissonalmeidaq/fluxid_integra2026` (o valor é pedido no terminal). Sem ele, o workflow falha com uma mensagem dizendo o que falta.
+
+Publicação manual, quando necessária: numa cópia limpa da `main` (sem arquivos locais não rastreados), com `.vercel/project.json`, rode `npx vercel@64.5.0 deploy --prod`.
+
 - Configure no projeto da Vercel somente variáveis públicas: `VITE_SUPABASE_CLOUD_URL`, `VITE_SUPABASE_CLOUD_PUBLISHABLE_KEY`, `VITE_SUPABASE_CONTRACT_VERSION` e `VITE_SUPABASE_CONNECTION_MODE`.
 - **Nunca** configure `service_role`, chaves `sb_secret_...`, `RETENTION_JOB_SECRET` ou qualquer credencial privilegiada nas variáveis da Vercel: tudo com prefixo `VITE_` vai para o bundle do navegador.
 - Depois do deploy, use a URL pública para definir `INVITATION_REDIRECT_URL` e `PASSWORD_RECOVERY_REDIRECT_URL` e cadastrá-las nas URLs de redirecionamento permitidas do Auth.
