@@ -40,3 +40,7 @@ tests/support/tmp/
 # Certificado autoassinado de desenvolvimento (npm run dev:rede)
 .certs/
 .vercel
+
+# Firmware do lacre (Spec 012): segredos locais e saídas do PlatformIO
+firmware/include/secrets.h
+firmware/.pio/

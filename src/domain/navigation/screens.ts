@@ -25,6 +25,9 @@ export const SCREENS: readonly Screen[] = [
   { id: 'veiculos', label: 'Veículos', path: '/veiculos', requires: { scope: 'tenant', code: 'vehicle.read' }, tenantScoped: true, requireAal2: false },
   { id: 'motoristas', label: 'Motoristas', path: '/motoristas', requires: { scope: 'tenant', code: 'driver.read' }, tenantScoped: true, requireAal2: false },
   { id: 'viagens', label: 'Viagens', path: '/viagens', requires: { scope: 'tenant', code: 'trip.read' }, tenantScoped: true, requireAal2: false },
+  // Spec 012: lacres e alertas reais (a página de alertas deixa de ser exemplo e passa a exigir a permissão de ver lacres).
+  { id: 'lacres', label: 'Lacres', path: '/lacres', requires: { scope: 'tenant', code: 'seal.read' }, tenantScoped: true, requireAal2: false },
+  { id: 'alertas', label: 'Alertas', path: '/alertas', requires: { scope: 'tenant', code: 'seal.read' }, tenantScoped: true, requireAal2: false },
   { id: 'perfil', label: 'Meu perfil', path: '/perfil', tenantScoped: false, requireAal2: false },
   { id: 'membros', label: 'Pessoas do tenant', path: '/admin/membros', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true, requireAal2: true },
   { id: 'papeis', label: 'Papéis e permissões', path: '/admin/papeis', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true, requireAal2: true },

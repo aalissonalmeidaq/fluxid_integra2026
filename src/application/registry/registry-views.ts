@@ -283,6 +283,7 @@ export interface GeofenceView {
   siteStatus: EntityStatus;
   customerId: string;
   customerName: string;
+  siteAddress: string;
   areaM2: number | null;
   center: LatLngView | null;
   radiusM: number | null;
@@ -323,7 +324,8 @@ export function toGeofenceDetail(payload: Raw): GeofenceView | null {
   if (vertices === null) return null;
   return {
     id, name, shape, status: state, version, siteId, siteName: str(raw.site_name) ?? '', siteStatus: status(raw.site_status) ?? 'active',
-    customerId: str(raw.customer_id) ?? '', customerName: str(raw.customer_name) ?? '', areaM2: num(raw.area_m2), center: toLatLng(raw.center), radiusM: num(raw.radius_m), vertices,
+    customerId: str(raw.customer_id) ?? '', customerName: str(raw.customer_name) ?? '', siteAddress: str(raw.site_address) ?? '',
+    areaM2: num(raw.area_m2), center: toLatLng(raw.center), radiusM: num(raw.radius_m), vertices,
   };
 }
 

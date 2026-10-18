@@ -26,6 +26,10 @@ export interface GeocodeAddressInput {
   postalCode: string;
 }
 
+export interface ReverseGeocodedAddress {
+  street: string; number: string; district: string; city: string; state: string; postalCode: string; displayName: string;
+}
+
 export type GeocodeOutcome =
   | { kind: 'found'; location: GeocodedLocation }
   | { kind: 'not_found' }
@@ -39,6 +43,10 @@ export type GeocodeOutcome =
   | { kind: 'confirmation_required' }
   | { kind: 'blocked' };
 
+export type ReverseGeocodeOutcome =
+  | { kind: 'found'; address: ReverseGeocodedAddress }
+  | Exclude<GeocodeOutcome, { kind: 'found' }>;
+
 const PRECISIONS: readonly string[] = ['address', 'street', 'locality'];
 
 function toLocation(value: unknown): GeocodedLocation | null {
@@ -49,6 +57,15 @@ function toLocation(value: unknown): GeocodedLocation | null {
   if (latitude === null || longitude === null || precision === null) return null;
   if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
   return { latitude, longitude, displayName: str(value.display_name) ?? '', precision };
+}
+
+function toAddress(value: unknown): ReverseGeocodedAddress | null {
+  if (!isObject(value)) return null;
+  const read = (key: string): string => str(value[key]) ?? '';
+  const state = read('state');
+  const postalCode = read('postal_code');
+  if (read('city') === '' || state.length !== 2) return null;
+  return { street: read('street'), number: read('number'), district: read('district'), city: read('city'), state, postalCode, displayName: read('display_name') };
 }
 
 export class GeocodingService {
@@ -86,5 +103,58 @@ export class GeocodingService {
     } catch {
       return { kind: 'unavailable' };
     }
+  }
+
+  async reverse(organizationId: string, customerId: string, latitude: number, longitude: number, consent: boolean): Promise<ReverseGeocodeOutcome> {
+    if (!Number.isFinite(latitude) || Math.abs(latitude) > 90 || !Number.isFinite(longitude) || Math.abs(longitude) > 180) return { kind: 'invalid' };
+    if (!consent) return { kind: 'confirmation_required' };
+    if (!this.isOnline()) return { kind: 'offline' };
+    try {
+      const response = await this.transport.call('geocode-address', {
+        operation: 'reverse', organization_id: organizationId, customer_id: customerId, consent_confirmed: true, latitude, longitude,
+      });
+      const body = isObject(response.body) ? response.body : {};
+      const code = typeof body.code === 'string' ? body.code : '';
+      if (code === 'FEATURE_DISABLED') return { kind: 'disabled' };
+      if (code === 'PERSONAL_ADDRESS_NOT_ALLOWED') return { kind: 'personal_blocked' };
+      if (code === 'CONFIRMATION_REQUIRED') return { kind: 'confirmation_required' };
+      if (code === 'TEST_ENVIRONMENT_BLOCKED') return { kind: 'blocked' };
+      if (response.status === 200) {
+        if (code === 'NOT_FOUND') return { kind: 'not_found' };
+        const address = code === 'FOUND' ? toAddress(body.address) : null;
+        return address ? { kind: 'found', address } : { kind: 'unavailable' };
+      }
+      if (response.status === 429) return { kind: 'rate_limited', retryAfterSeconds: num(body.retry_after_seconds) ?? 60 };
+      if (response.status === 401 || response.status === 403) return { kind: 'denied' };
+      if (response.status === 400 || response.status === 404) return { kind: 'invalid' };
+      return { kind: 'unavailable' };
+    } catch {
+      return { kind: 'unavailable' };
+    }
+  }
+
+  async reverseSeal(organizationId: string, deviceId: string, latitude: number, longitude: number, consent: boolean): Promise<ReverseGeocodeOutcome> {
+    if (!Number.isFinite(latitude) || Math.abs(latitude) > 90 || !Number.isFinite(longitude) || Math.abs(longitude) > 180) return { kind: 'invalid' };
+    if (!consent) return { kind: 'confirmation_required' };
+    if (!this.isOnline()) return { kind: 'offline' };
+    try {
+      const response = await this.transport.call('geocode-address', {
+        operation: 'reverse', organization_id: organizationId, device_id: deviceId, consent_confirmed: true, latitude, longitude,
+      });
+      const body = isObject(response.body) ? response.body : {};
+      const code = typeof body.code === 'string' ? body.code : '';
+      if (code === 'FEATURE_DISABLED') return { kind: 'disabled' };
+      if (code === 'CONFIRMATION_REQUIRED') return { kind: 'confirmation_required' };
+      if (code === 'TEST_ENVIRONMENT_BLOCKED') return { kind: 'blocked' };
+      if (response.status === 200) {
+        if (code === 'NOT_FOUND') return { kind: 'not_found' };
+        const address = code === 'FOUND' ? toAddress(body.address) : null;
+        return address ? { kind: 'found', address } : { kind: 'unavailable' };
+      }
+      if (response.status === 429) return { kind: 'rate_limited', retryAfterSeconds: num(body.retry_after_seconds) ?? 60 };
+      if (response.status === 401 || response.status === 403) return { kind: 'denied' };
+      if (response.status === 400 || response.status === 404) return { kind: 'invalid' };
+      return { kind: 'unavailable' };
+    } catch { return { kind: 'unavailable' }; }
   }
 }

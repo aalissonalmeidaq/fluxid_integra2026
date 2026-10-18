@@ -1,6 +1,7 @@
 import { isAutomatedTestEnvironment } from './config.ts';
 import {
-  GeocodingBlockedError, GeocodingProviderError, type GeocodePrecision, type GeocodeQuery, type GeocodeResult, type GeocodingProvider, UFS,
+  GeocodingBlockedError, GeocodingProviderError, type GeocodePrecision, type GeocodeQuery, type GeocodeResult, type GeocodingProvider,
+  type ReverseGeocodeAddress, type ReverseGeocodeQuery, UFS,
 } from './provider.ts';
 
 // Adaptador do Nominatim (OpenStreetMap), busca estruturada em https://nominatim.openstreetmap.org/search.
@@ -70,6 +71,37 @@ export class NominatimProvider implements GeocodingProvider {
       longitude: coordinate(hit.lon, 180),
       display_name: typeof hit.display_name === 'string' ? hit.display_name.trim().slice(0, 300) : '',
       precision: precisionOf(hit.addresstype),
+    };
+  }
+
+  async reverse(query: ReverseGeocodeQuery, signal: AbortSignal): Promise<ReverseGeocodeAddress | 'NOT_FOUND'> {
+    if (!Number.isFinite(query.latitude) || Math.abs(query.latitude) > 90 || !Number.isFinite(query.longitude) || Math.abs(query.longitude) > 180) {
+      throw new GeocodingProviderError('address_invalid');
+    }
+    const params = new URLSearchParams({ format: 'jsonv2', addressdetails: '1', zoom: '18', lat: String(query.latitude), lon: String(query.longitude) });
+    let response: Response;
+    try {
+      response = await this.fetcher(`${NOMINATIM_BASE_URL}/reverse?${params.toString()}`, {
+        method: 'GET', headers: { accept: 'application/json', 'user-agent': USER_AGENT }, signal,
+      });
+    } catch (error) {
+      if (error instanceof GeocodingBlockedError) throw error;
+      throw new GeocodingProviderError(signal.aborted ? 'provider_timeout' : 'provider_network');
+    }
+    if (response.status === 404) return 'NOT_FOUND';
+    if (response.status !== 200) throw new GeocodingProviderError('provider_status');
+    const body = await response.json().catch(() => null) as Record<string, unknown> | null;
+    if (!body || typeof body !== 'object' || typeof body.address !== 'object' || body.address === null) throw new GeocodingProviderError('provider_body');
+    const address = body.address as Record<string, unknown>;
+    const text = (...keys: string[]): string => {
+      for (const key of keys) if (typeof address[key] === 'string') return String(address[key]).trim().slice(0, 120);
+      return '';
+    };
+    const stateCode = text('ISO3166-2-lvl4').replace(/^BR-/, '');
+    return {
+      street: text('road', 'pedestrian', 'footway', 'path'), number: text('house_number'), district: text('suburb', 'neighbourhood', 'quarter'),
+      city: text('city', 'town', 'municipality', 'village'), state: (UFS as readonly string[]).includes(stateCode) ? stateCode : '',
+      postal_code: text('postcode').replace(/\D/g, '').slice(0, 8), display_name: typeof body.display_name === 'string' ? body.display_name.trim().slice(0, 300) : '',
     };
   }
 }

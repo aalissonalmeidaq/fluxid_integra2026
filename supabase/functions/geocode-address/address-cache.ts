@@ -14,3 +14,9 @@ export async function addressCacheKey(query: GeocodeQuery): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalizeAddress(query)));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
+
+export async function coordinateCacheKey(latitude: number, longitude: number): Promise<string> {
+  const normalized = `reverse|${latitude.toFixed(6)}|${longitude.toFixed(6)}`;
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}

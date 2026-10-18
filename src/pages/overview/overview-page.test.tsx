@@ -146,14 +146,16 @@ describe('OverviewPage', () => {
     expect(new Set(cartoes.map((cartao) => cartao.className)).size).toBe(4);
   });
 
-  it('os alertas novos têm o destaque "Novo" e cada alerta leva à página de alertas com o alerta escolhido', async () => {
+  it('os alertas novos têm o destaque "Novo"; os itens de exemplo não são links e o rodapé leva aos alertas dos lacres (Spec 012)', async () => {
     await renderizar();
     const regiao = screen.getByRole('region', { name: 'Alertas recentes' });
+    const itens = within(regiao).getAllByRole('listitem');
+    expect(itens).toHaveLength(4);
+    expect(within(itens[0] as HTMLElement).getByText('Novo')).toBeInTheDocument();
+    expect(within(itens[2] as HTMLElement).queryByText('Novo')).not.toBeInTheDocument();
     const links = within(regiao).getAllByRole('link');
-    expect(links).toHaveLength(4);
-    expect(links[0]).toHaveAttribute('href', '/alertas?alerta=EX-A-01');
-    expect(within(links[0] as HTMLElement).getByText('Novo')).toBeInTheDocument();
-    expect(within(links[2] as HTMLElement).queryByText('Novo')).not.toBeInTheDocument();
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute('href', '/alertas');
     expect(within(regiao).getByText(/2 novos/i)).toBeInTheDocument();
   });
 });

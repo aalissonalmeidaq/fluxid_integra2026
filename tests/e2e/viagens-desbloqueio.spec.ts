@@ -54,7 +54,7 @@ test.describe('Desbloqueio como ato independente', () => {
 
     await page.getByRole('button', { name: 'Registrar desbloqueio de CIL-006' }).click();
     const dialogo = page.getByRole('dialog', { name: 'Registrar desbloqueio · CIL-006' });
-    await expect(dialogo.getByText(/comandada e confirmada pelo dispositivo na Fase 6/)).toBeVisible();
+    await expect(dialogo.getByText(/a trava física do lacre é comandada à parte/)).toBeVisible();
     await dialogo.getByRole('button', { name: 'Registrar desbloqueio' }).click();
 
     await expect(dialogo).toHaveCount(0);

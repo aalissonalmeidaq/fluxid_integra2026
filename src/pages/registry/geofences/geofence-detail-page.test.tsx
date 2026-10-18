@@ -4,6 +4,10 @@ import type { RegistryService } from '@/application/registry/registry-service';
 import type { GeofenceView } from '@/application/registry/registry-views';
 import { GeofenceDetailView, type GeofenceAbilities } from './geofence-detail-page';
 
+vi.mock('@/components/maps/osm-map', () => ({
+  OsmMap: ({ title, label, details, shape }: { title: string; label: string; details: string[]; shape: { kind: string } }) => <figure aria-label={title} data-shape={shape.kind}>{label} · {details.join(' · ')}</figure>,
+}));
+
 const ORG = '20000000-0000-4000-8000-00000000000a';
 const GEOFENCE = '84000000-0000-4000-8000-0000000000a1';
 const ALL: GeofenceAbilities = { write: true, deactivate: true, history: true };
@@ -11,7 +15,8 @@ const READ_ONLY: GeofenceAbilities = { write: false, deactivate: false, history:
 
 const geofence = (over: Partial<GeofenceView> = {}): GeofenceView => ({
   id: GEOFENCE, name: 'Portão', shape: 'circle', status: 'active', version: 2, siteId: '82000000-0000-4000-8000-000000000001', siteName: 'Matriz', siteStatus: 'active',
-  customerId: '81000000-0000-4000-8000-000000000001', customerName: 'Hospital Teste', areaM2: 125664, center: { lat: -23.55, lng: -46.633 }, radiusM: 200, vertices: [], ...over,
+  customerId: '81000000-0000-4000-8000-000000000001', customerName: 'Hospital Teste', siteAddress: 'Praça da Sé, 10 · Sé · São Paulo/SP · CEP 01001-000',
+  areaM2: 125664, center: { lat: -23.55, lng: -46.633 }, radiusM: 200, vertices: [], ...over,
 });
 
 const fakeService = (result: unknown, inside: unknown = { kind: 'success', value: true }) =>
@@ -26,13 +31,15 @@ describe('detalhe da geocerca (história 3)', () => {
     expect(screen.getByText('200 metros')).toBeInTheDocument();
     expect(screen.getByText(/125\.664 m²/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Matriz' })).toBeInTheDocument();
-    expect(screen.getByRole('img').getAttribute('aria-label')).toMatch(/Círculo de 200 metros/);
+    expect(screen.getByLabelText('Mapa da geocerca Portão')).toHaveTextContent('Portão · Matriz · Hospital Teste · Praça da Sé');
+    expect(screen.getByLabelText('Mapa da geocerca Portão')).toHaveAttribute('data-shape', 'circle');
+    expect(screen.getByText('Endereço da unidade').parentElement).toHaveTextContent('CEP 01001-000');
   });
 
   it('polígono mostra a quantidade de vértices', async () => {
     renderDetail(fakeService({ kind: 'success', value: geofence({ shape: 'polygon', center: null, radiusM: null, vertices: [{ lat: 0, lng: 0 }, { lat: 0, lng: 1 }, { lat: 1, lng: 1 }] }) }));
     expect(await screen.findByText('Vértices')).toBeInTheDocument();
-    expect(screen.getByRole('img').getAttribute('aria-label')).toMatch(/Polígono com 3 vértices/);
+    expect(screen.getByLabelText('Mapa da geocerca Portão')).toHaveAttribute('data-shape', 'polygon');
   });
 
   it('"Testar um ponto" pergunta ao servidor e mostra o resultado em texto', async () => {

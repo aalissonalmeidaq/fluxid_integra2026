@@ -1,0 +1,16 @@
+{
+  "server_time": "2026-10-17T14:03:01Z",
+  "results": [
+    {
+      "message_id": "01JA0000000000000000000005",
+      "status": "refused",
+      "reason": "unknown_command"
+    }
+  ],
+  "command": null,
+  "watch": {
+    "active": false,
+    "version": 0
+  },
+  "report_interval_s": 60
+}

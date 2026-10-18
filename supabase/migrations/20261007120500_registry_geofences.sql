@@ -306,6 +306,8 @@ begin
     'geofence', jsonb_build_object(
       'id', v_geo.id, 'name', v_geo.name, 'status', v_geo.status, 'version', v_geo.version, 'site_id', v_site.id, 'site_name', v_site.name,
       'site_status', v_site.status, 'customer_id', v_cust.id, 'customer_name', v_cust.legal_name,
+      'site_address', concat_ws(' · ', concat_ws(', ', v_site.street, v_site.number), nullif(v_site.district, ''), concat_ws('/', v_site.city, v_site.state),
+        'CEP ' || regexp_replace(v_site.postal_code, '^(\d{5})(\d{3})$', '\1-\2')),
       -- Área calculada só no servidor: o polígono pela geografia e o círculo pela fórmula (a área guardada é circunscrita).
       'area_m2', round(case v_geo.shape when 'circle' then pi() * v_geo.radius_m * v_geo.radius_m else extensions.st_area(v_geo.area) end)::bigint)
       || private.geofence_shape_json(v_geo));

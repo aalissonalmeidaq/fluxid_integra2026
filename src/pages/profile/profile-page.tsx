@@ -6,6 +6,8 @@ import {
   type ProfileView as ProfileData,
 } from '@/application/identity/profile-service';
 import { useConnectivity } from '@/app/connectivity-context';
+import { usePermissions } from '@/app/navigation/permissions-context';
+import { DevicePushSettings } from './push-settings';
 import { createProfilePorts } from '@/infrastructure/supabase/profile-adapter';
 import { validateProfileUpdate } from '@/domain/identity/profile';
 import { Alert, Button, Card, FormSection, Loading, TextField } from '@/design-system';
@@ -37,9 +39,13 @@ function readBytes(file: File): Promise<Uint8Array> {
   });
 }
 
-export interface ProfileViewProps { service: ProfileService | null }
+export interface ProfileViewProps {
+  service: ProfileService | null;
+  // Seções extras do perfil (Spec 012: notificações deste aparelho, para quem pode ver lacres).
+  extra?: React.ReactNode;
+}
 
-export function ProfileView({ service }: ProfileViewProps): React.JSX.Element {
+export function ProfileView({ service, extra }: ProfileViewProps): React.JSX.Element {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState<string | null>(null);
@@ -168,6 +174,8 @@ export function ProfileView({ service }: ProfileViewProps): React.JSX.Element {
           <Button type="submit" disabled={busy} className="self-start">{busy ? 'Salvando…' : 'Salvar nome'}</Button>
         </form>
       </Card>
+
+      {extra && <Card>{extra}</Card>}
     </section>
   );
 }
@@ -179,5 +187,6 @@ export function ProfilePage(): React.JSX.Element {
     () => endpoint && client ? new ProfileService(createProfilePorts(endpoint, client)) : null,
     [client, endpoint],
   );
-  return <ProfileView service={service} />;
+  const { permissions } = usePermissions();
+  return <ProfileView service={service} extra={permissions?.tenant.includes('seal.read') ? <DevicePushSettings /> : undefined} />;
 }

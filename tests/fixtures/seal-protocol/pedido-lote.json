@@ -1,0 +1,67 @@
+{
+  "protocol": 1,
+  "firmware_version": "2.0.0",
+  "watch_version": 0,
+  "messages": [
+    {
+      "message_id": "01JB0000000000000000000001",
+      "type": "position",
+      "read_at": "2026-10-17T13:01:00Z",
+      "latitude": -7.209194,
+      "longitude": -39.306367,
+      "quality": "gps",
+      "accuracy_m": 6.5,
+      "battery_pct": 87,
+      "signal_dbm": -61,
+      "seal_state": "closed"
+    },
+    {
+      "message_id": "01JB0000000000000000000002",
+      "type": "position",
+      "read_at": "2026-10-17T13:02:00Z",
+      "latitude": -7.209194,
+      "longitude": -39.306367,
+      "quality": "gps",
+      "accuracy_m": 6.5,
+      "battery_pct": 87,
+      "signal_dbm": -61,
+      "seal_state": "closed"
+    },
+    {
+      "message_id": "01JB0000000000000000000003",
+      "type": "position",
+      "read_at": "2026-10-17T13:03:00Z",
+      "latitude": -7.209194,
+      "longitude": -39.306367,
+      "quality": "gps",
+      "accuracy_m": 6.5,
+      "battery_pct": 87,
+      "signal_dbm": -61,
+      "seal_state": "closed"
+    },
+    {
+      "message_id": "01JB0000000000000000000004",
+      "type": "position",
+      "read_at": "2026-10-17T13:04:00Z",
+      "latitude": -7.209194,
+      "longitude": -39.306367,
+      "quality": "gps",
+      "accuracy_m": 6.5,
+      "battery_pct": 87,
+      "signal_dbm": -61,
+      "seal_state": "closed"
+    },
+    {
+      "message_id": "01JB0000000000000000000005",
+      "type": "position",
+      "read_at": "2026-10-17T13:05:00Z",
+      "latitude": -7.209194,
+      "longitude": -39.306367,
+      "quality": "gps",
+      "accuracy_m": 6.5,
+      "battery_pct": 87,
+      "signal_dbm": -61,
+      "seal_state": "closed"
+    }
+  ]
+}

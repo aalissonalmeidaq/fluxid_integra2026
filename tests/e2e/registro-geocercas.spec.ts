@@ -46,7 +46,9 @@ test.describe('Geocercas: fluxo completo', () => {
     await formulario(page).getByLabel('Latitude do centro').fill('-23,55');
     await formulario(page).getByLabel('Longitude do centro').fill('-46,633');
     await formulario(page).getByLabel('Raio (metros)').fill('200');
-    await expect(page.getByRole('img', { name: /Círculo de 200 metros de raio/ })).toBeVisible();
+    // A pré-visualização é o mapa real com a forma desenhada; a descrição em texto continua como alternativa ao desenho.
+    await expect(page.getByRole('group', { name: 'Mapa da geocerca' })).toBeVisible();
+    await expect(page.getByText(/Círculo de 200 metros de raio/)).toBeVisible();
     await page.getByRole('button', { name: 'Cadastrar geocerca' }).click();
 
     await expect(page.getByRole('heading', { level: 2, name: 'Portão E2E' })).toBeVisible();

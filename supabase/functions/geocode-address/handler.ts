@@ -1,9 +1,10 @@
 import { json, preflight, UUID_PATTERN, type TokenClaims } from '../_shared/http.ts';
-import { addressCacheKey } from './address-cache.ts';
+import { addressCacheKey, coordinateCacheKey } from './address-cache.ts';
 import { type GeocodingConfig, providerWindowSeconds } from './config.ts';
-import { GeocodingBlockedError, GeocodingProviderError, type GeocodeLocation, type GeocodeQuery, type GeocodingProvider, UFS } from './provider.ts';
+import { GeocodingBlockedError, GeocodingProviderError, type GeocodeLocation, type GeocodeQuery, type GeocodingProvider,
+  type ReverseGeocodeAddress, type ReverseGeocodeQuery, UFS } from './provider.ts';
 
-export type { GeocodeLocation, GeocodeQuery, GeocodingProvider } from './provider.ts';
+export type { GeocodeLocation, GeocodeQuery, GeocodingProvider, ReverseGeocodeAddress, ReverseGeocodeQuery } from './provider.ts';
 export type { TokenClaims };
 
 // Geocodificação do endereço da unidade pelo servidor (RF-065 a RF-068). Integração TEMPORÁRIA e exclusiva do protótipo
@@ -26,17 +27,19 @@ export type Permission = 'OK' | 'AUTH_REQUIRED' | 'ACCESS_DENIED';
 export type PersonType = 'individual' | 'legal';
 // Cliente da organização, lido do banco: tipo de pessoa e se o registro admite a operação (ativo e não anonimizado).
 export interface GeocodeCustomer { personType: PersonType; operable: boolean }
+export type GeocodeCacheValue = GeocodeLocation | ReverseGeocodeAddress;
 
 export interface GeocodeGateway {
   authenticate(token: string): Promise<Identity | null>;
   // Confere vínculo, papel e permissão `customer.write` no banco, como as RPCs de escrita.
-  checkPermission(actorId: string, sessionId: string, organizationId: string): Promise<Permission>;
+  checkPermission(actorId: string, sessionId: string, organizationId: string, permission: 'customer.write' | 'seal.read'): Promise<Permission>;
   takeToken(bucket: string, subject: string, limit: number, windowSeconds: number): Promise<boolean>;
   // Cliente da organização; `null` quando não existe nela. Tudo vem do banco, nunca do corpo da requisição.
   findCustomer(organizationId: string, customerId: string): Promise<GeocodeCustomer | null>;
+  findDevice(actorId: string, sessionId: string, organizationId: string, deviceId: string): Promise<Permission | 'NOT_FOUND'>;
   // Cache por organização e chave do endereço normalizado; a leitura devolve só entrada ainda dentro do prazo.
-  readCache(organizationId: string, key: string): Promise<GeocodeLocation | null>;
-  writeCache(organizationId: string, key: string, location: GeocodeLocation, ttlDays: number): Promise<void>;
+  readCache(organizationId: string, key: string): Promise<GeocodeCacheValue | null>;
+  writeCache(organizationId: string, key: string, location: GeocodeCacheValue, ttlDays: number): Promise<void>;
 }
 
 // Registro de operação (RF-068). Nada além destes campos: nem endereço, nem URL, nem pessoa, nem organização.
@@ -83,6 +86,13 @@ function parseAddress(input: Record<string, unknown>): { query: GeocodeQuery } |
   return { query: { street, number, city, state, postal_code: postalCode } };
 }
 
+function parseCoordinates(input: Record<string, unknown>): ReverseGeocodeQuery | null {
+  const latitude = typeof input.latitude === 'number' ? input.latitude : Number.NaN;
+  const longitude = typeof input.longitude === 'number' ? input.longitude : Number.NaN;
+  return Number.isFinite(latitude) && Math.abs(latitude) <= 90 && Number.isFinite(longitude) && Math.abs(longitude) <= 180
+    ? { latitude, longitude } : null;
+}
+
 export function createGeocodeAddressHandler({
   gateway, provider, config, log, now = () => Date.now(), newOperationId = () => crypto.randomUUID(),
 }: GeocodeDependencies) {
@@ -111,25 +121,35 @@ export function createGeocodeAddressHandler({
     const input = body as Record<string, unknown>;
     const organizationId = input.organization_id;
     const customerId = input.customer_id;
+    const deviceId = input.device_id;
     if (typeof organizationId !== 'string' || !UUID_PATTERN.test(organizationId)) return reject('VALIDATION_FAILED', 400);
-    if (typeof customerId !== 'string' || !UUID_PATTERN.test(customerId)) return reject('VALIDATION_FAILED', 400);
+    const reverse = input.operation === 'reverse';
+    const deviceReverse = reverse && typeof deviceId === 'string' && UUID_PATTERN.test(deviceId);
+    if (!deviceReverse && (typeof customerId !== 'string' || !UUID_PATTERN.test(customerId))) return reject('VALIDATION_FAILED', 400);
 
     // Confirmação explícita de que o endereço será enviado ao serviço externo (só `true` vale).
     if (config.requireConfirmation && input.consent_confirmed !== true) return reject('CONFIRMATION_REQUIRED', 428);
+    const coordinates = reverse ? parseCoordinates(input) : null;
+    if (reverse && coordinates === null) return reject('COORDINATES_INVALID', 400);
+    const parsed = reverse ? null : parseAddress(input);
+    if (parsed && 'field' in parsed) return reject('ADDRESS_INCOMPLETE', 400, { fields: [{ field: parsed.field, message: 'Confira este campo do endereço.' }] });
 
-    const parsed = parseAddress(input);
-    if ('field' in parsed) return reject('ADDRESS_INCOMPLETE', 400, { fields: [{ field: parsed.field, message: 'Confira este campo do endereço.' }] });
-
-    const permission = await gateway.checkPermission(identity.userId, identity.sessionId, organizationId).catch(() => null);
+    const permission = await gateway.checkPermission(identity.userId, identity.sessionId, organizationId, deviceReverse ? 'seal.read' : 'customer.write').catch(() => null);
     if (permission === null) return reject('INTERNAL_ERROR', 500);
     if (permission !== 'OK') return reject(permission, permission === 'AUTH_REQUIRED' ? 401 : 403);
 
     // Cadastro de pessoa física: o endereço é dado pessoal e não sai do servidor (salvo GEOCODING_ALLOW_PERSONAL_ADDRESSES=true).
-    const customer = await gateway.findCustomer(organizationId, customerId).catch(() => 'ERROR' as const);
-    if (customer === 'ERROR') return reject('INTERNAL_ERROR', 500);
-    if (customer === null) return reject('NOT_FOUND', 404);
-    if (customer.personType === 'individual' && !config.allowPersonalAddresses) return reject('PERSONAL_ADDRESS_NOT_ALLOWED', 403);
-    if (!customer.operable) return reject('CUSTOMER_NOT_OPERABLE', 409);
+    if (deviceReverse) {
+      const device = await gateway.findDevice(identity.userId, identity.sessionId, organizationId, deviceId as string).catch(() => null);
+      if (device === null) return reject('INTERNAL_ERROR', 500);
+      if (device !== 'OK') return reject(device, device === 'AUTH_REQUIRED' ? 401 : device === 'ACCESS_DENIED' ? 403 : 404);
+    } else {
+      const customer = await gateway.findCustomer(organizationId, customerId as string).catch(() => 'ERROR' as const);
+      if (customer === 'ERROR') return reject('INTERNAL_ERROR', 500);
+      if (customer === null) return reject('NOT_FOUND', 404);
+      if (customer.personType === 'individual' && !config.allowPersonalAddresses) return reject('PERSONAL_ADDRESS_NOT_ALLOWED', 403);
+      if (!customer.operable) return reject('CUSTOMER_NOT_OPERABLE', 409);
+    }
 
     const withinUser = await gateway.takeToken(LIMITS.user.bucket, identity.userId, LIMITS.user.limit, LIMITS.user.windowSeconds).catch(() => null);
     const withinOrganization = await gateway.takeToken(LIMITS.organization.bucket, organizationId, LIMITS.organization.limit, LIMITS.organization.windowSeconds).catch(() => null);
@@ -140,9 +160,11 @@ export function createGeocodeAddressHandler({
 
     // Cache por organização: um acerto não chama o provedor nem gasta o limite global dele. Falha do cache nunca bloqueia:
     // a consulta segue ao provedor.
-    const key = await addressCacheKey(parsed.query);
+    const key = reverse
+      ? await coordinateCacheKey(coordinates!.latitude, coordinates!.longitude)
+      : await addressCacheKey((parsed as { query: GeocodeQuery }).query);
     const cached = await gateway.readCache(organizationId, key).catch(() => null);
-    if (cached) return finish('FOUND', 200, { location: cached, cached: true });
+    if (cached) return finish('FOUND', 200, reverse ? { address: cached, cached: true } : { location: cached, cached: true });
 
     // O balde global só é consumido por quem passou nos limites individuais, para a fila de um não gastar a vez dos outros.
     const windowSeconds = providerWindowSeconds(config.ratePerSecond);
@@ -153,10 +175,12 @@ export function createGeocodeAddressHandler({
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
     try {
-      const found = await provider.geocode(parsed.query, controller.signal);
+      const found = reverse
+        ? await provider.reverse(coordinates!, controller.signal)
+        : await provider.geocode((parsed as { query: GeocodeQuery }).query, controller.signal);
       if (found === 'NOT_FOUND') return finish('NOT_FOUND', 200);
       await gateway.writeCache(organizationId, key, found, config.cacheTtlDays).catch(() => undefined);
-      return finish('FOUND', 200, { location: found, cached: false });
+      return finish('FOUND', 200, reverse ? { address: found, cached: false } : { location: found, cached: false });
     } catch (error) {
       if (error instanceof GeocodingBlockedError) return finish(error.code, 403, {}, error.code);
       const errorCode = error instanceof GeocodingProviderError ? error.code : controller.signal.aborted ? 'provider_timeout' : 'provider_error';

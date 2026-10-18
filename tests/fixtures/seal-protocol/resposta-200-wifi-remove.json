@@ -1,0 +1,15 @@
+{
+  "server_time": "2026-10-17T14:03:01Z",
+  "results": [],
+  "command": {
+    "id": "6c1f0000-0000-4000-8000-000000000004",
+    "kind": "wifi_remove",
+    "issued_at": "2026-10-17T14:02:00Z",
+    "ssid": "Rede-Ficticia-01"
+  },
+  "watch": {
+    "active": false,
+    "version": 0
+  },
+  "report_interval_s": 60
+}

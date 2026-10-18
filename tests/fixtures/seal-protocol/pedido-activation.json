@@ -1,0 +1,20 @@
+{
+  "protocol": 1,
+  "firmware_version": "2.0.0",
+  "watch_version": 0,
+  "messages": [
+    {
+      "message_id": "01JA0000000000000000000007",
+      "type": "activation",
+      "read_at": "2026-10-17T14:00:00Z",
+      "latitude": -7.209194,
+      "longitude": -39.306367,
+      "quality": "gps",
+      "accuracy_m": 6.5,
+      "battery_pct": 87,
+      "signal_dbm": -61,
+      "seal_state": "closed",
+      "valve": "open"
+    }
+  ]
+}

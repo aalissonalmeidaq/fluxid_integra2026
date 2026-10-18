@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import type { GeocodeAddressInput, GeocodedLocation, GeocodeOutcome, GeocodingService } from '@/application/registry/geocoding-service';
+import type { GeocodeAddressInput, GeocodedLocation, GeocodeOutcome, GeocodingService, ReverseGeocodedAddress } from '@/application/registry/geocoding-service';
 import { OsmMap } from '@/components/maps/osm-map';
 import { Alert, Button, TextField } from '@/design-system';
 import { normalizePostalCode } from '@/domain/registry/phone-and-postal-code';
@@ -9,6 +9,7 @@ export interface CoordinatesFieldProps {
   latitude: string;
   longitude: string;
   onCoordinates: (latitude: string, longitude: string) => void;
+  onAddress?: (address: ReverseGeocodedAddress) => void;
   address: GeocodeAddressInput;
   organizationId: string;
   // Cliente da unidade: o servidor confere nele o tipo de pessoa (cadastro de pessoa física não é geocodificado).
@@ -24,12 +25,13 @@ export interface CoordinatesFieldProps {
   confirmationError?: string | undefined;
 }
 
-type Status = { kind: 'idle' } | { kind: 'searching' } | { kind: 'picked' } | Exclude<GeocodeOutcome, { kind: 'found' }> | { kind: 'found' };
+type Status = { kind: 'idle' } | { kind: 'searching' } | { kind: 'picked' } | { kind: 'invalid_coordinates' } | Exclude<GeocodeOutcome, { kind: 'found' }> | { kind: 'found' } | { kind: 'reverse_found' };
 
 // Aviso exibido antes de qualquer consulta ao serviço externo (integração temporária, exclusiva do protótipo).
 export const GEOCODING_NOTICE = 'O endereço será enviado ao serviço externo OpenStreetMap/Nominatim para obtenção das coordenadas. Use esta função apenas com endereços fictícios ou de unidades comerciais.';
+export const REVERSE_GEOCODING_NOTICE = 'As coordenadas serão enviadas ao serviço externo OpenStreetMap/Nominatim para localizar o endereço. Confira o resultado antes de substituir os dados do formulário.';
 
-const MESSAGES: Record<Exclude<GeocodeOutcome['kind'], 'rate_limited'> | 'found' | 'picked', string> = {
+const MESSAGES: Record<Exclude<GeocodeOutcome['kind'], 'rate_limited'> | 'found' | 'picked' | 'reverse_found' | 'invalid_coordinates', string> = {
   found: 'Coordenadas encontradas. Confira o endereço e o ponto abaixo e confirme.',
   not_found: 'Não encontramos este endereço. Confira os dados ou informe as coordenadas à mão.',
   unavailable: 'Não foi possível buscar as coordenadas agora. Informe-as à mão ou salve sem elas.',
@@ -41,6 +43,8 @@ const MESSAGES: Record<Exclude<GeocodeOutcome['kind'], 'rate_limited'> | 'found'
   confirmation_required: 'Confirme o envio do endereço ao serviço externo para buscar as coordenadas.',
   blocked: 'A busca pelo serviço externo está bloqueada neste ambiente. Informe as coordenadas à mão.',
   picked: 'Ponto corrigido no mapa. As coordenadas serão salvas como informadas à mão.',
+  reverse_found: 'Endereço encontrado. Confira os dados antes de aplicá-los ao formulário.',
+  invalid_coordinates: 'Informe latitude e longitude válidas para buscar o endereço.',
 };
 
 const PRECISION_TEXT: Record<GeocodedLocation['precision'], string> = {
@@ -73,10 +77,11 @@ const addressComplete = (address: GeocodeAddressInput): boolean =>
 // clique em "Buscar coordenadas" e depois da confirmação explícita do envio do endereço (nada é consultado durante a digitação).
 // O resultado é uma sugestão: nada vale até a pessoa marcar a confirmação, e a falha da busca nunca trava o cadastro (RF-067).
 export function CoordinatesField({
-  latitude, longitude, onCoordinates, address, organizationId, customerId, service, online, suggestion, onSuggestion, saved, latitudeError, longitudeError, confirmationError,
+  latitude, longitude, onCoordinates, onAddress, address, organizationId, customerId, service, online, suggestion, onSuggestion, saved, latitudeError, longitudeError, confirmationError,
 }: CoordinatesFieldProps): React.JSX.Element {
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
-  const [asking, setAsking] = useState(false);
+  const [asking, setAsking] = useState<'forward' | 'reverse' | null>(null);
+  const [reverseAddress, setReverseAddress] = useState<ReverseGeocodedAddress | null>(null);
   const searchButton = useRef<HTMLButtonElement>(null);
   const searching = status.kind === 'searching';
   const current = addressKeyOf(address);
@@ -88,24 +93,44 @@ export function CoordinatesField({
   const active = sameAddress && !adjusted ? suggestion : null;
   const stale = suggestion !== null && suggestion.addressKey !== current;
 
+  const updateCoordinates = (nextLatitude: string, nextLongitude: string): void => {
+    setReverseAddress(null);
+    onCoordinates(nextLatitude, nextLongitude);
+  };
+
   // 1º passo: o clique só abre o aviso. Nada sai do navegador antes da confirmação explícita.
   const requestSearch = (): void => {
     if (searching) return;
     if (!service || !online) return setStatus({ kind: 'offline' });
     if (!addressComplete(address)) return setStatus({ kind: 'invalid' });
     setStatus({ kind: 'idle' });
-    setAsking(true);
+    setAsking('forward');
+  };
+
+  const requestReverse = (): void => {
+    if (searching) return;
+    if (!service || !online) return setStatus({ kind: 'offline' });
+    if (lat === null || lng === null || Math.abs(lat) > 90 || Math.abs(lng) > 180) return setStatus({ kind: 'invalid_coordinates' });
+    setStatus({ kind: 'idle' });
+    setAsking('reverse');
   };
 
   const cancelSearch = (): void => {
-    setAsking(false);
+    setAsking(null);
     searchButton.current?.focus();
   };
 
-  const search = async (): Promise<void> => {
+  const search = async (direction: 'forward' | 'reverse'): Promise<void> => {
     if (searching || !service || !online) return;
-    setAsking(false);
+    setAsking(null);
     setStatus({ kind: 'searching' });
+    if (direction === 'reverse') {
+      if (lat === null || lng === null) return setStatus({ kind: 'invalid_coordinates' });
+      const outcome = await service.reverse(organizationId, customerId, lat, lng, true);
+      if (outcome.kind === 'found') { setReverseAddress(outcome.address); setStatus({ kind: 'reverse_found' }); }
+      else setStatus(outcome.kind === 'invalid' ? { kind: 'invalid_coordinates' } : outcome);
+      return;
+    }
     const outcome = await service.locate(organizationId, customerId, address, true);
     if (outcome.kind === 'found') {
       onSuggestion({ location: outcome.location, addressKey: current, confirmed: false });
@@ -119,24 +144,37 @@ export function CoordinatesField({
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 tablet:grid-cols-2">
-        <TextField label="Latitude" name="latitude" inputMode="decimal" value={latitude} onChange={(event) => onCoordinates(event.target.value, longitude)} error={latitudeError} />
-        <TextField label="Longitude" name="longitude" inputMode="decimal" value={longitude} onChange={(event) => onCoordinates(latitude, event.target.value)} error={longitudeError} />
+        <TextField label="Latitude" name="latitude" inputMode="decimal" value={latitude} onChange={(event) => updateCoordinates(event.target.value, longitude)} error={latitudeError} />
+        <TextField label="Longitude" name="longitude" inputMode="decimal" value={longitude} onChange={(event) => updateCoordinates(latitude, event.target.value)} error={longitudeError} />
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button ref={searchButton} variant="secundario" disabled={!online} loading={searching} loadingLabel="Buscando…" onClick={requestSearch}>Buscar coordenadas</Button>
+        <Button variant="secundario" disabled={!online || lat === null || lng === null} loading={searching} loadingLabel="Buscando…" onClick={requestReverse}>Buscar endereço</Button>
       </div>
 
-      {asking && (
+      {asking !== null && (
         <div role="group" aria-labelledby="geocode-consent-title" className="flex flex-col gap-4 rounded-card border border-borda p-4">
-          <h3 id="geocode-consent-title" className="text-corpo font-semibold text-navy">Enviar o endereço ao serviço externo?</h3>
-          <p className="text-corpo text-grafite">{GEOCODING_NOTICE}</p>
+          <h3 id="geocode-consent-title" className="text-corpo font-semibold text-navy">Enviar {asking === 'forward' ? 'o endereço' : 'as coordenadas'} ao serviço externo?</h3>
+          <p className="text-corpo text-grafite">{asking === 'forward' ? GEOCODING_NOTICE : REVERSE_GEOCODING_NOTICE}</p>
           <div className="flex flex-wrap items-center gap-2">
-            <Button autoFocus onClick={() => void search()}>Concordo e buscar coordenadas</Button>
+            <Button autoFocus onClick={() => void search(asking)}>Concordo e buscar {asking === 'forward' ? 'coordenadas' : 'endereço'}</Button>
             <Button variant="secundario" onClick={cancelSearch}>Cancelar</Button>
           </div>
         </div>
       )}
       <p role="status" aria-atomic="true" className="min-h-6 text-legenda text-texto-secundario">{messageOf(status)}</p>
+
+      {reverseAddress && (
+        <div role="group" aria-labelledby="reverse-geocode-review-title" className="flex flex-col gap-4 rounded-card border border-borda p-4">
+          <h3 id="reverse-geocode-review-title" className="text-corpo font-semibold text-navy">Confira o endereço encontrado</h3>
+          <p className="m-0 text-corpo text-grafite">{reverseAddress.displayName || [reverseAddress.street, reverseAddress.number, reverseAddress.city, reverseAddress.state].filter(Boolean).join(', ')}</p>
+          <Alert variant="informacao">O serviço pode retornar o endereço mais próximo. Confirme visualmente o ponto no mapa.</Alert>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => { onAddress?.(reverseAddress); setReverseAddress(null); setStatus({ kind: 'idle' }); }}>Usar este endereço</Button>
+            <Button variant="secundario" onClick={() => { setReverseAddress(null); setStatus({ kind: 'idle' }); }}>Manter endereço atual</Button>
+          </div>
+        </div>
+      )}
 
       {lat !== null && lng !== null && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && (
         <OsmMap
@@ -144,7 +182,7 @@ export function CoordinatesField({
           latitude={lat}
           longitude={lng}
           caption="Confira se o marcador está na porta de entrega. Para corrigir, clique no ponto certo do mapa ou ajuste a latitude e a longitude."
-          onPick={(pickedLat, pickedLng) => { onCoordinates(String(pickedLat), String(pickedLng)); setStatus({ kind: 'picked' }); }}
+          onPick={(pickedLat, pickedLng) => { updateCoordinates(String(pickedLat), String(pickedLng)); setStatus({ kind: 'picked' }); }}
         />
       )}
 

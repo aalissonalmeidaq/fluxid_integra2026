@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import React, { useEffect, useRef } from 'react';
-import type { MapPoint } from './map-types';
+import type { MapPoint, MapShape } from './map-types';
 import './map-view.css';
 
 // Mapa Leaflet com blocos do OpenStreetMap. Carregado sob demanda (map-lazy.tsx): fora das telas com mapa, nada disto entra no
@@ -11,6 +11,7 @@ import './map-view.css';
 export interface MapViewProps {
   title: string;
   points: readonly MapPoint[];
+  shapes?: readonly MapShape[];
   // Onde o mapa abre quando não há pontos.
   fallback: { latitude: number; longitude: number; zoom: number };
   // Zoom quando há um ponto só (padrão 15, nível de rua). Com vários pontos o mapa enquadra todos, no maior zoom que os comporta.
@@ -41,7 +42,7 @@ function popupContent(point: MapPoint): HTMLElement {
   return root;
 }
 
-export default function MapView({ title, points, fallback, singleZoom = 15, onPick, className }: MapViewProps): React.JSX.Element {
+export default function MapView({ title, points, shapes = [], fallback, singleZoom = 15, onPick, className }: MapViewProps): React.JSX.Element {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const layer = useRef<L.LayerGroup | null>(null);
@@ -85,6 +86,18 @@ export default function MapView({ title, points, fallback, singleZoom = 15, onPi
     const group = layer.current;
     if (!instance || !group) return;
     group.clearLayers();
+    const shapeBounds = L.latLngBounds([]);
+    for (const shape of shapes) {
+      const className = ['fluxid-map-geofence', shape.emphasis ? `fluxid-map-geofence--${shape.emphasis}` : ''].filter(Boolean).join(' ');
+      const boundary = shape.kind === 'circle'
+        ? L.circle([shape.center.latitude, shape.center.longitude], { radius: shape.radiusM, className })
+        : L.polygon(shape.vertices.map((vertex) => [vertex.latitude, vertex.longitude]), { className });
+      if (shape.label) boundary.bindTooltip(shape.label);
+      boundary.addTo(group);
+      shapeBounds.extend(shape.kind === 'circle'
+        ? L.latLng(shape.center.latitude, shape.center.longitude).toBounds(shape.radiusM * 2)
+        : boundary.getBounds());
+    }
     for (const point of points) {
       L.circleMarker([point.latitude, point.longitude], { radius: 9, className: point.confirmed === false ? 'fluxid-map-point fluxid-map-point--unconfirmed' : 'fluxid-map-point' })
         .bindPopup(popupContent(point))
@@ -93,11 +106,14 @@ export default function MapView({ title, points, fallback, singleZoom = 15, onPi
     }
 
     const first = points[0];
-    if (!first) instance.setView([fallback.latitude, fallback.longitude], fallback.zoom);
+    // Com formas, o quadro inclui também os pontos: um lacre fora da geocerca não pode sumir do mapa.
+    if (shapeBounds.isValid()) for (const point of points) shapeBounds.extend([point.latitude, point.longitude]);
+    if (shapeBounds.isValid()) instance.fitBounds(shapeBounds, { padding: [32, 32], maxZoom: 17 });
+    else if (!first) instance.setView([fallback.latitude, fallback.longitude], fallback.zoom);
     else if (points.length === 1) instance.setView([first.latitude, first.longitude], framed.current && editable ? instance.getZoom() : singleZoom);
     else instance.fitBounds(L.latLngBounds(points.map((point) => [point.latitude, point.longitude] as [number, number])), { padding: [32, 32], maxZoom: 16 });
     framed.current = true;
-  }, [points, fallback.latitude, fallback.longitude, fallback.zoom, singleZoom, editable]);
+  }, [points, shapes, fallback.latitude, fallback.longitude, fallback.zoom, singleZoom, editable]);
 
   return (
     <div

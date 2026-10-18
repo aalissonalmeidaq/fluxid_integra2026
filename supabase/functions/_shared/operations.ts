@@ -63,6 +63,8 @@ const SUCCESS = new Set([
   'LOADING', 'REVERTED', 'CHECKED', 'UNCHECKED', 'REMOVED', 'STARTED', 'ARRIVED', 'DELIVERED', 'UNLOCKED', 'RETURNED', 'COMPLETED', 'CANCELLED',
   // Spec 010 (fila offline).
   'RESOLVED',
+  // Spec 012 (lacre IoT).
+  'BOUND', 'UNBOUND', 'REQUESTED', 'ACKNOWLEDGED', 'CLOSED', 'SUBSCRIBED', 'UNSUBSCRIBED', 'ROTATED',
 ]);
 const STATUS: Record<string, number> = {
   AUTH_REQUIRED: 401, ACCESS_DENIED: 403, MFA_REQUIRED: 403, NOT_FOUND: 404, VALIDATION_FAILED: 400, JUSTIFICATION_REQUIRED: 400,
@@ -77,6 +79,9 @@ const STATUS: Record<string, number> = {
   ITEMS_PENDING: 409, STOPS_OPEN: 409, TRIP_CLOSED: 409, STOP_CLOSED: 409, REQUEST_REUSED: 409, CYLINDER_IN_TRIP: 409,
   // Spec 010 (fila offline): operação de origem offline com horário informado de mais de 7 dias.
   STALE_OFFLINE_OPERATION: 409, TRIP_STATE_INVALID: 409, ALREADY_RESOLVED: 409,
+  // Spec 012 (lacre IoT).
+  SEAL_ALREADY_BOUND: 409, CYLINDER_ALREADY_BOUND: 409, SEAL_INACTIVE: 409, NO_BINDING: 409, WIFI_LIST_FULL: 409, WIFI_NOT_IN_LIST: 409,
+  WIFI_RISK_NOT_CONFIRMED: 400, ALERT_CLOSED: 409, NOTE_REQUIRED: 400,
 };
 
 // Exceções do banco (gatilhos) que a borda traduz em código de negócio, sem reescrever as RPCs que as provocam.

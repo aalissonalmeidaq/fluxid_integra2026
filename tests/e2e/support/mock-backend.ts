@@ -4,6 +4,8 @@ import { createRegistryMock } from './mock-registry-customers';
 import { createHash } from 'node:crypto';
 import { ATTACHMENT_SIGN_PATH, uploadAttachment } from './mock-trips-attachments';
 import { createTripMock } from './mock-trips-plan';
+import { createSealMock } from './mock-seals';
+import { instalarLacres } from './mock-seals-operacoes';
 
 // Backend simulado por rede para os E2E de autenticação: exercita a interface e o cliente Supabase reais
 // sem depender de um Supabase em execução. Comportamento real de Auth, RLS e sessões é provado nas suítes
@@ -56,7 +58,8 @@ const TENANT_B = '20000000-0000-0000-0000-00000000000b';
 export type PermissionProfile = 'administrador' | 'operador' | 'master' | 'admin-fluxid' | 'dois-tenants' | 'sem-vinculo'
   | 'cilindros-admin' | 'cilindros-estoquista' | 'cilindros-tecnico' | 'cilindros-auditor'
   | 'cadastros-admin' | 'cadastros-estoquista' | 'cadastros-tecnico' | 'cadastros-auditor' | 'cadastros-motorista'
-  | 'viagens-admin' | 'viagens-gestor' | 'viagens-estoquista' | 'viagens-auditor';
+  | 'viagens-admin' | 'viagens-gestor' | 'viagens-estoquista' | 'viagens-auditor'
+  | 'lacres-admin' | 'lacres-operador' | 'lacres-auditor' | 'lacres-dois-tenants';
 
 // Permissões de cilindros (Spec 006) por papel padrão, como o servidor as devolve em `query-permissions`.
 const CILINDROS_TODAS = ['cylinder.read', 'cylinder.write', 'cylinder.deactivate', 'cylinder.identifier', 'cylinder.stock_in', 'cylinder.test', 'cylinder.history'];
@@ -70,6 +73,8 @@ const CADASTROS_TODAS = [
 // Permissões de viagens (Spec 008) por papel padrão.
 const VIAGENS_TODAS = ['trip.read', 'trip.write', 'trip.operate', 'trip.cancel', 'trip.unlock', 'trip.exception', 'trip.history', 'trip.recipient'];
 const VIAGENS_LEITURAS = ['cylinder.read', 'customer.read', 'geofence.read', 'vehicle.read', 'driver.read'];
+// Permissões dos lacres (Spec 012): seal.admin é crítica e fica com o administrador do tenant.
+const LACRES_TODAS = ['seal.read', 'seal.operate', 'seal.admin'];
 const PROFILES: Record<PermissionProfile, { byOrganization: Record<string, string[]>; global: string[] }> = {
   administrador: { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage'] }, global: [] },
   operador: { byOrganization: { [TENANT_A]: [] }, global: [] },
@@ -90,6 +95,10 @@ const PROFILES: Record<PermissionProfile, { byOrganization: Record<string, strin
   'viagens-gestor': { byOrganization: { [TENANT_A]: [...VIAGENS_LEITURAS, 'trip.read', 'trip.write', 'trip.operate', 'trip.cancel', 'trip.unlock', 'trip.history', 'trip.recipient'] }, global: [] },
   'viagens-estoquista': { byOrganization: { [TENANT_A]: ['cylinder.read', 'cylinder.write', 'cylinder.stock_in', 'cylinder.history', 'trip.read', 'trip.operate', 'trip.history'] }, global: [] },
   'viagens-auditor': { byOrganization: { [TENANT_A]: [...VIAGENS_LEITURAS, 'trip.read', 'trip.history'] }, global: [] },
+  'lacres-admin': { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage', ...CILINDROS_TODAS, ...CADASTROS_TODAS, ...VIAGENS_TODAS, ...LACRES_TODAS] }, global: [] },
+  'lacres-operador': { byOrganization: { [TENANT_A]: [...VIAGENS_LEITURAS, 'trip.read', 'trip.operate', 'seal.read', 'seal.operate'] }, global: [] },
+  'lacres-auditor': { byOrganization: { [TENANT_A]: [...VIAGENS_LEITURAS, 'trip.read', 'seal.read'] }, global: [] },
+  'lacres-dois-tenants': { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage', 'cylinder.read', ...LACRES_TODAS], [TENANT_B]: ['cylinder.read', ...LACRES_TODAS] }, global: [] },
 };
 
 export class MockBackend {
@@ -99,6 +108,11 @@ export class MockBackend {
   readonly registry = createRegistryMock();
   // Viagens simuladas (Spec 008): usam os veículos, motoristas e unidades do registro e os cilindros simulados acima.
   readonly trips = createTripMock(this.registry, this.cylinders);
+  // Lacres simulados (Spec 012): operações de query-seals e manage-seals sobre os cilindros e viagens simulados.
+  readonly seals = instalarLacres(createSealMock(), {
+    serialDe: (id) => this.cylinders.cylinders.find((c) => c.id === id)?.serial_number ?? null,
+    itensDaViagem: (id) => this.trips.itemsOf(id),
+  });
   organizations = [{ id:'20000000-0000-0000-0000-00000000000a',legal_name:'Tenant A Sintético',display_name:'Tenant A',status:'active',version:1 }];
   members = [{ id:'30000000-0000-0000-0000-000000000099',display_name:'Operador A',email:'operador-a@example.invalid',status:'active',version:1 }];
   membersB = [{ id:'30000000-0000-0000-0000-000000000098',display_name:'Operador B',email:'operador-b@example.invalid',status:'active',version:1 }];
@@ -205,6 +219,10 @@ export class MockBackend {
     }
     if (pathname === '/functions/v1/query-trips' || pathname === '/functions/v1/manage-trips') {
       const reply = this.trips.handle(pathname.endsWith('query-trips') ? 'query' : 'manage', (body ?? {}) as Record<string, unknown>, (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code));
+      return respond(reply.status, reply.json);
+    }
+    if (pathname === '/functions/v1/query-seals' || pathname === '/functions/v1/manage-seals') {
+      const reply = this.seals.handle(pathname.endsWith('query-seals') ? 'query' : 'manage', (body ?? {}) as Record<string, unknown>, (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code));
       return respond(reply.status, reply.json);
     }
     // Fotos e assinatura da entrega (Spec 010): envio multipart e leitura por URL assinada.

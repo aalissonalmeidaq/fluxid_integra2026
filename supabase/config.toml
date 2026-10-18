@@ -443,3 +443,11 @@ verify_jwt = false
 
 [functions.password-recovery]
 verify_jwt = false
+
+# Spec 012: o lacre não tem sessão do Auth; a borda autentica pela chave do dispositivo (contracts/mensagens-do-lacre.md).
+[functions.seal-gateway]
+verify_jwt = false
+
+# Spec 012: chamada pelo banco (pg_net); o segredo do Vault vai no cabeçalho e o banco o confere.
+[functions.seal-push]
+verify_jwt = false

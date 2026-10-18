@@ -35,6 +35,8 @@ const ADMIN_TENANT = [
   'cylinder.deactivate', 'cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.stock_in', 'cylinder.test', 'cylinder.write',
   'driver.anonymize', 'driver.deactivate', 'driver.document', 'driver.history', 'driver.read', 'driver.write',
   'geofence.deactivate', 'geofence.history', 'geofence.read', 'geofence.write',
+  // Spec 012: as três permissões dos lacres (seal.admin é crítica e fica com o administrador).
+  'seal.admin', 'seal.operate', 'seal.read',
   'tenant.manage',
   // Spec 008: as oito permissões de viagem.
   'trip.cancel', 'trip.exception', 'trip.history', 'trip.operate', 'trip.read', 'trip.recipient', 'trip.unlock', 'trip.write',
@@ -102,7 +104,7 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     expect(result.status).toBe(200);
     expect(Object.keys(result.body!).sort()).toEqual(['code', 'global', 'tenant']);
     expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: ADMIN_TENANT, global: [] });
-    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Entrada no estoque', 'Clientes', 'Geocercas', 'Veículos', 'Motoristas', 'Viagens', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
+    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Entrada no estoque', 'Clientes', 'Geocercas', 'Veículos', 'Motoristas', 'Viagens', 'Lacres', 'Alertas', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
   });
 
   it('o operador técnico recebe só as permissões do papel e o menu básico', async () => {

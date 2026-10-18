@@ -55,6 +55,8 @@
 
 | RIA-031 | 16/10/2026, 15:39:34 - America/Fortaleza | 011 | 01 | Landing page institucional do FluxID | `registros/31_Landing_Page_Institucional_do_FluxID.docx` (`RIA-031-landing-page-institucional-do-fluxid.md`) | Utilizado |
 
+| RIA-032 | 18/10/2026, 16:26:17 - America/Fortaleza | 012 | 01 | Lacre IoT, geocerca e trava | `registros/32_Lacre_IoT_Geocerca_e_Trava.docx` (`RIA-032-lacre-iot-geocerca-e-trava.md`) | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
@@ -85,4 +87,4 @@
 
 > Atualização do RIA-031: em 18/10/2026, a pedido da pessoa responsável, foram commitados os ajustes visuais da landing que estavam preparados na branch antes da Spec 012: menos efeitos de hover decorativos, área segura no topo e no rodapé de cada slide (com teste de contrato) e cartões de materiais ajustados. Localmente, os testes da landing e dos contratos (251), o lint, o typecheck e a suíte unitária completa (5.464 testes) passaram, e as capturas da landing foram regeneradas no Linux (261 testes visuais aprovados).
 
-> Atualização do RIA-031: em 18/10/2026, os ajustes visuais da landing foram separados no PR #44 para chegarem ao site sem esperar a Spec 012. No CI, a regressão visual falhou fora da landing: nas telas de campo e de sincronização, as validades de CNH e de licenciamento da massa simulada nascem relativas à data real e mudaram com o calendário. A correção ancora essas validades no dia em que as capturas foram geradas (13/10/2026), como os testes visuais de registro e de viagens já faziam, sem regenerar imagens. As 42 capturas das duas suítes passaram no contêiner Linux do Playwright.
+> Atualização do RIA-031: em 18/10/2026, os ajustes visuais da landing foram separados no PR #44 para chegarem ao site sem esperar a Spec 012; como o PR #43 foi mergeado antes e já os levou à main, o PR #44 ficou só com a correção abaixo. No CI, a regressão visual falhou fora da landing: nas telas de campo e de sincronização, as validades de CNH e de licenciamento da massa simulada nascem relativas à data real e mudaram com o calendário. A correção ancora essas validades no dia em que as capturas atuais foram geradas (18/10/2026, depois de o PR #43 regenerá-las), como os testes visuais de registro e de viagens já faziam, sem regenerar imagens. As 42 capturas das duas suítes passaram no contêiner Linux do Playwright.
