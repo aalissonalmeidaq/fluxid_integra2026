@@ -9,9 +9,9 @@
 - Ferramenta de IA utilizada: Claude Code (Claude Opus 5.5), com trechos do Codex mantidos a pedido do responsável
 - Objetivo do uso: Implementar a Spec 012: lacre IoT por Wi-Fi com posição, saúde, alertas, trava física pela viagem e pela geocerca, redes Wi-Fi configuradas pelo sistema, notificações push e o firmware do ESP32-C3 na pasta firmware/.
 - Prompt utilizado, em síntese sanitizada: Fluxo Spec Kit da Spec 012 (clarify, plan, tasks, analyze, implement), pedidos de continuidade, validação em bancada com o lacre físico e geocercas desenhadas no mapa do lacre.
-- Resposta gerada pela IA: 15 migrations (seals_*), Edge Functions seal-gateway, seal-push, query-seals e manage-seals, telas Lacres, Alertas, bloco Lacre no cilindro, painel de trava na viagem, notificações no perfil, mapa com geocerca esperada e próximas, e firmware PlatformIO (ESP32-C3) com testes nativos e job de CI. Revisão: branch feat/012-lacre-iot-geocerca-trava (https://github.com/aalissonalmeidaq/fluxid/tree/feat/012-lacre-iot-geocerca-trava); trocar pelo link do pull request antes do merge.
+- Resposta gerada pela IA: 15 migrations (seals_*), Edge Functions seal-gateway, seal-push, query-seals e manage-seals, telas Lacres, Alertas, bloco Lacre no cilindro, painel de trava na viagem, notificações no perfil, mapa com geocerca esperada e próximas, e firmware PlatformIO (ESP32-C3) com testes nativos e job de CI. Revisão: pull request #43 (https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/43).
 
-Link para validação da equipe: branch `feat/012-lacre-iot-geocerca-trava` (https://github.com/aalissonalmeidaq/fluxid/tree/feat/012-lacre-iot-geocerca-trava); pendência obrigatória: trocar pelo link do pull request antes do merge.
+Link para validação da equipe: pull request #43 (https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/43).
 - Análise crítica da equipe: Regras de domínio no banco (RLS e RPCs com isolamento por organização) e no núcleo do firmware, testadas fora do hardware. A bancada revelou cinco problemas reais (bateria sem divisor, hora sem internet, rede fora do alcance travando o laço, hotspot WPA3/Wi-Fi 6 invisível ao ESP32-C3 e AUTH_EXPIRE pela antena), todos corrigidos e cobertos por teste quando possível.
 - Validação humana realizada: Alisson Almeida validou em 18/10/2026, por 1 hora e 26 minutos, com o perfil administrador do Tenant A no Chrome e o lacre físico da bancada. Resultado: aprovado, sem itens a corrigir.
 - Decisão final: utilizado
@@ -354,7 +354,7 @@ Link para validação da equipe: branch `feat/012-lacre-iot-geocerca-trava` (htt
 
 ## Decisões e dados pendentes
 
-Trocar o link de revisão pelo do pull request; trava pela solenoide e HTTPS na nuvem com o lacre físico (T115, parte 2); publicação no Supabase da nuvem depois do merge (T121); medições com cronômetro do quickstart (T122); DOCX do RIA depois do merge.
+trava pela solenoide e HTTPS na nuvem com o lacre físico (T115, parte 2); publicação no Supabase da nuvem depois do merge (T121); medições com cronômetro do quickstart (T122); DOCX do RIA depois do merge.
 
 ## Validação humana
 
