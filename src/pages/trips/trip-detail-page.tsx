@@ -15,6 +15,8 @@ import type { DeliveryFormValue } from '@/domain/trips/trip-validation';
 import { formatPlate } from '@/domain/registry/plate';
 import { formatDate, formatDateTime } from '@/domain/cylinders/format';
 import { VALIDITY_LABELS } from '@/domain/registry/registry-vocabulary';
+import { TripSealPanel } from './components/trip-seal-panel';
+import { useSealService } from '@/pages/seals/use-seal-service';
 import { AccessGate } from '@/pages/cylinders/components/access-gate';
 import { DetailBlock, secondaryLinkClass } from '@/pages/registry/components/detail-list';
 import { CancelDialog } from './components/cancel-dialog';
@@ -68,6 +70,8 @@ export interface TripDetailViewProps {
   fieldService?: FieldService | null;
   // Spec 010: fotos e assinatura da entrega, guardadas no aparelho até o servidor confirmar. Sem isto, o diálogo de entrega é o de sempre.
   attachments?: Pick<AttachmentService, 'add' | 'upload' | 'usage'> | null;
+  // Spec 012: trava física dos cilindros, para quem pode ver lacres (sem isto, o painel não aparece).
+  sealPanel?: React.ReactNode;
 }
 
 type Pending =
@@ -78,7 +82,7 @@ type Pending =
 
 type Performed = { ok: true; value: unknown; pending: { queueItemId: string } | null } | { ok: false; failure: TripFailure; text: ActionFailureText };
 
-export function TripDetailView({ organizationId, tripId, service, online, abilities, onSessionExpired, fieldService = null, attachments = null }: TripDetailViewProps): React.JSX.Element {
+export function TripDetailView({ organizationId, tripId, service, online, abilities, onSessionExpired, fieldService = null, attachments = null, sealPanel }: TripDetailViewProps): React.JSX.Element {
   const [detail, setDetail] = useState<TripDetail | null>(null);
   const [load, setLoad] = useState<Load>('loading');
   const [live, setLive] = useState('');
@@ -363,13 +367,14 @@ export function TripDetailView({ organizationId, tripId, service, online, abilit
         : <TripNotice variant="informacao">{failure.message}</TripNotice>)}
       {trip.status === 'cancelled' && trip.cancelReason && <TripNotice variant="alerta" title="Viagem cancelada">{trip.cancelReason}</TripNotice>}
       {trip.status === 'in_progress' && detail.items.some((item) => item.lockStatus === 'locked') && (
-        <TripNotice variant="informacao" title="Bloqueio lógico">O bloqueio registra a reserva dos cilindros. A trava do lacre será comandada e confirmada pelo dispositivo na Fase 6.</TripNotice>
+        <TripNotice variant="informacao" title="Bloqueio lógico">O bloqueio registra a reserva dos cilindros. A trava física de cada lacre aparece em "Trava física dos cilindros" e só muda com a confirmação do dispositivo.</TripNotice>
       )}
       {detail.warnings.length > 0 && (
         <TripNotice variant="alerta" title="Atenção">
           <ul role="list" className="flex flex-col gap-1">{detail.warnings.map((warning) => <li key={warning}>{WARNING_TEXT[warning]}</li>)}</ul>
         </TripNotice>
       )}
+      {sealPanel && trip.status !== 'planned' && trip.status !== 'loading' && sealPanel}
 
       {trip.status === 'loading' && (abilities.operate || abilities.exception) && (
         <LoadingPanel stops={activeStops} items={detail.items} canOperate={abilities.operate} canRemove={abilities.exception} online={online} queueable={queueable} busyKey={busyKey} highlighted={highlighted}
@@ -510,6 +515,7 @@ export function TripDetailPage(): React.JSX.Element {
   const offlineField = useOfflineField();
   const { permissions } = usePermissions();
   const { logout } = useAuth();
+  const seal = useSealService();
   const route = resolveTripRoute(window.location.pathname);
   const tripId = route?.kind === 'detail' ? route.id : '';
   const has = (code: string): boolean => permissions?.tenant.includes(code) ?? false;
@@ -521,7 +527,8 @@ export function TripDetailPage(): React.JSX.Element {
   return (
     <AccessGate permission="trip.read">
       <TripDetailView key={`${organizationId}:${tripId}`} organizationId={organizationId} tripId={tripId} service={service} online={online} abilities={abilities} onSessionExpired={() => void logout()} fieldService={fieldService}
-        attachments={abilities.operate ? offlineField?.attachments ?? null : null} />
+        attachments={abilities.operate ? offlineField?.attachments ?? null : null}
+        sealPanel={has('seal.read') ? <TripSealPanel service={seal.service} organizationId={seal.organizationId} tripId={tripId} online={seal.online} realtime={seal.realtime} /> : undefined} />
     </AccessGate>
   );
 }

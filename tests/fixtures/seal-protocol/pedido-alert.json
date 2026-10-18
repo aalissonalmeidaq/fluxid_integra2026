@@ -1,0 +1,14 @@
+{
+  "protocol": 1,
+  "firmware_version": "2.0.0",
+  "watch_version": 0,
+  "messages": [
+    {
+      "message_id": "01JA0000000000000000000004",
+      "type": "alert",
+      "read_at": "2026-10-17T14:06:00Z",
+      "code": "low_battery",
+      "value": 14
+    }
+  ]
+}

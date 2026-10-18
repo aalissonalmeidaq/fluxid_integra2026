@@ -18,6 +18,7 @@ const ORG_B = '20000000-0000-4000-8000-00000000000b';
 const CUSTOMER = '81000000-0000-4000-8000-00000000000a';
 const ADDRESS = { street: 'Praça da Sé', number: '100', city: 'São Paulo', state: 'SP', postal_code: '01001000' };
 const LOCATION = { latitude: -23.550453, longitude: -46.633911, display_name: 'Praça da Sé, São Paulo', precision: 'address' as const };
+const REVERSE_ADDRESS = { street: 'Praça da Sé', number: '100', district: 'Sé', city: 'São Paulo', state: 'SP', postal_code: '01001000', display_name: 'Praça da Sé, 100, São Paulo, SP' };
 const CONFIG: GeocodingConfig = { enabled: true, provider: 'nominatim', allowPersonalAddresses: false, requireConfirmation: true, ratePerSecond: 1, cacheTtlDays: 30 };
 
 type Gateway = GeocodeGateway & {
@@ -29,13 +30,18 @@ const gateway = (overrides: Partial<GeocodeGateway> = {}): Gateway => ({
   checkPermission: vi.fn(async () => 'OK' as const),
   takeToken: vi.fn(async () => true),
   findCustomer: vi.fn(async () => ({ personType: 'legal' as const, operable: true })),
+  findDevice: vi.fn(async () => 'OK' as const),
   readCache: vi.fn(async () => null),
   writeCache: vi.fn(async () => undefined),
   ...overrides,
 }) as never;
 
-type Provider = GeocodingProvider & { geocode: ReturnType<typeof vi.fn> };
-const provider = (impl: GeocodingProvider['geocode'] = async () => LOCATION, name = 'nominatim'): Provider => ({ name, geocode: vi.fn(impl) }) as never;
+type Provider = GeocodingProvider & { geocode: ReturnType<typeof vi.fn>; reverse: ReturnType<typeof vi.fn> };
+const provider = (
+  impl: GeocodingProvider['geocode'] = async () => LOCATION,
+  name = 'nominatim',
+  reverseImpl: GeocodingProvider['reverse'] = async () => REVERSE_ADDRESS,
+): Provider => ({ name, geocode: vi.fn(impl), reverse: vi.fn(reverseImpl) }) as never;
 
 const post = (body: unknown, token: string | undefined = 'jwt', method = 'POST') =>
   new Request('http://local/fn', {
@@ -72,6 +78,52 @@ describe('geocode-address: unidade comercial autorizada', () => {
     }));
     expect(Object.keys(prov.geocode.mock.calls[0]?.[0] as object).sort()).toEqual(['city', 'number', 'postal_code', 'state', 'street']);
     expect(JSON.stringify(prov.geocode.mock.calls[0]?.[0])).not.toMatch(/Hospital|11222333000181|CIL-9|Maria|João|portão/);
+  });
+
+  it('busca reversa envia somente latitude e longitude e devolve o endereço para revisão', async () => {
+    const prov = provider();
+    const response = await run(gateway(), prov, post({
+      organization_id: ORG, customer_id: CUSTOMER, consent_confirmed: true, operation: 'reverse', latitude: -23.550453, longitude: -46.633911,
+    }));
+    expect(response.status).toBe(200);
+    expect(await body(response)).toEqual({ code: 'FOUND', address: REVERSE_ADDRESS, cached: false });
+    expect(prov.reverse).toHaveBeenCalledWith({ latitude: -23.550453, longitude: -46.633911 }, expect.any(AbortSignal));
+    expect(prov.geocode).not.toHaveBeenCalled();
+  });
+
+  it('coordenadas inválidas não chegam ao provedor', async () => {
+    const prov = provider();
+    const response = await run(gateway(), prov, post({
+      organization_id: ORG, customer_id: CUSTOMER, consent_confirmed: true, operation: 'reverse', latitude: 91, longitude: -46.6,
+    }));
+    expect(response.status).toBe(400);
+    expect(await body(response)).toMatchObject({ code: 'COORDINATES_INVALID' });
+    expect(prov.reverse).not.toHaveBeenCalled();
+    expect(prov.geocode).not.toHaveBeenCalled();
+  });
+
+  it('posição de lacre exige seal.read e confirma que o dispositivo pertence à organização', async () => {
+    const prov = provider();
+    const gw = gateway();
+    const deviceId = 'a1400000-0000-4000-8000-0000000000a1';
+    const response = await run(gw, prov, post({
+      organization_id: ORG, device_id: deviceId, consent_confirmed: true, operation: 'reverse', latitude: -7.209194, longitude: -39.306367,
+    }));
+    expect(response.status).toBe(200);
+    expect(gw.checkPermission).toHaveBeenCalledWith(USER, SESSION, ORG, 'seal.read');
+    expect(gw.findDevice).toHaveBeenCalledWith(USER, SESSION, ORG, deviceId);
+    expect(prov.reverse).toHaveBeenCalledTimes(1);
+  });
+
+  it('lacre de outra organização não tem a posição enviada ao provedor', async () => {
+    const prov = provider();
+    const gw = gateway({ findDevice: vi.fn(async () => 'NOT_FOUND' as const) });
+    const response = await run(gw, prov, post({
+      organization_id: ORG, device_id: 'a1400000-0000-4000-8000-0000000000b2', consent_confirmed: true,
+      operation: 'reverse', latitude: -7.209194, longitude: -39.306367,
+    }));
+    expect(response.status).toBe(404);
+    expect(prov.reverse).not.toHaveBeenCalled();
   });
 });
 

@@ -25,6 +25,8 @@ const ICONS: Record<string, IconName> = {
   veiculos: 'caminhao',
   motoristas: 'rota',
   viagens: 'localizacao',
+  lacres: 'lacre',
+  alertas: 'alerta',
   perfil: 'usuario',
   membros: 'rede',
   papeis: 'escudo',

@@ -1,0 +1,394 @@
+# Registro do uso de inteligência artificial e validação humana
+
+**FluxID | RIA-032 | Lacre IoT, geocerca e trava**
+
+> Ponto de atenção: a IA apoia a equipe, mas a responsabilidade final é humana.
+
+## Registro da interação
+
+- Ferramenta de IA utilizada: Claude Code (Claude Opus 5.5), com trechos do Codex mantidos a pedido do responsável
+- Objetivo do uso: Implementar a Spec 012: lacre IoT por Wi-Fi com posição, saúde, alertas, trava física pela viagem e pela geocerca, redes Wi-Fi configuradas pelo sistema, notificações push e o firmware do ESP32-C3 na pasta firmware/.
+- Prompt utilizado, em síntese sanitizada: Fluxo Spec Kit da Spec 012 (clarify, plan, tasks, analyze, implement), pedidos de continuidade, validação em bancada com o lacre físico e geocercas desenhadas no mapa do lacre.
+- Resposta gerada pela IA: 15 migrations (seals_*), Edge Functions seal-gateway, seal-push, query-seals e manage-seals, telas Lacres, Alertas, bloco Lacre no cilindro, painel de trava na viagem, notificações no perfil, mapa com geocerca esperada e próximas, e firmware PlatformIO (ESP32-C3) com testes nativos e job de CI. Revisão: branch feat/012-lacre-iot-geocerca-trava (https://github.com/aalissonalmeidaq/fluxid/tree/feat/012-lacre-iot-geocerca-trava); trocar pelo link do pull request antes do merge.
+
+Link para validação da equipe: branch `feat/012-lacre-iot-geocerca-trava` (https://github.com/aalissonalmeidaq/fluxid/tree/feat/012-lacre-iot-geocerca-trava); pendência obrigatória: trocar pelo link do pull request antes do merge.
+- Análise crítica da equipe: Regras de domínio no banco (RLS e RPCs com isolamento por organização) e no núcleo do firmware, testadas fora do hardware. A bancada revelou cinco problemas reais (bateria sem divisor, hora sem internet, rede fora do alcance travando o laço, hotspot WPA3/Wi-Fi 6 invisível ao ESP32-C3 e AUTH_EXPIRE pela antena), todos corrigidos e cobertos por teste quando possível.
+- Validação humana realizada: Alisson Almeida validou em 18/10/2026, por 1 hora e 26 minutos, com o perfil administrador do Tenant A no Chrome e o lacre físico da bancada. Resultado: aprovado, sem itens a corrigir.
+- Decisão final: utilizado
+- Justificativa: o lacre enviou as posições e elas apareceram no sistema com a geocerca.
+- Fontes verificadas: firmware de origem `simaoBastos/fluxid-firmware` (commit 6af9529); lista de autoridades certificadoras do Mozilla publicada pelo curl (curl.se/ca/cacert.pem, 25/09/2026) para o pacote de certificados do lacre; documentação do arduino-esp32 2.0 (formato do pacote de certificados lido no próprio código do framework); cadeias TLS do Supabase conferidas com `openssl s_client`.
+- Identificador do registro: RIA-032
+- Data e hora da interação: 18/10/2026, 16:26:17 - America/Fortaleza
+
+## Rastreabilidade técnica do ciclo
+
+- Repositório: fluxid
+- Branch: feat/012-lacre-iot-geocerca-trava
+- Spec: 012
+- Ciclo: 01
+- Commit-base: c340227ebade88947c147314bd9da6beb937e7f4
+- Hash do diff funcional preparado: 56f742f6823e759c2408ef4d61b1e364349dad847edc5de166169f2f74b1e5fa
+- Arquivos e áreas afetadas:
+
+- `.env.example`
+- `.github/workflows/quality.yml`
+- `.gitignore`
+- `README.md`
+- `dev`
+- `docs/prd.md`
+- `docs/publicacao-em-nuvem.md`
+- `firmware/README.md`
+- `firmware/certificados/x509_crt_bundle.bin`
+- `firmware/docs/PINOUT.md`
+- `firmware/ferramentas/gerar_pacote_certificados.py`
+- `firmware/include/config.h`
+- `firmware/include/secrets.example.h`
+- `firmware/platformio.ini`
+- `firmware/src/ConexaoWiFi.cpp`
+- `firmware/src/ConexaoWiFi.h`
+- `firmware/src/Estado.cpp`
+- `firmware/src/Estado.h`
+- `firmware/src/GPS.cpp`
+- `firmware/src/GPS.h`
+- `firmware/src/LED.cpp`
+- `firmware/src/LED.h`
+- `firmware/src/Memoria.cpp`
+- `firmware/src/Memoria.h`
+- `firmware/src/Relogio.cpp`
+- `firmware/src/Relogio.h`
+- `firmware/src/Segredos.h`
+- `firmware/src/Sensores.cpp`
+- `firmware/src/Sensores.h`
+- `firmware/src/Solenoide.cpp`
+- `firmware/src/Solenoide.h`
+- `firmware/src/Transporte.cpp`
+- `firmware/src/Transporte.h`
+- `firmware/src/main.cpp`
+- `firmware/src/nucleo/Fila.cpp`
+- `firmware/src/nucleo/Fila.h`
+- `firmware/src/nucleo/Protocolo.cpp`
+- `firmware/src/nucleo/Protocolo.h`
+- `firmware/src/nucleo/Rede.cpp`
+- `firmware/src/nucleo/Rede.h`
+- `firmware/src/nucleo/Trava.cpp`
+- `firmware/src/nucleo/Trava.h`
+- `firmware/src/nucleo/Vigilancia.cpp`
+- `firmware/src/nucleo/Vigilancia.h`
+- `firmware/test/test_fila/test_fila.cpp`
+- `firmware/test/test_protocolo/test_protocolo.cpp`
+- `firmware/test/test_rede/test_rede.cpp`
+- `firmware/test/test_trava/test_trava.cpp`
+- `firmware/test/test_vigilancia/test_vigilancia.cpp`
+- `public/push-sw.js`
+- `scripts/lacre/simulador.mjs`
+- `specs/012-lacre-iot-geocerca-trava/baseline.md`
+- `specs/012-lacre-iot-geocerca-trava/checklists/requirements.md`
+- `specs/012-lacre-iot-geocerca-trava/contracts/mensagens-do-lacre.md`
+- `specs/012-lacre-iot-geocerca-trava/contracts/operacoes-servidor.md`
+- `specs/012-lacre-iot-geocerca-trava/contracts/permissoes-e-papeis.md`
+- `specs/012-lacre-iot-geocerca-trava/contracts/telas-e-rotas.md`
+- `specs/012-lacre-iot-geocerca-trava/contracts/verificacoes-automaticas.md`
+- `specs/012-lacre-iot-geocerca-trava/data-model.md`
+- `specs/012-lacre-iot-geocerca-trava/plan.md`
+- `specs/012-lacre-iot-geocerca-trava/quickstart.md`
+- `specs/012-lacre-iot-geocerca-trava/research.md`
+- `specs/012-lacre-iot-geocerca-trava/spec.md`
+- `specs/012-lacre-iot-geocerca-trava/tasks.md`
+- `specs/012-lacre-iot-geocerca-trava/validation.md`
+- `src/app/App.tsx`
+- `src/app/admin-routes.test.ts`
+- `src/app/pwa-config.test.ts`
+- `src/app/seals/seal-routes.test.ts`
+- `src/app/seals/seal-routes.ts`
+- `src/app/shell/navigation-menu.tsx`
+- `src/application/registry/geocoding-service.test.ts`
+- `src/application/registry/geocoding-service.ts`
+- `src/application/registry/registry-views.test.ts`
+- `src/application/registry/registry-views.ts`
+- `src/application/seals/push-subscription.test.ts`
+- `src/application/seals/push-subscription.ts`
+- `src/application/seals/seal-realtime.test.ts`
+- `src/application/seals/seal-realtime.ts`
+- `src/application/seals/seal-service.test.ts`
+- `src/application/seals/seal-service.ts`
+- `src/application/seals/seal-views.test.ts`
+- `src/application/seals/seal-views.ts`
+- `src/components/maps/map-types.ts`
+- `src/components/maps/map-view.css`
+- `src/components/maps/map-view.tsx`
+- `src/components/maps/osm-map.test.tsx`
+- `src/components/maps/osm-map.tsx`
+- `src/domain/navigation/screens.test.ts`
+- `src/domain/navigation/screens.ts`
+- `src/domain/seals/seal-abilities.test.ts`
+- `src/domain/seals/seal-abilities.ts`
+- `src/domain/seals/seal-age.test.ts`
+- `src/domain/seals/seal-age.ts`
+- `src/domain/seals/seal-geofence.test.ts`
+- `src/domain/seals/seal-geofence.ts`
+- `src/domain/seals/seal-limits.ts`
+- `src/domain/seals/seal-position-format.ts`
+- `src/domain/seals/seal-vocabulary.test.ts`
+- `src/domain/seals/seal-vocabulary.ts`
+- `src/domain/seals/wifi-network.test.ts`
+- `src/domain/seals/wifi-network.ts`
+- `src/infrastructure/push/push-manager.test.ts`
+- `src/infrastructure/push/push-manager.ts`
+- `src/infrastructure/supabase/seal-adapter.ts`
+- `src/infrastructure/supabase/seal-realtime-adapter.ts`
+- `src/pages/alerts/alert-detail-page.test.tsx`
+- `src/pages/alerts/alert-detail-page.tsx`
+- `src/pages/alerts/alerts-page.test.tsx`
+- `src/pages/alerts/alerts-page.tsx`
+- `src/pages/cylinders/components/cylinder-seal-block.test.tsx`
+- `src/pages/cylinders/components/cylinder-seal-block.tsx`
+- `src/pages/cylinders/components/cylinder-watch-panel.test.tsx`
+- `src/pages/cylinders/components/cylinder-watch-panel.tsx`
+- `src/pages/cylinders/components/reason-dialog.tsx`
+- `src/pages/cylinders/cylinder-detail-page.tsx`
+- `src/pages/overview/blocks/alerts-block.tsx`
+- `src/pages/overview/overview-page.test.tsx`
+- `src/pages/profile/profile-page.tsx`
+- `src/pages/profile/push-settings.test.tsx`
+- `src/pages/profile/push-settings.tsx`
+- `src/pages/registry/components/coordinates-field.test.tsx`
+- `src/pages/registry/components/coordinates-field.tsx`
+- `src/pages/registry/components/geofence-preview.test.tsx`
+- `src/pages/registry/components/geofence-preview.tsx`
+- `src/pages/registry/customers/site-form-page.tsx`
+- `src/pages/registry/geofences/geofence-detail-page.test.tsx`
+- `src/pages/registry/geofences/geofence-detail-page.tsx`
+- `src/pages/registry/geofences/geofence-form-page.test.tsx`
+- `src/pages/registry/geofences/geofence-form-page.tsx`
+- `src/pages/registry/registry-lifecycle-pages.test.tsx`
+- `src/pages/seals/components/bind-seal-dialog.tsx`
+- `src/pages/seals/components/device-dialogs.test.tsx`
+- `src/pages/seals/components/device-form-dialog.tsx`
+- `src/pages/seals/components/device-key-reveal.tsx`
+- `src/pages/seals/components/lock-command-dialog.test.tsx`
+- `src/pages/seals/components/lock-command-dialog.tsx`
+- `src/pages/seals/components/seal-badge.tsx`
+- `src/pages/seals/components/seal-position-history.tsx`
+- `src/pages/seals/components/seal-position-map.test.tsx`
+- `src/pages/seals/components/seal-position-map.tsx`
+- `src/pages/seals/components/wifi-networks-panel.test.tsx`
+- `src/pages/seals/components/wifi-networks-panel.tsx`
+- `src/pages/seals/seal-detail-page.test.tsx`
+- `src/pages/seals/seal-detail-page.tsx`
+- `src/pages/seals/seal-list-page.test.tsx`
+- `src/pages/seals/seal-list-page.tsx`
+- `src/pages/seals/seals-area.tsx`
+- `src/pages/seals/use-seal-service.ts`
+- `src/pages/trips/components/delivery-unlock-notice.test.tsx`
+- `src/pages/trips/components/delivery-unlock-notice.tsx`
+- `src/pages/trips/components/trip-seal-panel.test.tsx`
+- `src/pages/trips/components/trip-seal-panel.tsx`
+- `src/pages/trips/components/unlock-dialog.test.tsx`
+- `src/pages/trips/components/unlock-dialog.tsx`
+- `src/pages/trips/trip-detail-page.test.tsx`
+- `src/pages/trips/trip-detail-page.tsx`
+- `supabase/config.toml`
+- `supabase/functions/_shared/operations.ts`
+- `supabase/functions/_shared/seal-protocol.ts`
+- `supabase/functions/geocode-address/address-cache.ts`
+- `supabase/functions/geocode-address/handler.ts`
+- `supabase/functions/geocode-address/index.ts`
+- `supabase/functions/geocode-address/nominatim-provider.ts`
+- `supabase/functions/geocode-address/provider.ts`
+- `supabase/functions/manage-seals/deno.json`
+- `supabase/functions/manage-seals/handler.ts`
+- `supabase/functions/manage-seals/index.ts`
+- `supabase/functions/query-seals/deno.json`
+- `supabase/functions/query-seals/handler.ts`
+- `supabase/functions/query-seals/index.ts`
+- `supabase/functions/seal-gateway/deno.json`
+- `supabase/functions/seal-gateway/handler.ts`
+- `supabase/functions/seal-gateway/index.ts`
+- `supabase/functions/seal-push/deno.json`
+- `supabase/functions/seal-push/handler.ts`
+- `supabase/functions/seal-push/index.ts`
+- `supabase/migrations/20261007120500_registry_geofences.sql`
+- `supabase/migrations/20261018100000_seals_schema.sql`
+- `supabase/migrations/20261018100100_seals_permissions.sql`
+- `supabase/migrations/20261018100200_seals_ingest.sql`
+- `supabase/migrations/20261018100250_seals_realtime.sql`
+- `supabase/migrations/20261018100300_seals_read.sql`
+- `supabase/migrations/20261018100400_seals_watchdog.sql`
+- `supabase/migrations/20261018100500_seals_alerts.sql`
+- `supabase/migrations/20261018100600_seals_push.sql`
+- `supabase/migrations/20261018100700_seals_commands.sql`
+- `supabase/migrations/20261018100800_seals_trip_lock.sql`
+- `supabase/migrations/20261018100900_seals_delivery_unlock.sql`
+- `supabase/migrations/20261018101000_seals_geofence_watch.sql`
+- `supabase/migrations/20261018101100_seals_devices_binding.sql`
+- `supabase/migrations/20261018101200_seals_wifi.sql`
+- `supabase/migrations/20261018101300_seals_geofence_view.sql`
+- `supabase/tests/002_rbac_invariants.test.sql`
+- `supabase/tests/002_rbac_rls.test.sql`
+- `supabase/tests/012_alerts.test.sql`
+- `supabase/tests/012_auto_lock.test.sql`
+- `supabase/tests/012_binding.test.sql`
+- `supabase/tests/012_command_lifecycle.test.sql`
+- `supabase/tests/012_constraints.test.sql`
+- `supabase/tests/012_delivery_unlock.test.sql`
+- `supabase/tests/012_device_auth.test.sql`
+- `supabase/tests/012_geofence_watch.test.sql`
+- `supabase/tests/012_ingest_batch.test.sql`
+- `supabase/tests/012_ingest_dedupe.test.sql`
+- `supabase/tests/012_limits_contract.test.sql`
+- `supabase/tests/012_no_delete.test.sql`
+- `supabase/tests/012_permissions.test.sql`
+- `supabase/tests/012_push_outbox.test.sql`
+- `supabase/tests/012_rate_limit.test.sql`
+- `supabase/tests/012_read.test.sql`
+- `supabase/tests/012_rls.test.sql`
+- `supabase/tests/012_seal_geofence_view.test.sql`
+- `supabase/tests/012_trip_lock.test.sql`
+- `supabase/tests/012_watchdog.test.sql`
+- `supabase/tests/012_wifi_commands.test.sql`
+- `tests/contract/firmware-sem-segredos.test.ts`
+- `tests/contract/geocode-address-handler.test.ts`
+- `tests/contract/manage-seals-handler.test.ts`
+- `tests/contract/nominatim-provider.test.ts`
+- `tests/contract/operations-seal-codes.test.ts`
+- `tests/contract/query-seals-handler.test.ts`
+- `tests/contract/seal-gateway-handler.test.ts`
+- `tests/contract/seal-protocol.test.ts`
+- `tests/contract/seal-push-handler.test.ts`
+- `tests/contract/seals-limits.test.ts`
+- `tests/contract/seals-no-secrets-in-logs.test.ts`
+- `tests/e2e/lacres-acompanhamento.spec.ts`
+- `tests/e2e/lacres-alertas.spec.ts`
+- `tests/e2e/lacres-cadastro.spec.ts`
+- `tests/e2e/registro-geocercas.spec.ts`
+- `tests/e2e/support/mock-backend.ts`
+- `tests/e2e/support/mock-seals-operacoes.ts`
+- `tests/e2e/support/mock-seals.ts`
+- `tests/e2e/viagens-carregamento.spec.ts`
+- `tests/e2e/viagens-desbloqueio.spec.ts`
+- `tests/e2e/visao-geral.spec.ts`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-erro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-fora-da-cerca-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-fora-da-cerca-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-lida-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-lida-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-precisao-ruim-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-precisao-ruim-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-vazia-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-vazia-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alerta-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alerta-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alerta-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alertas-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alertas-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alertas-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-bloco-cilindro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-bloco-cilindro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-bloco-cilindro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-dialogo-rede-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-dialogo-rede-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-dialogo-rede-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-lista-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-carregando-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-conflito-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-desbloqueio-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-desbloqueio-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-desbloqueio-768-visual-chromium-linux.png`
+- `tests/e2e/visual/visao-geral.visual.spec.ts-snapshots/visao-geral-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/visao-geral.visual.spec.ts-snapshots/visao-geral-principal-768-visual-chromium-linux.png`
+- `tests/fixtures/seal-protocol/erro-400-protocolo.json`
+- `tests/fixtures/seal-protocol/erro-400.json`
+- `tests/fixtures/seal-protocol/erro-401.json`
+- `tests/fixtures/seal-protocol/erro-429.json`
+- `tests/fixtures/seal-protocol/erro-503.json`
+- `tests/fixtures/seal-protocol/pedido-activation.json`
+- `tests/fixtures/seal-protocol/pedido-alert.json`
+- `tests/fixtures/seal-protocol/pedido-auto-lock.json`
+- `tests/fixtures/seal-protocol/pedido-command-result-erro.json`
+- `tests/fixtures/seal-protocol/pedido-command-result.json`
+- `tests/fixtures/seal-protocol/pedido-event.json`
+- `tests/fixtures/seal-protocol/pedido-lote.json`
+- `tests/fixtures/seal-protocol/pedido-network-change.json`
+- `tests/fixtures/seal-protocol/pedido-position-sem-gps.json`
+- `tests/fixtures/seal-protocol/pedido-position.json`
+- `tests/fixtures/seal-protocol/pedido-shutdown.json`
+- `tests/fixtures/seal-protocol/resposta-200-recusada.json`
+- `tests/fixtures/seal-protocol/resposta-200-repetida.json`
+- `tests/fixtures/seal-protocol/resposta-200-sem-comando.json`
+- `tests/fixtures/seal-protocol/resposta-200-trava.json`
+- `tests/fixtures/seal-protocol/resposta-200-vigilancia-sem-cercas.json`
+- `tests/fixtures/seal-protocol/resposta-200-vigilancia.json`
+- `tests/fixtures/seal-protocol/resposta-200-wifi-add.json`
+- `tests/fixtures/seal-protocol/resposta-200-wifi-remove.json`
+- `tests/fixtures/seal-protocol/resposta-200-wifi-reset.json`
+- `tests/integration/navigation-permissions.live.test.ts`
+- `tests/integration/seals-delivery-unlock.live.test.ts`
+- `tests/integration/seals-geofence.live.test.ts`
+- `tests/integration/seals-health.live.test.ts`
+- `tests/integration/seals-ingest.live.test.ts`
+- `tests/integration/seals-trip-lock.live.test.ts`
+- `tests/integration/seals-wifi.live.test.ts`
+- `tests/support/seal-db.ts`
+- `tests/support/seal-simulator.test.ts`
+- `tests/support/seal-simulator.ts`
+- `tests/support/sql/seals-fixtures.sql`
+- `vite.config.ts`
+
+## Testes e evidências
+
+- Comando(s): npm run lint; npm run typecheck; npm run test:coverage; npx supabase db reset; npx supabase test db; npm run test:live; npm run build; npm run test:e2e; npm run test:visual:atualizar; pio test -e native; pio run -e esp32c3
+- Resultado: aprovado. Cobertura: 391 arquivos e 5753 testes (instruções 90,21%, ramos 85,11%); pgTAP: 115 arquivos e 3019 testes; live: 143 testes; E2E: 1916 aprovados; das 5 falhas da primeira rodada, 2 eram instáveis e passaram na repetição, e 3 vinham de um teste desatualizado, corrigido e aprovado (27 de 27); capturas: 279 no Linux; firmware: 57 testes nativos e build.
+- Evidência: specs/012-lacre-iot-geocerca-trava/validation.md
+
+## Decisões e dados pendentes
+
+Trocar o link de revisão pelo do pull request; trava pela solenoide e HTTPS na nuvem com o lacre físico (T115, parte 2); publicação no Supabase da nuvem depois do merge (T121); medições com cronômetro do quickstart (T122); DOCX do RIA depois do merge.
+
+## Validação humana
+
+- Responsável pela revisão da equipe: Alisson Almeida
+- Data da validação humana: 18/10/2026
+- Amostra validada: perfil administrador do Tenant A.
+- Ambiente da validação: Chrome e o lacre da bancada para testes.
+- Duração da validação: 1 hora e 26 minutos.
+- Resultado da validação humana: aprovado.
+- Itens a corrigir apontados pela pessoa responsável: nenhum.
+- Confirmação do responsável: sim, confirmado por Alisson Almeida em 18/10/2026.
+- Observações: O botão Descobrir endereço (trecho do Codex) envia as coordenadas do lacre ao serviço de geocodificação só com clique explícito e permissão seal.read.
+
+## Regras de preenchimento
+
+- A validação humana é obrigatória para encerrar a spec. As respostas da seção acima vêm da pessoa responsável, em entrevista conduzida pelo agente de IA, e nunca são inventadas nem presumidas.
+- Registrar apenas interações relevantes para o projeto.
+- Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
+- Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
+- Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
+- Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
+- Evitar dados pessoais, sigilosos ou sensíveis.
+- Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
+
+## Checklist final
+
+- [x] Ferramentas de IA identificadas.
+- [x] Prompts relevantes registrados por síntese sanitizada.
+- [x] Respostas ou resultados documentados.
+- [x] Texto revisado para soar natural, claro e autêntico, sem alterar o sentido original.
+- [x] Quando houve geração de código, a resposta contém resumo e link para o repositório, branch ou, preferencialmente, pull request.
+- [x] Validação humana explicada.
+- [x] Fontes verificadas quando necessário.
+- [x] Decisão ou pendência registrada.
+- [x] O registro não contém segredos, credenciais ou tokens.
+- [x] Dados pessoais foram removidos ou minimizados.

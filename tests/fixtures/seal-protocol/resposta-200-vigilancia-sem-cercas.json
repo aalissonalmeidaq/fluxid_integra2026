@@ -1,0 +1,15 @@
+{
+  "server_time": "2026-10-17T14:04:01Z",
+  "results": [
+    {
+      "message_id": "01JA0000000000000000000002",
+      "status": "stored"
+    }
+  ],
+  "command": null,
+  "watch": {
+    "active": true,
+    "version": 4
+  },
+  "report_interval_s": 60
+}

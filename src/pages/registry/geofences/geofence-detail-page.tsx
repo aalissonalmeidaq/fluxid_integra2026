@@ -9,7 +9,7 @@ import { AccessGate } from '@/pages/cylinders/components/access-gate';
 import { DetailBlock, secondaryLinkClass } from '../components/detail-list';
 import { LifecycleActions } from '../components/lifecycle-actions';
 import { RegistryHistory } from '../components/registry-history';
-import { GeofencePreview } from '../components/geofence-preview';
+import { OsmMap } from '@/components/maps/osm-map';
 import { PointTester } from '../components/point-tester';
 import { EntityStatusBadge } from '../components/status-badge';
 import { useRegistryService } from '../use-registry-service';
@@ -66,6 +66,10 @@ export function GeofenceDetailView({ organizationId, service, online, geofenceId
       { label: 'Raio', value: geofence.radiusM === null ? '' : `${geofence.radiusM} metros` },
     ]
     : [{ label: 'Vértices', value: `${geofence.vertices.length}` }];
+  const mapPoint = geofence.center ?? (geofence.vertices.length > 0 ? {
+    lat: geofence.vertices.reduce((sum, point) => sum + point.lat, 0) / geofence.vertices.length,
+    lng: geofence.vertices.reduce((sum, point) => sum + point.lng, 0) / geofence.vertices.length,
+  } : null);
 
   return (
     <section aria-labelledby="geofence-title" className="flex flex-col gap-6">
@@ -104,6 +108,7 @@ export function GeofenceDetailView({ organizationId, service, online, geofenceId
         rows={[
           { label: 'Unidade', value: <a className="font-semibold text-azul-profundo underline" href={`/clientes/${geofence.customerId}/unidades/${geofence.siteId}`}>{geofence.siteName}</a> },
           { label: 'Cliente', value: <a className="font-semibold text-azul-profundo underline" href={`/clientes/${geofence.customerId}`}>{geofence.customerName}</a> },
+          { label: 'Endereço da unidade', value: geofence.siteAddress },
           ...shapeRows,
           { label: 'Área aproximada', value: geofence.areaM2 === null ? '' : `${geofence.areaM2.toLocaleString('pt-BR')} m²` },
         ]}
@@ -111,8 +116,14 @@ export function GeofenceDetailView({ organizationId, service, online, geofenceId
 
       <Card>
         <section aria-labelledby="geofence-preview-title" className="flex flex-col gap-4">
-          <h3 id="geofence-preview-title" className="text-h3 font-semibold text-navy">Forma</h3>
-          <GeofencePreview value={geofence.shape === 'circle' ? { shape: 'circle', center: geofence.center, radiusM: geofence.radiusM } : { shape: 'polygon', vertices: geofence.vertices }} />
+          <h3 id="geofence-preview-title" className="text-h3 font-semibold text-navy">Localização da geocerca</h3>
+          {mapPoint && <OsmMap title={`Mapa da geocerca ${geofence.name}`} label={geofence.name}
+            details={[geofence.siteName, geofence.customerName, geofence.siteAddress]}
+            latitude={mapPoint.lat} longitude={mapPoint.lng}
+            shape={geofence.shape === 'circle' && geofence.center && geofence.radiusM !== null
+              ? { kind: 'circle', center: { latitude: geofence.center.lat, longitude: geofence.center.lng }, radiusM: geofence.radiusM }
+              : { kind: 'polygon', vertices: geofence.vertices.map((vertex) => ({ latitude: vertex.lat, longitude: vertex.lng })) }}
+            caption={`${geofence.siteName} · ${geofence.siteAddress}`} className="w-full max-w-compacto" />}
         </section>
       </Card>
 

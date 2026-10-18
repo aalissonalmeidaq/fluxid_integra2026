@@ -1,0 +1,21 @@
+{
+  "protocol": 1,
+  "firmware_version": "2.0.0",
+  "watch_version": 0,
+  "messages": [
+    {
+      "message_id": "01JA0000000000000000000009",
+      "type": "network_change",
+      "read_at": "2026-10-17T14:09:00Z",
+      "wifi": {
+        "ssid": "Rede-Padrao-Ficticia",
+        "kind": "default",
+        "rssi": -70
+      },
+      "saved": [
+        "Rede-Ficticia-01",
+        "Rede-Ficticia-02"
+      ]
+    }
+  ]
+}

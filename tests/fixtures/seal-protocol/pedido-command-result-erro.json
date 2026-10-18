@@ -1,0 +1,15 @@
+{
+  "protocol": 1,
+  "firmware_version": "2.0.0",
+  "watch_version": 0,
+  "messages": [
+    {
+      "message_id": "01JA0000000000000000000006",
+      "type": "command_result",
+      "read_at": "2026-10-17T14:08:00Z",
+      "command_id": "6c1f0000-0000-4000-8000-000000000002",
+      "result": "error",
+      "reason": "wifi_auth"
+    }
+  ]
+}

@@ -20,6 +20,10 @@ import { IdentifierList } from './components/identifier-list';
 import { ReasonDialog } from './components/reason-dialog';
 import { ReadCylinderControl } from '@/pages/field/read-cylinder-control';
 import { CustodyInfo } from './components/custody-info';
+import { CylinderSealBlock } from './components/cylinder-seal-block';
+import { useSealService } from '@/pages/seals/use-seal-service';
+import { MfaPage } from '@/pages/auth/mfa-page';
+import { useAuth } from '@/app/auth/auth-context';
 import { IdentifierWarning, StatusBadges } from './components/status-badges';
 import { typeLabel } from './type-label';
 import { useCylinderService } from './use-cylinder-service';
@@ -38,6 +42,8 @@ export interface CylinderDetailViewProps {
   tripService?: TripService | null;
   // Ações extras do cabeçalho (o "Ler cilindro" da Spec 009).
   extraActions?: React.ReactNode;
+  // Bloco "Lacre" (Spec 012), só para quem pode ver lacres.
+  sealBlock?: (serialNumber: string) => React.ReactNode;
 }
 
 type Load = 'loading' | 'ready' | 'not_found' | 'error';
@@ -85,7 +91,7 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-export function CylinderDetailView({ organizationId, service, online, cylinderId, can, tripService = null, extraActions }: CylinderDetailViewProps): React.JSX.Element {
+export function CylinderDetailView({ organizationId, service, online, cylinderId, can, tripService = null, extraActions, sealBlock }: CylinderDetailViewProps): React.JSX.Element {
   const [detail, setDetail] = useState<CylinderDetail | null>(null);
   const [load, setLoad] = useState<Load>('loading');
   const [testForm, setTestForm] = useState<{ mode: 'register' } | { mode: 'rectify'; test: TestView } | null>(null);
@@ -222,6 +228,8 @@ export function CylinderDetailView({ organizationId, service, online, cylinderId
               <Fact label="Observações">{cylinder.notes ?? '—'}</Fact>
             </dl>
           </Block>
+
+          {sealBlock?.(cylinder.serialNumber)}
 
           <Block id="cyl-ids-title" title="Identificadores">
             <IdentifierWarning activeCount={activeIdentifiers} />
@@ -385,6 +393,8 @@ export function CylinderDetailView({ organizationId, service, online, cylinderId
 export function CylinderDetailPage({ cylinderId }: { cylinderId: string }): React.JSX.Element {
   const { service, organizationId, online } = useCylinderService();
   const { service: tripService } = useTripService();
+  const seal = useSealService();
+  const auth = useAuth();
   const { permissions } = usePermissions();
   const has = (code: string): boolean => permissions?.tenant.includes(code) ?? false;
   return (
@@ -397,6 +407,10 @@ export function CylinderDetailPage({ cylinderId }: { cylinderId: string }): Reac
         cylinderId={cylinderId}
         tripService={tripService}
         extraActions={<ReadCylinderControl />}
+        sealBlock={has('seal.read') ? (serialNumber) => (
+          <CylinderSealBlock organizationId={seal.organizationId} cylinderId={cylinderId} serialNumber={serialNumber} service={seal.service} online={seal.online} realtime={seal.realtime}
+            permissions={permissions?.tenant ?? []} hasSecondFactor={auth.state.status === 'authenticated' && auth.state.aal === 'aal2'} secondFactor={<MfaPage />} />
+        ) : undefined}
         can={{ write: has('cylinder.write'), deactivate: has('cylinder.deactivate'), identifier: has('cylinder.identifier'), test: has('cylinder.test'), history: has('cylinder.history'), trips: has('trip.read') }}
       />
     </AccessGate>

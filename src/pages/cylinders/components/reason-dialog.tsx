@@ -18,11 +18,13 @@ export interface ReasonDialogProps {
   onConfirm: (justification: string, form: FormData) => void;
   // Campos extras (motivo, cilindro de destino), com `name` para chegarem em `FormData`.
   children?: React.ReactNode;
+  // Rótulo do campo de texto (padrão "Justificativa"; o encerramento de alerta da Spec 012 usa "Observação").
+  fieldLabel?: string;
 }
 
 // Diálogo modal acessível para ações que exigem justificativa: inativar, reativar, desativar e transferir identificador
 // (spec, requisitos de acessibilidade). Usa o Dialog do design system e a regra de justificativa do domínio de cilindros.
-export function ReasonDialog({ title, confirmLabel, description, busy = false, error = null, returnFocusTo, onCancel, onConfirm, children }: ReasonDialogProps): React.JSX.Element {
+export function ReasonDialog({ title, confirmLabel, description, busy = false, error = null, returnFocusTo, onCancel, onConfirm, children, fieldLabel = 'Justificativa' }: ReasonDialogProps): React.JSX.Element {
   const formId = useId();
   const justificationRef = useRef<HTMLTextAreaElement>(null);
   const [fieldError, setFieldError] = useState<string | undefined>();
@@ -58,7 +60,7 @@ export function ReasonDialog({ title, confirmLabel, description, busy = false, e
         <p className="text-corpo">{description ?? 'A ação fica registrada no histórico do cilindro e na auditoria.'}</p>
         {children}
         {error && <Alert variant="erro">{error}</Alert>}
-        <Field label="Justificativa" error={fieldError}>
+        <Field label={fieldLabel} error={fieldError}>
           {(control) => <textarea ref={justificationRef} name="justification" rows={3} maxLength={JUSTIFICATION_MAX} {...control} className={textareaClass} />}
         </Field>
       </form>

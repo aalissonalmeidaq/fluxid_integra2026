@@ -140,7 +140,9 @@ describe('geocercas', () => {
   });
 
   it('o detalhe traz centro, raio, área e vértices', () => {
-    expect(toGeofenceDetail({ code: 'FOUND', geofence })).toMatchObject({ center: { lat: 1, lng: 2 }, radiusM: 100, areaM2: 31415, vertices: [], siteStatus: 'active' });
+    expect(toGeofenceDetail({ code: 'FOUND', geofence: { ...geofence, site_address: 'Praça da Sé, 10 · São Paulo/SP' } })).toMatchObject({
+      center: { lat: 1, lng: 2 }, radiusM: 100, areaM2: 31415, vertices: [], siteStatus: 'active', siteAddress: 'Praça da Sé, 10 · São Paulo/SP',
+    });
     const polygon = toGeofenceDetail({ code: 'FOUND', geofence: { ...geofence, shape: 'polygon', center: null, radius_m: null, vertices: [{ lat: 1, lng: 2 }, { lat: 3, lng: 4 }, { lat: 5, lng: 6 }], site_status: 'inactive' } });
     expect(polygon).toMatchObject({ center: null, radiusM: null, siteStatus: 'inactive' });
     expect(polygon?.vertices).toHaveLength(3);

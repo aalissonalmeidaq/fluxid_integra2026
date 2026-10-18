@@ -55,6 +55,8 @@
 
 | RIA-031 | 16/10/2026, 15:39:34 - America/Fortaleza | 011 | 01 | Landing page institucional do FluxID | `registros/RIA-031-landing-page-institucional-do-fluxid.md` | Utilizado |
 
+| RIA-032 | 18/10/2026, 16:26:17 - America/Fortaleza | 012 | 01 | Lacre IoT, geocerca e trava | `registros/RIA-032-lacre-iot-geocerca-e-trava.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

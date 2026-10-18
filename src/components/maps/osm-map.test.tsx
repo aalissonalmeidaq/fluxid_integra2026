@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { OsmMap, PointsMap } from './osm-map';
+import { OsmMap, PointsMap, ShapeMap } from './osm-map';
 
 describe('OsmMap (um ponto)', () => {
   afterEach(() => vi.restoreAllMocks());
@@ -22,6 +22,48 @@ describe('OsmMap (um ponto)', () => {
     expect(container.querySelector('img.leaflet-marker-icon')).toBeNull();
   });
 
+  it('desenha a área circular da geocerca e enquadra todo o seu limite', async () => {
+    const fitBounds = vi.spyOn(L.Map.prototype, 'fitBounds');
+    const { container } = render(<OsmMap title="Geocerca do pátio" latitude={-23.55} longitude={-46.63}
+      shape={{ kind: 'circle', center: { latitude: -23.55, longitude: -46.63 }, radiusM: 200 }} />);
+    await waitFor(() => expect(container.querySelector('.fluxid-map-geofence')).not.toBeNull());
+    expect(fitBounds).toHaveBeenCalled();
+  });
+
+  it('desenha no mapa o perímetro poligonal informado', async () => {
+    const { container } = render(<OsmMap title="Geocerca do pátio" latitude={-23.55} longitude={-46.63}
+      shape={{ kind: 'polygon', vertices: [
+        { latitude: -23.55, longitude: -46.63 },
+        { latitude: -23.551, longitude: -46.631 },
+        { latitude: -23.552, longitude: -46.629 },
+      ] }} />);
+    await waitFor(() => expect(container.querySelector('.fluxid-map-geofence')).not.toBeNull());
+    expect(container.querySelector('path.fluxid-map-geofence')).not.toBeNull();
+  });
+
+  it('várias geocercas: a esperada em destaque, as próximas discretas, e o ponto entra no enquadramento', async () => {
+    const fitBounds = vi.spyOn(L.Map.prototype, 'fitBounds');
+    const { container } = render(<OsmMap title="Lacre e geocercas" latitude={-7.2583} longitude={-39.3097} shapes={[
+      { kind: 'circle', center: { latitude: -7.2583, longitude: -39.3097 }, radiusM: 150, emphasis: 'destaque', label: 'Bancada' },
+      { kind: 'circle', center: { latitude: -7.25, longitude: -39.30 }, radiusM: 100, emphasis: 'discreta', label: 'Depósito' },
+    ]} />);
+    await waitFor(() => expect(container.querySelectorAll('.fluxid-map-geofence')).toHaveLength(2));
+    expect(container.querySelector('.fluxid-map-geofence--destaque')).not.toBeNull();
+    expect(container.querySelector('.fluxid-map-geofence--discreta')).not.toBeNull();
+    const bounds = fitBounds.mock.calls.at(-1)?.[0] as L.LatLngBounds;
+    expect(bounds.contains(L.latLng(-7.2583, -39.3097))).toBe(true);
+  });
+
+  it('o ponto fora da geocerca continua no quadro (o mapa enquadra os dois)', async () => {
+    const fitBounds = vi.spyOn(L.Map.prototype, 'fitBounds');
+    render(<OsmMap title="Lacre longe" latitude={-7.2583} longitude={-39.3097}
+      shape={{ kind: 'circle', center: { latitude: -23.55, longitude: -46.63 }, radiusM: 100 }} />);
+    await waitFor(() => expect(fitBounds).toHaveBeenCalled());
+    const bounds = fitBounds.mock.calls.at(-1)?.[0] as L.LatLngBounds;
+    expect(bounds.contains(L.latLng(-7.2583, -39.3097))).toBe(true);
+    expect(bounds.contains(L.latLng(-23.55, -46.63))).toBe(true);
+  });
+
   it('sem conexão troca o mapa por um aviso e mantém as coordenadas em texto', () => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
     render(<OsmMap title="Localização da unidade" latitude={-23.55} longitude={-46.63} />);
@@ -33,6 +75,19 @@ describe('OsmMap (um ponto)', () => {
   it('coordenadas fora do intervalo não montam o mapa', () => {
     const { container } = render(<OsmMap title="Localização" latitude={120} longitude={0} />);
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe('ShapeMap (geometria sem marcador artificial)', () => {
+  it('desenha a geocerca, mantém a descrição textual e oferece o mapa completo', async () => {
+    const { container } = render(<ShapeMap title="Mapa da geocerca" focus={{ latitude: -23.55, longitude: -46.63 }}
+      shape={{ kind: 'circle', center: { latitude: -23.55, longitude: -46.63 }, radiusM: 200 }}
+      caption="Círculo de 200 metros de raio." />);
+    expect(await screen.findByRole('group', { name: 'Mapa da geocerca' })).toBeInTheDocument();
+    await waitFor(() => expect(container.querySelector('.fluxid-map-geofence')).not.toBeNull());
+    expect(container.querySelector('.fluxid-map-point')).toBeNull();
+    expect(screen.getByText('Círculo de 200 metros de raio.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Abrir no OpenStreetMap' })).toHaveAttribute('target', '_blank');
   });
 });
 

@@ -59,11 +59,39 @@ gh run watch
 
 Depois da publicação, confirme sem credenciais: `GET <url>/functions/v1/public-compatibility` deve responder 200 com a versão do contrato.
 
+### Lacres IoT (Spec 012)
+
+As migrations dos lacres habilitam `pg_net`, `supabase_vault` e `pg_cron` e agendam o job `fluxid-seal-watchdog` (a cada minuto). Depois do `db push` e do `functions deploy`:
+
+1. **Segredos das funções.** Gere o par VAPID uma vez e guarde a chave privada só no Supabase. O sal do endereço de origem é obrigatório na nuvem:
+
+   ```bash
+   node -e "const c=require('node:crypto');const j=c.generateKeyPairSync('ec',{namedCurve:'P-256'}).privateKey.export({format:'jwk'});console.log('VAPID_PUBLIC_KEY='+Buffer.concat([Buffer.from([4]),Buffer.from(j.x,'base64url'),Buffer.from(j.y,'base64url')]).toString('base64url'));console.log('VAPID_PRIVATE_KEY='+j.d)" > vapid.env
+   npx supabase secrets set --env-file vapid.env --project-ref <ref-do-projeto>
+   npx supabase secrets set VAPID_SUBJECT="mailto:<contato-da-equipe>" SEAL_SOURCE_SALT="$(node -e "console.log(require('crypto').randomBytes(24).toString('hex'))")" --project-ref <ref-do-projeto>
+   grep VAPID_PUBLIC_KEY vapid.env   # a pública vai para a Vercel como VITE_VAPID_PUBLIC_KEY
+   rm vapid.env
+   ```
+
+2. **Endereço da função `seal-push` no Vault.** A migration grava o endereço local; na nuvem, troque no SQL Editor do projeto:
+
+   ```sql
+   select vault.update_secret((select id from vault.secrets where name = 'seal_push_url'), 'https://<ref-do-projeto>.supabase.co/functions/v1/seal-push');
+   ```
+
+   O `seal_push_secret` é gerado pela própria migration e nunca sai do banco: o banco o envia à função a cada chamada e confere na volta.
+
+3. **Conferência.** No SQL Editor: `select jobname, schedule, active from cron.job;` mostra `fluxid-seal-watchdog` ativo; `select name from vault.secrets where name like 'seal_push_%';` mostra os dois segredos. Na tela Meu perfil, ative as notificações neste aparelho e provoque um alerta de teste (por exemplo, desligar um lacre simulado sob vigilância) para ver a notificação chegar.
+
+4. **Consumo (RNF-004).** Cada lacre faz 1 chamada por minuto ao `seal-gateway`: cerca de 43 200 invocações por mês por lacre. No plano gratuito (500 000 invocações de função por mês), isso cobre uns 10 lacres ligados o mês inteiro, sem contar as telas. Para mais lacres, aumente o intervalo de envio no cadastro ou mude de plano. O `seal-push` só é chamado quando há notificação a enviar.
+
+As funções `seal-gateway` e `seal-push` são publicadas sem verificação de JWT (`verify_jwt = false` no `supabase/config.toml`): o lacre se identifica pela chave do dispositivo, e o `seal-push` pelo segredo do Vault.
+
 ## Vercel (frontend)
 
 A Vercel hospeda apenas o frontend (build estático do Vite). O backend continua no Supabase.
 
-- Configure no projeto da Vercel somente variáveis públicas: `VITE_SUPABASE_CLOUD_URL`, `VITE_SUPABASE_CLOUD_PUBLISHABLE_KEY`, `VITE_SUPABASE_CONTRACT_VERSION` e `VITE_SUPABASE_CONNECTION_MODE`.
+- Configure no projeto da Vercel somente variáveis públicas: `VITE_SUPABASE_CLOUD_URL`, `VITE_SUPABASE_CLOUD_PUBLISHABLE_KEY`, `VITE_SUPABASE_CONTRACT_VERSION`, `VITE_SUPABASE_CONNECTION_MODE` e `VITE_VAPID_PUBLIC_KEY` (Spec 012).
 - **Nunca** configure `service_role`, chaves `sb_secret_...`, `RETENTION_JOB_SECRET` ou qualquer credencial privilegiada nas variáveis da Vercel: tudo com prefixo `VITE_` vai para o bundle do navegador.
 - Depois do deploy, use a URL pública para definir `INVITATION_REDIRECT_URL` e `PASSWORD_RECOVERY_REDIRECT_URL` e cadastrá-las nas URLs de redirecionamento permitidas do Auth.
 
@@ -80,6 +108,7 @@ A Vercel hospeda apenas o frontend (build estático do Vite). O backend continua
 - Testes de RLS com dois tenants no destino, conforme `specs/002-autenticacao-multitenancy-rbac/quickstart.md`.
 - Medição de desempenho (T147) e registro no `validation.md`.
 - Workflow de retenção executado uma vez com sucesso (T149).
+- Lacres (Spec 012): `cron.job` com `fluxid-seal-watchdog` ativo, `seal_push_url` apontando para o projeto e uma notificação recebida.
 
 ## Primeiro Master na nuvem
 

@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import type { GeocodedLocation, GeocodeOutcome, GeocodingService } from '@/application/registry/geocoding-service';
-import { CoordinatesField, GEOCODING_NOTICE, type CoordinatesFieldProps } from './coordinates-field';
+import type { GeocodedLocation, GeocodeOutcome, GeocodingService, ReverseGeocodeOutcome, ReverseGeocodedAddress } from '@/application/registry/geocoding-service';
+import { CoordinatesField, GEOCODING_NOTICE, REVERSE_GEOCODING_NOTICE, type CoordinatesFieldProps } from './coordinates-field';
 import type { GeocodeSuggestion } from './geocode-suggestion';
 
 // O mapa é carregado sob demanda e usa o Leaflet: aqui ele é trocado por um botão que simula o clique no mapa.
@@ -19,16 +19,17 @@ const LOCATION: GeocodedLocation = { latitude: -23.550453, longitude: -46.633911
 const BUSCAR = { name: 'Buscar coordenadas' };
 const CONCORDO = { name: 'Concordo e buscar coordenadas' };
 
-function Harness({ outcome, online = true, address = ADDRESS, saved, onSuggestionChange, locate }: {
+function Harness({ outcome, online = true, address = ADDRESS, saved, onSuggestionChange, locate, reverse, initialCoordinates, onAddress }: {
   outcome: GeocodeOutcome; online?: boolean; address?: typeof ADDRESS; saved?: CoordinatesFieldProps['saved']; onSuggestionChange?: (s: GeocodeSuggestion | null) => void;
-  locate?: ReturnType<typeof vi.fn>;
+  locate?: ReturnType<typeof vi.fn>; reverse?: ReturnType<typeof vi.fn>; initialCoordinates?: { lat: string; lng: string }; onAddress?: (address: ReverseGeocodedAddress) => void;
 }) {
-  const [coords, setCoords] = useState({ lat: '', lng: '' });
+  const [coords, setCoords] = useState(initialCoordinates ?? { lat: '', lng: '' });
   const [suggestion, setSuggestion] = useState<GeocodeSuggestion | null>(null);
-  const service = { locate: locate ?? vi.fn().mockResolvedValue(outcome) } as unknown as GeocodingService;
+  const service = { locate: locate ?? vi.fn().mockResolvedValue(outcome), reverse: reverse ?? vi.fn().mockResolvedValue({ kind: 'unavailable' } satisfies ReverseGeocodeOutcome) } as unknown as GeocodingService;
   return (
     <CoordinatesField
       latitude={coords.lat} longitude={coords.lng} onCoordinates={(lat, lng) => setCoords({ lat, lng })} address={address}
+      onAddress={onAddress}
       organizationId="org" customerId="cliente" service={service} online={online} suggestion={suggestion}
       onSuggestion={(next) => { setSuggestion(next); onSuggestionChange?.(next); }} saved={saved}
     />
@@ -183,5 +184,40 @@ describe('CoordinatesField: correção manual do ponto no mapa antes de salvar',
     expect(screen.getByTestId('mapa')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'clique no mapa' }));
     expect(screen.getByLabelText('Latitude')).toHaveValue('-23.5');
+  });
+});
+
+describe('CoordinatesField: busca do endereço pelas coordenadas', () => {
+  it('só consulta após consentimento e só substitui o endereço após revisão explícita', async () => {
+    const found: ReverseGeocodedAddress = {
+      street: 'Praça da Sé', number: '100', district: 'Sé', city: 'São Paulo', state: 'SP', postalCode: '01001000', displayName: 'Praça da Sé, 100, São Paulo, SP',
+    };
+    const reverse = vi.fn().mockResolvedValue({ kind: 'found', address: found });
+    const onAddress = vi.fn();
+    render(<Harness outcome={{ kind: 'unavailable' }} reverse={reverse} onAddress={onAddress} initialCoordinates={{ lat: '-23,550453', lng: '-46,633911' }} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar endereço' }));
+    const consent = await screen.findByRole('group', { name: 'Enviar as coordenadas ao serviço externo?' });
+    expect(consent).toHaveTextContent(REVERSE_GEOCODING_NOTICE);
+    expect(reverse).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Concordo e buscar endereço' }));
+
+    await waitFor(() => expect(reverse).toHaveBeenCalledWith('org', 'cliente', -23.550453, -46.633911, true));
+    expect(await screen.findByRole('group', { name: 'Confira o endereço encontrado' })).toHaveTextContent(found.displayName);
+    expect(onAddress).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Usar este endereço' }));
+    expect(onAddress).toHaveBeenCalledWith(found);
+  });
+
+  it('descarta a sugestão de endereço quando as coordenadas mudam', async () => {
+    const reverse = vi.fn().mockResolvedValue({ kind: 'found', address: {
+      street: 'Rua A', number: '', district: '', city: 'Recife', state: 'PE', postalCode: '', displayName: 'Rua A, Recife',
+    } });
+    render(<Harness outcome={{ kind: 'unavailable' }} reverse={reverse} initialCoordinates={{ lat: '-8.05', lng: '-34.9' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar endereço' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Concordo e buscar endereço' }));
+    await screen.findByRole('group', { name: 'Confira o endereço encontrado' });
+    fireEvent.change(screen.getByLabelText('Latitude'), { target: { value: '-8.06' } });
+    expect(screen.queryByRole('group', { name: 'Confira o endereço encontrado' })).not.toBeInTheDocument();
   });
 });

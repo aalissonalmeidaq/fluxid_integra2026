@@ -22,6 +22,11 @@ export interface GeocodeLocation {
   precision: GeocodePrecision;
 }
 
+export interface ReverseGeocodeQuery { latitude: number; longitude: number }
+export interface ReverseGeocodeAddress {
+  street: string; number: string; district: string; city: string; state: string; postal_code: string; display_name: string;
+}
+
 export type GeocodeResult = GeocodeLocation | 'NOT_FOUND';
 
 export interface GeocodingProvider {
@@ -29,6 +34,7 @@ export interface GeocodingProvider {
   readonly name: string;
   // Lança `GeocodingProviderError` (ou `GeocodingBlockedError`) quando o provedor falha ou responde algo suspeito.
   geocode(query: GeocodeQuery, signal: AbortSignal): Promise<GeocodeResult>;
+  reverse(query: ReverseGeocodeQuery, signal: AbortSignal): Promise<ReverseGeocodeAddress | 'NOT_FOUND'>;
 }
 
 // Falhas do provedor com código fixo: nunca carregam endereço, URL nem a mensagem original da rede, para poderem ser registradas.

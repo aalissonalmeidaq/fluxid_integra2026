@@ -10,6 +10,29 @@
   fill: var(--color-ciano-acessivel);
 }
 
+/* A borda e o preenchimento tornam o limite legível sobre diferentes tipos de rua sem depender apenas da cor. */
+.fluxid-map-geofence {
+  fill: var(--color-ciano-acessivel);
+  fill-opacity: 0.18;
+  stroke: var(--color-azul-profundo);
+  stroke-width: 3px;
+  stroke-dasharray: var(--spacing-2) var(--spacing-1);
+}
+
+/* Geocerca esperada (vigilância ou destino): traço contínuo e mais grosso. As próximas: mais finas e claras, para não competir. */
+.fluxid-map-geofence--destaque {
+  fill-opacity: 0.24;
+  stroke-width: 4px;
+  stroke-dasharray: none;
+}
+
+.fluxid-map-geofence--discreta {
+  fill: var(--color-cinza-gelo);
+  fill-opacity: 0.12;
+  stroke: var(--color-texto-secundario);
+  stroke-width: 2px;
+}
+
 .fluxid-map {
   z-index: 0;
   font-family: inherit;
