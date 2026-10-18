@@ -55,7 +55,7 @@
 
 | RIA-031 | 16/10/2026, 15:39:34 - America/Fortaleza | 011 | 01 | Landing page institucional do FluxID | `registros/31_Landing_Page_Institucional_do_FluxID.docx` (`RIA-031-landing-page-institucional-do-fluxid.md`) | Utilizado |
 
-| RIA-032 | 18/10/2026, 16:26:17 - America/Fortaleza | 012 | 01 | Lacre IoT, geocerca e trava | `registros/RIA-032-lacre-iot-geocerca-e-trava.md` | Utilizado |
+| RIA-032 | 18/10/2026, 16:26:17 - America/Fortaleza | 012 | 01 | Lacre IoT, geocerca e trava | `registros/32_Lacre_IoT_Geocerca_e_Trava.docx` (`RIA-032-lacre-iot-geocerca-e-trava.md`) | Utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
@@ -89,6 +89,8 @@
 > Atualização do RIA-031: em 18/10/2026, os ajustes visuais da landing foram separados no PR #44 para chegarem ao site sem esperar a Spec 012. Como o PR #43 foi mergeado antes e já levou esses ajustes à `main`, o PR #44 ficou apenas com a correção abaixo. No CI, a regressão visual falhou fora da landing: nas telas de campo e de sincronização, as validades de CNH e de licenciamento da massa simulada nascem relativas à data real e mudaram com o calendário. A correção ancora essas validades no dia em que as capturas atuais foram geradas (18/10/2026), como os testes visuais de registro e de viagens já faziam, sem regenerar imagens. As 42 capturas das duas suítes passaram no contêiner Linux do Playwright.
 
 > Atualização do RIA-031: ainda em 18/10/2026, depois do merge da main no PR #44, o check de banco passou a falhar no teste de volume da Spec 007 (busca de clientes com p95 de 1,5 s para limite de 1 s), também na própria main. Com o mesmo código, o p95 variou de 227 ms a 1.515 ms entre execuções do CI, com mediana sempre perto de 200 a 300 ms: soluço do executor compartilhado, não lentidão da consulta. As medições do teste passaram a repetir a rodada uma vez quando a primeira estoura o limite e a valer a melhor das duas; o limite de 1 s (e de 200 ms na consulta por ponto) não mudou.
+
+> Atualização do RIA-031: ainda em 18/10/2026, a Verificação de Qualidade do PR #44 falhou em 1 de 1.921 testes E2E: o painel do conflito da fila offline. O teste religava a rede e navegava na hora para a Sincronização; com a máquina carregada, a navegação interrompia o envio e o conflito não chegava no prazo. Ele passou a esperar a barra superior acusar o conflito antes de navegar; passou 3 vezes seguidas no contêiner Linux do Playwright.
 
 > Atualização do RIA-032: em 18/10/2026, a pedido da pessoa responsável, o balão do ponto do lacre no mapa passou a mostrar o endereço aproximado das coordenadas. O endereço já consultado aparece ao abrir o balão; se ainda não foi consultado, o balão traz o aviso de que as coordenadas vão ao OpenStreetMap/Nominatim e o botão "Mostrar endereço", cujo clique é a confirmação (a regra de consultar só depois da confirmação foi mantida). O resultado é o mesmo do "Descobrir endereço" da página, sem consulta duplicada, e a linha do endereço é anunciada como status. Testes do balão e do detalhe do lacre, lint, typecheck e build aprovados.
 

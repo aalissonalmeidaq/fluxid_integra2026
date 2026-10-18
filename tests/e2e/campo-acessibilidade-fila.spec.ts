@@ -87,6 +87,9 @@ test.describe('Acessibilidade da fila offline', () => {
     await page.getByRole('button', { name: 'Conferir CIL-006' }).click();
     carregando.chamar('cancel_trip', { expected_version: 2, justification: 'Cancelada pelo despacho' });
     await religarRede(context, page);
+    // Espera a fila sincronizar e acusar o conflito antes de navegar: com a máquina carregada (CI), sair da página logo depois de
+    // religar a rede interrompia o envio, e o conflito não chegava à tela de Sincronização no prazo.
+    await expect(page.getByRole('button', { name: /^Abrir sincronização: .*conflito/ })).toBeVisible({ timeout: 30_000 });
     for (const largura of LARGURAS) {
       // O shell troca de layout com a largura e remonta o conteúdo, então cada janela é aberta DEPOIS de ajustar a largura.
       await page.setViewportSize({ width: largura, height: 900 });
