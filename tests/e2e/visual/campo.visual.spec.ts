@@ -12,6 +12,7 @@ import { seedEligibleCylinders } from '../support/mock-trips-plan';
 test.use({ serviceWorkers: 'block', locale: 'pt-BR', timezoneId: 'America/Sao_Paulo', colorScheme: 'light' });
 
 const AGORA = new Date('2026-10-12T15:30:00.000Z');
+const DIA_DAS_CAPTURAS = '2026-10-13';
 const LARGURAS = [
   { nome: '360', largura: 360, altura: 740 },
   { nome: '768', largura: 768, altura: 1024 },
@@ -32,6 +33,8 @@ async function entrar(page: Page, opcoes: { camera?: boolean; nfc?: boolean; cam
     });
   }
   const backend = new MockBackend().asProfile('viagens-admin');
+  // A massa nasce relativa a "hoje": ancora as validades no dia em que as capturas foram geradas, para elas não mudarem com o calendário.
+  backend.registry.ancorarValidadesEm(DIA_DAS_CAPTURAS);
   backend.registry.now = () => AGORA;
   backend.cylinders.now = () => AGORA;
   backend.trips.now = () => AGORA;
