@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { SealService } from '@/application/seals/seal-service';
 import type { SealGeofenceView, SealPosition } from '@/application/seals/seal-views';
 import { OsmMap } from '@/components/maps/osm-map';
-import type { MapShape } from '@/components/maps/map-types';
+import type { MapPoint, MapShape } from '@/components/maps/map-types';
 import { describeGeofenceRelation, formatDistance } from '@/domain/seals/seal-geofence';
 
 // Mapa do lacre com as geocercas (Spec 012): o ponto enviado pelo lacre, a geocerca esperada em destaque (unidade em vigilância ou
@@ -22,10 +22,12 @@ export interface SealPositionMapProps {
   label?: string;
   details?: readonly string[];
   caption?: string;
+  // Endereço aproximado no balão do ponto do lacre.
+  address?: MapPoint['address'];
   className?: string;
 }
 
-export function SealPositionMap({ service, organizationId, deviceId, position, title, label, details, caption, className = 'w-full max-w-compacto' }: SealPositionMapProps): React.JSX.Element {
+export function SealPositionMap({ service, organizationId, deviceId, position, title, label, details, caption, address, className = 'w-full max-w-compacto' }: SealPositionMapProps): React.JSX.Element {
   const [load, setLoad] = useState<Load>({ kind: 'loading' });
 
   // Refaz a consulta quando chega uma posição nova: "dentro" e a distância mudam com ela.
@@ -47,7 +49,7 @@ export function SealPositionMap({ service, organizationId, deviceId, position, t
   const expected = view?.geofences.find((g) => g.expected) ?? null;
   return (
     <div className="flex flex-col gap-4">
-      <OsmMap title={title} {...(label ? { label } : {})} {...(details ? { details } : {})} {...(caption ? { caption } : {})}
+      <OsmMap title={title} {...(label ? { label } : {})} {...(details ? { details } : {})} {...(caption ? { caption } : {})} {...(address ? { address } : {})}
         latitude={position.latitude} longitude={position.longitude} shapes={shapes} className={className} />
       {load.kind === 'error' && <p className="m-0 text-corpo text-texto-secundario">Não foi possível carregar as geocercas agora. O ponto do lacre continua no mapa.</p>}
       {view && !view.geofenceAccess && (

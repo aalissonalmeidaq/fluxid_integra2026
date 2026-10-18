@@ -392,3 +392,5 @@ trava pela solenoide e HTTPS na nuvem com o lacre físico (T115, parte 2); publi
 - [x] Decisão ou pendência registrada.
 - [x] O registro não contém segredos, credenciais ou tokens.
 - [x] Dados pessoais foram removidos ou minimizados.
+
+Atualização do RIA-032: em 18/10/2026, a pedido da pessoa responsável, o balão do ponto do lacre no mapa passou a mostrar o endereço aproximado das coordenadas. O endereço já consultado aparece ao abrir o balão; se ainda não foi consultado, o balão traz o aviso de que as coordenadas vão ao OpenStreetMap/Nominatim e o botão "Mostrar endereço", cujo clique é a confirmação (a regra de consultar só depois da confirmação foi mantida). O resultado é o mesmo do "Descobrir endereço" da página, sem consulta duplicada, e a linha do endereço é anunciada como status. Testes do balão e do detalhe do lacre, lint, typecheck e build aprovados.

@@ -72,12 +72,14 @@ export interface OsmMapProps {
   caption?: string;
   // Presente, um clique (ou toque) no mapa escolhe o novo ponto: é a correção manual antes de salvar. Sem ela o mapa só mostra.
   onPick?: (latitude: number, longitude: number) => void;
+  // Endereço aproximado no balão do ponto (veja MapPoint.address).
+  address?: MapPoint['address'];
   className?: string;
 }
 
 // Um ponto só (formulário e detalhe da unidade), com o texto do ponto e o link para o mapa completo.
-export function OsmMap({ title, label, details, latitude, longitude, zoom = 16, caption, shape, shapes, onPick, className }: OsmMapProps): React.JSX.Element | null {
-  const points = useMemo<MapPoint[]>(() => (validPoint(latitude, longitude) ? [{ id: 'ponto', label: label ?? title, latitude, longitude, details }] : []), [title, label, details, latitude, longitude]);
+export function OsmMap({ title, label, details, latitude, longitude, zoom = 16, caption, shape, shapes, onPick, address, className }: OsmMapProps): React.JSX.Element | null {
+  const points = useMemo<MapPoint[]>(() => (validPoint(latitude, longitude) ? [{ id: 'ponto', label: label ?? title, latitude, longitude, details, ...(address ? { address } : {}) }] : []), [title, label, details, latitude, longitude, address]);
   const fallback = useMemo(() => ({ latitude, longitude, zoom }), [latitude, longitude, zoom]);
   const allShapes = useMemo(() => [...(shape ? [shape] : []), ...(shapes ?? [])], [shape, shapes]);
   if (points.length === 0) return null;

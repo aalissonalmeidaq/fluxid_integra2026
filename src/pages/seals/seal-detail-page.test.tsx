@@ -5,8 +5,10 @@ import type { GeocodingService } from '@/application/registry/geocoding-service'
 import { SealDetailView } from './seal-detail-page';
 
 vi.mock('@/components/maps/osm-map', () => ({
-  OsmMap: ({ title, label, details, latitude, longitude, caption }: { title: string; label: string; details: string[]; latitude: number; longitude: number; caption?: string }) => (
-    <figure aria-label={title}>{label} · {details.join(' · ')} · {caption} Ponto: {latitude}, {longitude}</figure>
+  OsmMap: ({ title, label, details, latitude, longitude, caption, address }: { title: string; label: string; details: string[]; latitude: number; longitude: number; caption?: string; address?: { resolve: () => Promise<string | null> } }) => (
+    <figure aria-label={title}>{label} · {details.join(' · ')} · {caption} Ponto: {latitude}, {longitude}
+      {address && <button type="button" onClick={() => void address.resolve()}>Mostrar endereço no balão</button>}
+    </figure>
   ),
 }));
 
@@ -82,6 +84,19 @@ describe('SealDetailView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Concordo e buscar endereço' }));
     expect(await screen.findByText(/Rua do Pátio, 10/)).toBeInTheDocument();
     expect(reverseSeal).toHaveBeenCalledWith('org-a', DEVICE, -7.209194, -39.306367, true);
+  });
+
+  it('o balão do ponto no mapa consulta o endereço e ele aparece também na seção da posição', async () => {
+    const { service: s } = service({ get_seal: [{ code: 'FOUND', seal: DETAIL }] });
+    const reverseSeal = vi.fn(async () => ({ kind: 'found' as const, address: {
+      street: 'Rua do Pátio', number: '10', district: 'Centro', city: 'Juazeiro do Norte', state: 'CE', postalCode: '63000000',
+      displayName: 'Rua do Pátio, 10, Centro, Juazeiro do Norte, CE',
+    } }));
+    renderDetail(s, ['seal.read'], { reverseSeal } as unknown as GeocodingService);
+    fireEvent.click(await screen.findByRole('button', { name: 'Mostrar endereço no balão' }));
+    expect(await screen.findByText(/Rua do Pátio, 10/)).toBeInTheDocument();
+    expect(reverseSeal).toHaveBeenCalledWith('org-a', DEVICE, -7.209194, -39.306367, true);
+    expect(screen.queryByRole('button', { name: 'Descobrir endereço' })).toBeNull();
   });
 
   it('gerar chave nova: justificativa e a chave aparece uma vez', async () => {
