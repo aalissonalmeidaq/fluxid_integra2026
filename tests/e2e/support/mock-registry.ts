@@ -1,4 +1,4 @@
-import { todayInSaoPaulo } from '../../../src/domain/shared/civil-date';
+import { addCivilDays, daysBetween, todayInSaoPaulo } from '../../../src/domain/shared/civil-date';
 
 // Backend simulado das funções query-registry, manage-registry e lookup-postal-code (Spec 007) para os E2E. Reproduz o
 // contrato de specs/007-clientes-geocercas-frota/contracts/ em memória: isolamento por organização, permissões, MFA, histórico com
@@ -102,6 +102,14 @@ export class RegistryMock {
   private counter = 1000;
 
   today = (): string => todayInSaoPaulo(this.now());
+
+  // Ancora as validades semeadas (CNH e licenciamento, que nascem relativas a "hoje") no dia informado, como se a massa tivesse sido criada
+  // nele. Chame antes de fixar o relógio: a regressão visual usa isto para as capturas não mudarem de um dia para o outro.
+  ancorarValidadesEm(dia: string): void {
+    const deslocamento = daysBetween(this.today(), dia);
+    for (const veiculo of this.vehicles) if (typeof veiculo.licensing_due_on === 'string') veiculo.licensing_due_on = addCivilDays(veiculo.licensing_due_on, deslocamento);
+    for (const motorista of this.drivers) if (typeof motorista.cnh_valid_until === 'string') motorista.cnh_valid_until = addCivilDays(motorista.cnh_valid_until, deslocamento);
+  }
 
   nextId(prefix: string): string {
     this.counter += 1;
