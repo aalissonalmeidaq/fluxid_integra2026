@@ -3,7 +3,7 @@ import { SCREENS, screenByPath } from './screens';
 
 describe('catálogo de telas', () => {
   it('mantém a ordem e os identificadores do modelo de dados', () => {
-    expect(SCREENS.map((screen) => screen.id)).toEqual(['inicio', 'cilindros', 'entrada-estoque', 'clientes', 'geocercas', 'veiculos', 'motoristas', 'viagens', 'perfil', 'membros', 'papeis', 'auditoria', 'organizacoes', 'auditoria-global']);
+    expect(SCREENS.map((screen) => screen.id)).toEqual(['inicio', 'cilindros', 'entrada-estoque', 'clientes', 'geocercas', 'veiculos', 'motoristas', 'viagens', 'lacres', 'alertas', 'perfil', 'membros', 'papeis', 'auditoria', 'organizacoes', 'auditoria-global']);
   });
 
   it('não repete identificador nem caminho', () => {
@@ -28,6 +28,8 @@ describe('catálogo de telas', () => {
       veiculos: { scope: 'tenant', code: 'vehicle.read' },
       motoristas: { scope: 'tenant', code: 'driver.read' },
       viagens: { scope: 'tenant', code: 'trip.read' },
+      lacres: { scope: 'tenant', code: 'seal.read' },
+      alertas: { scope: 'tenant', code: 'seal.read' },
       organizacoes: { scope: 'global', code: 'platform.manage' },
       'auditoria-global': { scope: 'global', code: 'audit.read' },
     });
@@ -38,6 +40,7 @@ describe('catálogo de telas', () => {
     expect(flags).toEqual({
       '/visao-geral': [false, false], '/perfil': [false, false], '/cilindros': [true, false], '/estoque/entrada': [true, false],
       '/clientes': [true, false], '/geocercas': [true, false], '/veiculos': [true, false], '/motoristas': [true, false], '/viagens': [true, false],
+      '/lacres': [true, false], '/alertas': [true, false],
       '/admin/membros': [true, true], '/admin/papeis': [true, true], '/admin/auditoria': [true, false],
       '/admin/tenants': [false, true], '/admin/auditoria-global': [false, true],
     });

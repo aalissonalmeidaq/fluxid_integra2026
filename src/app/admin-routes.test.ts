@@ -5,8 +5,8 @@ import { ADMIN_ROUTES } from './admin-routes';
 // Os caminhos fixos têm tratamento próprio no App (`/visao-geral` e `/perfil`; a raiz `/` é a landing, Spec 011); todos os demais do catálogo precisam de rota administrativa.
 // Os caminhos de cilindros (Spec 006) também têm tratamento próprio: o App os resolve por src/app/cylinders/cylinder-routes.ts.
 // Os de clientes, geocercas, veículos e motoristas (Spec 007) são resolvidos por src/app/registry/registry-routes.ts.
-// O de viagens (Spec 008) é resolvido por src/app/trips/trip-routes.ts.
-const FIXED = ['/visao-geral', '/perfil', '/cilindros', '/estoque/entrada', '/clientes', '/geocercas', '/veiculos', '/motoristas', '/viagens'];
+// O de viagens (Spec 008) é resolvido por src/app/trips/trip-routes.ts; os de lacres e alertas (Spec 012), por src/app/seals/seal-routes.ts.
+const FIXED = ['/visao-geral', '/perfil', '/cilindros', '/estoque/entrada', '/clientes', '/geocercas', '/veiculos', '/motoristas', '/viagens', '/lacres', '/alertas'];
 
 describe('rotas administrativas × catálogo de telas', () => {
   it('todo caminho do catálogo existe em ADMIN_ROUTES ou nas rotas fixas', () => {

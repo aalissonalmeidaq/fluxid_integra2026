@@ -43,17 +43,27 @@ export function Slide({ children }: { children: React.ReactNode }): React.JSX.El
 export function Secao({ id, titulo, introducao, lateral, fundo = 'gelo', destaque = false, lado = false, depois = [], children }: SecaoProps): React.JSX.Element {
   const escura = SECOES.find((secao) => secao.id === id)?.tema === 'escuro';
   const tituloId = `landing-titulo-${id}`;
+  const cabecalhoEditorial = !lado && !destaque;
   return (
     <section id={id} aria-labelledby={tituloId} data-fundo={escura ? 'escuro' : fundo} className={escura ? ESCURA : FUNDOS[fundo]}>
       <Slide>
         <div className={lado ? 'grid items-start gap-8 desktop:grid-cols-5 desktop:gap-12' : 'flex flex-col gap-8'}>
-          <div className={['flex flex-col gap-4', lado ? 'desktop:col-span-2' : ''].filter(Boolean).join(' ')} data-revelar>
-            <h2 id={tituloId} className={['m-0 text-balance font-extrabold leading-tight tracking-tight', destaque ? TITULO_DESTAQUE : TITULO].join(' ')}>
+          <div
+            className={[
+              cabecalhoEditorial ? 'grid gap-4 desktop:grid-cols-5 desktop:gap-12' : 'flex flex-col gap-4',
+              lado ? 'desktop:col-span-2' : '',
+            ].filter(Boolean).join(' ')}
+            data-cabecalho-secao
+            data-revelar
+          >
+            <h2 id={tituloId} className={['m-0 text-balance font-extrabold leading-tight tracking-tight', cabecalhoEditorial ? 'desktop:col-span-2' : '', destaque ? TITULO_DESTAQUE : TITULO].join(' ')}>
               {titulo}
             </h2>
-            {/* O parágrafo de abertura é o lead do slide: no computador, em corpo grande, como numa revista. */}
-            {introducao ? <p className={['landing-medida m-0 text-corpo leading-relaxed desktop:text-h3 desktop:font-normal desktop:leading-snug', escura ? 'text-cinza-gelo' : 'text-texto-secundario'].join(' ')}>{introducao}</p> : null}
-            {lateral}
+            <div className={['flex flex-col gap-4', cabecalhoEditorial ? 'desktop:col-span-3' : ''].join(' ')} data-introducao-secao>
+              {/* O parágrafo de abertura é o lead do slide: no computador, em corpo grande, como numa revista. */}
+              {introducao ? <p className={['landing-medida m-0 text-corpo leading-relaxed desktop:text-h3 desktop:font-normal desktop:leading-snug', escura ? 'text-cinza-gelo' : 'text-texto-secundario'].join(' ')}>{introducao}</p> : null}
+              {lateral}
+            </div>
           </div>
           {lado ? <div className="desktop:col-span-3">{children}</div> : children}
         </div>

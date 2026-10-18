@@ -40,12 +40,12 @@ export function Causa(): React.JSX.Element {
         {causa.etapas.map((etapa, indice) => (
           <li
             key={etapa.id}
-            className="landing-elo relative flex flex-col items-start gap-4 rounded-card border border-borda-suave bg-cinza-gelo p-4 shadow-card transition-all duration-200 hover:border-azul-royal/40 hover:bg-branco hover:shadow-dialogo tablet:p-6"
+            className="landing-elo relative flex flex-col items-start gap-4 rounded-card border border-borda-suave bg-cinza-gelo p-4 shadow-card tablet:p-6"
             data-revelar
             data-ultimo={indice === causa.etapas.length - 1 || undefined}
           >
             <div className="flex w-full items-center justify-between gap-4">
-              <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-card border border-borda-suave bg-branco text-azul-profundo shadow-card transition-transform duration-200 group-hover:scale-105">
+              <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-card border border-borda-suave bg-branco text-azul-profundo shadow-card">
                 <svg
                   aria-hidden="true"
                   focusable="false"
@@ -88,7 +88,7 @@ export function Causa(): React.JSX.Element {
           {causa.efeitos.map((efeito) => (
             <li
               key={efeito}
-              className="inline-flex items-center gap-2 rounded-full border border-alerta-faixa/40 bg-alerta-fundo px-4 py-2 text-legenda font-semibold text-alerta-texto shadow-card transition-all duration-200 hover:border-alerta-faixa hover:shadow-dialogo tablet:text-corpo"
+              className="inline-flex items-center gap-2 rounded-full border border-alerta-faixa/40 bg-alerta-fundo px-4 py-2 text-legenda font-semibold text-alerta-texto tablet:text-corpo"
             >
               <Icon name="alerta" size={16} variant="monocromatica" />
               {efeito}

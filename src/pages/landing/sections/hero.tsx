@@ -22,7 +22,7 @@ export function Hero(): React.JSX.Element {
       data-slide
       data-fundo="escuro"
       aria-labelledby={TITULO_ID}
-      className="landing-escuro landing-secao-escura landing-hero relative isolate flex flex-col overflow-hidden bg-linear-to-br from-navy via-navy to-azul-profundo px-4 pb-6 text-branco tablet:px-6 desktop:px-8"
+      className="landing-escuro landing-secao-escura landing-hero relative isolate flex flex-col overflow-hidden bg-linear-to-br from-navy via-navy to-azul-profundo px-4 pb-8 text-branco tablet:px-6 desktop:px-8"
     >
       <CadeiaDecorativa />
       <div className="landing-hero-grade flex-1 gap-6 tablet:gap-12">

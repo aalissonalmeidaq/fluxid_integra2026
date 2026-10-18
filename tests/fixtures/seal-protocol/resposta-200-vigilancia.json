@@ -1,0 +1,40 @@
+{
+  "server_time": "2026-10-17T14:03:01Z",
+  "results": [
+    {
+      "message_id": "01JA0000000000000000000001",
+      "status": "stored"
+    }
+  ],
+  "command": null,
+  "watch": {
+    "active": true,
+    "version": 4,
+    "fences": [
+      {
+        "shape": "circle",
+        "lat": -7.2091,
+        "lng": -39.3063,
+        "radius_m": 120
+      },
+      {
+        "shape": "polygon",
+        "vertices": [
+          [
+            -7.21,
+            -39.3
+          ],
+          [
+            -7.21,
+            -39.31
+          ],
+          [
+            -7.2,
+            -39.31
+          ]
+        ]
+      }
+    ]
+  },
+  "report_interval_s": 60
+}

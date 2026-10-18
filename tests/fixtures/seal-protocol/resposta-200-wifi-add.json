@@ -1,0 +1,22 @@
+{
+  "server_time": "2026-10-17T14:03:01Z",
+  "results": [
+    {
+      "message_id": "01JA0000000000000000000001",
+      "status": "stored"
+    }
+  ],
+  "command": {
+    "id": "6c1f0000-0000-4000-8000-000000000003",
+    "kind": "wifi_add",
+    "issued_at": "2026-10-17T14:02:00Z",
+    "ssid": "Rede-Ficticia-03",
+    "open": false,
+    "password": "senha-ficticia-123"
+  },
+  "watch": {
+    "active": false,
+    "version": 0
+  },
+  "report_interval_s": 60
+}

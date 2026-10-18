@@ -18,7 +18,7 @@ export interface UnlockDialogProps {
 
 // Desbloqueio como ato independente da entrega (RF-018 a RF-020). O normal (cilindro entregue) tem justificativa opcional. O excepcional
 // (cilindro ainda em trânsito ou não entregue) pede o segundo fator, antes, e a justificativa. O bloqueio é lógico: o registro não aciona
-// a trava do lacre, que será comandada e confirmada pelo dispositivo na Fase 6. Não existe "refazer o bloqueio".
+// a trava do lacre: ela é comandada à parte (Spec 012) e só muda com a confirmação do dispositivo. Não existe "refazer o bloqueio".
 export function UnlockDialog({ item, busy, error, returnFocusTo, onCancel, onConfirm }: UnlockDialogProps): React.JSX.Element {
   const formId = useId();
   const { state } = useAuth();
@@ -59,7 +59,7 @@ export function UnlockDialog({ item, busy, error, returnFocusTo, onCancel, onCon
         )}
     >
       <Alert variant="alerta" title="Registro lógico">
-        <p>Isto registra o desbloqueio do cilindro; a trava do lacre será comandada e confirmada pelo dispositivo na Fase 6. O desbloqueio não muda a situação da entrega e não pode ser desfeito.</p>
+        <p>Isto registra o desbloqueio lógico do cilindro; a trava física do lacre é comandada à parte e só muda com a confirmação do dispositivo. O desbloqueio não muda a situação da entrega e não pode ser desfeito.</p>
       </Alert>
       {needsSecondFactor ? (
         <div className="flex flex-col gap-4">

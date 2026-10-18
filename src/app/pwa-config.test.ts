@@ -34,6 +34,17 @@ describe('Configuração PWA e Política de Cache (História 4)', () => {
     expect(sw).not.toMatch(/query-cylinders|manage-cylinders|\/cilindros/);
   });
 
+  // Spec 012: o service worker gerado importa o tratador de notificações push, que não guarda dado nem abre endereço de fora.
+  it('importa o tratador de notificações push, que só abre caminhos de alerta do próprio app', () => {
+    const viteConfigContent = fs.readFileSync(path.resolve(process.cwd(), 'vite.config.ts'), 'utf-8');
+    expect(viteConfigContent).toContain("importScripts: ['push-sw.js']");
+    const pushSw = fs.readFileSync(path.resolve(process.cwd(), 'public', 'push-sw.js'), 'utf-8');
+    expect(pushSw).toContain("addEventListener('push'");
+    expect(pushSw).toContain("addEventListener('notificationclick'");
+    expect(pushSw).toContain('const ALERT_PATH = /^\\/alertas');
+    expect(pushSw).not.toMatch(/caches\.|fetch\(|latitude|longitude/);
+  });
+
   it('verifica que o manifest define display standalone e cores do sistema', () => {
     const viteConfigPath = path.resolve(process.cwd(), 'vite.config.ts');
     const viteConfigContent = fs.readFileSync(viteConfigPath, 'utf-8');

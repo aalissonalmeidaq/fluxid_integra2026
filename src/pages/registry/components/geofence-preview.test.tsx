@@ -1,32 +1,43 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import type { MapShape } from '@/components/maps/map-types';
 import { GeofencePreview } from './geofence-preview';
 
+vi.mock('@/components/maps/osm-map', () => ({
+  ShapeMap: ({ title, shape, focus, caption }: { title: string; shape: MapShape; focus: { latitude: number; longitude: number }; caption: string }) => (
+    <div role="group" aria-label={title} data-shape={JSON.stringify(shape)} data-focus={`${focus.latitude},${focus.longitude}`}>{caption}</div>
+  ),
+}));
+
 describe('GeofencePreview', () => {
-  it('círculo: desenho com alternativa em texto de forma, tamanho e centro', () => {
+  it('círculo: mostra o raio e o centro sobre o mapa', () => {
     render(<GeofencePreview value={{ shape: 'circle', center: { lat: -23.55, lng: -46.633 }, radiusM: 200 }} />);
-    const image = screen.getByRole('img');
-    expect(image.getAttribute('aria-label')).toBe('Círculo de 200 metros de raio, com centro em -23.55 e -46.633.');
-    expect(image.querySelector('circle')).not.toBeNull();
-    expect(screen.getByText(/Desenho esquemático, sem mapa/)).toBeInTheDocument();
+    const map = screen.getByRole('group', { name: 'Mapa da geocerca' });
+    expect(JSON.parse(map.getAttribute('data-shape') ?? '')).toEqual({
+      kind: 'circle', center: { latitude: -23.55, longitude: -46.633 }, radiusM: 200,
+    });
+    expect(map).toHaveTextContent('Círculo de 200 metros de raio, com centro em -23.55 e -46.633.');
   });
 
-  it('círculo incompleto não desenha e avisa em texto', () => {
+  it('círculo incompleto não abre mapa vazio e orienta completar a geometria', () => {
     render(<GeofencePreview value={{ shape: 'circle', center: null, radiusM: 100 }} />);
-    expect(screen.getByRole('img').querySelector('circle')).toBeNull();
-    expect(screen.getByRole('img').getAttribute('aria-label')).toMatch(/incompleto/);
+    expect(screen.queryByRole('group', { name: 'Mapa da geocerca' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Círculo ainda incompleto/)).toHaveTextContent('Complete a geometria para visualizá-la no mapa.');
   });
 
-  it('polígono: desenha os vértices e lista cada um no texto', () => {
+  it('polígono: mostra os vértices geográficos sobre o mapa e enquadra pelo centro médio', () => {
     render(<GeofencePreview value={{ shape: 'polygon', vertices: [{ lat: 0, lng: 0 }, { lat: 0, lng: 1 }, { lat: 1, lng: 1 }] }} />);
-    const image = screen.getByRole('img');
-    expect(image.querySelector('polygon')?.getAttribute('points')?.split(' ')).toHaveLength(3);
-    expect(image.getAttribute('aria-label')).toBe('Polígono com 3 vértices (1: 0, 0; 2: 0, 1; 3: 1, 1).');
+    const map = screen.getByRole('group', { name: 'Mapa da geocerca' });
+    expect(JSON.parse(map.getAttribute('data-shape') ?? '')).toEqual({
+      kind: 'polygon', vertices: [{ latitude: 0, longitude: 0 }, { latitude: 0, longitude: 1 }, { latitude: 1, longitude: 1 }],
+    });
+    expect(map.getAttribute('data-focus')).toBe(`${1 / 3},${2 / 3}`);
+    expect(map).toHaveTextContent('Polígono com 3 vértices');
   });
 
-  it('polígono sem vértices não desenha', () => {
+  it('polígono incompleto não produz uma visualização esquemática', () => {
     render(<GeofencePreview value={{ shape: 'polygon', vertices: [] }} />);
-    expect(screen.getByRole('img').querySelector('polygon')).toBeNull();
-    expect(screen.getByRole('img').getAttribute('aria-label')).toBe('Polígono ainda sem vértices.');
+    expect(screen.queryByRole('group', { name: 'Mapa da geocerca' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Polígono ainda sem vértices/)).toBeInTheDocument();
   });
 });

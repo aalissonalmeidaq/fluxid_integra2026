@@ -27,7 +27,7 @@ const site = (status: 'active' | 'inactive'): SiteDetail => ({
   geofences: [],
 });
 const geofence = (status: 'active' | 'inactive'): GeofenceView => ({
-  id: GEO, name: 'Portão', shape: 'circle', status, version: 2, siteId: SITE, siteName: 'Matriz', siteStatus: 'active', customerId: ID, customerName: 'Hospital Teste', areaM2: 1000,
+  id: GEO, name: 'Portão', shape: 'circle', status, version: 2, siteId: SITE, siteName: 'Matriz', siteStatus: 'active', customerId: ID, customerName: 'Hospital Teste', siteAddress: 'Praça da Sé, 10 · São Paulo/SP', areaM2: 1000,
   center: { lat: 0, lng: 0 }, radiusM: 100, vertices: [],
 });
 const driver = (status: 'active' | 'inactive'): DriverDetail => ({
