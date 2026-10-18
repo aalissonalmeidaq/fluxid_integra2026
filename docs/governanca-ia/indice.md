@@ -53,7 +53,7 @@
 
 | RIA-030 | 13/10/2026, 19:00:41 - America/Fortaleza | 010 | 02 | Conectividade com o Supabase em nuvem e primeiro Master (com ajuste de tempo do teste de volume no CI) | `registros/30_Conectividade_com_o_Supabase_em_Nuvem_e_Primeiro_Master.docx` (`RIA-030-conectividade-com-o-supabase-em-nuvem-e-primeiro-master.md`) | Utilizado |
 
-| RIA-031 | 16/10/2026, 15:39:34 - America/Fortaleza | 011 | 01 | Landing page institucional do FluxID | `registros/RIA-031-landing-page-institucional-do-fluxid.md` | Utilizado |
+| RIA-031 | 16/10/2026, 15:39:34 - America/Fortaleza | 011 | 01 | Landing page institucional do FluxID | `registros/31_Landing_Page_Institucional_do_FluxID.docx` (`RIA-031-landing-page-institucional-do-fluxid.md`) | Utilizado |
 
 | RIA-032 | 18/10/2026, 16:26:17 - America/Fortaleza | 012 | 01 | Lacre IoT, geocerca e trava | `registros/RIA-032-lacre-iot-geocerca-e-trava.md` | Utilizado |
 

@@ -1,0 +1,62 @@
+name: Publicação na Vercel (produção)
+
+# Todo merge na main publica a nova versão em https://fluxid.tec.br. O projeto da Vercel não tem integração Git: a publicação é feita
+# aqui, pela CLI, com o build remoto da própria Vercel (que usa as variáveis públicas VITE_* configuradas no projeto).
+# VERCEL_ORG_ID e VERCEL_PROJECT_ID são variáveis do repositório (não são segredos); VERCEL_TOKEN é segredo e nunca vai para arquivo.
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Um merge atrás do outro: a publicação mais nova espera a anterior terminar, sem cancelar no meio.
+concurrency:
+  group: publicar-vercel-producao
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    name: Publicar a main na Vercel
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Conferir a configuração da Vercel
+        run: |
+          faltando=""
+          [ -n "$VERCEL_TOKEN" ] || faltando="$faltando segredo VERCEL_TOKEN;"
+          [ -n "$VERCEL_ORG_ID" ] || faltando="$faltando variável VERCEL_ORG_ID;"
+          [ -n "$VERCEL_PROJECT_ID" ] || faltando="$faltando variável VERCEL_PROJECT_ID;"
+          if [ -n "$faltando" ]; then
+            echo "::error::Configure no repositório:$faltando (ver docs/publicacao-em-nuvem.md, seção Vercel)."
+            exit 1
+          fi
+
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Publicar em produção
+        run: |
+          npx --yes vercel@64.5.0 deploy --prod --yes --token="$VERCEL_TOKEN"
+          echo "### Publicação na Vercel" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit \`${GITHUB_SHA::7}\` publicado em produção (https://fluxid.tec.br)." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Conferir o domínio público
+        run: |
+          for tentativa in 1 2 3 4 5; do
+            codigo=$(curl -s -o /dev/null -w '%{http_code}' https://fluxid.tec.br/)
+            [ "$codigo" = "200" ] && { echo "https://fluxid.tec.br/ respondeu 200."; exit 0; }
+            sleep 10
+          done
+          echo "::error::https://fluxid.tec.br/ não respondeu 200 depois da publicação (último código: $codigo)."
+          exit 1
