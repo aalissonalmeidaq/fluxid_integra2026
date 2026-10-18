@@ -55,7 +55,7 @@
 
 | RIA-031 | 16/10/2026, 15:39:34 - America/Fortaleza | 011 | 01 | Landing page institucional do FluxID | `registros/31_Landing_Page_Institucional_do_FluxID.docx` (`RIA-031-landing-page-institucional-do-fluxid.md`) | Utilizado |
 
-| RIA-032 | 18/10/2026, 16:26:17 - America/Fortaleza | 012 | 01 | Lacre IoT, geocerca e trava | `registros/RIA-032-lacre-iot-geocerca-e-trava.md` | Utilizado |
+| RIA-032 | 18/10/2026, 16:26:17 - America/Fortaleza | 012 | 01 | Lacre IoT, geocerca e trava | `registros/32_Lacre_IoT_Geocerca_e_Trava.docx` (`RIA-032-lacre-iot-geocerca-e-trava.md`) | Utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
