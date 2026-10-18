@@ -30,7 +30,7 @@ export function Solucao(): React.JSX.Element {
                   key={trecho.id}
                   aria-labelledby={`landing-trecho-${trecho.id}`}
                   data-trecho={trecho.id}
-                  className="flex flex-col justify-between gap-6 rounded-card border border-borda-suave bg-branco p-6 shadow-card transition-all duration-200 hover:border-azul-royal/40 hover:shadow-dialogo"
+                  className="flex flex-col justify-between gap-6 rounded-card border border-borda-suave bg-branco p-6 shadow-card"
                   data-revelar
                 >
                   <div className="flex flex-col gap-2 border-b border-borda-suave pb-4">
@@ -50,7 +50,7 @@ export function Solucao(): React.JSX.Element {
                   <ol className="landing-jornada m-0 flex flex-1 list-none flex-col gap-6 p-0">
                     {JORNADA.filter((etapa) => etapa.grupo === trecho.id).map((etapa) => (
                       <li key={etapa.ordem} className="relative flex items-start gap-4">
-                        <span className="relative z-10 flex size-12 shrink-0 items-center justify-center rounded-full border-2 border-azul-royal bg-cinza-gelo text-corpo font-extrabold text-azul-profundo shadow-card transition-transform duration-200 hover:scale-105 motion-reduce:transform-none">
+                        <span className="relative z-10 flex size-12 shrink-0 items-center justify-center rounded-full border-2 border-azul-royal bg-cinza-gelo text-corpo font-extrabold text-azul-profundo shadow-card">
                           {etapa.ordem}
                         </span>
                         <span className="flex min-w-0 flex-1 flex-col gap-2">
@@ -82,7 +82,7 @@ export function Solucao(): React.JSX.Element {
               </summary>
               <ul className="m-0 grid list-none gap-2 px-4 pb-4 tablet:grid-cols-2 tablet:gap-4 tablet:px-8 tablet:pb-6 desktop:grid-cols-4">
                 {jornada.regras.map((regra) => (
-                  <li key={regra} className="flex items-start gap-2 rounded-controle border border-branco/10 bg-azul-profundo/40 p-4 text-corpo leading-relaxed text-branco shadow-card transition-colors hover:bg-azul-profundo/70">
+                  <li key={regra} className="flex items-start gap-2 rounded-controle border border-branco/10 bg-azul-profundo/40 p-4 text-corpo leading-relaxed text-branco">
                     <span aria-hidden="true" className="mt-1 shrink-0"><Icon name="verificado" size={16} variant="negativa" /></span>
                     <span>{regra}</span>
                   </li>
@@ -96,14 +96,14 @@ export function Solucao(): React.JSX.Element {
         {FRENTES.map((frente) => (
           <li
             key={frente.id}
-            className="group flex flex-col justify-between gap-4 rounded-card border border-borda-suave bg-branco p-6 shadow-card transition-all duration-200 hover:border-azul-royal/40 hover:shadow-dialogo"
+            className="flex flex-col justify-between gap-4 rounded-card border border-borda-suave bg-branco p-6 shadow-card"
             data-revelar
           >
             <div className="flex flex-col gap-4">
               <div className="flex items-start justify-between gap-2">
                 <span
                   aria-hidden="true"
-                  className="inline-flex size-16 shrink-0 items-center justify-center rounded-card border border-borda-suave bg-info-fundo text-azul-profundo shadow-card transition-transform duration-200 group-hover:scale-105 motion-reduce:transform-none"
+                  className="inline-flex size-16 shrink-0 items-center justify-center rounded-card border border-borda-suave bg-info-fundo text-azul-profundo"
                 >
                   <Icon name={frente.icone} size={32} variant="duotone" />
                 </span>

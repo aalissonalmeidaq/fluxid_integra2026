@@ -62,6 +62,12 @@ describe.each(SECOES)('Seção #%s (%s)', (id, _nome, Componente, titulo) => {
 });
 
 describe('Conteúdo das seções', () => {
+  it('as seções editoriais alinham título e introdução em colunas no desktop', () => {
+    const { container } = render(<Causa />);
+    expect(container.querySelector('[data-cabecalho-secao]')).toHaveClass('desktop:grid-cols-5');
+    expect(container.querySelector('[data-introducao-secao]')).toHaveClass('desktop:col-span-3');
+  });
+
   it('História conta as cenas do C-262 em ordem, faz a pergunta do pitch e lista as dúvidas', () => {
     const { container } = render(<Historia />);
     const cenas = within(screen.getAllByRole('list')[0]!).getAllByRole('listitem');
@@ -92,6 +98,11 @@ describe('Conteúdo das seções', () => {
     expect(perdas[0]).toHaveTextContent(String(PREJUIZO.perdidosNoAno));
     expect(perdas[1]).toHaveClass('bg-erro', 'text-branco');
     expect(perdas[1]).toHaveTextContent(reais(calculo.porAno));
+    // A leitura do slide segue uma sequência semântica clara, em vez de quatro cartões concorrentes.
+    expect(screen.getByRole('heading', { level: 3, name: TEXTOS.prejuizo.rotuloCustos })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Custos indiretos não contabilizados' })).toBeInTheDocument();
+    expect(container.querySelector('[data-resumo-prejuizo]')).toHaveClass('desktop:grid-cols-12');
+    expect(container.querySelector('[data-detalhes-prejuizo]')).toHaveClass('desktop:grid-cols-12');
   });
 
   it('Causa mostra a cadeia manual em ordem, os efeitos e a pergunta que leva à solução', () => {
@@ -245,8 +256,9 @@ describe('Conteúdo das seções', () => {
   });
 
   it('Equipe fecha com as logos institucionais e parceiras (SENAI Ceará, Saga SENAI de Inovação, Integra SENAI e Oxigênio Cariri), cada uma descrita pelo nome e com medidas', () => {
-    render(<Equipe />);
+    const { container } = render(<Equipe />);
     const lista = screen.getByRole('list', { name: TEXTOS.equipe.instituicoes });
+    expect(container.querySelectorAll('[data-lista-instituicoes]')).toHaveLength(1);
     for (const item of INSTITUICOES) {
       const logo = within(lista).getByRole('img', { name: item.nome });
       expect(logo).toHaveAttribute('src', item.arquivo);
@@ -262,6 +274,11 @@ describe('Conteúdo das seções', () => {
     expect(screen.getByRole('button', { name: new RegExp(`Assistir: ${pitch.titulo}`) })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { level: 3, name: pitch.titulo })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: TEXTOS.pitch.verMateriais })).toHaveAttribute('href', '#materiais');
+    expect(screen.getByRole('heading', { level: 3, name: 'Neste pitch' })).toBeInTheDocument();
+    expect(container.querySelector('[data-roteiro-pitch]')).toHaveClass('border-y');
+    expect(container.querySelectorAll('[data-capitulo-pitch]')).toHaveLength(3);
+    expect(container).not.toHaveTextContent('Duração:');
+    expect(container).not.toHaveTextContent('Apresentação oficial');
   });
 
   it('cada vídeo toca na seção que ele comprova: o protótipo físico na trava e o protótipo do sistema no que já funciona', () => {
@@ -323,8 +340,12 @@ describe('Conteúdo das seções', () => {
   });
 
   it('a chamada final traz a frase do pitch, repete o botão por sessão e o caminho para os materiais', () => {
-    render(<ChamadaFinal />);
-    expect(screen.getByText(TEXTOS.chamadaFinal.frase)).toBeInTheDocument();
+    const { container } = render(<ChamadaFinal />);
+    expect(screen.getByRole('heading', { level: 3, name: TEXTOS.chamadaFinal.frase })).toBeInTheDocument();
+    expect(container.querySelector('[data-grade-fecho]')).toHaveClass('desktop:grid-cols-12');
+    expect(container.querySelector('[data-acoes-fecho]')).toBeInTheDocument();
+    expect(container).not.toHaveTextContent('Missão FluxID');
+    expect(container).not.toHaveTextContent('Próximo Passo');
     // Fecha o arco do C-262: a resposta com evidências, em dados de exemplo, com o cartão no último estado.
     const cartao = document.querySelector('[data-cartao-rastreio]') as HTMLElement;
     expect(cartao).toHaveTextContent('Exemplo');

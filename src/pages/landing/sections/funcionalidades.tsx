@@ -43,7 +43,7 @@ export function Funcionalidades(): React.JSX.Element {
                   <li
                     key={tela.id}
                     data-legenda={tela.dispositivo}
-                    className="flex items-center gap-4 rounded-card border border-branco/15 bg-navy/60 p-4 shadow-card backdrop-blur-xs transition-all duration-200 hover:border-azul-royal hover:bg-navy/90"
+                    className="flex items-center gap-4 rounded-card border border-branco/15 bg-navy/60 p-4 shadow-card"
                   >
                     <span
                       aria-hidden="true"
@@ -89,7 +89,7 @@ export function Funcionalidades(): React.JSX.Element {
               <li
                 key={item.id}
                 data-capacidade={item.id}
-                className="flex flex-col justify-between gap-4 rounded-card border border-branco/15 bg-navy/80 p-6 shadow-card backdrop-blur-xs transition-all duration-200 hover:border-azul-royal/60 hover:shadow-dialogo"
+                className="flex flex-col justify-between gap-4 rounded-card border border-branco/15 bg-navy/80 p-6 shadow-card"
                 data-revelar
               >
                 <div className="flex flex-col gap-4">

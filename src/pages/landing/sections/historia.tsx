@@ -85,7 +85,7 @@ export function Historia(): React.JSX.Element {
                 {historia.duvidas.map((duvida) => (
                   <li
                     key={duvida}
-                    className="flex items-start gap-4 rounded-card border border-borda-suave bg-branco p-4 shadow-card transition-all duration-200 hover:border-erro/40 hover:shadow-dialogo"
+                    className="flex items-start gap-4 rounded-card border border-borda-suave bg-branco p-4 shadow-card"
                   >
                     <span
                       aria-hidden="true"
@@ -155,8 +155,8 @@ export function Historia(): React.JSX.Element {
                 </span>
                 <div
                   className={[
-                    'flex flex-1 flex-col gap-2 rounded-card border p-4 shadow-card transition-all duration-200 hover:shadow-dialogo',
-                    eAlerta ? 'border-alerta-faixa/50 bg-alerta-fundo/40' : 'border-borda-suave bg-branco hover:border-azul-royal/30',
+                    'flex flex-1 flex-col gap-2 rounded-card border p-4 shadow-card',
+                    eAlerta ? 'border-alerta-faixa/50 bg-alerta-fundo/40' : 'border-borda-suave bg-branco',
                   ].join(' ')}
                 >
                   <span

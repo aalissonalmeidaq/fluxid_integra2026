@@ -245,7 +245,7 @@ export function Trava(): React.JSX.Element {
               {trava.componentes.map((componente) => (
                 <li
                   key={componente}
-                  className="flex min-h-alvo items-center gap-2 rounded-controle border border-branco/10 bg-azul-profundo/40 px-4 py-2 text-corpo font-semibold text-branco shadow-card transition-colors hover:border-branco/25 hover:bg-azul-profundo/60"
+                  className="flex min-h-alvo items-center gap-2 rounded-controle border border-branco/10 bg-azul-profundo/40 px-4 py-2 text-corpo font-semibold text-branco"
                 >
                   <span aria-hidden="true" className="landing-led" />
                   <span>{componente}</span>
@@ -268,7 +268,7 @@ export function Trava(): React.JSX.Element {
               {trava.seguranca.map((item) => (
                 <li
                   key={item}
-                  className="flex items-start gap-4 rounded-controle border border-branco/10 bg-azul-profundo/30 p-4 text-corpo leading-relaxed text-cinza-gelo transition-colors hover:border-branco/20 hover:bg-azul-profundo/50"
+                  className="flex items-start gap-4 rounded-controle border border-branco/10 bg-azul-profundo/30 p-4 text-corpo leading-relaxed text-cinza-gelo"
                 >
                   <span aria-hidden="true" className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full border border-branco/20 bg-branco/10">
                     <Icon name="verificado" size={16} variant="negativa" />

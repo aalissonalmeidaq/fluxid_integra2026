@@ -75,4 +75,9 @@ describe('Movimento da landing', () => {
   it('o anel de foco das seções escuras é branco', () => {
     expect(css).toMatch(/\.landing-escuro\s+:focus-visible\s*\{[^}]*outline-color:\s*var\(--color-branco\)/);
   });
+
+  it('cada slide reserva uma área segura no topo e no rodapé em celular e desktop', () => {
+    expect(css).toMatch(/\.landing-slide\s*\{[^}]*padding-top:\s*calc\(var\(--spacing-12\)\s*\+\s*env\(safe-area-inset-top\)\)[^}]*padding-bottom:\s*calc\(var\(--spacing-12\)\s*\+\s*env\(safe-area-inset-bottom\)\)/s);
+    expect(css).toMatch(/@media\s*\(min-width:\s*1024px\)[\s\S]*?\.landing-slide\s*\{[^}]*padding-top:\s*calc\(var\(--spacing-alvo\)\s*\+\s*var\(--spacing-8\)\)[^}]*padding-bottom:\s*calc\(var\(--spacing-alvo\)\s*\+\s*var\(--spacing-8\)\)/s);
+  });
 });

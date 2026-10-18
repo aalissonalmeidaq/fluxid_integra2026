@@ -33,7 +33,7 @@ export function Planos(): React.JSX.Element {
           <p className="landing-medida m-0 text-legenda leading-relaxed text-texto-secundario">{planos.referencia}</p>
         </section>
 
-        <div className="flex flex-col gap-4 rounded-card bg-cinza-gelo p-6 shadow-card transition-all duration-200 hover:shadow-dialogo desktop:flex-row desktop:items-center" data-revelar>
+        <div className="flex flex-col gap-4 rounded-card bg-cinza-gelo p-6 desktop:flex-row desktop:items-center" data-revelar>
           <ContatoPiloto tema="claro" />
         </div>
       </div>

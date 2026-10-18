@@ -31,7 +31,7 @@ export function Equipe(): React.JSX.Element {
               <li
                 key={pessoa.id}
                 data-integrante={pessoa.id}
-                className="flex gap-4 rounded-card border border-borda-suave bg-branco p-4 shadow-card transition-colors duration-200 hover:border-azul-royal motion-reduce:transition-none tablet:flex-col tablet:items-center tablet:p-6 tablet:text-center"
+                className="flex gap-4 rounded-card border border-borda-suave bg-branco p-4 shadow-card tablet:flex-col tablet:items-center tablet:p-6 tablet:text-center"
               >
                 <div className="relative shrink-0 self-start tablet:self-center">
                   {/* Fotos padronizadas (mesmo fundo e enquadramento) em 192 e 384 px: nítidas em tela comum e de alta densidade. */}
@@ -122,62 +122,32 @@ export function Equipe(): React.JSX.Element {
         </ol>
       </div>
 
-      {/* Faixa de passagem horizontal contínua das logos institucionais e parceiras (Marquee) */}
-      <div className="flex flex-col gap-4 rounded-card border border-borda-suave bg-cinza-gelo p-6 desktop:p-8" data-revelar>
+      {/* Instituições em uma faixa estática: leitura imediata, sem movimento contínuo ou conteúdo duplicado. */}
+      <div className="flex flex-col gap-4 border-t border-borda-suave pt-6" data-revelar>
         <div className="flex items-center gap-2">
           <span className="inline-block size-2 rounded-full bg-azul-royal" aria-hidden="true" />
           <span className="text-legenda font-bold uppercase tracking-wider text-texto-secundario">{equipe.instituicoes}</span>
         </div>
 
-        <div className="landing-marquee-container py-2">
-          <div className="landing-marquee-trilho">
-            {/* Lista principal acessível */}
-            <ul
-              aria-label={equipe.instituicoes}
-              className="m-0 flex list-none items-center gap-8 p-0 tablet:gap-12"
-            >
-              {INSTITUICOES.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex h-12 shrink-0 items-center justify-center px-4 transition-transform duration-200 hover:scale-105 tablet:h-16"
-                >
-                  <img
-                    src={item.arquivo}
-                    alt={item.nome}
-                    width={item.largura}
-                    height={item.altura}
-                    loading="lazy"
-                    decoding="async"
-                    className="landing-logo-instituicao"
-                  />
-                </li>
-              ))}
-            </ul>
-
-            {/* Cópia decorativa para passagem contínua infinita */}
-            <ul
-              aria-hidden="true"
-              className="m-0 flex list-none items-center gap-8 p-0 tablet:gap-12"
-            >
-              {INSTITUICOES.map((item) => (
-                <li
-                  key={`dup-${item.id}`}
-                  className="flex h-12 shrink-0 items-center justify-center px-4 transition-transform duration-200 hover:scale-105 tablet:h-16"
-                >
-                  <img
-                    src={item.arquivo}
-                    alt=""
-                    width={item.largura}
-                    height={item.altura}
-                    loading="lazy"
-                    decoding="async"
-                    className="landing-logo-instituicao"
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <ul
+          aria-label={equipe.instituicoes}
+          data-lista-instituicoes
+          className="m-0 grid list-none grid-cols-2 items-center gap-6 p-0 tablet:grid-cols-4 tablet:gap-8"
+        >
+          {INSTITUICOES.map((item) => (
+            <li key={item.id} className="flex h-12 items-center justify-center tablet:h-16">
+              <img
+                src={item.arquivo}
+                alt={item.nome}
+                width={item.largura}
+                height={item.altura}
+                loading="lazy"
+                decoding="async"
+                className="landing-logo-instituicao"
+              />
+            </li>
+          ))}
+        </ul>
       </div>
     </Secao>
   );

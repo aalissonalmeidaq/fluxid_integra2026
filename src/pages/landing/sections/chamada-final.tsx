@@ -12,32 +12,27 @@ import { Secao } from './secao';
 export function ChamadaFinal(): React.JSX.Element {
   return (
     <Secao id="chamada-final" titulo={TEXTOS.chamadaFinal.titulo} introducao={TEXTOS.chamadaFinal.texto} destaque>
-      <div className="grid items-stretch gap-8 tablet:grid-cols-2 tablet:gap-12">
-        <div className="flex flex-col gap-6" data-revelar>
-          <div className="flex flex-col items-start gap-4 rounded-card border border-branco/15 bg-branco/5 p-6 shadow-dialogo backdrop-blur-xs tablet:flex-row tablet:items-center tablet:gap-6 desktop:p-8">
+      <div className="grid items-start gap-8 desktop:grid-cols-12 desktop:gap-12" data-grade-fecho>
+        <div className="flex flex-col gap-8 desktop:col-span-5" data-revelar>
+          <div className="flex flex-col items-start gap-4 tablet:flex-row tablet:items-center tablet:gap-6">
             <Mascote uso="final" className="landing-mascote-final shrink-0" />
-            <div className="flex flex-col gap-2">
-              <span className="rounded-controle border border-verde-vivo/40 bg-navy px-2 py-0 text-legenda font-bold text-branco self-start">
-                Missão FluxID
-              </span>
-              <p className="landing-medida m-0 text-h3 font-extrabold leading-snug text-verde-vivo desktop:text-h2">
+            <div className="flex flex-col gap-4">
+              <h3 className="landing-medida m-0 text-h3 font-extrabold leading-snug text-branco desktop:text-h2">
                 {TEXTOS.chamadaFinal.frase}
-              </p>
+              </h3>
+              <span className="block h-1 w-16 rounded-full bg-azul-ciano" aria-hidden="true" />
             </div>
           </div>
 
-          <div className="flex flex-col gap-6 rounded-card border border-branco/15 bg-branco/5 p-6 shadow-dialogo backdrop-blur-xs desktop:p-8">
-            <div className="flex flex-col gap-2">
-              <span className="text-legenda font-bold uppercase tracking-wider text-cinza-gelo">
-                Próximo Passo
-              </span>
+          <div className="flex flex-col gap-6 border-t border-branco/15 pt-6" data-acoes-fecho>
+            <div className="flex flex-col gap-4">
               <ContatoPiloto tema="escuro" />
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 border-t border-branco/10 pt-4">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
               <a
                 href="#assistir-video-pitch"
-                className="inline-flex min-h-alvo items-center justify-center gap-2 rounded-controle border border-branco px-6 text-corpo font-semibold text-branco no-underline transition-colors hover:bg-azul-profundo motion-reduce:transition-none"
+                className="inline-flex min-h-alvo items-center justify-center gap-2 text-corpo font-semibold text-branco underline decoration-branco/40 underline-offset-4 transition-colors hover:text-cinza-gelo motion-reduce:transition-none"
               >
                 <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                   <path d="M8 5v14l11-7z" />
@@ -49,13 +44,13 @@ export function ChamadaFinal(): React.JSX.Element {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4" data-revelar>
+        <div className="flex flex-col gap-4 desktop:col-span-7" data-revelar>
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <span className="inline-block size-2 rounded-full bg-verde-vivo" aria-hidden="true" />
               <p className="m-0 text-corpo font-bold text-branco">{TEXTOS.chamadaFinal.respostaTitulo}</p>
             </div>
-            <span className="rounded-controle bg-branco/10 px-2 py-1 text-legenda font-semibold text-cinza-gelo">
+            <span className="shrink-0 whitespace-nowrap text-legenda font-semibold text-cinza-gelo">
               Ciclo Completo
             </span>
           </div>
