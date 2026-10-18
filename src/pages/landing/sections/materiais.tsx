@@ -10,13 +10,26 @@ export function Materiais(): React.JSX.Element {
   const porId = (id: string): MaterialDoProjeto => MATERIAIS.find((material) => material.id === id)!;
   return (
     <Secao id="materiais" titulo={TEXTOS.materiais.titulo} introducao={TEXTOS.materiais.introducao} fundo="gelo">
-      <div className="flex flex-col gap-8 desktop:gap-6">
+      <div className="grid gap-8 desktop:grid-cols-12 desktop:gap-6" data-grade-materiais>
         {TEXTOS.materiais.blocos.map((bloco) => (
-          <section key={bloco.id} aria-labelledby={`landing-materiais-${bloco.id}`} className="flex flex-col gap-4" data-revelar>
+          <section
+            key={bloco.id}
+            aria-labelledby={`landing-materiais-${bloco.id}`}
+            className={['flex flex-col gap-4', bloco.id === 'comecar' ? 'desktop:col-span-5' : 'desktop:col-span-7'].join(' ')}
+            data-revelar
+          >
             <h3 id={`landing-materiais-${bloco.id}`} className="m-0 text-h3 font-bold leading-tight">{bloco.titulo}</h3>
-            <div className={['grid gap-4', bloco.id === 'comecar' ? '' : 'tablet:grid-cols-2 desktop:grid-cols-4'].join(' ')}>
-              {bloco.materiais.map((id) => <MaterialCard key={id} material={porId(id)} destaque={id === 'documentos'} />)}
-            </div>
+            {bloco.id === 'comecar' ? (
+              <div className="h-full">
+                {bloco.materiais.map((id) => <MaterialCard key={id} material={porId(id)} destaque />)}
+              </div>
+            ) : (
+              <ul className="landing-lista-materiais m-0 grid list-none overflow-hidden rounded-card border border-borda-suave bg-branco p-0 shadow-card tablet:grid-cols-2">
+                {bloco.materiais.map((id) => (
+                  <li key={id}><MaterialCard material={porId(id)} secundario /></li>
+                ))}
+              </ul>
+            )}
           </section>
         ))}
       </div>

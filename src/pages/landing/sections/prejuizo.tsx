@@ -18,26 +18,24 @@ export function Prejuizo(): React.JSX.Element {
 
   return (
     <Secao id="prejuizo" titulo={textos.titulo} introducao={textos.introducao}>
-      {/* Selo com a fonte dos dados */}
-      <p className="m-0 flex items-center" data-revelar data-fonte>
-        <span className="inline-flex items-center gap-2 rounded-full border border-branco/15 bg-branco/10 px-4 py-1 text-legenda font-medium text-cinza-gelo shadow-card backdrop-blur-xs">
+      {/* A fonte fica próxima dos dados, mas com peso de nota metodológica — não de ação. */}
+      <p className="landing-medida m-0 flex items-start gap-2 text-legenda leading-relaxed text-cinza-gelo" data-revelar data-fonte>
           <Icon name="relatorios" size={16} variant="negativa" />
           <span>
             <strong className="font-bold text-branco">{textos.rotuloFonte}:</strong> {PREJUIZO.fonte}
           </span>
-        </span>
       </p>
 
-      {/* Cartões de métricas principais */}
-      <div className="grid gap-6 tablet:grid-cols-2 desktop:grid-cols-5">
+      {/* Resumo em ordem de causa e consequência: primeiro o volume, depois o impacto. */}
+      <div className="grid gap-4 tablet:grid-cols-2 desktop:grid-cols-12 desktop:gap-6" data-resumo-prejuizo>
         <div
-          className="flex flex-col justify-between gap-4 rounded-card border-2 border-erro bg-erro-fundo p-6 text-erro shadow-card transition-all duration-200 hover:shadow-dialogo desktop:col-span-2"
+          className="flex flex-col justify-between gap-4 rounded-card bg-erro-fundo p-6 text-erro shadow-card desktop:col-span-4"
           data-revelar
           data-perda
         >
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-erro/30 bg-branco/80 px-4 py-1 text-legenda font-bold uppercase tracking-wider text-erro shadow-card">
+              <span className="inline-flex items-center gap-2 text-legenda font-bold uppercase tracking-wider text-erro">
                 <span className="inline-block size-2 rounded-full bg-erro motion-safe:animate-pulse" aria-hidden="true" />
                 Volume Crítico
               </span>
@@ -56,7 +54,7 @@ export function Prejuizo(): React.JSX.Element {
             </div>
           </div>
 
-          <div className="rounded-controle border border-erro/20 bg-branco/70 p-4 shadow-card">
+          <div className="border-t border-erro/20 pt-4">
             <p className="m-0 text-corpo font-semibold leading-relaxed text-erro">
               {textos.ritmo}
             </p>
@@ -64,14 +62,14 @@ export function Prejuizo(): React.JSX.Element {
         </div>
 
         <div
-          className="flex flex-col justify-between gap-4 rounded-card bg-erro p-6 text-branco shadow-dialogo transition-all duration-200 hover:shadow-dialogo desktop:col-span-3"
+          className="flex flex-col justify-between gap-4 rounded-card bg-erro p-6 text-branco shadow-dialogo desktop:col-span-8"
           data-revelar
           data-destaque
           data-perda
         >
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-branco/30 bg-branco/20 px-4 py-1 text-legenda font-bold uppercase tracking-wider text-branco backdrop-blur-xs">
+              <span className="inline-flex items-center gap-2 text-legenda font-bold uppercase tracking-wider text-branco">
                 <Icon name="alerta" size={16} variant="negativa" />
                 Impacto Financeiro Direto
               </span>
@@ -89,7 +87,7 @@ export function Prejuizo(): React.JSX.Element {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 rounded-controle border border-branco/25 bg-branco/15 px-4 py-2 text-corpo font-medium text-branco backdrop-blur-xs shadow-card">
+          <div className="flex items-center gap-2 border-t border-branco/25 pt-4 text-corpo font-medium text-branco">
             <Icon name="historico" size={16} variant="negativa" />
             <span>
               <Contador valor={calculo.porMes} formatar={formatarReais} className="font-extrabold text-branco" /> {textos.rotuloMes}
@@ -98,17 +96,17 @@ export function Prejuizo(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Grid comparativo e de custos ocultos */}
-      <div className="grid items-stretch gap-6 tablet:grid-cols-2 tablet:gap-8">
+      {/* Detalhamento: composição do patrimônio e custos omitidos na estimativa. */}
+      <div className="grid items-stretch gap-6 desktop:grid-cols-12 desktop:gap-8" data-detalhes-prejuizo>
         {/* Gráfico de barras de patrimônio por capacidade */}
         <figure
-          className="m-0 flex flex-col justify-between gap-6 rounded-card border border-branco/15 bg-navy/80 p-6 shadow-dialogo backdrop-blur-xs"
+          className="m-0 flex flex-col justify-between gap-6 border-t border-branco/15 pt-6 desktop:col-span-7"
           data-revelar
         >
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <span className="inline-block size-2 rounded-full bg-azul-ciano" aria-hidden="true" />
-              <figcaption className="text-corpo font-bold text-branco">{textos.rotuloCustos}</figcaption>
+              <figcaption><h3 className="m-0 text-corpo font-bold text-branco">{textos.rotuloCustos}</h3></figcaption>
             </div>
             <ul className="m-0 flex list-none flex-col gap-4 p-0">
               {PREJUIZO.custos.map((custo) => (
@@ -141,7 +139,7 @@ export function Prejuizo(): React.JSX.Element {
 
         {/* Card de contextualização: Custos Ocultos e Ressalva */}
         <div
-          className="flex flex-col justify-between gap-6 rounded-card border border-branco/15 bg-navy/80 p-6 shadow-dialogo backdrop-blur-xs"
+          className="flex flex-col justify-between gap-6 border-t border-branco/15 pt-6 desktop:col-span-5"
           data-revelar
         >
           <div className="flex flex-col gap-4">
@@ -152,9 +150,9 @@ export function Prejuizo(): React.JSX.Element {
               >
                 !
               </span>
-              <span className="text-legenda font-bold uppercase tracking-wider text-cinza-gelo">
-                Custos Indiretos Não Contabilizados
-              </span>
+              <h3 className="m-0 text-legenda font-bold uppercase tracking-wider text-cinza-gelo">
+                Custos indiretos não contabilizados
+              </h3>
             </div>
 
             <p className="landing-medida m-0 text-h3 font-semibold leading-snug text-branco">
@@ -163,7 +161,7 @@ export function Prejuizo(): React.JSX.Element {
           </div>
 
           {/* Fatores que ilustram a ressalva de forma visual e escaneável */}
-          <div className="grid grid-cols-2 gap-2 border-t border-branco/15 pt-4 tablet:grid-cols-3">
+          <ul className="m-0 grid list-none grid-cols-2 gap-x-4 gap-y-2 border-t border-branco/15 p-0 pt-4" aria-label="Custos indiretos não contabilizados">
             {([
               { rotulo: 'Gás residual', icone: 'sensor' },
               { rotulo: 'Transporte', icone: 'caminhao' },
@@ -172,15 +170,15 @@ export function Prejuizo(): React.JSX.Element {
               { rotulo: 'Reposição', icone: 'cilindro' },
               { rotulo: 'Perda de aluguel', icone: 'relatorios' },
             ] satisfies Array<{ rotulo: string; icone: IconName }>).map((fator) => (
-              <div
+              <li
                 key={fator.rotulo}
-                className="flex items-center gap-2 rounded-controle border border-branco/10 bg-branco/5 px-2 py-2 text-legenda text-cinza-gelo transition-colors hover:bg-branco/10"
+                className="flex items-center gap-2 text-legenda text-cinza-gelo"
               >
                 <Icon name={fator.icone} size={16} variant="negativa" />
                 <span className="font-semibold text-branco">{fator.rotulo}</span>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
     </Secao>

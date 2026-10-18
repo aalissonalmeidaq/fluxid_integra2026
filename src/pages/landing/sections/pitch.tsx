@@ -5,19 +5,16 @@ import { VideoDestaque } from './video-destaque';
 
 const PONTOS_DO_PITCH = [
   {
-    momento: '01',
     tempo: '0:00',
     titulo: 'Os problemas enfrentados',
     descricao: 'A rotina de transporte, o controle manual vulnerável em papel e planilhas e o desaparecimento de cilindros na entrega.',
   },
   {
-    momento: '02',
     tempo: '0:55',
     titulo: 'O tamanho do prejuízo',
     descricao: 'O impacto financeiro de ativos não recuperados no pátio e o custo invisível das perdas recorrentes no setor de gases.',
   },
   {
-    momento: '03',
     tempo: '1:40',
     titulo: 'As soluções propostas',
     descricao: 'A trava física inteligente acoplada à válvula e a plataforma digital com validação segura de entrega, inclusive sem sinal.',
@@ -27,41 +24,28 @@ const PONTOS_DO_PITCH = [
 function DestaquesDoPitch(): React.JSX.Element {
   return (
     <div className="mt-2 flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-2 rounded-full border border-borda-suave bg-cinza-gelo px-4 py-1 text-legenda font-semibold text-texto-secundario shadow-card">
-          <span className="inline-block size-2 rounded-full bg-verde-escuro" aria-hidden="true" />
-          Duração: 2 min 55 s
-        </span>
-        <span className="inline-flex items-center rounded-full border border-borda-suave bg-cinza-gelo px-4 py-1 text-legenda font-semibold text-texto-secundario">
-          Apresentação oficial
-        </span>
+      <div className="flex items-center gap-2 text-legenda font-bold uppercase tracking-wider text-azul-profundo">
+        <span className="inline-block size-2 rounded-full bg-verde-escuro" aria-hidden="true" />
+        Caso real C-262
       </div>
 
-      <div className="flex flex-col gap-4 rounded-card border border-borda-suave bg-cinza-gelo p-4 shadow-card">
-        <div className="flex items-center justify-between gap-2 border-b border-borda-suave pb-2">
-          <p className="m-0 text-legenda font-bold uppercase tracking-wider text-texto-secundario">
-            O que você vai ver no vídeo:
-          </p>
-          <span className="text-legenda font-bold text-azul-profundo">2:55 min</span>
-        </div>
-        <ul className="m-0 flex list-none flex-col gap-4 p-0">
+      <div data-roteiro-pitch className="flex flex-col gap-4 border-y border-borda-suave py-4">
+        <h3 className="m-0 text-h3 font-extrabold leading-tight text-grafite">Neste pitch</h3>
+        <ol className="m-0 flex list-none flex-col p-0">
           {PONTOS_DO_PITCH.map((ponto) => (
-            <li key={ponto.momento} className="flex items-start gap-4">
-              <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-azul-profundo text-legenda font-bold text-branco shadow-card">
-                {ponto.momento}
-              </span>
-              <div className="flex flex-col gap-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-full border border-borda-suave bg-branco px-2 py-1 text-legenda font-bold tabular-nums text-azul-profundo">
-                    {ponto.tempo}
-                  </span>
-                  <strong className="text-corpo font-bold text-grafite">{ponto.titulo}</strong>
-                </div>
+            <li
+              key={ponto.tempo}
+              data-capitulo-pitch
+              className="flex items-start gap-4 border-b border-borda-suave py-2 first:pt-1 last:border-b-0 last:pb-1"
+            >
+              <time className="w-12 shrink-0 pt-1 text-legenda font-bold tabular-nums text-azul-profundo">{ponto.tempo}</time>
+              <div className="flex min-w-0 flex-col gap-1">
+                <strong className="text-corpo font-bold leading-snug text-grafite">{ponto.titulo}</strong>
                 <span className="text-legenda leading-relaxed text-texto-secundario">{ponto.descricao}</span>
               </div>
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
 
       <a

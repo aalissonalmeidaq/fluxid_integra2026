@@ -64,7 +64,7 @@ export function Piloto(): React.JSX.Element {
               {piloto.etapas.map((etapa, indice) => (
                 <li
                   key={etapa.id}
-                  className="relative flex flex-col justify-between gap-4 rounded-card border border-borda-suave bg-branco p-4 shadow-card transition-all duration-200 hover:border-azul-royal/40 hover:shadow-dialogo desktop:p-6"
+                  className="relative flex flex-col justify-between gap-4 rounded-card border border-borda-suave bg-branco p-4 shadow-card desktop:p-6"
                   data-revelar
                 >
                   <div className="flex flex-col gap-4">
@@ -122,7 +122,7 @@ export function Piloto(): React.JSX.Element {
                 <article
                   key={parte.id}
                   data-componente={parte.id}
-                  className="flex items-start gap-4 rounded-card border border-borda-suave bg-branco p-4 shadow-card transition-all duration-200 hover:border-azul-royal/40 hover:shadow-dialogo desktop:p-6"
+                  className="flex items-start gap-4 rounded-card border border-borda-suave bg-branco p-4 shadow-card desktop:p-6"
                 >
                   <span className="flex size-12 shrink-0 items-center justify-center rounded-controle bg-info-fundo text-azul-profundo shadow-card" aria-hidden="true">
                     <Icon name={parte.icone} size={24} variant="duotone" />
@@ -164,7 +164,7 @@ export function Piloto(): React.JSX.Element {
             {piloto.valor.map((item) => (
               <li
                 key={item}
-                className="flex items-center gap-4 rounded-controle border border-borda-suave bg-cinza-gelo p-4 text-corpo font-semibold text-grafite transition-all hover:border-azul-royal hover:bg-branco hover:shadow-card"
+                className="flex items-center gap-4 rounded-controle border border-borda-suave bg-cinza-gelo p-4 text-corpo font-semibold text-grafite"
               >
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-controle bg-info-fundo text-azul-profundo">
                   <Icon name={ICONES_VALOR[item] ?? 'verificado'} size={24} variant="duotone" />

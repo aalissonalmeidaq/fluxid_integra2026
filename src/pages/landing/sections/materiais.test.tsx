@@ -61,10 +61,14 @@ describe('Materiais do projeto', () => {
   });
 
   it('organiza os destinos em 2 blocos (comece por aqui, código e evidências), com a pasta de documentos sozinha no primeiro', () => {
-    render(<Materiais />);
+    const { container } = render(<Materiais />);
     const blocos = TEXTOS.materiais.blocos.map((bloco) => screen.getByRole('region', { name: bloco.titulo }));
     expect(blocos.map((bloco) => within(bloco).getAllByRole('link').length)).toEqual([1, 4]);
     expect(within(blocos[0]!).getByRole('link', { name: /Documentos do projeto/ })).toBeInTheDocument();
+    expect(container.querySelector('[data-grade-materiais]')).toHaveClass('desktop:grid-cols-12');
+    expect(blocos[0]).toHaveClass('desktop:col-span-5');
+    expect(blocos[1]).toHaveClass('desktop:col-span-7');
+    expect(container.querySelectorAll('[data-material-secundario]')).toHaveLength(4);
   });
 
   it('online: nenhum aviso de conexão', () => {
