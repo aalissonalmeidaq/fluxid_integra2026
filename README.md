@@ -161,6 +161,21 @@ O aplicativo de campo passa a funcionar sem conexão, com a viagem já aberta no
 
 Depois de atualizar a branch, rode `npx supabase db reset` e, para as funções novas serem servidas, `npx supabase stop` e `npx supabase start`. O contrato completo está em `specs/010-fila-offline-fotos-assinatura/`.
 
+## Lacre IoT, geocerca e trava (Spec 012)
+
+O lacre (ESP32-C3 com GPS e solenoide, só Wi-Fi) envia a posição ao FluxID a cada minuto e recebe na resposta o comando de travar ou destravar a válvula e a geocerca que deve vigiar.
+
+- **Endpoint do lacre.** A função `seal-gateway` recebe lotes de até 50 mensagens com a chave do dispositivo no cabeçalho. Ela recusa chave errada sem dizer o motivo, limita a 6 chamadas por minuto e bloqueia o endereço depois de 10 chaves erradas. Reenvio responde "já recebida", e posições a até 20 m da anterior só atualizam o horário.
+- **Trava automática com a viagem (Spec 008).** Iniciar a viagem manda travar o lacre de cada cilindro. Registrar a entrega dentro da geocerca, com a posição do lacre de até 2 minutos, ou do celular quando faltar, manda destravar e começa a vigiar a unidade. Fora dela, a válvula continua travada. A trava só muda quando o lacre confirma; até lá, aparece como pendente.
+- **Vigilância.** Cilindro entregue que sai da geocerca (duas posições seguidas além de 50 m) abre uma violação e manda travar. Sem rede, o próprio lacre trava sozinho depois de 3 minutos sem resposta e avisa quando volta.
+- **Saúde e alertas.** O job `fluxid-seal-watchdog` (`pg_cron`, a cada minuto) marca falta de comunicação, falta de GPS, desligamento e possível extravio, e expira comandos. Há uma lista única de alertas (`/alertas`), com reconhecer e encerrar com observação. As notificações push no celular são ativadas em Meu perfil e só chegam a quem tem `seal.read` na organização, sem coordenada nem dado pessoal.
+- **Telas.** Lacres (`/lacres`): cadastro do dispositivo, com a chave mostrada uma única vez, detalhe, chave nova, desativação e redes Wi-Fi do lacre (até 5, com a senha apagada do FluxID quando o lacre responde). No cilindro, o bloco "Lacre" mostra saúde, trava, mapa e posições em texto, travar, destravar (com segundo fator) e vincular. Nos mapas do lacre, do cilindro e do alerta, a geocerca esperada (unidade em vigilância ou destino da viagem) aparece em destaque e as da organização a até 2 km aparecem mais discretas; ao lado, um texto diz se o lacre está dentro ou fora de cada uma e a que distância (calculado no banco; a geometria só aparece para quem tem `geofence.read`). Na viagem, a trava física de cada cilindro.
+- **Permissões.** `seal.read`, `seal.operate` e `seal.admin` (crítica). Nenhuma exclusão física.
+- **Firmware.** Fica em [`firmware/`](firmware/README.md), com PlatformIO: `pio test -e native` roda as regras no computador e `pio run -e esp32c3` compila para o lacre. Os segredos ficam em `firmware/include/secrets.h`, fora do git.
+- **Simulador.** `node scripts/lacre/simulador.mjs --device DSP-... --cenario parado` fala o mesmo contrato do lacre. Os cenários são `ativar`, `parado`, `movendo`, `reenvio`, `lote-atrasado`, `chave-errada`, `ir-para`, `sair-da-geocerca`, `auto-lock`, `rede-ok` e `rede-falha`.
+
+Depois de atualizar a branch, rode `npx supabase db reset` e reinicie o Supabase (`npx supabase stop` e `npx supabase start`) para servir as funções novas. As notificações locais precisam das chaves VAPID em `supabase/functions/.env` e da pública em `.env.local` (`VITE_VAPID_PUBLIC_KEY`); veja `.env.example`. A publicação na nuvem está em `docs/publicacao-em-nuvem.md`, e o contrato completo em `specs/012-lacre-iot-geocerca-trava/`.
+
 ---
 
 ## Governança de IA por ciclo

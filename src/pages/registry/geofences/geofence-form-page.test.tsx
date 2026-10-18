@@ -20,7 +20,7 @@ const siteDetail = (): SiteDetail => ({
   geofences: [],
 });
 const geofence = (over: Partial<GeofenceView> = {}): GeofenceView => ({
-  id: GEOFENCE, name: 'Portão', shape: 'circle', status: 'active', version: 4, siteId: SITE, siteName: 'Matriz', siteStatus: 'active', customerId: CUSTOMER, customerName: 'Hospital Teste',
+  id: GEOFENCE, name: 'Portão', shape: 'circle', status: 'active', version: 4, siteId: SITE, siteName: 'Matriz', siteStatus: 'active', customerId: CUSTOMER, customerName: 'Hospital Teste', siteAddress: 'Praça da Sé, 10 · São Paulo/SP',
   areaM2: 125000, center: { lat: -23.55, lng: -46.633 }, radiusM: 200, vertices: [], ...over,
 });
 
@@ -49,7 +49,8 @@ describe('cadastro de geocerca (história 3)', () => {
     fireEvent.change(screen.getByLabelText('Forma'), { target: { value: 'circle' } });
     fireEvent.click(screen.getByRole('button', { name: 'Usar as coordenadas da unidade' }));
     fireEvent.change(screen.getByLabelText('Raio (metros)'), { target: { value: '200' } });
-    expect(screen.getByRole('img').getAttribute('aria-label')).toMatch(/Círculo de 200 metros/);
+    expect(await screen.findByRole('group', { name: 'Mapa da geocerca' })).toBeInTheDocument();
+    expect(screen.getByText(/Círculo de 200 metros/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Cadastrar geocerca' }));
     await waitFor(() => expect(service.createGeofence).toHaveBeenCalledTimes(1));
     expect(service.createGeofence).toHaveBeenCalledWith(ORG, SITE, { name: 'Portão', shape: 'circle', center: { lat: -23.55, lng: -46.633 }, radiusM: 200 });

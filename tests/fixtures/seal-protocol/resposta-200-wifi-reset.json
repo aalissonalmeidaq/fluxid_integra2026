@@ -1,0 +1,14 @@
+{
+  "server_time": "2026-10-17T14:03:01Z",
+  "results": [],
+  "command": {
+    "id": "6c1f0000-0000-4000-8000-000000000005",
+    "kind": "wifi_reset",
+    "issued_at": "2026-10-17T14:02:00Z"
+  },
+  "watch": {
+    "active": false,
+    "version": 0
+  },
+  "report_interval_s": 60
+}

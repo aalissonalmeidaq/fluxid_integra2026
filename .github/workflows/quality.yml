@@ -118,6 +118,16 @@ jobs:
           echo "RETENTION_JOB_SECRET=$SECRET" > supabase/.env
           echo "RETENTION_JOB_SECRET=$SECRET" >> "$GITHUB_ENV"
 
+      - name: Gerar chaves VAPID descartáveis para as notificações dos lacres (Spec 012; mascaradas e não versionadas)
+        run: |
+          read -r PUBLICA PRIVADA <<< "$(node -e "const c=require('node:crypto');const j=c.generateKeyPairSync('ec',{namedCurve:'P-256'}).privateKey.export({format:'jwk'});console.log(Buffer.concat([Buffer.from([4]),Buffer.from(j.x,'base64url'),Buffer.from(j.y,'base64url')]).toString('base64url'),j.d)")"
+          echo "::add-mask::$PRIVADA"
+          {
+            echo "VAPID_PUBLIC_KEY=$PUBLICA"
+            echo "VAPID_PRIVATE_KEY=$PRIVADA"
+            echo "VAPID_SUBJECT=mailto:ci@fluxid.invalid"
+          } > supabase/functions/.env
+
       - name: Subir o Supabase local (migrations, seed sintético e Edge Functions)
         run: npx supabase start
 
@@ -136,3 +146,43 @@ jobs:
       - name: Encerrar o Supabase local
         if: always()
         run: npx supabase stop --no-backup
+
+  firmware:
+    name: Firmware do lacre (Spec 012, CA-012)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Reprovar segredos dentro de firmware/
+        run: |
+          if git ls-files --error-unmatch firmware/include/secrets.h >/dev/null 2>&1; then
+            echo "firmware/include/secrets.h não pode ser versionado." >&2
+            exit 1
+          fi
+          if grep -rIEn 'fxk_[A-Za-z0-9_-]{20,}|[a-z0-9]{20}\.supabase\.co|sb_secret_|-----BEGIN [A-Z ]*PRIVATE KEY-----' firmware; then
+            echo "firmware/ contém chave, endereço real do Supabase ou chave privada." >&2
+            exit 1
+          fi
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Reaproveitar plataformas e bibliotecas do PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: platformio-${{ runner.os }}-${{ hashFiles('firmware/platformio.ini') }}
+
+      - name: Instalar o PlatformIO
+        run: pip install platformio==6.1.16
+
+      - name: Testes das regras do firmware no computador (Unity)
+        run: pio test -d firmware -e native
+
+      - name: Compilar o firmware do ESP32-C3 (com o modelo de segredos)
+        run: pio run -d firmware -e esp32c3

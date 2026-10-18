@@ -80,6 +80,32 @@ describe('NominatimProvider: o que sai para o provedor (RF-065, CA-018)', () => 
   it('o nome do provedor é nominatim', () => {
     expect(new NominatimProvider(fetcherOf(200, [])).name).toBe('nominatim');
   });
+
+  it('faz geocodificação reversa só com as coordenadas e normaliza o endereço brasileiro', async () => {
+    const response = {
+      display_name: 'Praça da Sé, 100, Sé, São Paulo, SP, Brasil',
+      address: { road: 'Praça da Sé', house_number: '100', suburb: 'Sé', city: 'São Paulo', 'ISO3166-2-lvl4': 'BR-SP', postcode: '01001-000' },
+    };
+    const fetcher = fetcherOf(200, response);
+    const result = await new NominatimProvider(fetcher).reverse({ latitude: -23.550453, longitude: -46.633911 }, signal);
+    const [url, init] = fetcher.mock.calls[0] as [string, { method: string; body?: unknown }];
+    const parsed = new URL(url);
+    expect(`${parsed.origin}${parsed.pathname}`).toBe(`${NOMINATIM_BASE_URL}/reverse`);
+    expect([...parsed.searchParams.keys()].sort()).toEqual(['addressdetails', 'format', 'lat', 'lon', 'zoom']);
+    expect(parsed.searchParams.get('lat')).toBe('-23.550453');
+    expect(parsed.searchParams.get('lon')).toBe('-46.633911');
+    expect(init.method).toBe('GET');
+    expect(init.body).toBeUndefined();
+    expect(result).toEqual({
+      street: 'Praça da Sé', number: '100', district: 'Sé', city: 'São Paulo', state: 'SP', postal_code: '01001000', display_name: response.display_name,
+    });
+  });
+
+  it('não consulta a rede com coordenadas inválidas na busca reversa', async () => {
+    const fetcher = fetcherOf(200, {});
+    await expect(new NominatimProvider(fetcher).reverse({ latitude: 91, longitude: 0 }, signal)).rejects.toBeInstanceOf(GeocodingProviderError);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
 });
 
 describe('NominatimProvider: nenhuma chamada real durante os testes automatizados', () => {

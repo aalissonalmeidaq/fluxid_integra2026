@@ -11,7 +11,7 @@ import { seedEligibleCylinders } from '../support/mock-trips-plan';
 test.use({ serviceWorkers: 'block', locale: 'pt-BR', timezoneId: 'America/Sao_Paulo', colorScheme: 'light' });
 
 const AGORA = new Date('2026-10-12T15:30:00.000Z');
-const DIA_DAS_CAPTURAS = '2026-10-13';
+const DIA_DAS_CAPTURAS = '2026-10-18';
 const LARGURAS = [
   { nome: '360', largura: 360, altura: 740 },
   { nome: '768', largura: 768, altura: 1024 },

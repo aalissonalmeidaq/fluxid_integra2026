@@ -185,11 +185,11 @@ describe('detalhe: conferir e iniciar a viagem', () => {
     expect(ids[0]).toBe(ids[1]);
   });
 
-  it('viagem iniciada mostra bloqueado (lógico), em trânsito e o aviso da Fase 6', async () => {
+  it('viagem iniciada mostra bloqueado (lógico), em trânsito e o aviso de que a trava física só muda com a confirmação do lacre', async () => {
     const items = checkedAll().map((item) => ({ ...item, itemStatus: 'in_transit' as const, lockStatus: 'locked' as const }));
     renderDetail(fakeTripService({ getTrip: vi.fn(async () => ({ kind: 'success', value: withStatus('in_progress', items) })) }), { abilities: OPERATOR });
     expect(await screen.findByText('Bloqueio lógico')).toBeInTheDocument();
-    expect(screen.getByText(/Fase 6/)).toBeInTheDocument();
+    expect(screen.getByText(/só muda com a confirmação do dispositivo/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Iniciar viagem' })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Conferência da carga' })).not.toBeInTheDocument();
   });

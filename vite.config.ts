@@ -52,6 +52,8 @@ export default defineConfig({
         // A imagem de compartilhamento só serve a quem recebe o link; não precisa ficar guardada no aparelho (Spec 011).
         globIgnores: ['**/landing/og-fluxid.png'],
         navigateFallback: '/index.html',
+        // Spec 012: notificações push do lacre (eventos `push` e `notificationclick`), sem cache de dados.
+        importScripts: ['push-sw.js'],
         // Nenhuma rota do Supabase (Auth, Data, Storage, Functions, Realtime) recebe o app shell como resposta.
         navigateFallbackDenylist: [/^\/rest\/v1/, /^\/auth\/v1/, /^\/graphql\/v1/, /^\/storage\/v1/, /^\/functions\/v1/, /^\/realtime\/v1/],
       },

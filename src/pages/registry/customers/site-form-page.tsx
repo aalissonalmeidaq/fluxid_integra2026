@@ -231,6 +231,10 @@ export function SiteFormView({ organizationId, service, postal, geocoder = null,
               latitude={values.latitude}
               longitude={values.longitude}
               onCoordinates={(latitude, longitude) => setValues((current) => ({ ...current, latitude, longitude }))}
+              onAddress={(found) => setValues((current) => ({
+                ...current, street: found.street, number: found.number, district: found.district, city: found.city,
+                state: found.state, postalCode: found.postalCode, ibgeCode: '',
+              }))}
               address={{ street: values.street, number: values.number, district: values.district, city: values.city, state: values.state, postalCode: values.postalCode }}
               organizationId={organizationId}
               customerId={customerId}

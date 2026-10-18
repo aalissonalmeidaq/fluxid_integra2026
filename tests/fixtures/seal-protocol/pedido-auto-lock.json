@@ -1,0 +1,20 @@
+{
+  "protocol": 1,
+  "firmware_version": "2.0.0",
+  "watch_version": 4,
+  "messages": [
+    {
+      "message_id": "01JA0000000000000000000010",
+      "type": "auto_lock",
+      "read_at": "2026-10-17T15:00:00Z",
+      "locked_at": "2026-10-17T14:58:00Z",
+      "latitude": -7.215,
+      "longitude": -39.31,
+      "quality": "gps",
+      "accuracy_m": 6.5,
+      "battery_pct": 87,
+      "signal_dbm": -61,
+      "seal_state": "closed"
+    }
+  ]
+}

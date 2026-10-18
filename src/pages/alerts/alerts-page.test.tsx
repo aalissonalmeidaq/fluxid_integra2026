@@ -1,62 +1,70 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { TenantContext, type TenantContextValue } from '@/app/tenant/tenant-context';
-import { AlertsPage } from './alerts-page';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { SealService, type SealTransport } from '@/application/seals/seal-service';
+import { AlertsListView } from './alerts-page';
 
-// Página de alertas (dados de exemplo): lista os alertas e mostra o detalhe do escolhido, com a organização ativa.
-const OPCAO = { organizationId: 'org-1', displayName: 'Gases Norte', kind: 'tenant' as const };
-const TENANT: TenantContextValue = {
-  status: 'ready', selection: { kind: 'selected', option: OPCAO }, options: [OPCAO], activeOrganizationId: 'org-1',
-  switching: false, select: vi.fn(), beginSwitch: vi.fn(), cancelSwitch: vi.fn(), reload: vi.fn(),
+// Spec 012 (T055; RF-035, RF-042, RF-043): a página de alertas passa a ser a lista REAL da organização (sem o selo "Exemplo"), com
+// filtros por situação e severidade, severidade e tipo em ícone e texto, e estados de carregando, vazio, erro e offline.
+const NOW = new Date('2026-10-17T14:10:00Z');
+const ALERT = {
+  id: 'a1600000-0000-4000-8000-0000000000a1', kind: 'possible_loss', severity: 'high', source: 'system', status: 'open',
+  opened_at: '2026-10-17T14:05:00Z', recovered_at: null, acknowledged_at: null, closed_at: null,
+  device: { id: 'd1', device_code: 'DSP-READA001', label: 'Lacre A' }, cylinder: { id: 'c1', serial_number: 'CIL-0042' }, trip_id: null, site_id: null,
 };
 
-async function abrir(busca: string, tenant: TenantContextValue = TENANT) {
-  window.history.pushState({}, '', `/alertas${busca}`);
-  render(<TenantContext.Provider value={tenant}><AlertsPage /></TenantContext.Provider>);
-  await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
+function service(responses: unknown[]) {
+  const call = vi.fn(async () => {
+    const next = responses.length > 1 ? responses.shift() : responses[0];
+    if (next instanceof Error) throw next;
+    return { status: 200, body: next };
+  });
+  return { service: new SealService({ call } as SealTransport), call };
 }
+const renderList = (s: SealService | null, online = true) =>
+  render(<AlertsListView service={s} organizationId="org-a" online={online} realtime={null} now={() => NOW} />);
 
-describe('AlertsPage', () => {
-  afterEach(() => window.history.pushState({}, '', '/'));
-
-  it('tem o título "Alertas" como h2 e a marca "Exemplo"', async () => {
-    await abrir('');
+describe('AlertsListView', () => {
+  it('lista real: tipo, severidade, cilindro e idade, sem o selo "Exemplo"', async () => {
+    const { service: s } = service([{ code: 'LISTED', items: [ALERT], total: 1 }]);
+    renderList(s);
+    const lista = await screen.findByRole('list', { name: 'Lista de alertas' });
+    const item = within(lista).getByRole('listitem');
+    expect(item).toHaveTextContent('Possível extravio');
+    expect(item).toHaveTextContent('Alta');
+    expect(item).toHaveTextContent('CIL-0042');
+    expect(item).toHaveTextContent('há 5 minutos');
+    expect(within(item).getByRole('link')).toHaveAttribute('href', `/alertas/${ALERT.id}`);
+    expect(screen.queryByText('Exemplo')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Alertas' })).toBeInTheDocument();
-    expect(screen.getAllByText('Exemplo').length).toBeGreaterThan(0);
   });
 
-  it('lista os alertas e destaca os novos', async () => {
-    await abrir('');
-    const lista = screen.getByRole('list', { name: 'Lista de alertas' });
-    expect(within(lista).getAllByRole('listitem')).toHaveLength(4);
-    expect(within(lista).getAllByText('Novo')).toHaveLength(2);
+  it('filtros por situação e severidade chamam o servidor', async () => {
+    const { service: s, call } = service([{ code: 'LISTED', items: [ALERT], total: 1 }]);
+    renderList(s);
+    await screen.findByRole('list', { name: 'Lista de alertas' });
+    expect(call).toHaveBeenLastCalledWith('query-seals', expect.objectContaining({ operation: 'list_alerts', status: 'active' }));
+    fireEvent.change(screen.getByLabelText('Situação'), { target: { value: 'closed' } });
+    fireEvent.change(screen.getByLabelText('Severidade'), { target: { value: 'critical' } });
+    await waitFor(() => expect(call).toHaveBeenLastCalledWith('query-seals', expect.objectContaining({ status: 'closed', severity: 'critical' })));
   });
 
-  it('mostra o detalhe do alerta escolhido pela URL: identificação, organização, cilindro, ocorrência, tipo, gravidade e situação', async () => {
-    await abrir('?alerta=EX-A-02');
-    const detalhe = screen.getByRole('region', { name: 'Detalhe do alerta' });
-    expect(detalhe).toHaveTextContent('EX-A-02');
-    expect(detalhe).toHaveTextContent('Gases Norte');
-    expect(detalhe).toHaveTextContent('EX-0733');
-    expect(detalhe).toHaveTextContent('Geocerca');
-    expect(detalhe).toHaveTextContent(/saiu da geocerca/i);
-    expect(detalhe).toHaveTextContent('Atenção');
-    expect(detalhe).toHaveTextContent('Aberto');
-    expect(screen.getByRole('link', { name: /Saída da geocerca/ })).toHaveAttribute('aria-current', 'true');
+  it('vazio', async () => {
+    const { service: s } = service([{ code: 'LISTED', items: [], total: 0 }]);
+    renderList(s);
+    expect(await screen.findByText('Nenhum alerta nesta situação.')).toBeInTheDocument();
   });
 
-  it('sem alerta na URL mostra o primeiro', async () => {
-    await abrir('');
-    expect(screen.getByRole('region', { name: 'Detalhe do alerta' })).toHaveTextContent('EX-A-01');
+  it('erro com "Tentar novamente"', async () => {
+    const { service: s } = service([new Error('rede'), { code: 'LISTED', items: [ALERT], total: 1 }]);
+    renderList(s);
+    fireEvent.click(await screen.findByRole('button', { name: 'Tentar novamente' }));
+    expect(await screen.findByRole('list', { name: 'Lista de alertas' })).toBeInTheDocument();
   });
 
-  it('identificador desconhecido mostra aviso em vez de detalhe vazio', async () => {
-    await abrir('?alerta=nao-existe');
-    expect(screen.getByRole('region', { name: 'Detalhe do alerta' })).toHaveTextContent(/não encontrado/i);
-  });
-
-  it('sem organização ativa não inventa organização', async () => {
-    await abrir('?alerta=EX-A-01', { ...TENANT, selection: { kind: 'none' }, options: [], activeOrganizationId: null });
-    expect(screen.getByRole('region', { name: 'Detalhe do alerta' })).toHaveTextContent(/organizaçãos*não selecionada/i);
+  it('offline: explica sem chamar o servidor', async () => {
+    const { service: s, call } = service([{ code: 'LISTED', items: [ALERT], total: 1 }]);
+    renderList(s, false);
+    expect(await screen.findByText(/Sem conexão/)).toBeInTheDocument();
+    expect(call).not.toHaveBeenCalled();
   });
 });

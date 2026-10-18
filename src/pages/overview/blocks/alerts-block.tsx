@@ -4,8 +4,8 @@ import { NewBadge } from '../alert-visuals';
 import { OverviewBlock } from '../overview-block';
 import { useOverviewBlock } from '../use-overview-block';
 
-// Lista curta de eventos de exemplo. Os alertas recém-disparados levam o destaque "Novo" e um resumo no topo; cada alerta
-// abre a página de alertas já com ele selecionado (RF-014).
+// Lista curta de eventos de exemplo. Os alertas recém-disparados levam o destaque "Novo" e um resumo no topo. Os itens de exemplo não são
+// links: a página de alertas mostra os alertas REAIS dos lacres (Spec 012), e o rodapé leva até ela.
 export function AlertsBlock(): React.JSX.Element {
   const { state, retry } = useOverviewBlock('alertas');
   const novos = state.status === 'ready' ? state.data.items.filter((item) => item.isNew).length : 0;
@@ -22,9 +22,8 @@ export function AlertsBlock(): React.JSX.Element {
           <ul role="list" className="m-0 flex list-none flex-col gap-2 p-0">
             {state.data.items.map((item) => (
               <li key={item.id} className="min-w-0">
-                <a
-                  href={`/alertas?alerta=${encodeURIComponent(item.id)}`}
-                  className={`flex min-h-alvo min-w-0 items-start gap-2 rounded-controle border p-2 hover:bg-info-fundo ${item.isNew ? 'border-erro bg-erro-fundo' : 'border-borda-suave bg-branco'}`}
+                <div
+                  className={`flex min-h-alvo min-w-0 items-start gap-2 rounded-controle border p-2 ${item.isNew ? 'border-erro bg-erro-fundo' : 'border-borda-suave bg-branco'}`}
                 >
                   <span className={`mt-1 ${item.isNew ? 'text-erro' : 'text-azul-profundo'}`}><Icon name="alerta" size={16} /></span>
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -34,10 +33,11 @@ export function AlertsBlock(): React.JSX.Element {
                       <span className={item.isNew ? 'text-erro' : ''}>{item.type} · {item.when}</span>
                     </span>
                   </span>
-                </a>
+                </div>
               </li>
             ))}
           </ul>
+          <a className="inline-flex min-h-alvo items-center self-start text-corpo font-semibold text-azul-profundo underline" href="/alertas">Ver os alertas dos lacres</a>
         </>
       )}
     </OverviewBlock>

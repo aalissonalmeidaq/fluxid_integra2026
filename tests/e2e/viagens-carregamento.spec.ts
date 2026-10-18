@@ -68,7 +68,7 @@ test.describe('Carregamento e início da viagem', () => {
     await expect(page.getByText('Situação do cilindro na viagem e custódia: Em trânsito')).toHaveCount(3);
     await expect(page.getByText('Bloqueio: Bloqueado (lógico)')).toHaveCount(3);
     await expect(page.getByText('Custódia: Em trânsito', { exact: true })).toHaveCount(0);
-    await expect(page.getByText(/Fase 6/)).toBeVisible();
+    await expect(page.getByText(/só muda com a confirmação do dispositivo/)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Iniciar viagem' })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Conferência da carga' })).toHaveCount(0);
     expect(backend.trips.trips[0]!.status).toBe('in_progress');

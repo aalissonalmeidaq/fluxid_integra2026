@@ -22,11 +22,11 @@ const setup = (item: TripItemView, aal: 'aal1' | 'aal2' = 'aal1', over: Partial<
 };
 
 describe('desbloqueio normal (cilindro entregue)', () => {
-  it('mostra o aviso de registro lógico e a Fase 6', () => {
+  it('mostra o aviso de registro lógico, separado da trava física do lacre (Spec 012)', () => {
     setup(delivered);
     expect(screen.getByRole('dialog', { name: 'Registrar desbloqueio · CIL-001' })).toBeInTheDocument();
     expect(screen.getByText('Registro lógico')).toBeInTheDocument();
-    expect(screen.getByText(/comandada e confirmada pelo dispositivo na Fase 6/)).toBeInTheDocument();
+    expect(screen.getByText(/a trava física do lacre é comandada à parte/)).toBeInTheDocument();
     expect(screen.getByText(/não muda a situação da entrega e não pode ser desfeito/)).toBeInTheDocument();
   });
 

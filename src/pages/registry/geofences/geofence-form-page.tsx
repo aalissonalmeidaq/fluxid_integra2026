@@ -206,7 +206,7 @@ export function GeofenceFormView({ organizationId, service, online, siteId, geof
             <GeofenceShapeEditor value={values} onChange={(next) => setValues((current) => ({ ...current, ...next }))} errors={errors} siteCoordinates={siteCoordinates} />
           </FormSection>
           {preview && (
-            <FormSection legend="Pré-visualização">
+            <FormSection legend="Pré-visualização no mapa" description="Confira a área coberta antes de salvar.">
               <GeofencePreview value={preview} />
             </FormSection>
           )}

@@ -107,19 +107,15 @@ test.describe('US2: a Visão geral depois de entrar', () => {
 });
 
 test.describe('Alertas na Visão geral', () => {
-  test('alertas novos têm o destaque "Novo" e o clique abre a página de alertas com o detalhe', async ({ page }) => {
+  test('alertas novos têm o destaque "Novo" e o rodapé leva à página de alertas dos lacres', async ({ page }) => {
     await entrar(page);
     const bloco = page.getByRole('region', { name: 'Alertas recentes' });
     await expect(bloco).toContainText('2 novos alertas');
     await expect(bloco.getByText('Novo', { exact: true })).toHaveCount(2);
-    await bloco.getByRole('link', { name: /Saída da geocerca/ }).click();
-    await expect(page).toHaveURL(/\/alertas\?alerta=EX-A-02/);
-    await expect(page.getByRole('heading', { level: 2, name: 'Alertas' })).toBeVisible();
-    const detalhe = page.getByRole('region', { name: 'Detalhe do alerta' });
-    await expect(detalhe).toContainText('EX-A-02');
-    await expect(detalhe).toContainText('Tenant A');
-    await expect(detalhe).toContainText('EX-0733');
-    await expect(detalhe).toContainText('Geocerca');
+    // Spec 012: os itens de exemplo não são links; a página de alertas mostra os alertas reais.
+    await expect(bloco.getByRole('link', { name: /Saída da geocerca/ })).toHaveCount(0);
+    await bloco.getByRole('link', { name: 'Ver os alertas dos lacres' }).click();
+    await expect(page).toHaveURL(/\/alertas$/);
   });
 
   test('cada cartão de indicador tem uma cor própria', async ({ page }) => {
