@@ -60,9 +60,21 @@ Problemas encontrados na bancada e corrigidos no firmware, na borda e nos testes
 
 Não testado nesta parte: a trava pela solenoide (pinos ainda a confirmar no hardware), o desligamento avisado e a conexão por HTTPS com o Supabase da nuvem. Ficam como pendências abaixo.
 
+## Publicação na nuvem (T121, 18/10/2026, depois do merge do PR #43)
+
+| Etapa | Resultado |
+|---|---|
+| `npx supabase db push` (projeto `fluxid`) | teste a seco com as 15 migrations `20261018*_seals_*` e nenhum seed; aplicadas sem erro |
+| Segredos das funções | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`https://fluxid.tec.br`) e `SEAL_SOURCE_SALT`, gerados e enviados por arquivo temporário apagado em seguida; nenhum valor em arquivo versionado |
+| `npx supabase functions deploy` | `seal-gateway`, `seal-push`, `query-seals` e `manage-seals` publicadas; as outras que mudaram também |
+| Vault e cron | `seal_push_url` trocado para o endereço da nuvem; `seal_push_secret` presente; `fluxid-seal-watchdog` ativo; extensões `pg_cron`, `pg_net`, `postgis` e `supabase_vault` presentes; 3 permissões `seal.*` |
+| Conferência sem credencial | `public-compatibility` 200 (contrato 002.1); `seal-gateway` com chave errada 401 (`unauthorized`); `seal-push` sem segredo 401 |
+| Vercel | `VITE_VAPID_PUBLIC_KEY` cadastrada em produção; publicação da `main` disparada (run 39165461631, sucesso); o pacote do fluxid.tec.br carrega a chave pública |
+
+Não conferido: o envio de uma notificação de verdade na nuvem, que depende de um lacre falando com o projeto da nuvem (o da bancada aponta para o Supabase local). Fica junto da parte 2 da bancada.
+
 ## Pendências
 
 - T115, parte 2: trava pela solenoide (travar e destravar), com o modelo da solenoide e os pinos confirmados; conexão por HTTPS com o Supabase da nuvem.
-- T121: publicação no Supabase da nuvem (projeto `fluxid`) **depois do merge** do pull request, decisão da pessoa responsável em 18/10/2026: as migrations da spec ainda não estão na nuvem.
+- T121, conferência final: uma notificação recebida de verdade na nuvem, com um lacre apontando para o projeto da nuvem.
 - T122: roteiro do `quickstart.md` com o lacre físico e as medições MS-008, MS-010, MS-012 e RNF-004.
-- T124: entrevista de validação humana e gate de registro de IA.
