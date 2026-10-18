@@ -392,3 +392,5 @@ trava pela solenoide e HTTPS na nuvem com o lacre físico (T115, parte 2); publi
 - [x] Decisão ou pendência registrada.
 - [x] O registro não contém segredos, credenciais ou tokens.
 - [x] Dados pessoais foram removidos ou minimizados.
+
+Atualização do RIA-032: em 18/10/2026, depois do merge do PR #43 e por decisão da pessoa responsável, a Spec 012 foi publicada no Supabase da nuvem (projeto `fluxid`). As 15 migrations foram aplicadas sem seed. Os segredos das funções (par VAPID e sal do endereço) foram gerados e enviados por arquivo temporário, apagado em seguida, e nenhum valor entrou no repositório. As funções do lacre foram publicadas e o endereço do push no Vault aponta para a nuvem. O job de verificação está ativo, e a chave VAPID pública foi cadastrada na Vercel. Conferências sem credencial: o `public-compatibility` responde 200 e o endpoint do lacre recusa chave errada com 401. Ainda falta ver uma notificação chegar de verdade na nuvem, o que depende de um lacre apontando para o projeto da nuvem. O `validation.md` e o `tasks.md` da spec registram essas etapas.
