@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useId, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { usePermissions } from '@/app/navigation/permissions-context';
 import { watchSeals, type RealtimePort } from '@/application/seals/seal-realtime';
 import type { SealService } from '@/application/seals/seal-service';
 import type { GeocodingService, ReverseGeocodedAddress } from '@/application/registry/geocoding-service';
 import type { SealDetail } from '@/application/seals/seal-views';
+import type { MapPoint } from '@/components/maps/map-types';
 import { Alert, Button, ErrorState, Loading } from '@/design-system';
 import { contactAge, positionAge } from '@/domain/seals/seal-age';
 import { sealAbilities } from '@/domain/seals/seal-abilities';
@@ -100,6 +101,27 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
   const positionKey = load.kind === 'ready' && load.seal.position
     ? `${load.seal.position.latitude}:${load.seal.position.longitude}:${load.seal.position.readAt}` : '';
   const currentPositionAddress = positionAddress?.positionKey === positionKey ? positionAddress.value : null;
+
+  // Endereço no balão do ponto do mapa: o mesmo estado do "Descobrir endereço" (consultar por um lado aparece no outro). O balão lê o
+  // endereço ao abrir, por uma referência, para o ponto não ser recriado (e o balão fechado) quando a consulta termina.
+  const knownAddress = useRef<{ positionKey: string; displayName: string } | null>(null);
+  useEffect(() => {
+    if (currentPositionAddress !== null && typeof currentPositionAddress === 'object') knownAddress.current = { positionKey, displayName: currentPositionAddress.displayName };
+  }, [currentPositionAddress, positionKey]);
+  const latitude = load.kind === 'ready' ? load.seal.position?.latitude : undefined;
+  const longitude = load.kind === 'ready' ? load.seal.position?.longitude : undefined;
+  const mapAddress = useMemo<MapPoint['address']>(() => {
+    if (!geocoder || latitude === undefined || longitude === undefined) return undefined;
+    return {
+      known: () => (knownAddress.current?.positionKey === positionKey ? knownAddress.current.displayName : null),
+      resolve: async () => {
+        setPositionAddress({ positionKey, value: 'loading' });
+        const outcome = await geocoder.reverseSeal(organizationId, deviceId, latitude, longitude, true);
+        setPositionAddress({ positionKey, value: outcome.kind === 'found' ? outcome.address : 'error' });
+        return outcome.kind === 'found' ? outcome.address.displayName : null;
+      },
+    };
+  }, [geocoder, organizationId, deviceId, positionKey, latitude, longitude]);
 
   const confirm = async (justification: string) => {
     if (!service || !pending) return;
@@ -226,6 +248,9 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
               label={seal.label}
               details={[seal.deviceCode, seal.watch ? `Vigilância: ${seal.watch.siteName}` : 'Posição informada pelo lacre']}
               caption={`Leitura ${positionAge(seal.position.readAt, now())}.`}
+              // O balão chama `known` e `resolve` só ao abrir e no clique (eventos do Leaflet), nunca durante a renderização.
+              // eslint-disable-next-line react-hooks/refs
+              {...(mapAddress ? { address: mapAddress } : {})}
             />
           </div>
         ) : <p className="m-0 text-corpo text-grafite">Este lacre ainda não enviou uma posição.</p>}

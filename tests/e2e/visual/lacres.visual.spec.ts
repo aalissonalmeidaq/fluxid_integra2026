@@ -54,12 +54,21 @@ async function entrar(page: Page): Promise<Cenario> {
   return { cilindro: cil.id, lacre: String(lacre.device_id), alerta: String(alerta.id) };
 }
 
+// O mapa do lacre carrega as geocercas depois da página: sem esperar a lista delas, a captura às vezes sai antes, com o texto abaixo
+// do mapa deslocado e o mapa ainda sem enquadrar a geocerca.
+async function esperarGeocercas(page: Page): Promise<void> {
+  await expect(page.getByRole('list', { name: 'Geocercas perto do lacre' })).toBeVisible();
+  await expect(page.locator('.fluxid-map-geofence').first()).toBeVisible();
+}
+
 async function capturar(page: Page, nome: string, paginaInteira = true): Promise<void> {
   await page.waitForLoadState('networkidle');
   await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await page.evaluate(async () => { await document.fonts.ready; });
-  await expect(page).toHaveScreenshot(nome, { fullPage: paginaInteira, maxDiffPixelRatio: 0.001, animations: 'disabled', caret: 'hide' });
+  // A área do mapa fica mascarada: para fotografar a página inteira o Playwright aumenta a janela, o Leaflet redesenha o ponto e a
+  // geocerca, e a foto pode sair no meio do redesenho. O texto ao redor (geocerca esperada, dentro e fora, distância) continua comparado.
+  await expect(page).toHaveScreenshot(nome, { fullPage: paginaInteira, maxDiffPixelRatio: 0.001, animations: 'disabled', caret: 'hide', mask: [page.locator('.fluxid-map')] });
 }
 
 for (const { nome, largura, altura } of LARGURAS) {
@@ -77,6 +86,7 @@ for (const { nome, largura, altura } of LARGURAS) {
       const { lacre } = await entrar(page);
       await page.goto(`/lacres/${lacre}`);
       await expect(page.getByRole('list', { name: 'Redes guardadas' })).toBeVisible();
+      await esperarGeocercas(page);
       await capturar(page, `lacres-detalhe-${nome}.png`);
     });
 
@@ -113,6 +123,7 @@ for (const { nome, largura, altura } of LARGURAS) {
       const { alerta } = await entrar(page);
       await page.goto(`/alertas/${alerta}`);
       await expect(page.getByRole('heading', { level: 2, name: 'Possível extravio' })).toBeVisible();
+      await esperarGeocercas(page);
       await capturar(page, `lacres-alerta-detalhe-${nome}.png`);
     });
   });

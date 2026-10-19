@@ -73,3 +73,34 @@
 .fluxid-map--editable .leaflet-interactive {
   cursor: crosshair;
 }
+
+/* Endereço aproximado no balão do ponto: aviso em legenda e botão com alvo de toque de 44 px. */
+.fluxid-map-popup-address {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-2);
+}
+
+.fluxid-map-popup-address p {
+  margin: 0;
+}
+
+.fluxid-map-popup-notice {
+  font-size: var(--text-legenda);
+  line-height: var(--text-legenda--line-height);
+  color: var(--color-texto-secundario);
+}
+
+.fluxid-map-popup-address button {
+  min-height: var(--spacing-alvo);
+  padding: 0 var(--spacing-4);
+  border: 1px solid var(--color-azul-profundo);
+  border-radius: var(--radius-controle);
+  background: var(--color-branco);
+  color: var(--color-azul-profundo);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

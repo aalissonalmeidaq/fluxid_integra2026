@@ -1,6 +1,7 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import React, { useEffect, useRef } from 'react';
+import { popupContent } from './map-popup';
 import type { MapPoint, MapShape } from './map-types';
 import './map-view.css';
 
@@ -22,25 +23,6 @@ export interface MapViewProps {
 }
 
 const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-function popupContent(point: MapPoint): HTMLElement {
-  const root = document.createElement('div');
-  const name = document.createElement('strong');
-  name.textContent = point.label;
-  root.append(name);
-  for (const line of point.details ?? []) {
-    root.append(document.createElement('br'));
-    root.append(document.createTextNode(line));
-  }
-  if (point.href) {
-    root.append(document.createElement('br'));
-    const link = document.createElement('a');
-    link.href = point.href;
-    link.textContent = 'Abrir a unidade';
-    root.append(link);
-  }
-  return root;
-}
 
 export default function MapView({ title, points, shapes = [], fallback, singleZoom = 15, onPick, className }: MapViewProps): React.JSX.Element {
   const container = useRef<HTMLDivElement>(null);
@@ -99,8 +81,10 @@ export default function MapView({ title, points, shapes = [], fallback, singleZo
         : boundary.getBounds());
     }
     for (const point of points) {
+      const popup = popupContent(point);
       L.circleMarker([point.latitude, point.longitude], { radius: 9, className: point.confirmed === false ? 'fluxid-map-point fluxid-map-point--unconfirmed' : 'fluxid-map-point' })
-        .bindPopup(popupContent(point))
+        .bindPopup(popup.element)
+        .on('popupopen', popup.refresh)
         .bindTooltip(point.label)
         .addTo(group);
     }

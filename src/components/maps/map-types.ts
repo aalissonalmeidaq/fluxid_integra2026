@@ -8,6 +8,9 @@ export interface MapPoint {
   // Linhas de texto do balão (por exemplo, cliente e cidade).
   details?: readonly string[];
   href?: string;
+  // Endereço aproximado das coordenadas no balão: `known` devolve o já consultado (ou null) e `resolve` consulta, depois do clique
+  // da pessoa em "Mostrar endereço". Mantenha o objeto estável entre renderizações para o balão não fechar.
+  address?: { known: () => string | null; resolve: () => Promise<string | null> };
 }
 
 // `emphasis` diferencia, além da cor, pela espessura e pelo traço: 'destaque' (a geocerca esperada) e 'discreta' (as próximas).
