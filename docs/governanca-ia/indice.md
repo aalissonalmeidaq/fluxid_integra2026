@@ -57,7 +57,7 @@
 
 | RIA-032 | 18/10/2026, 16:26:17 - America/Fortaleza | 012 | 01 | Lacre IoT, geocerca e trava | `registros/32_Lacre_IoT_Geocerca_e_Trava.docx` (`RIA-032-lacre-iot-geocerca-e-trava.md`) | Utilizado |
 
-| RIA-033 | 20/10/2026, 03:09:00 - America/Fortaleza | 013 | 01 | Aprovação e destinação de lacres pelo Master | `registros/RIA-033-aprovacao-e-destinacao-de-lacres-pelo-master.md` | Utilizado |
+| RIA-033 | 20/10/2026, 03:09:00 - America/Fortaleza | 013 | 01 | Aprovação e destinação de lacres pelo Master | `registros/33_Aprovacao_e_Destinacao_de_Lacres_pelo_Master.docx` (`RIA-033-aprovacao-e-destinacao-de-lacres-pelo-master.md`) | Utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
