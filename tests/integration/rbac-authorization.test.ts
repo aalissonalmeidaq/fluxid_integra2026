@@ -10,6 +10,7 @@ import {
   type RoleDefinition,
 } from '../../src/domain/identity/authorization';
 
+
 const A = '20000000-0000-0000-0000-00000000000a';
 const B = '20000000-0000-0000-0000-00000000000b';
 const ADMIN_A = '10000000-0000-0000-0000-000000000002';
@@ -171,11 +172,10 @@ describe('autorização RBAC: delegabilidade e MFA nas fronteiras', () => {
     expect(store.audit).toContainEqual(expect.objectContaining({ action: 'role.save', result: 'denied', reason: 'permission_not_delegable' }));
   });
 
-  it('a sessão AAL1 não altera papéis mesmo com permissão vigente', async () => {
+  it('Spec 013 (RF-021): a sessão AAL1 altera papéis com a permissão vigente', async () => {
     const store = createTrustedStore();
     const result = await send(store, 'token-a-aal1', { operation: 'save_role', organization_id: A, name: 'Auditor', permissions: ['audit.read'], justification: JUSTIFICATION });
-    expect(result).toEqual({ status: 403, body: { code: 'MFA_REQUIRED' } });
-    expect(store.gateway.saveRole).not.toHaveBeenCalled();
+    expect(result.status).toBe(201);
   });
 
   it('o mesmo pedido válido em AAL2 é aceito', async () => {

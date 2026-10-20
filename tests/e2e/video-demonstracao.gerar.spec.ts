@@ -194,7 +194,7 @@ test.describe('Vídeo de demonstração (sob demanda)', () => {
     // 1. Administradora.
     const { admin, estoque, gestor, motorista } = PESSOAS;
     await capitulo(page, { numero: 'CAPÍTULO 1', perfil: `${admin.papel} · ${admin.nome}`, cor: admin.cor, titulo: 'Acesso seguro e controlado', subtitulo: 'Cada pessoa só vê e faz o que o papel dela permite, e tudo fica registrado.', mascote: '/landing/mascote-tablet-588.webp' }, 3200);
-    await legenda(page, fala(admin, 'Entrada com e-mail e senha', 'Sessões com prazo, limite por pessoa e verificação em duas etapas nas telas administrativas.'));
+    await legenda(page, fala(admin, 'Entrada com e-mail e senha', 'Sessões com prazo e limite por pessoa; ações sensíveis com justificativa e auditoria.'));
     await entrar(page, page, backend, 'admin');
     await legenda(page, fala(admin, 'Visão geral da operação', 'Mapa e indicadores da distribuidora num só lugar. A organização ativa aparece no topo.'), 2600);
     await menu(page, 'Pessoas do tenant');

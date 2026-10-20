@@ -9,6 +9,7 @@ import { createManageMembershipHandler, type MembershipGateway } from '../../sup
 import { createManageAccessHandler, type AccessGateway } from '../../supabase/functions/manage-access/handler';
 import { createQueryAuditHandler, type AuditGateway } from '../../supabase/functions/query-audit/handler';
 
+
 // Matriz de auditoria (AUD-001 a AUD-006, AUD-010): cada ação sensível ou negada deixa evidência sanitizada.
 const ACTOR = '10000000-0000-0000-0000-000000000002';
 const SESSION = '60000000-0000-0000-0000-000000000001';
@@ -142,20 +143,18 @@ describe('auditoria: cada ação sensível deixa evidência', () => {
     expect(find(all, 'manage-organizations', 'organization.create', 'success')).toBeDefined();
     expect(find(all, 'manage-organizations', 'organization.status.change', 'success')).toBeDefined();
     expect(find(all, 'manage-organizations', 'organization.first_admin.invite', 'success')).toBeDefined();
-    expect(find(all, 'manage-organizations', 'organization.access', 'denied', 'mfa_required')).toBeDefined();
     expect(find(all, 'manage-organizations', 'organization.access', 'denied', 'permission_denied')).toBeDefined();
     expect(find(all, 'invite-user', 'invitation.send', 'denied', 'permission_denied')).toBeDefined();
     expect(find(all, 'invite-user', 'invitation.send', 'failed', 'delivery_failed')).toBeDefined();
     expect(find(all, 'manage-membership', 'membership.status.change', 'denied', 'permission_denied')).toBeDefined();
-    expect(find(all, 'manage-membership', 'membership.status.change', 'denied', 'mfa_required')).toBeDefined();
     expect(find(all, 'manage-membership', 'membership.list', 'denied', 'permission_denied')).toBeDefined();
     expect(find(all, 'manage-access', 'role.save', 'denied', 'permission_not_delegable')).toBeDefined();
     expect(find(all, 'manage-access', 'role.set_active', 'denied', 'role_immutable')).toBeDefined();
     expect(find(all, 'manage-access', 'role.assign', 'denied', 'permission_denied')).toBeDefined();
-    expect(find(all, 'manage-access', 'role.save', 'denied', 'mfa_required')).toBeDefined();
     expect(find(all, 'manage-access', 'access.list', 'denied', 'permission_denied')).toBeDefined();
     expect(find(all, 'query-audit', 'audit.query', 'denied', 'permission_denied')).toBeDefined();
-    expect(find(all, 'query-audit', 'audit.query', 'denied', 'mfa_required')).toBeDefined();
+    // Spec 013 (RF-021): não há mais negação por segundo fator.
+    expect(all.some((event) => event.reason === 'mfa_required')).toBe(false);
   });
 
   it('todo evento identifica o ator quando conhecido, a ação e o resultado', async () => {
@@ -207,10 +206,10 @@ describe('auditoria: sanitização', () => {
     }
   });
 
-  it('as negações por MFA e por regra do domínio também não expõem dados do alvo', async () => {
+  it('as negações por regra do domínio também não expõem dados do alvo', async () => {
     const all = await scenarios();
-    const denials = all.filter((event) => event.result === 'denied' && ['mfa_required', 'permission_not_delegable', 'role_immutable'].includes(String(event.reason)));
-    expect(denials.length).toBeGreaterThan(3);
+    const denials = all.filter((event) => event.result === 'denied' && ['permission_not_delegable', 'role_immutable'].includes(String(event.reason)));
+    expect(denials.length).toBeGreaterThan(1);
     for (const event of denials) {
       expect(event.targetId).toBeUndefined();
       expect(JSON.stringify(event)).not.toContain(MEMBER);

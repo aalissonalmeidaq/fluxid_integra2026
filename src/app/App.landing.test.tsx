@@ -16,9 +16,7 @@ const autenticado: AuthContextValue = {
   state: { status: 'authenticated', aal: 'aal1' },
   login: async () => ({ kind: 'unavailable' }),
   logout: async () => undefined,
-  confirmMfa: async () => false,
-  mfa: null,
-};
+    };
 
 const modoInstalado = (instalado: boolean): void => {
   vi.stubGlobal('matchMedia', (consulta: string) => ({

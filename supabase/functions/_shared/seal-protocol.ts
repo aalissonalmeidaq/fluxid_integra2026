@@ -8,7 +8,7 @@ export const BATCH_MAX = 50;
 export const MESSAGE_TYPES = ['position', 'event', 'alert', 'command_result', 'activation', 'shutdown', 'network_change', 'auto_lock'] as const;
 export type MessageType = (typeof MESSAGE_TYPES)[number];
 
-const EVENT_CODES = ['boot', 'button', 'valve_moved', 'wifi_fallback_default'] as const;
+const EVENT_CODES = ['boot', 'button', 'valve_moved', 'wifi_fallback_default', 'networks_forgotten'] as const;
 const ALERT_CODES = ['low_battery', 'weak_signal', 'seal_open', 'seal_broken'] as const;
 const RESULT_REASONS = ['wifi_not_found', 'wifi_auth', 'wifi_no_internet', 'actuator', 'unknown'] as const;
 const SEAL_STATES = ['closed', 'open', 'broken', 'unknown'] as const;

@@ -49,7 +49,7 @@ async function abrirMenuSeRecolhido(page: Page): Promise<void> {
 
 const BASE = ['Visão geral', 'Meu perfil'];
 const ADMINISTRADOR = [...BASE, 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant'];
-const GLOBAL = [...BASE, 'Organizações', 'Auditoria da plataforma'];
+const GLOBAL = [...BASE, 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma'];
 
 test.describe('US1: só as telas que a pessoa pode usar (CA-001, MS-001)', () => {
   const perfis: Array<[PermissionProfile, string[]]> = [
@@ -284,39 +284,15 @@ test.describe('US3: o servidor continua decidindo (CA-003, MS-002)', () => {
     await expect(page.getByRole('checkbox')).toHaveCount(0);
   });
 
-  test('sessão limitada à verificação em duas etapas não vê o menu e só o vê depois do segundo fator', async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    const backend = new MockBackend().asProfile('master');
-    backend.tenantMemberships = [];
-    backend.loginResponses = [backend.authenticated('MFA_REQUIRED')];
-    backend.statusResponse = backend.activeStatus('aal2', false);
-    await backend.install(page);
-    await page.goto('/visao-geral');
-    await page.getByLabel('E-mail').fill('global@e2e.invalid');
-    await page.getByLabel('Senha', { exact: true }).fill('Senha-E2E-Global-1');
-    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-
-    await expect(page.getByRole('heading', { name: 'Verificação em duas etapas' })).toBeVisible();
-    await expect(page.getByRole('navigation')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Menu' })).toHaveCount(0);
-    expect(consultas(backend)).toHaveLength(0);
-
-    await page.getByLabel(/código de 6 dígitos/i).fill('123456');
-    await page.getByRole('button', { name: 'Verificar' }).click();
-    await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
-    await expect(menu(page)).toBeVisible();
-    await expect.poll(() => itens(page)).toEqual(GLOBAL);
-  });
-
-  test('administrador em AAL1 vê Pessoas do tenant e, ao abri-la, é conduzido à verificação, sem dado algum antes disso', async ({ page }) => {
+  // Spec 013 (RF-021): o acesso é só com e-mail e senha; a sessão AAL1 abre a tela sem pedir o segundo fator.
+  test('administrador em AAL1 vê Pessoas do tenant e a abre sem a verificação em duas etapas', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     const backend = new MockBackend();
     await entrar(page, backend, { aal: 'aal1' });
     await expect.poll(() => itens(page)).toContain('Pessoas do tenant');
     await menu(page).getByRole('link', { name: 'Pessoas do tenant' }).click();
-    await expect(page.getByRole('heading', { name: 'Verificação em duas etapas' })).toBeVisible();
-    await expect(page.getByText('Operador A')).toHaveCount(0);
-    expect(backend.calls.filter((call) => call.path === '/functions/v1/manage-membership')).toHaveLength(0);
+    await expect(page.getByRole('rowheader', { name: 'Operador A' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Verificação em duas etapas' })).toHaveCount(0);
   });
 });
 

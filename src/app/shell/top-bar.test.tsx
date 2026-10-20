@@ -15,7 +15,7 @@ function tenant(over: Partial<TenantContextValue> = {}): TenantContextValue {
   };
 }
 
-const auth: AuthContextValue = { state: { status: 'authenticated', aal: 'aal1' }, login: vi.fn(), logout: vi.fn(async () => undefined), confirmMfa: vi.fn(), mfa: null };
+const auth: AuthContextValue = { state: { status: 'authenticated', aal: 'aal1' }, login: vi.fn(), logout: vi.fn(async () => undefined), };
 
 function renderBar(ctx: TenantContextValue = tenant()) {
   return render(

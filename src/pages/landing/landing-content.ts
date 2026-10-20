@@ -118,7 +118,7 @@ export const FUNCIONALIDADES: readonly FuncionalidadeDestaque[] = [
   {
     id: 'seguranca',
     titulo: 'Dados protegidos e ações auditadas',
-    texto: 'Cada organização acessa apenas os próprios dados. Perfis limitam permissões, ações sensíveis são auditadas e áreas críticas exigem duas etapas.',
+    texto: 'Cada organização acessa apenas os próprios dados. Perfis limitam permissões, ações sensíveis exigem justificativa e são auditadas.',
     icone: 'escudo',
     origem: '004',
   },

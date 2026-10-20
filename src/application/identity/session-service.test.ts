@@ -32,11 +32,6 @@ describe('SessionService.login', () => {
     expect(transport.call).toHaveBeenCalledWith('session-login', { email: 'a@b.co', password: 'segredo', revoke_session_id: 'sessao-1' });
   });
 
-  it('aplica a sessão AAL1 e sinaliza MFA para perfil global', async () => {
-    const { service, store } = setup({ status: 200, body: { code: 'MFA_REQUIRED', session: SESSION } });
-    await expect(service.login({ email: 'a@b.co', password: 'x' })).resolves.toEqual({ kind: 'mfa_required' });
-    expect(store.apply).toHaveBeenCalledTimes(1);
-  });
 
   it('não aplica sessão no limite e devolve a lista para escolha', async () => {
     const sessions = [{ session_id: 's1', started_at: 't', last_seen_at: 't', aal: 'aal1' }];
@@ -98,15 +93,11 @@ describe('SessionService.logout', () => {
 
 describe('SessionService.check', () => {
   it('confirma sessão ativa com nível e validade', async () => {
-    const { service, transport } = setup({ status: 200, body: { code: 'SESSION_ACTIVE', aal: 'aal2', expires_at: '2026-09-30T08:00:00Z', mfa_required: false } });
-    await expect(service.check()).resolves.toEqual({ kind: 'active', aal: 'aal2', expiresAt: '2026-09-30T08:00:00Z', mfaRequired: false });
+    const { service, transport } = setup({ status: 200, body: { code: 'SESSION_ACTIVE', aal: 'aal2', expires_at: '2026-09-30T08:00:00Z' } });
+    await expect(service.check()).resolves.toEqual({ kind: 'active', aal: 'aal2', expiresAt: '2026-09-30T08:00:00Z' });
     expect(transport.call).toHaveBeenCalledWith('session-status', undefined, 'access');
   });
 
-  it('propaga a exigência de MFA de perfil global restaurado em AAL1', async () => {
-    const { service } = setup({ status: 200, body: { code: 'SESSION_ACTIVE', aal: 'aal1', expires_at: 'x', mfa_required: true } });
-    await expect(service.check()).resolves.toMatchObject({ kind: 'active', aal: 'aal1', mfaRequired: true });
-  });
 
   it('sem token local reconhece sessão ausente sem chamar o servidor', async () => {
     const { service, transport } = setup(undefined, null);

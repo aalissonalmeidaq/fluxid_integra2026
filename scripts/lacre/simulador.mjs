@@ -141,6 +141,24 @@ const cenarios = {
     await send('busca o comando de rede');
     await send('responde que não conseguiu entrar na rede (wifi_auth)');
   },
+  // Spec 013: lacre novo pedindo aprovação. Só boot e a rede em uso a cada intervalo, sem leituras, até o Master aprovar (200);
+  // recusado (403) para de pedir. Aprove em /admin/lacres e acompanhe aqui.
+  async 'pedir-aprovacao'() {
+    for (let i = 0; i < minutes; i += 1) {
+      const response = await sim.requestApproval();
+      console.log(`${new Date().toISOString()} pedido ${i + 1}/${minutes}: HTTP ${response.status} ${JSON.stringify(response.body)} situação=${sim.approval}`);
+      if (sim.approval === 'approved' || sim.approval === 'refused') break;
+      if (i < minutes - 1) await pause(intervalMs);
+    }
+  },
+  // Spec 013: lacre devolvido ou retirado. Recebe forget_networks, apaga as redes e confirma com networks_forgotten na chamada seguinte.
+  async devolucao() {
+    for (let i = 0; i < 2; i += 1) {
+      const response = await sim.requestApproval();
+      console.log(`${new Date().toISOString()} chamada ${i + 1}: HTTP ${response.status} ${JSON.stringify(response.body)} esquecido=${sim.forgotten ?? '—'}`);
+      if (i === 0) await pause(1000);
+    }
+  },
   async 'chave-errada'() {
     const wrong = new SealSimulator({ url: values.url, deviceCode: values.device, key: 'chave-errada' });
     for (let i = 0; i < Number(values.vezes); i += 1) {

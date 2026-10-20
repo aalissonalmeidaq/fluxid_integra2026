@@ -38,6 +38,14 @@ namespace fluxid
         ListaCheia
     };
 
+    // Spec 013 (RN-006): o que o FluxID pede para o lacre esquecer quando ele e devolvido ou retirado.
+    enum class Esquecimento
+    {
+        Nenhum,
+        Extras, // as redes recebidas do sistema; a principal fica
+        Todas   // todas, menos a principal configurada pelo portal depois da ultima aprovacao
+    };
+
     class ListaDeRedes
     {
     public:
@@ -64,8 +72,29 @@ namespace fluxid
         std::string Serializar() const;
         bool Restaurar(const std::string& conteudo);
 
+        // Spec 013: a rede principal (a "padrao" da Spec 012) vem do portal e pode faltar; o firmware novo nao grava rede nenhuma.
+        bool TemPrincipal() const;
+        bool TemAlgumaRede() const;
+        const RedeGuardada& Principal() const;
+        // So depois do teste com sucesso (RF-005). `peloPortal` marca a rede configurada no local desde a ultima aprovacao.
+        void DefinirPrincipal(const RedeGuardada& rede, bool peloPortal);
+        bool PrincipalDoPortalDesdeAAprovacao() const;
+        // A cada 200: a rede principal passa a ser "do tenant em que o lacre operou".
+        void MarcarAprovado();
+        void Esquecer(Esquecimento escopo);
+        std::string SerializarPrincipal() const;
+        bool RestaurarPrincipal(const std::string& conteudo);
+
+        // Spec 013 (RF-023): a rede padrao da plataforma (FluxID), vinda do secrets.h. Vale so enquanto nao ha principal escolhida
+        // no portal; nao e de tenant nenhum, entao o esquecimento nunca a apaga, e ela nunca vai para a memoria do lacre. Nao conta
+        // como rede salva: o portal continua abrindo sozinho para a pessoa escolher a rede do local.
+        void DefinirRedeDeFabrica(const std::string& ssid, const std::string& senha);
+        bool TemRedeParaTentar() const;
+
     private:
         RedeGuardada padrao;
+        RedeGuardada fabrica{"", "", true};
+        bool principalDoPortal = false;
         std::vector<RedeGuardada> redes;
     };
 

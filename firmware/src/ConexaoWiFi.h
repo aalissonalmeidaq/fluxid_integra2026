@@ -24,6 +24,9 @@ public:
     bool TestarRede(const fluxid::RedeGuardada& rede, std::string& motivo);
 
     bool Conectado() const;
+    // Spec 013 (RF-024): a rede em uso (vazia sem conexao) e se o ultimo envio por ela chegou ao FluxID, para a pagina do portal.
+    std::string RedeAtual() const;
+    bool ChegaAoFluxID() const;
     const fluxid::EscolhaDeRede& Escolha() const;
     fluxid::RedeEmUso EmUso() const;
     // Última varredura feita pelo próprio ESP32. Contém somente nome e sinal, nunca senha.
@@ -39,5 +42,6 @@ private:
     uint32_t ultimaTentativaMs = 0;
     uint8_t falhasSeguidas = 0;
     bool procurarOutra = false;
+    bool chegouAoFluxID = false;
     std::vector<fluxid::RedeVisivel> ultimasVisiveis;
 };

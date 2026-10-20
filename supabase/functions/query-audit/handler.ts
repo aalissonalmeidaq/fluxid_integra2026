@@ -80,11 +80,6 @@ export function createQueryAuditHandler(gateway: AuditGateway) {
     const query = body ? parseQuery(body, identity) : null;
     if (!query) return invalid();
 
-    if (query.scope === 'global' && identity.aal !== 'aal2') {
-      await gateway.audit({ actorId: identity.userId, action: 'audit.query', result: 'denied', reason: 'mfa_required' });
-      return json({ code: 'MFA_REQUIRED' }, 403);
-    }
-
     try {
       const result = await gateway.query(query);
       if (result.kind === 'invalid') return invalid();

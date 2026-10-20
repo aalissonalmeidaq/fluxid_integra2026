@@ -1,7 +1,7 @@
 import { fail, ok, type Json, type OperationContext, type RegistryMock, type Reply } from './mock-registry';
 
 // Anonimização do backend simulado (Spec 007, US8): irreversível, sem apagar linha alguma, só em registro inativo (exceto o contato),
-// com motivo, justificativa e confirmação. O segundo fator é conferido por `RegistryMock.handle` (operações com `mfa: true`).
+// com motivo, justificativa e confirmação. Sem segundo fator desde a Spec 013 (RF-021).
 // As regras de banco de verdade (campos substituídos, gatilhos, vazamento) são provadas no pgTAP e na suíte `.live`.
 
 const REASONS = ['data_subject_request', 'retention_expired', 'other'];
@@ -68,7 +68,7 @@ function anonymizeContact({ org, body, mock }: OperationContext): Reply {
 }
 
 export function registerAnonymizationOperations(mock: RegistryMock): void {
-  mock.register('anonymize_driver', { kind: 'manage', permission: 'driver.anonymize', mfa: true, run: anonymizeDriver });
-  mock.register('anonymize_customer', { kind: 'manage', permission: 'customer.anonymize', mfa: true, run: anonymizeCustomer });
-  mock.register('anonymize_contact', { kind: 'manage', permission: 'customer.anonymize', mfa: true, run: anonymizeContact });
+  mock.register('anonymize_driver', { kind: 'manage', permission: 'driver.anonymize', run: anonymizeDriver });
+  mock.register('anonymize_customer', { kind: 'manage', permission: 'customer.anonymize', run: anonymizeCustomer });
+  mock.register('anonymize_contact', { kind: 'manage', permission: 'customer.anonymize', run: anonymizeContact });
 }

@@ -352,7 +352,7 @@ async function preencherAnonimizacao(page: Page, justificativa = 'Pedido do titu
 }
 
 test.describe('Anonimização de motorista', () => {
-  test('motorista ativo não pode ser anonimizado; o inativo sim, com segundo fator, e depois fica bloqueado', async ({ page }) => {
+  test('motorista ativo não pode ser anonimizado; o inativo sim, sem segundo fator, e depois fica bloqueado', async ({ page }) => {
     const backend = await entrar(page);
     await page.goto('/motoristas');
     await page.getByRole('link', { name: 'Bruno Condutor' }).click();
@@ -374,15 +374,9 @@ test.describe('Anonimização de motorista', () => {
     await expect(dialogo.getByText('Escolha o motivo.')).toBeVisible();
     await expect(dialogo.getByText('Digite ANONIMIZAR para confirmar.')).toBeVisible();
 
-    // Sem segundo fator, o servidor recusa e o diálogo orienta.
+    // Spec 013 (RF-021): com e-mail e senha (aal1), confirmado, anonimiza.
     await preencherAnonimizacao(page);
     backend.registry.aal = 'aal1';
-    await dialogo.getByRole('button', { name: 'Anonimizar dados pessoais' }).click();
-    await expect(dialogo.getByText(/exige o segundo fator de autenticação/)).toBeVisible();
-    expect(backend.registry.drivers.find((driver) => driver.full_name === 'Diego Inativo')).toBeTruthy();
-
-    // Com o segundo fator, anonimiza.
-    backend.registry.aal = 'aal2';
     await dialogo.getByRole('button', { name: 'Anonimizar dados pessoais' }).click();
     await expect(page.getByRole('heading', { level: 2, name: 'Motorista anonimizado' })).toBeVisible();
     await expect(page.getByText(/Dados pessoais anonimizados em/).first()).toBeVisible();

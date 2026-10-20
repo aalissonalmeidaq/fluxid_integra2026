@@ -10,9 +10,7 @@ const auth = (state: AuthState, logout = vi.fn(async () => undefined)): AuthCont
   state,
   login: vi.fn(),
   logout,
-  confirmMfa: vi.fn(),
-  mfa: null,
-});
+    });
 
 const tenant: TenantContextValue = {
   status: 'ready',
@@ -74,12 +72,6 @@ describe('AppShell', () => {
     expect(screen.getByTestId('connection-bar')).toBeInTheDocument();
   });
 
-  it('o shell público também vale com a sessão em mfa_required', () => {
-    renderShell({ authState: { status: 'mfa_required' } });
-    expect(screen.queryByRole('banner')).not.toBeInTheDocument();
-    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
-  });
-
   it('o cabeçalho exibe o logotipo horizontal como título principal', () => {
     renderShell({ authState: { status: 'authenticated', aal: 'aal1' } });
     const banner = screen.getByRole('banner');
@@ -111,12 +103,6 @@ describe('AppShell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Minha conta' }));
     fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
     await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
-  });
-
-  it('com sessão limitada à verificação em duas etapas não há menu', () => {
-    renderShell({ authState: { status: 'mfa_required' } });
-    expect(screen.queryByRole('navigation', { hidden: true })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Menu' })).not.toBeInTheDocument();
   });
 
   it('o menu começa fechado e o botão do menu vem depois do link de pular na ordem de Tab', () => {

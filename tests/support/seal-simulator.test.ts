@@ -128,3 +128,46 @@ describe('SealSimulator', () => {
     expect(calls[0]!.headers['X-Device-Key']).toBe('errada');
   });
 });
+
+// Spec 013 (T032): o modo "aguardando aprovação" (contracts/pedido-de-aprovacao.md; research.md, item 4).
+describe('SealSimulator aguardando aprovação', () => {
+  const pending = (extra: Record<string, unknown> = {}) => ({ status: 202, body: { status: 'pending_approval', report_interval_s: 60, ...extra } });
+
+  it('manda só boot e a rede em uso, num corpo válido pelo contrato, sem leituras na fila', async () => {
+    const { fn, calls } = fakeFetch([pending()]);
+    const s = sim(fn);
+    await s.requestApproval();
+    const parsed = parseSealRequest(calls[0]!.body);
+    expect(parsed.ok).toBe(true);
+    expect((calls[0]!.body.messages as { type: string; code?: string }[]).map((m) => m.code ?? m.type)).toEqual(['boot', 'network_change']);
+    expect(s.pending).toBe(0);
+    expect(s.approval).toBe('pending');
+  });
+
+  it('recusado: 403 e a situação fica recusada', async () => {
+    const { fn } = fakeFetch([{ status: 403, body: { status: 'refused' } }]);
+    const s = sim(fn);
+    await s.requestApproval();
+    expect(s.approval).toBe('refused');
+  });
+
+  it('forget_networks: apaga as redes extras e confirma com networks_forgotten até o 202 deixar de pedir', async () => {
+    const { fn, calls } = fakeFetch([pending({ forget_networks: 'all' }), pending()]);
+    const s = sim(fn);
+    s.wifiSaved.push('Rede-Do-Tenant-A');
+    await s.requestApproval();
+    expect(s.wifiSaved).toEqual([]);
+    expect(s.forgotten).toBe('all');
+    await s.requestApproval();
+    const second = calls[1]!.body.messages as { code?: string; detail?: string }[];
+    expect(second.find((m) => m.code === 'networks_forgotten')?.detail).toBe('all');
+    expect(s.forgotten).toBeNull();
+  });
+
+  it('aprovado: 200 e passa a operar', async () => {
+    const { fn } = fakeFetch([reply([])]);
+    const s = sim(fn);
+    await s.requestApproval();
+    expect(s.approval).toBe('approved');
+  });
+});

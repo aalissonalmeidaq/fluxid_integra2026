@@ -136,7 +136,7 @@ describe('CylinderSealBlock', () => {
 
   it('travar pelo bloco: justificativa e pedido pendente até o lacre confirmar (US2)', async () => {
     const { service: s, call } = service({ cylinder_seal_view: [{ code: 'FOUND', seal: { ...SEAL, lock_state: 'unlocked' } }], request_lock: [{ code: 'REQUESTED', command_id: 'x' }] });
-    renderBlock({ service: s, permissions: ['seal.read', 'seal.operate'], hasSecondFactor: true });
+    renderBlock({ service: s, permissions: ['seal.read', 'seal.operate'], });
     fireEvent.click(await screen.findByRole('button', { name: 'Travar' }));
     fireEvent.change(await screen.findByLabelText('Justificativa'), { target: { value: 'Cilindro parado no pátio.' } });
     fireEvent.click(screen.getByRole('button', { name: 'Pedir para travar' }));

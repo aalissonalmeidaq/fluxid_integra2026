@@ -18,7 +18,7 @@ export interface AnonymizeActionProps {
 
 function failureMessage(failure: RegistryFailure): string {
   switch (failure.kind) {
-    case 'mfa_required': return 'Esta ação exige o segundo fator de autenticação. Confirme o segundo fator na sua conta (em Minha conta) e tente de novo.';
+    case 'mfa_required': return 'Sua sessão não permite esta ação agora. Entre de novo e tente outra vez.';
     case 'access_denied': return 'Você não tem permissão para anonimizar.';
     case 'active_record': return 'Inative o cadastro antes de anonimizar.';
     case 'already_anonymized': return 'Os dados pessoais deste cadastro já foram anonimizados. Recarregue a tela.';

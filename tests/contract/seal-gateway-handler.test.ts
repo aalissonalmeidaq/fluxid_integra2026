@@ -68,6 +68,36 @@ describe('seal-gateway', () => {
     expect(await response.json()).toEqual({ error: 'rate_limited' });
   });
 
+  // Spec 013 (contracts/pedido-de-aprovacao.md): a borda repassa o pedido de aprovação como o banco responde, sem acrescentar nada.
+  it.each([
+    ['aguardando', 202, 'enrollment-pending-approval-202.json'],
+    ['devolvido', 202, 'enrollment-returned-202.json'],
+    ['retirado', 202, 'enrollment-withdrawn-202.json'],
+    ['recusado', 403, 'enrollment-refused-403.json'],
+  ])('pedido %s: repassa %i com o corpo do banco', async (_caso, status, nome) => {
+    const body = JSON.parse(fixture(nome)) as Record<string, unknown>;
+    const { gateway: g } = gateway({ status, body });
+    const response = await createSealGatewayHandler(g, 'sal')(request({ body: fixture('enrollment-pending-request.json') }));
+    expect(response.status).toBe(status);
+    expect(await response.json()).toEqual(body);
+    expect(response.headers.get('retry-after')).toBeNull();
+  });
+
+  it('pedido novo acima do limite do endereço: 429 com Retry-After', async () => {
+    const { gateway: g } = gateway({ status: 429, retry_after: 1800, body: { error: 'rate_limited' } });
+    const response = await createSealGatewayHandler(g, 'sal')(request({ body: fixture('enrollment-pending-request.json') }));
+    expect(response.status).toBe(429);
+    expect(response.headers.get('retry-after')).toBe('1800');
+    expect(await response.json()).toEqual({ error: 'rate_limited' });
+  });
+
+  it('conflito de chave: o mesmo 401 sem motivo, mesmo que o banco mande mais campos', async () => {
+    const { gateway: g } = gateway({ status: 401, body: { error: 'unauthorized', reason: 'conflict' } });
+    const response = await createSealGatewayHandler(g, 'sal')(request({ body: fixture('enrollment-pending-request.json') }));
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: 'unauthorized' });
+  });
+
   it('corpo fora do formato: 400 sem chamar o banco', async () => {
     for (const body of ['não é json', '{"protocol":1}', '{"protocol":2,"messages":[{"message_id":"a","type":"position"}]}', 'x'.repeat(70_000)]) {
       const { gateway: g, ingest } = gateway();

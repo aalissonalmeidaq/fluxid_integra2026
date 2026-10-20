@@ -38,7 +38,7 @@ export interface LoginGateway {
   clearFailures(keyHash: string): Promise<void>;
   signIn(email: string, password: string): Promise<SignInResult>;
   signOutSession(accessToken: string): Promise<void>;
-  eligibility(userId: string): Promise<{ eligible: boolean; requiresMfa: boolean }>;
+  eligibility(userId: string): Promise<{ eligible: boolean }>;
   endSession(userId: string, sessionId: string, reason: string): Promise<boolean>;
   startSession(userId: string, sessionId: string, aal: 'aal1' | 'aal2'): Promise<StartSessionResult>;
   audit(event: AuthAuditEvent): Promise<void>;
@@ -115,7 +115,8 @@ export function createSessionLoginHandler(gateway: LoginGateway) {
 
       await gateway.clearFailures(key);
       await gateway.audit({ action: 'auth.login', result: 'success', actorId: userId, sessionId });
-      return json({ code: context.requiresMfa ? 'MFA_REQUIRED' : 'AUTHENTICATED', session }, 200);
+      // Spec 013 (RF-021): o acesso é só com e-mail e senha para todos os perfis; não há segundo fator.
+      return json({ code: 'AUTHENTICATED', session }, 200);
     } catch {
       return json({ code: 'INTERNAL_ERROR' }, 500);
     }

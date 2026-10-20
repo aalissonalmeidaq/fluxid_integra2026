@@ -21,15 +21,15 @@ namespace
         return strncmp(FLUXID_URL, "http://", 7) == 0;
     }
 
-    RespostaHttp Chamar(HTTPClient& http, const std::string& corpo)
+    RespostaHttp Chamar(HTTPClient& http, const std::string& corpo, const std::string& codigo, const std::string& chave)
     {
         RespostaHttp resposta = {-1, "", 0};
         http.setTimeout(TEMPO_RESPOSTA_MS);
         http.setReuse(false);
         http.collectHeaders(CABECALHOS, 1);
         http.addHeader("Content-Type", "application/json");
-        http.addHeader("X-Device-Id", FLUXID_DISPOSITIVO);
-        http.addHeader("X-Device-Key", FLUXID_CHAVE);
+        http.addHeader("X-Device-Id", codigo.c_str());
+        http.addHeader("X-Device-Key", chave.c_str());
         resposta.codigo = http.POST(reinterpret_cast<uint8_t*>(const_cast<char*>(corpo.data())), corpo.size());
         if (resposta.codigo > 0)
         {
@@ -42,7 +42,7 @@ namespace
     }
 }
 
-RespostaHttp EnviarAoFluxID(const std::string& corpo)
+RespostaHttp EnviarAoFluxID(const std::string& corpo, const std::string& codigo, const std::string& chave)
 {
     const String url = String(FLUXID_URL) + CAMINHO;
     HTTPClient http;
@@ -53,7 +53,7 @@ RespostaHttp EnviarAoFluxID(const std::string& corpo)
         WiFiClient cliente;
         if (!http.begin(cliente, url))
             return {-1, "", 0};
-        return Chamar(http, corpo);
+        return Chamar(http, corpo, codigo, chave);
 #else
         // Sem TLS so na bancada, com a opcao ligada de proposito no secrets.h local.
         return {-1, "", 0};
@@ -64,5 +64,5 @@ RespostaHttp EnviarAoFluxID(const std::string& corpo)
     cliente.setCACertBundle(pacote_certificados_inicio);
     if (!http.begin(cliente, url))
         return {-1, "", 0};
-    return Chamar(http, corpo);
+    return Chamar(http, corpo, codigo, chave);
 }

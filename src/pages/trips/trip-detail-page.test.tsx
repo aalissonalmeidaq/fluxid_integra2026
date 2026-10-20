@@ -427,12 +427,12 @@ describe('detalhe: registrar o desbloqueio', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Desbloqueio de CIL-001 registrado. A situação da entrega não mudou.');
   });
 
-  it('o servidor exige o segundo fator: a mensagem aparece dentro do diálogo e o diálogo continua aberto', async () => {
+  it('recusa da sessão (mfa_required, que não acontece mais na Spec 013): a mensagem aparece dentro do diálogo e ele continua aberto', async () => {
     const registerUnlock = vi.fn(async () => ({ kind: 'mfa_required' }));
     renderDetail(fakeTripService({ getTrip: vi.fn(async () => ({ kind: 'success', value: withLocked(['delivered', 'delivered']) })), registerUnlock }), { abilities: UNLOCKER });
     fireEvent.click(await screen.findByRole('button', { name: 'Registrar desbloqueio de CIL-001' }));
     fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Registrar desbloqueio' }));
-    expect(await within(await screen.findByRole('dialog')).findByRole('alert')).toHaveTextContent('exige a verificação em duas etapas');
+    expect(await within(await screen.findByRole('dialog')).findByRole('alert')).toHaveTextContent('Entre de novo');
   });
 });
 

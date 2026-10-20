@@ -66,20 +66,6 @@ test.describe('Entrada renovada (Spec 005, US1)', () => {
     await expect(page.getByLabel('Senha', { exact: true })).toBeFocused();
   });
 
-  test('perfil com segundo fator vê a verificação com a mesma moldura, um só h1 e sem menu', async ({ page }) => {
-    const backend = new MockBackend();
-    backend.loginResponses = [backend.authenticated('MFA_REQUIRED')];
-    backend.statusResponse = backend.activeStatus('aal2', false);
-    await abrir(page, backend);
-    await preencher(page, 'global@e2e.invalid', 'Senha-E2E-Global-1');
-    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Verificação em duas etapas' })).toBeVisible();
-    await expect(page.getByText('Cada cilindro, uma identidade.')).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
-    await expect(page.getByRole('navigation')).toHaveCount(0);
-    await expect(page.getByRole('banner')).toHaveCount(0);
-  });
-
   test('mostrar e ocultar a senha funciona só pelo teclado e mantém o valor', async ({ page }) => {
     await abrir(page);
     const senha = page.getByLabel('Senha', { exact: true });

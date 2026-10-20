@@ -26,10 +26,6 @@ export function createManageOrganizationsHandler(gateway: OrganizationGateway) {
     if (!token) return json({ code: 'AUTH_REQUIRED' }, 401);
     const identity = await gateway.authenticate(token).catch(() => null);
     if (!identity || !identity.sessionActive) return json({ code: 'AUTH_REQUIRED' }, 401);
-    if (identity.aal !== 'aal2') {
-      await gateway.audit({ actorId: identity.userId, action: 'organization.access', result: 'denied', reason: 'mfa_required' });
-      return json({ code: 'MFA_REQUIRED' }, 403);
-    }
     if (!identity.canManagePlatform) {
       await gateway.audit({ actorId: identity.userId, action: 'organization.access', result: 'denied', reason: 'permission_denied' });
       return json({ code: 'ACCESS_DENIED' }, 403);

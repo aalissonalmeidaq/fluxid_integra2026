@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { authReducer, initialAuthState, isProtectedAccessAllowed } from './session';
 
+
 // Spec 010, T085 (RF-016a): a sessão restaurada pelo acesso offline é `authenticated` com a marca `offline`; a confirmação do servidor a substitui por
 // uma sessão comum, e o resto da máquina de estados não muda.
 describe('sessão restaurada offline', () => {
@@ -10,10 +11,9 @@ describe('sessão restaurada offline', () => {
     expect(authReducer(initialAuthState, { type: 'session_offline_restored', aal: 'aal2' })).toEqual({ status: 'authenticated', aal: 'aal2', offline: true });
   });
 
-  it('o acesso protegido vale offline, mas aal2 exigido não é concedido com aal1', () => {
+  it('o acesso protegido vale offline', () => {
     const offline = authReducer(initialAuthState, { type: 'session_offline_restored', aal: 'aal1' });
     expect(isProtectedAccessAllowed(offline)).toBe(true);
-    expect(isProtectedAccessAllowed(offline, { requireAal2: true })).toBe(false);
   });
 
   it('a confirmação do servidor tira a marca offline', () => {

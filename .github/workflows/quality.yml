@@ -148,7 +148,7 @@ jobs:
         run: npx supabase stop --no-backup
 
   firmware:
-    name: Firmware do lacre (Spec 012, CA-012)
+    name: Firmware do lacre (Specs 012 e 013)
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -164,6 +164,19 @@ jobs:
           fi
           if grep -rIEn 'fxk_[A-Za-z0-9_-]{20,}|[a-z0-9]{20}\.supabase\.co|sb_secret_|-----BEGIN [A-Z ]*PRIVATE KEY-----' firmware; then
             echo "firmware/ contém chave, endereço real do Supabase ou chave privada." >&2
+            exit 1
+          fi
+          # Spec 013 (RF-019, RN-006): a senha do portal só existe no secrets.h local e no Vault; nenhuma rede fica compilada.
+          if grep -rIEn 'FLUXID_PORTAL_SENHA[[:space:]]+"' firmware | grep -v '"<senha-da-rede-de-configuracao>"'; then
+            echo "firmware/ contém um valor real em FLUXID_PORTAL_SENHA." >&2
+            exit 1
+          fi
+          if grep -rIEn 'FLUXID_REDE_FABRICA_SENHA[[:space:]]+"' firmware | grep -v '"<senha-da-rede-padrao>"'; then
+            echo "firmware/ contém um valor real em FLUXID_REDE_FABRICA_SENHA." >&2
+            exit 1
+          fi
+          if grep -rIEn 'FLUXID_WIFI_(SSID|SENHA)' firmware/src; then
+            echo "firmware/src não pode usar FLUXID_WIFI_SSID nem FLUXID_WIFI_SENHA: a rede principal vem do portal." >&2
             exit 1
           fi
 

@@ -4,16 +4,14 @@ import { AuthProvider } from './auth-provider';
 import { useAuth } from './auth-context';
 import { ConnectivityContext, initialResult, type ConnectivityContextValue } from '@/app/connectivity-context';
 import type { SessionCheck, SessionService } from '@/application/identity/session-service';
-import type { MfaService } from '@/application/identity/mfa-service';
 
 function Probe() {
-  const { state, login, logout, confirmMfa } = useAuth();
+  const { state, login, logout } = useAuth();
   return (
     <div>
       <span data-testid="state">{JSON.stringify(state)}</span>
       <button onClick={() => void login({ email: 'a@b.co', password: 'x' })}>login</button>
       <button onClick={() => void logout()}>logout</button>
-      <button onClick={() => void confirmMfa()}>confirm</button>
     </div>
   );
 }
@@ -24,7 +22,7 @@ function services(check: SessionCheck | (() => Promise<SessionCheck>) = { kind: 
     login: vi.fn(async () => ({ kind: 'authenticated' as const })),
     logout: vi.fn(async () => undefined),
   } as unknown as SessionService;
-  return { service, mfa: {} as MfaService };
+  return { service };
 }
 
 const connectivityProbe = { reconnect: vi.fn(), reportOperationalError: vi.fn() };
@@ -71,7 +69,7 @@ describe('AuthProvider: verificação da sessão para os gates de sincronizaçã
   }
 
   it('confirma somente sessão ativa no servidor, sem exigir novo login', async () => {
-    const onResult = await verifyWith(services({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: false }));
+    const onResult = await verifyWith(services({ kind: 'active', aal: 'aal1', expiresAt: 'x' }));
     expect(onResult).toHaveBeenCalledWith(true);
   });
 
@@ -85,10 +83,10 @@ describe('AuthProvider: verificação da sessão para os gates de sincronizaçã
   });
 
   it('não confirma quando o serviço lança exceção', async () => {
-    const s = services({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: false });
+    const s = services({ kind: 'active', aal: 'aal1', expiresAt: 'x' });
     // A primeira chamada é a restauração ao montar; a falha ocorre na verificação pedida pelo gate.
     (s.service.check as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: false })
+      .mockResolvedValueOnce({ kind: 'active', aal: 'aal1', expiresAt: 'x' })
       .mockRejectedValueOnce(new Error('offline'));
     expect(await verifyWith(s)).toHaveBeenCalledWith(false);
   });
@@ -100,17 +98,17 @@ describe('AuthProvider: verificação da sessão para os gates de sincronizaçã
 
 describe('AuthProvider: restauração da sessão', () => {
   it('começa verificando e libera somente sessão ativa confirmada pelo servidor', async () => {
-    const s = services({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: false });
+    const s = services({ kind: 'active', aal: 'aal1', expiresAt: 'x' });
     renderProvider(s);
     expect(state()).toEqual({ status: 'checking' });
     await flush();
     expect(state()).toEqual({ status: 'authenticated', aal: 'aal1' });
   });
 
-  it('perfil global restaurado em AAL1 continua limitado ao fluxo MFA', async () => {
-    renderProvider(services({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: true }));
+  it('Spec 013 (RF-021): perfil global restaurado em AAL1 entra autenticado', async () => {
+    renderProvider(services({ kind: 'active', aal: 'aal1', expiresAt: 'x' }));
     await flush();
-    expect(state()).toEqual({ status: 'mfa_required' });
+    expect(state()).toEqual({ status: 'authenticated', aal: 'aal1' });
   });
 
   it.each([
@@ -146,15 +144,6 @@ describe('AuthProvider: ações', () => {
     expect(state()).toEqual({ status: 'authenticated', aal: 'aal1' });
   });
 
-  it('login de perfil global fica em mfa_required', async () => {
-    const s = services({ kind: 'missing' });
-    renderProvider(s);
-    await flush();
-    (s.service.login as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ kind: 'mfa_required' });
-    fireEvent.click(screen.getByText('login'));
-    await flush();
-    expect(state()).toEqual({ status: 'mfa_required' });
-  });
 
   it('falhas de login não alteram o estado autenticado', async () => {
     const s = services({ kind: 'missing' });
@@ -167,7 +156,7 @@ describe('AuthProvider: ações', () => {
   });
 
   it('logout revoga no servidor e volta a uma área pública com aviso', async () => {
-    const s = services({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: false });
+    const s = services({ kind: 'active', aal: 'aal1', expiresAt: 'x' });
     renderProvider(s);
     await flush();
     fireEvent.click(screen.getByText('logout'));
@@ -176,25 +165,11 @@ describe('AuthProvider: ações', () => {
     expect(state()).toEqual({ status: 'signed_out', notice: 'signed_out' });
   });
 
-  it('confirmMfa só libera quando o servidor comprova AAL2', async () => {
-    const s = services({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: true });
-    renderProvider(s);
-    await flush();
-    (s.service.check as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: true });
-    fireEvent.click(screen.getByText('confirm'));
-    await flush();
-    expect(state()).toEqual({ status: 'mfa_required' });
-
-    (s.service.check as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ kind: 'active', aal: 'aal2', expiresAt: 'x', mfaRequired: false });
-    fireEvent.click(screen.getByText('confirm'));
-    await flush();
-    expect(state()).toEqual({ status: 'authenticated', aal: 'aal2' });
-  });
 });
 
 describe('AuthProvider: atividade e expiração', () => {
   it('confirma a sessão no servidor apenas quando houve atividade do usuário', async () => {
-    const s = services({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: false });
+    const s = services({ kind: 'active', aal: 'aal1', expiresAt: 'x' });
     renderProvider(s);
     await flush();
     expect(s.service.check).toHaveBeenCalledTimes(1);
@@ -209,7 +184,7 @@ describe('AuthProvider: atividade e expiração', () => {
 
   it('expiração detectada em segundo plano derruba o acesso com aviso', async () => {
     const check = vi.fn()
-      .mockResolvedValueOnce({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: false })
+      .mockResolvedValueOnce({ kind: 'active', aal: 'aal1', expiresAt: 'x' })
       .mockResolvedValue({ kind: 'expired', reason: 'timebox' });
     const s = services(check);
     renderProvider(s);
@@ -221,7 +196,7 @@ describe('AuthProvider: atividade e expiração', () => {
 
   it('falha de rede durante a sessão não a encerra nem a estende', async () => {
     const check = vi.fn()
-      .mockResolvedValueOnce({ kind: 'active', aal: 'aal1', expiresAt: 'x', mfaRequired: false })
+      .mockResolvedValueOnce({ kind: 'active', aal: 'aal1', expiresAt: 'x' })
       .mockResolvedValue({ kind: 'unreachable' });
     renderProvider(services(check));
     await flush();

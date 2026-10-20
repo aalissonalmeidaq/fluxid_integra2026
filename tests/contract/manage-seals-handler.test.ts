@@ -51,18 +51,30 @@ describe('manage-seals', () => {
     const response = await createManageSealsHandler(gw)(post({ operation: 'request_lock', organization_id: ORG, request_id: REQUEST, cylinder_id: CYL, justification: 'Conferência.' }));
     expect(response.status).toBe(200);
     expect(gw.rpc).toHaveBeenCalledWith('request_lock', { p_actor: USER, p_session: SESSION, p_organization: ORG, p_request: REQUEST, p_cylinder: CYL, p_justification: 'Conferência.' });
-    const mfa = await createManageSealsHandler(gateway({ code: 'MFA_REQUIRED' }))(post({ operation: 'request_unlock', organization_id: ORG, request_id: REQUEST, cylinder_id: CYL, justification: 'Liberar.' }));
-    expect(mfa.status).toBe(403);
-    expect(MANAGE_SEAL_OPERATIONS.request_unlock?.mfa).toBeUndefined();
+    // Spec 013 (RF-021): destravar não exige segundo fator; a borda leva o pedido direto ao banco.
+    const unlock = await createManageSealsHandler(gateway({ code: 'REQUESTED' }))(post({ operation: 'request_unlock', organization_id: ORG, request_id: REQUEST, cylinder_id: CYL, justification: 'Liberar.' }));
+    expect(unlock.status).toBe(200);
   });
 
-  it('cadastro do dispositivo: a chave volta na resposta e a borda não a registra (US5)', async () => {
-    const gw = gateway({ code: 'CREATED', device_id: 'd', device_code: 'DSP-7KQ2M9XT', device_key: 'fxk_chave-de-teste' });
-    const response = await createManageSealsHandler(gw)(post({ operation: 'create_device', organization_id: ORG, request_id: REQUEST, label: 'Lacre do pátio', report_interval_s: 60 }));
-    expect(response.status).toBe(200);
-    expect((await response.json()).device_key).toBe('fxk_chave-de-teste');
-    expect(JSON.stringify(gw.audit.mock.calls)).not.toContain('fxk_');
-    expect((await createManageSealsHandler(gw)(post({ operation: 'create_device', organization_id: ORG, request_id: REQUEST, label: 'L', report_interval_s: 10 }))).status).toBe(400);
+  // Spec 013 (RF-018; research.md, item 8): o cadastro manual, a chave nova e a desativação saem da borda; entra a devolução.
+  it.each(['create_device', 'rotate_device_key', 'deactivate_device'])('%s não existe mais na borda: 400 e a negação auditada', async (operation) => {
+    const gw = gateway();
+    expect(MANAGE_SEAL_OPERATIONS).not.toHaveProperty(operation);
+    const response = await createManageSealsHandler(gw)(post({ operation, organization_id: ORG, request_id: REQUEST, device_id: 'a1400000-0000-4000-8000-0000000000a1', label: 'Lacre' }));
+    expect(response.status).toBe(400);
+    expect(gw.rpc).not.toHaveBeenCalled();
+    expect(gw.audit).toHaveBeenCalledWith({ actorId: USER, action: 'seal.unknown_operation', result: 'denied', reason: 'operation_not_supported' });
+  });
+
+  it('devolver à plataforma (Spec 013): request_id, lacre e justificativa; CYLINDER_IN_TRIP vira 409', async () => {
+    const gw = gateway({ code: 'RETURNED' });
+    const body = { operation: 'return_device', organization_id: ORG, request_id: REQUEST, device_id: 'a1400000-0000-4000-8000-0000000000a1', justification: 'Lacre com defeito.' };
+    expect((await createManageSealsHandler(gw)(post(body))).status).toBe(200);
+    expect(gw.rpc).toHaveBeenCalledWith('return_device', { p_actor: USER, p_session: SESSION, p_organization: ORG, p_request: REQUEST,
+      p_device: 'a1400000-0000-4000-8000-0000000000a1', p_justification: 'Lacre com defeito.' });
+    expect((await createManageSealsHandler(gateway({ code: 'CYLINDER_IN_TRIP' }))(post(body))).status).toBe(409);
+    expect((await createManageSealsHandler(gateway({ code: 'JUSTIFICATION_REQUIRED' }))(post(body))).status).toBe(400);
+    expect((await createManageSealsHandler(gateway({ code: 'NOT_FOUND' }))(post(body))).status).toBe(404);
   });
 
   it('vínculo e desvínculo: SEAL_ALREADY_BOUND e CYLINDER_IN_TRIP viram 409', async () => {

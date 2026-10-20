@@ -31,9 +31,11 @@ create temp table respostas as
 select is((select r->>'status' from respostas where caso = 'sem chave'), '401', 'sem chave: recusado');
 select is((select r->>'status' from respostas where caso = 'chave errada'), '401', 'chave errada: recusado');
 select is((select r->>'status' from respostas where caso = 'chave de outro dispositivo'), '401', 'chave de outro dispositivo: recusado');
-select is((select r->>'status' from respostas where caso = 'dispositivo inativo'), '401', 'dispositivo inativo: recusado');
+-- Spec 013 (contracts/pedido-de-aprovacao.md): sem linha ativa, o lacre vira pedido de aprovação; a resposta 202 não revela nada.
+select is((select r from respostas where caso = 'dispositivo inativo'), '{"status": 202, "body": {"status": "pending_approval", "report_interval_s": 60}}'::jsonb,
+  'dispositivo inativo: vira pedido de aprovação (Spec 013), sem gravar nada no tenant');
 select is((select r->>'status' from respostas where caso = 'dispositivo inexistente'), '401', 'dispositivo inexistente: recusado');
-select is((select count(distinct r)::int from respostas), 1, 'todas as recusas têm exatamente a mesma resposta, sem o motivo');
+select is((select count(distinct r)::int from respostas where caso <> 'dispositivo inativo'), 1, 'todas as recusas têm exatamente a mesma resposta, sem o motivo');
 select is((select count(*)::int from public.seal_messages where device_id in (
   'a1300000-0000-0000-0000-0000000000a1', 'a1300000-0000-0000-0000-0000000000a2', 'a1300000-0000-0000-0000-0000000000a3')), 1,
   'nada é gravado nas recusas');

@@ -1,0 +1,33 @@
+{
+  "protocol": 1,
+  "firmware_version": "3.0.0",
+  "watch_version": 0,
+  "messages": [
+    {
+      "message_id": "01JB0000000000000000000003",
+      "type": "event",
+      "read_at": "2026-10-19T12:01:00Z",
+      "code": "boot"
+    },
+    {
+      "message_id": "01JB0000000000000000000004",
+      "type": "network_change",
+      "read_at": "2026-10-19T12:01:00Z",
+      "wifi": {
+        "ssid": "Rede-Nova-Ficticia",
+        "kind": "default",
+        "rssi": -64
+      },
+      "saved": [
+        "Rede-Nova-Ficticia"
+      ]
+    },
+    {
+      "message_id": "01JB0000000000000000000005",
+      "type": "event",
+      "read_at": "2026-10-19T12:01:00Z",
+      "code": "networks_forgotten",
+      "detail": "all"
+    }
+  ]
+}

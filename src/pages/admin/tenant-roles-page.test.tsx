@@ -139,7 +139,7 @@ describe('TenantRolesPage: papel personalizado', () => {
     ['not_delegable', /não pode ser delegada/i],
     ['immutable', /preestabelecidos não podem/i],
     ['conflict', /alterado por outra pessoa/i],
-    ['mfa_required', /segundo fator/i],
+    ['mfa_required', /Entre de novo/i],
     ['access_denied', /acesso negado/i],
   ] as const)('traduz %s ao salvar e não informa sucesso', async (kind, text) => {
     renderView(fakeServices({ saveRole: vi.fn(async () => ({ kind })) }));

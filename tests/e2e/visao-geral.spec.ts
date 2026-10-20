@@ -55,7 +55,7 @@ test.describe('US2: a Visão geral depois de entrar', () => {
   const perfis: Array<[PermissionProfile, string[]]> = [
     ['administrador', ['Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']],
     ['operador', ['Visão geral', 'Meu perfil']],
-    ['master', ['Visão geral', 'Meu perfil', 'Organizações', 'Auditoria da plataforma']],
+    ['master', ['Visão geral', 'Meu perfil', 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma']],
   ];
   for (const [perfil, itens] of perfis) {
     test(`${perfil}: a página é a mesma e o menu mostra os itens da Spec 004`, async ({ page }) => {

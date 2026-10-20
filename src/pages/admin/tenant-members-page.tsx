@@ -29,7 +29,7 @@ const ACTION_COPY: Record<TargetStatus, { verb: string; confirm: string }> = {
 
 const ERROR_MESSAGES: Record<Exclude<MembershipOutcome['kind'], 'success'>, string> = {
   access_denied: 'Acesso negado. Você não tem autorização para administrar as pessoas deste tenant.',
-  mfa_required: 'Confirme o segundo fator para continuar.',
+  mfa_required: 'Sua sessão não permite esta ação agora. Entre de novo e tente outra vez.',
   last_admin: 'Ação recusada: este é o último administrador ativo do tenant. Atribua o papel a outra pessoa antes.',
   conflict: 'Já existe um convite ativo para este e-mail ou o vínculo foi alterado por outra pessoa. Atualize a lista.',
   delivery_pending: 'Aguarde alguns minutos antes de reenviar o convite.',

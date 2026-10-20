@@ -1,8 +1,6 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { callFunction, endAllSessions, login, logout, publishableKey, restGet, supabaseUrl, type FunctionResponse } from '../support/auth-harness';
-import { totp } from '../support/totp';
+import { callFunction, endAllSessions, login, logout, restGet, type FunctionResponse } from '../support/auth-harness';
 import { validateCnh } from '../../src/domain/registry/document-validation';
 import { syntheticCnpj, syntheticCpf } from '../e2e/support/mock-registry-customers';
 
@@ -44,37 +42,23 @@ const manage = (accessToken: string, body: Record<string, unknown>) => callFunct
 const query = (accessToken: string, body: Record<string, unknown>) => callFunction('query-registry', body, accessToken);
 
 describe('Anonimização ao vivo: nenhum valor antigo resta (Spec 007)', () => {
-  const elevated: Array<{ client: SupabaseClient; factorId: string }> = [];
   let a1 = ''; // administrador G, aal1
-  let a2 = ''; // administrador G, aal2 (segundo fator)
+  let a2 = ''; // administrador G, segunda sessão (Spec 013, RF-021: sem segundo fator)
   let h2 = '';
   let stock = '';
   const collected: string[] = [];
-
-  async function elevate(session: { access_token: string; refresh_token: string }): Promise<string> {
-    const client = createClient(supabaseUrl, publishableKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    await client.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
-    const enrolled = await client.auth.mfa.enroll({ factorType: 'totp' });
-    const factorId = enrolled.data!.id;
-    const challenge = await client.auth.mfa.challenge({ factorId });
-    const verified = await client.auth.mfa.verify({ factorId, challengeId: challenge.data!.id, code: totp(enrolled.data!.totp.secret) });
-    expect(verified.error).toBeNull();
-    elevated.push({ client, factorId });
-    return verified.data!.access_token;
-  }
 
   // Tudo o que as funções devolvem entra na coleta, para a busca final.
   const keep = (response: FunctionResponse): FunctionResponse => { collected.push(JSON.stringify(response.body)); return response; };
 
   beforeAll(async () => {
     for (const user of [adminG, adminH, stockG]) await endAllSessions(user);
-    // A sessão aal1 entra depois da elevação: subir uma sessão ao segundo fator não deve derrubar as outras, mas a ordem deixa o teste estável.
     const g2 = await login(adminG);
     const hh = await login(adminH);
     const st = await login(stockG);
     expect([g2.status, hh.status, st.status]).toEqual([200, 200, 200]);
-    a2 = await elevate(g2.body.session);
-    h2 = await elevate(hh.body.session);
+    a2 = token(g2);
+    h2 = token(hh);
     const g1 = await login(adminG);
     expect(g1.status).toBe(200);
     a1 = token(g1);
@@ -87,11 +71,7 @@ describe('Anonimização ao vivo: nenhum valor antigo resta (Spec 007)', () => {
   });
 
   afterAll(async () => {
-    const tokens: string[] = [a1, stock];
-    for (const { client, factorId } of elevated) {
-      tokens.push((await client.auth.getSession()).data.session?.access_token ?? '');
-      await client.auth.mfa.unenroll({ factorId });
-    }
+    const tokens: string[] = [a1, a2, h2, stock];
     for (const accessToken of tokens.filter(Boolean)) await logout(accessToken);
     for (const user of [adminG, adminH, stockG]) await endAllSessions(user);
   });
@@ -136,9 +116,9 @@ describe('Anonimização ao vivo: nenhum valor antigo resta (Spec 007)', () => {
     const legalDetail = (await query(a1, { operation: 'get_customer', organization_id: G, customer_id: legal.body.customer_id }));
     const legalContactId = legalDetail.body.contacts[0].id as string;
 
-    // ----- sem segundo fator, nada é anonimizado
-    const noMfa = await manage(a1, { operation: 'anonymize_driver', organization_id: G, driver_id: driverId, expected_version: 3, reason: 'data_subject_request', justification: 'Pedido do titular', confirmed: true });
-    expect([noMfa.status, noMfa.body.code]).toEqual([403, 'MFA_REQUIRED']);
+    // ----- sem segundo fator (Spec 013, RF-021) não há recusa por MFA: a sessão aal1 chega à confirmação, e sem ela nada é anonimizado
+    const noMfa = await manage(a1, { operation: 'anonymize_driver', organization_id: G, driver_id: driverId, expected_version: 3, reason: 'data_subject_request', justification: 'Pedido do titular' });
+    expect([noMfa.status, noMfa.body.code]).toEqual([400, 'CONFIRMATION_REQUIRED']);
     // ----- quem não é administrador não anonimiza
     expect((await manage(stock, { operation: 'anonymize_driver', organization_id: G, driver_id: driverId, expected_version: 3, reason: 'data_subject_request', justification: 'Pedido do titular', confirmed: true })).status).toBe(403);
     // ----- outro tenant recebe o mesmo que para um registro inexistente

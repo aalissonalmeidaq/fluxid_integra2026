@@ -24,7 +24,6 @@ export function createManageMembershipHandler(gateway:MembershipGateway){return 
   }
   const organizationId=body?.organization_id,membershipId=body?.membership_id,justification=typeof body?.justification==='string'?body.justification.trim():'';
   if(typeof organizationId!=='string'||!UUID_PATTERN.test(organizationId)||typeof membershipId!=='string'||!UUID_PATTERN.test(membershipId)||!isStatus(body?.status)||!Number.isSafeInteger(body?.expected_version)||Number(body?.expected_version)<1||justification.length<10||justification.length>500)return json({code:'VALIDATION_FAILED'},400);
-  if(identity.aal!=='aal2'){await gateway.audit({actorId:identity.userId,action:'membership.status.change',result:'denied',reason:'mfa_required'});return json({code:'MFA_REQUIRED'},403);}
   const result=await gateway.changeStatus({actorId:identity.userId,sessionId:identity.sessionId,organizationId,membershipId,status:body.status,expectedVersion:Number(body.expected_version),justification});
   if(result.kind==='last_admin')return json({code:'LAST_ADMIN_REQUIRED'},409);if(result.kind==='access_denied'){await gateway.audit({actorId:identity.userId,action:'membership.status.change',result:'denied',reason:'permission_denied'});return json({code:'ACCESS_DENIED'},403);}if(result.kind==='conflict')return json({code:'MEMBERSHIP_UNAVAILABLE'},409);
   await gateway.audit({actorId:identity.userId,organizationId,action:'membership.status.change',result:'success',targetId:membershipId,justification});return json({code:'MEMBERSHIP_STATUS_CHANGED',membership:result.membership});

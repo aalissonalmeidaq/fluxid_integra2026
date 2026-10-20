@@ -23,7 +23,7 @@ function isOrganization(value: unknown): value is OrganizationSummary {
 
 const errorMessages: Record<Exclude<OrganizationOutcome['kind'], 'success'>, string> = {
   access_denied: 'Acesso negado. Esta ação exige administração global.',
-  mfa_required: 'Confirme o segundo fator para administrar organizações.',
+  mfa_required: 'Sua sessão não permite esta ação agora. Entre de novo e tente outra vez.',
   conflict: 'A organização foi alterada por outra pessoa. Atualize os dados e tente novamente.',
   admin_required: 'A organização precisa de um administrador ativo antes de ser ativada.',
   invalid: 'Revise os dados informados.',

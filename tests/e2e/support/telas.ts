@@ -58,22 +58,6 @@ export const TELAS: readonly Tela[] = [
   { nome: 'recuperação: solicitação', titulo: 'Recuperar acesso', abrir: publica('/login?recovery=1', 'Recuperar acesso') },
   { nome: 'recuperação: nova senha', titulo: 'Definir nova senha', abrir: publica('/recuperar-senha/confirmar', 'Definir nova senha') },
   {
-    nome: 'verificação em duas etapas',
-    titulo: 'Verificação em duas etapas',
-    abrir: async (page) => {
-      const backend = new MockBackend();
-      backend.loginResponses = [backend.authenticated('MFA_REQUIRED')];
-      backend.statusResponse = backend.activeStatus('aal2', false);
-      await backend.install(page);
-      await page.goto('/visao-geral');
-      await page.getByLabel('E-mail').fill('global@e2e.invalid');
-      await page.getByLabel('Senha', { exact: true }).fill('Senha-E2E-Global-1');
-      await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-      await expect(page.getByRole('heading', { name: 'Verificação em duas etapas' })).toBeVisible();
-      await expect(page.getByLabel(/código de 6 dígitos/i)).toBeVisible();
-    },
-  },
-  {
     nome: 'limite de sessões (diálogo)',
     titulo: /limite de sessões/i,
     abrir: async (page) => {

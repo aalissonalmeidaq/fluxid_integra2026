@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createManageRegistryHandler } from '../../supabase/functions/manage-registry/handler';
 import type { OperationsGateway } from '../../supabase/functions/_shared/operations';
 
+
 // Spec 007, US8: as três operações de anonimização na borda (RF-055, RF-056, RF-061). O banco é sempre falso.
 const USER = '10000000-0000-4000-8000-000000000002';
 const SESSION = '60000000-0000-4000-8000-0000000700a2';
@@ -37,13 +38,12 @@ describe('anonimização: borda das funções', () => {
     expect(third.rpc).toHaveBeenCalledWith('anonymize_contact', expect.objectContaining({ p_contact: ID, p_reason: 'retention_expired' }));
   });
 
-  it.each([[driver], [customer], [contact]])('sem sessão aal2 (%j) responde MFA_REQUIRED (403), audita a negação e não chama o banco', async (request) => {
+  it.each([[driver], [customer], [contact]])('Spec 013 (RF-021): com sessão aal1 (%j) segue para o banco, sem negação por MFA', async (request) => {
     const gw = gateway({ code: 'ANONYMIZED' }, 'aal1');
     const response = await createManageRegistryHandler(gw)(post(request));
-    expect(response.status).toBe(403);
-    expect(await body(response)).toEqual({ code: 'MFA_REQUIRED' });
-    expect(gw.rpc).not.toHaveBeenCalled();
-    expect(gw.audit).toHaveBeenCalledWith({ actorId: USER, action: expect.stringMatching(/anonymize/), result: 'denied', reason: 'mfa_required' });
+    expect(response.status).toBe(200);
+    expect(gw.rpc).toHaveBeenCalled();
+    expect(gw.audit).not.toHaveBeenCalledWith(expect.objectContaining({ reason: 'mfa_required' }));
   });
 
   it('a falta de confirmed:true chega ao banco, que responde CONFIRMATION_REQUIRED (400)', async () => {

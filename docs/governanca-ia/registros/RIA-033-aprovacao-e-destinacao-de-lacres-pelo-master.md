@@ -1,0 +1,353 @@
+# Registro do uso de inteligência artificial e validação humana
+
+**FluxID | RIA-033 | Aprovação e destinação de lacres pelo Master**
+
+> Ponto de atenção: a IA apoia a equipe, mas a responsabilidade final é humana.
+
+## Registro da interação
+
+- Ferramenta de IA utilizada: Claude Code (Claude Opus 5.5)
+- Objetivo do uso: Implementar a Spec 013: o Master aprova e destina a um tenant os lacres que pedem acesso, com a rede Wi-Fi configurada pelo próprio lacre (portal cativo), um firmware único para toda a frota e o acesso só com e-mail e senha.
+- Prompt utilizado, em síntese sanitizada: Fluxo Spec Kit da Spec 013 (tasks, cinco rodadas de analyze com as correções aplicadas e implement), pedidos do responsável durante o ciclo (remover de vez o segundo fator, senha da rede de configuração com 8 caracteres, rede FluxID como padrão, página do lacre mostrando a conexão, gravar o firmware no ESP32 e integrar com o Supabase em nuvem) e o fechamento da spec.
+- Resposta gerada pela IA: 8 migrations (seals_enrollment_* e auth_sem_segundo_fator), função nova platform-seals e ajustes em seal-gateway, manage-seals e query-seals, tela Lacres da plataforma (/admin/lacres), devolução do lacre pelo tenant, firmware com identidade do chip, pedido de aprovação, portal cativo, rede padrão da plataforma e esquecimento das redes, remoção completa do segundo fator (telas, funções e testes) e os testes pgTAP, de contrato, de unidade, .live, E2E, visuais e nativos do firmware.
+
+Link para validação da equipe: branch feat/013-aprovacao-lacres-master (https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/013-aprovacao-lacres-master); trocar pelo link do pull request antes do merge.
+- Análise crítica da equipe: As regras ficam no banco (RPCs com RLS e isolamento por organização, testadas com dois tenants) e no núcleo do firmware, testado fora do hardware. A bancada revelou problemas reais, todos corrigidos: a rede de configuração não aparecia no celular (potência da antena do C3 Super Mini e varredura sem rede salva), a cadeia de certificados do Supabase exigia a GlobalSign Root CA que saiu da lista do Mozilla, e o firewall do Windows bloqueava o Docker em rede pública. A remoção do segundo fator foi pedida pelo responsável e registrada na spec (RF-021); permissão, justificativa e auditoria das ações sensíveis continuam.
+- Validação humana realizada: Alisson Almeida validou em 20/10/2026, por 40 minutos, com os perfis Master e administrador do Tenant A, várias telas, o lacre físico e um celular Android usado no portal para escolher a rede, no Windows 11 com o Chrome. Resultado: aprovado, sem itens a corrigir.
+- Decisão final: utilizado
+- Justificativa: o código gerado foi usado como entregue, após a validação na bancada e na nuvem (frase sugerida pela IA e confirmada pelo responsável).
+- Fontes verificadas: cadeia TLS do Supabase conferida com openssl s_client (supabase.co → WE1 → GTS Root R4, assinada em cruz pela GlobalSign Root CA); GlobalSign Root CA exportada do repositório de raízes confiáveis do Windows, com o SHA-256 conferido; lista de autoridades do Mozilla publicada pelo curl (curl.se/ca/cacert.pem, 25/09/2026); código do arduino-esp32 2.0 (WebServer, DNSServer e esp_crt_bundle) no próprio framework.
+- Identificador do registro: RIA-033
+- Data e hora da interação: 20/10/2026, 03:09:00 - America/Fortaleza
+
+## Rastreabilidade técnica do ciclo
+
+- Repositório: fluxid
+- Branch: feat/013-aprovacao-lacres-master
+- Spec: 013
+- Ciclo: 01
+- Commit-base: fd440552932f183f81c58f8a4b68f03dbd32c271
+- Hash do diff funcional preparado: 612da8aeacac6d753e7520cbc2a3d7a4de8cf5ac1a143a51ba823f5d898f6127
+- Arquivos e áreas afetadas:
+
+- `.github/workflows/quality.yml`
+- `.gitignore`
+- `README.md`
+- `docs/prd.md`
+- `docs/publicacao-em-nuvem.md`
+- `firmware/README.md`
+- `firmware/certificados/x509_crt_bundle.bin`
+- `firmware/ferramentas/embutir_portal.py`
+- `firmware/ferramentas/gerar_pacote_certificados.py`
+- `firmware/include/config.h`
+- `firmware/include/secrets.example.h`
+- `firmware/platformio.ini`
+- `firmware/portal/index.html`
+- `firmware/src/ConexaoWiFi.cpp`
+- `firmware/src/ConexaoWiFi.h`
+- `firmware/src/PortalWiFi.cpp`
+- `firmware/src/PortalWiFi.h`
+- `firmware/src/Segredos.h`
+- `firmware/src/Transporte.cpp`
+- `firmware/src/Transporte.h`
+- `firmware/src/main.cpp`
+- `firmware/src/nucleo/Aprovacao.cpp`
+- `firmware/src/nucleo/Aprovacao.h`
+- `firmware/src/nucleo/Identidade.cpp`
+- `firmware/src/nucleo/Identidade.h`
+- `firmware/src/nucleo/Portal.cpp`
+- `firmware/src/nucleo/Portal.h`
+- `firmware/src/nucleo/Rede.cpp`
+- `firmware/src/nucleo/Rede.h`
+- `firmware/test/test_aprovacao/test_aprovacao.cpp`
+- `firmware/test/test_identidade/test_identidade.cpp`
+- `firmware/test/test_portal/test_portal.cpp`
+- `firmware/test/test_rede/test_rede.cpp`
+- `playwright.config.ts`
+- `scripts/lacre/simulador.mjs`
+- `specs/013-aprovacao-lacres-master/baseline.md`
+- `specs/013-aprovacao-lacres-master/checklists/requirements.md`
+- `specs/013-aprovacao-lacres-master/contracts/operacoes-plataforma.md`
+- `specs/013-aprovacao-lacres-master/contracts/pedido-de-aprovacao.md`
+- `specs/013-aprovacao-lacres-master/contracts/portal-do-lacre.md`
+- `specs/013-aprovacao-lacres-master/contracts/telas.md`
+- `specs/013-aprovacao-lacres-master/data-model.md`
+- `specs/013-aprovacao-lacres-master/plan.md`
+- `specs/013-aprovacao-lacres-master/quickstart.md`
+- `specs/013-aprovacao-lacres-master/research.md`
+- `specs/013-aprovacao-lacres-master/spec.md`
+- `specs/013-aprovacao-lacres-master/tasks.md`
+- `specs/013-aprovacao-lacres-master/validation.md`
+- `src/app/App.landing.test.tsx`
+- `src/app/App.tsx`
+- `src/app/admin-routes.test.ts`
+- `src/app/admin-routes.ts`
+- `src/app/auth/auth-context.ts`
+- `src/app/auth/auth-provider-offline.test.tsx`
+- `src/app/auth/auth-provider.test.tsx`
+- `src/app/auth/auth-provider.tsx`
+- `src/app/auth/offline-access-recorder.test.tsx`
+- `src/app/navigation/permissions-provider-offline.test.tsx`
+- `src/app/navigation/permissions-provider.test.tsx`
+- `src/app/routing/protected-route.test.tsx`
+- `src/app/routing/protected-route.tsx`
+- `src/app/shell/app-shell.test.tsx`
+- `src/app/shell/app-shell.tsx`
+- `src/app/shell/navigation-menu.test.tsx`
+- `src/app/shell/top-bar.test.tsx`
+- `src/app/shell/user-menu.test.tsx`
+- `src/app/sync-gate-offline.test.tsx`
+- `src/app/sync-gate.test.tsx`
+- `src/app/tenant/tenant-provider-offline.test.tsx`
+- `src/app/tenant/tenant-provider.test.tsx`
+- `src/application/identity/mfa-service.test.ts`
+- `src/application/identity/mfa-service.ts`
+- `src/application/identity/session-service.test.ts`
+- `src/application/identity/session-service.ts`
+- `src/application/seals/platform-seal-service.test.ts`
+- `src/application/seals/platform-seal-service.ts`
+- `src/application/seals/platform-seal-views.test.ts`
+- `src/application/seals/platform-seal-views.ts`
+- `src/application/seals/seal-service.ts`
+- `src/application/seals/seal-views.test.ts`
+- `src/application/seals/seal-views.ts`
+- `src/design-system/docs/shell.ts`
+- `src/domain/identity/authorization.test.ts`
+- `src/domain/identity/authorization.ts`
+- `src/domain/identity/session-offline.test.ts`
+- `src/domain/identity/session.test.ts`
+- `src/domain/identity/session.ts`
+- `src/domain/navigation/screens.test.ts`
+- `src/domain/navigation/screens.ts`
+- `src/domain/navigation/visible-screens.test.ts`
+- `src/domain/seals/seal-abilities.ts`
+- `src/domain/seals/seal-enrollment.test.ts`
+- `src/domain/seals/seal-enrollment.ts`
+- `src/domain/seals/seal-limits.ts`
+- `src/infrastructure/supabase/platform-seal-adapter.ts`
+- `src/infrastructure/supabase/session-adapters.test.ts`
+- `src/infrastructure/supabase/session-adapters.ts`
+- `src/pages/admin/seals/components/approve-enrollment-dialog.tsx`
+- `src/pages/admin/seals/components/enrollment-table.tsx`
+- `src/pages/admin/seals/components/justification-dialog.tsx`
+- `src/pages/admin/seals/components/portal-network-panel.test.tsx`
+- `src/pages/admin/seals/components/portal-network-panel.tsx`
+- `src/pages/admin/seals/components/resolve-conflict-dialog.tsx`
+- `src/pages/admin/seals/platform-seals-page.test.tsx`
+- `src/pages/admin/seals/platform-seals-page.tsx`
+- `src/pages/admin/seals/platform-seals-route.tsx`
+- `src/pages/admin/tenant-audit-log-page.test.tsx`
+- `src/pages/admin/tenant-audit-log-page.tsx`
+- `src/pages/admin/tenant-members-page.test.tsx`
+- `src/pages/admin/tenant-members-page.tsx`
+- `src/pages/admin/tenant-roles-page.test.tsx`
+- `src/pages/admin/tenant-roles-page.tsx`
+- `src/pages/admin/tenants-dashboard-page.test.tsx`
+- `src/pages/admin/tenants-dashboard-page.tsx`
+- `src/pages/auth/active-sessions-dialog.tsx`
+- `src/pages/auth/login-page.test.tsx`
+- `src/pages/auth/mfa-page.test.tsx`
+- `src/pages/auth/mfa-page.tsx`
+- `src/pages/cylinders/components/cylinder-seal-block.test.tsx`
+- `src/pages/cylinders/components/cylinder-seal-block.tsx`
+- `src/pages/cylinders/cylinder-detail-page.tsx`
+- `src/pages/landing/landing-content.ts`
+- `src/pages/landing/landing-cta.test.tsx`
+- `src/pages/overview/overview-page.test.tsx`
+- `src/pages/registry/components/anonymize-action.tsx`
+- `src/pages/registry/components/anonymize-dialog.test.tsx`
+- `src/pages/seals/components/device-dialogs.test.tsx`
+- `src/pages/seals/components/device-form-dialog.tsx`
+- `src/pages/seals/components/device-key-reveal.tsx`
+- `src/pages/seals/components/lock-command-dialog.test.tsx`
+- `src/pages/seals/components/lock-command-dialog.tsx`
+- `src/pages/seals/components/return-device-dialog.tsx`
+- `src/pages/seals/seal-detail-page.test.tsx`
+- `src/pages/seals/seal-detail-page.tsx`
+- `src/pages/seals/seal-list-page.test.tsx`
+- `src/pages/seals/seal-list-page.tsx`
+- `src/pages/trips/components/delivery-unlock-notice.test.tsx`
+- `src/pages/trips/components/delivery-unlock-notice.tsx`
+- `src/pages/trips/components/unlock-dialog.test.tsx`
+- `src/pages/trips/components/unlock-dialog.tsx`
+- `src/pages/trips/trip-detail-page.test.tsx`
+- `src/pages/trips/trip-failure-text.ts`
+- `supabase/config.toml`
+- `supabase/functions/_shared/gateways.ts`
+- `supabase/functions/_shared/operations.ts`
+- `supabase/functions/_shared/seal-protocol.ts`
+- `supabase/functions/invite-user/handler.ts`
+- `supabase/functions/manage-access/handler.ts`
+- `supabase/functions/manage-membership/handler.ts`
+- `supabase/functions/manage-organizations/handler.ts`
+- `supabase/functions/manage-registry/handler.ts`
+- `supabase/functions/manage-seals/handler.ts`
+- `supabase/functions/manage-trips/handler.ts`
+- `supabase/functions/platform-seals/deno.json`
+- `supabase/functions/platform-seals/handler.ts`
+- `supabase/functions/platform-seals/index.ts`
+- `supabase/functions/query-audit/handler.ts`
+- `supabase/functions/query-seals/handler.ts`
+- `supabase/functions/seal-gateway/handler.ts`
+- `supabase/functions/session-login/handler.ts`
+- `supabase/functions/session-status/handler.ts`
+- `supabase/migrations/20261019120000_seals_enrollment_schema.sql`
+- `supabase/migrations/20261019120100_seals_enrollment_ingest.sql`
+- `supabase/migrations/20261019120200_seals_enrollment_platform.sql`
+- `supabase/migrations/20261019120300_seals_enrollment_watchdog.sql`
+- `supabase/migrations/20261019120400_seals_enrollment_compat.sql`
+- `supabase/migrations/20261019120500_seals_enrollment_return.sql`
+- `supabase/migrations/20261019120600_seals_enrollment_portal_password.sql`
+- `supabase/migrations/20261019120700_auth_sem_segundo_fator.sql`
+- `supabase/tests/002_session_governance.test.sql`
+- `supabase/tests/007_anonymization.test.sql`
+- `supabase/tests/008_constraints.test.sql`
+- `supabase/tests/008_unlock.test.sql`
+- `supabase/tests/012_constraints.test.sql`
+- `supabase/tests/012_device_auth.test.sql`
+- `supabase/tests/012_permissions.test.sql`
+- `supabase/tests/013_approve.test.sql`
+- `supabase/tests/013_compat.test.sql`
+- `supabase/tests/013_conflict.test.sql`
+- `supabase/tests/013_constraints.test.sql`
+- `supabase/tests/013_device_code.test.sql`
+- `supabase/tests/013_enrollment_ingest.test.sql`
+- `supabase/tests/013_enrollment_rate_limit.test.sql`
+- `supabase/tests/013_forget_networks.test.sql`
+- `supabase/tests/013_portal_password.test.sql`
+- `supabase/tests/013_read.test.sql`
+- `supabase/tests/013_reassign_isolation.test.sql`
+- `supabase/tests/013_return.test.sql`
+- `supabase/tests/013_rls.test.sql`
+- `supabase/tests/013_watchdog.test.sql`
+- `supabase/tests/013_withdraw.test.sql`
+- `tests/contract/audit-query.test.ts`
+- `tests/contract/auth-sessions.live.test.ts`
+- `tests/contract/firmware-sem-segredos.test.ts`
+- `tests/contract/manage-seals-handler.test.ts`
+- `tests/contract/organizations.test.ts`
+- `tests/contract/platform-seals-handler.test.ts`
+- `tests/contract/query-seals-handler.test.ts`
+- `tests/contract/rbac.test.ts`
+- `tests/contract/registry-anonymization-handler.test.ts`
+- `tests/contract/registry-anonymization-leak.live.test.ts`
+- `tests/contract/registry-handlers.test.ts`
+- `tests/contract/registry-mock.test.ts`
+- `tests/contract/seal-enrollment-protocol.test.ts`
+- `tests/contract/seal-gateway-handler.test.ts`
+- `tests/contract/seals-limits.test.ts`
+- `tests/contract/seals-no-secrets-in-logs.test.ts`
+- `tests/contract/session-boundary-handlers.test.ts`
+- `tests/contract/session-login-handler.test.ts`
+- `tests/e2e/audit-log.spec.ts`
+- `tests/e2e/auth-session.spec.ts`
+- `tests/e2e/entrada-renovada.spec.ts`
+- `tests/e2e/lacres-acompanhamento.spec.ts`
+- `tests/e2e/lacres-cadastro.spec.ts`
+- `tests/e2e/lacres-plataforma.spec.ts`
+- `tests/e2e/navegacao-menu.spec.ts`
+- `tests/e2e/portal-lacre.spec.ts`
+- `tests/e2e/registro-frota.spec.ts`
+- `tests/e2e/support/mock-backend.ts`
+- `tests/e2e/support/mock-registry-anonymization.ts`
+- `tests/e2e/support/mock-registry.ts`
+- `tests/e2e/support/mock-seals-operacoes.ts`
+- `tests/e2e/support/mock-seals-plataforma.ts`
+- `tests/e2e/support/mock-trips-unlock.ts`
+- `tests/e2e/support/mock-trips.ts`
+- `tests/e2e/support/telas.ts`
+- `tests/e2e/viagens-desbloqueio.spec.ts`
+- `tests/e2e/video-demonstracao.gerar.spec.ts`
+- `tests/e2e/visao-geral.spec.ts`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-aprovar-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-aprovar-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-aprovar-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-fila-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-fila-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-fila-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-rede-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-rede-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-rede-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-lista-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-global-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-global-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/limite-de-sessoes-dialogo-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/limite-de-sessoes-dialogo-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/limite-de-sessoes-dialogo-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/verificacao-em-duas-etapas-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/verificacao-em-duas-etapas-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/verificacao-em-duas-etapas-principal-768-visual-chromium-linux.png`
+- `tests/fixtures/seal-protocol/enrollment-approved-200.json`
+- `tests/fixtures/seal-protocol/enrollment-conflict-401.json`
+- `tests/fixtures/seal-protocol/enrollment-networks-forgotten.json`
+- `tests/fixtures/seal-protocol/enrollment-pending-approval-202.json`
+- `tests/fixtures/seal-protocol/enrollment-pending-request.json`
+- `tests/fixtures/seal-protocol/enrollment-rate-limited-429.json`
+- `tests/fixtures/seal-protocol/enrollment-refused-403.json`
+- `tests/fixtures/seal-protocol/enrollment-returned-202.json`
+- `tests/fixtures/seal-protocol/enrollment-withdrawn-202.json`
+- `tests/integration/audit-access.live.test.ts`
+- `tests/integration/audit-events.test.ts`
+- `tests/integration/membership-management.test.ts`
+- `tests/integration/mfa.live.test.ts`
+- `tests/integration/navigation-permissions.live.test.ts`
+- `tests/integration/rbac-authorization.test.ts`
+- `tests/integration/seals-enrollment.live.test.ts`
+- `tests/integration/seals-ingest.live.test.ts`
+- `tests/integration/seals-wifi.live.test.ts`
+- `tests/support/seal-simulator.test.ts`
+- `tests/support/seal-simulator.ts`
+- `tests/support/totp.ts`
+
+## Testes e evidências
+
+- Comando(s): npm run lint; npm run typecheck; npx supabase db reset; npx supabase test db; npm run test:live; npm run test:coverage; npm run build; npx playwright test (Chromium 1280, 360, 768, 1920 e WebKit); npm run test:visual:atualizar (Linux); pio test -e native; pio run -e esp32c3.
+- Resultado: aprovado
+- Evidência: pgTAP: 130 arquivos, todos passaram. Cobertura: 397 arquivos e 5.819 testes, 90,12% das instruções e 84,97% dos ramos. .live: 134 passaram; a suíte de volume caiu por queda de conexão do Supabase local e passou repetida sozinha (9 de 9). Playwright: 1.967 passaram; 4 falhas em testes ajustados nesta mudança foram corrigidas e repetidas (121 de 121). Capturas no Linux: 285 de 285. Firmware: 98 testes nativos; build esp32c3 com RAM 13,0% e flash 88,8%. Detalhes em specs/013-aprovacao-lacres-master/validation.md.
+
+## Decisões e dados pendentes
+
+trocar o link de revisão pelo do pull request antes do merge; entregar o DOCX do RIA depois do merge; desligar o MFA TOTP no painel do Auth do projeto em nuvem; desfazer as mudanças de firewall da bancada; cronometrar MS-001 (configurar a rede em até 3 min) e MS-003 (o lacre aparecer no tenant até 1 min depois da aprovação), que não foram medidos; versão do firmware ainda 2.0.0; T073 (cifragem da flash e senha por lacre) e T074 (Bluetooth) ficam para spec futura.
+
+## Validação humana
+
+- Responsável pela revisão da equipe: Alisson Almeida
+- Data da validação humana: 20/10/2026
+- Amostra validada: perfis Master e administrador do Tenant A; várias telas; o lacre físico; um celular Android no portal de configuração para escolher a rede.
+- Ambiente da validação: Windows 11 com o Chrome; celular Android usado no portal para escolher a rede.
+- Duração da validação: 40 minutos
+- Resultado da validação humana: aprovado
+- Itens a corrigir apontados pela pessoa responsável: nenhum
+- Confirmação do responsável: sim, confirmado por Alisson Almeida em 20/10/2026
+- Observações: A Spec 013 foi publicada no Supabase em nuvem a partir da branch, antes do merge, a pedido do responsável: até o merge, o site da main fica sem o cadastro manual de dispositivo e sem a tela do Master. Na bancada, a regra de firewall da porta 54321 passou a valer no perfil Público e os bloqueios do Docker Desktop no perfil Público foram desativados, também a pedido do responsável.
+
+## Regras de preenchimento
+
+- A validação humana é obrigatória para encerrar a spec. As respostas da seção acima vêm da pessoa responsável, em entrevista conduzida pelo agente de IA, e nunca são inventadas nem presumidas.
+- Registrar apenas interações relevantes para o projeto.
+- Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
+- Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
+- Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
+- Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
+- Evitar dados pessoais, sigilosos ou sensíveis.
+- Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
+
+## Checklist final
+
+- [X] Ferramentas de IA identificadas.
+- [X] Prompts relevantes registrados por síntese sanitizada.
+- [X] Respostas ou resultados documentados.
+- [X] Texto revisado para soar natural, claro e autêntico, sem alterar o sentido original.
+- [X] Quando houve geração de código, a resposta contém resumo e link para o repositório, branch ou, preferencialmente, pull request.
+- [X] Validação humana explicada.
+- [X] Fontes verificadas quando necessário.
+- [X] Decisão ou pendência registrada.
+- [X] O registro não contém segredos, credenciais ou tokens.
+- [X] Dados pessoais foram removidos ou minimizados.

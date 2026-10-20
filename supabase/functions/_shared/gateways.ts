@@ -78,8 +78,8 @@ export function createLoginGateway(): LoginGateway {
     },
     async signOutSession(accessToken) { await admin.auth.admin.signOut(accessToken, 'local'); },
     async eligibility(userId) {
-      const result = await rpc<{ eligible: boolean; requires_mfa: boolean }>(admin, 'login_eligibility', { p_user_id: userId });
-      return { eligible: result.eligible, requiresMfa: result.requires_mfa };
+      const result = await rpc<{ eligible: boolean }>(admin, 'login_eligibility', { p_user_id: userId });
+      return { eligible: result.eligible };
     },
     endSession: (userId, sessionId, reason) =>
       rpc<boolean>(admin, 'end_user_session', { p_user_id: userId, p_session_id: sessionId, p_reason: reason }),
@@ -112,10 +112,6 @@ export function createStatusGateway(): StatusGateway {
       rpc<SessionValidation>(admin, 'validate_user_session', { p_user_id: userId, p_session_id: sessionId }),
     upgradeAal: async (userId, sessionId) => {
       await rpc(admin, 'start_user_session', { p_user_id: userId, p_session_id: sessionId, p_aal: 'aal2' });
-    },
-    requiresMfa: async (userId) => {
-      const result = await rpc<{ requires_mfa: boolean }>(admin, 'login_eligibility', { p_user_id: userId });
-      return result.requires_mfa;
     },
     audit: (event) => auditRecorder(admin)(event),
   };

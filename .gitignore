@@ -44,3 +44,5 @@ tests/support/tmp/
 # Firmware do lacre (Spec 012): segredos locais e saídas do PlatformIO
 firmware/include/secrets.h
 firmware/.pio/
+# Spec 013: gerado na compilação a partir de firmware/portal/index.html (ferramentas/embutir_portal.py).
+firmware/src/PortalPagina.h

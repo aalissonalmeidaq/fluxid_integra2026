@@ -95,7 +95,7 @@ describe('OverviewPage', () => {
 
   it('não faz requisição de rede e produz o mesmo conteúdo para duas pessoas e dois tenants', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
-    const auth: AuthContextValue = { state: { status: 'authenticated', aal: 'aal1' }, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: null };
+    const auth: AuthContextValue = { state: { status: 'authenticated', aal: 'aal1' }, login: vi.fn(), logout: vi.fn(), };
     const tenant = (organizationId: string, displayName: string): TenantContextValue => ({
       status: 'ready',
       selection: { kind: 'selected', option: { organizationId, displayName, kind: 'tenant' } },

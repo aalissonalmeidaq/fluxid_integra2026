@@ -45,6 +45,12 @@ export interface SealSummary {
   pendingCommand: PendingCommand | null;
   watch: SealWatchInfo | null;
   violation: SealViolationInfo | null;
+  // Spec 013: a destinação pelo Master. Sem o campo (resposta antiga), vale "cadastro manual (Spec 012)".
+  approvedAt: string | null;
+  origin: 'enrollment' | 'manual';
+  readyToBind: boolean;
+  inactiveReason: 'returned' | 'withdrawn' | 'manual' | null;
+  inTrip: boolean;
 }
 
 export interface SealListItem extends SealSummary {
@@ -128,6 +134,11 @@ function summary(raw: unknown): SealSummary {
       id: str(violation.id), status: oneOf(violation.status, ['open', 'returned', 'closed'] as const), firstOutsideAt: str(violation.first_outside_at),
       distanceM: numOrNull(violation.distance_m), returnedAt: strOrNull(violation.returned_at),
     },
+    approvedAt: strOrNull(s.approved_at),
+    origin: oneOf(s.origin ?? 'manual', ['enrollment', 'manual'] as const),
+    readyToBind: s.ready_to_bind === true,
+    inactiveReason: s.inactive_reason === null || s.inactive_reason === undefined ? null : oneOf(s.inactive_reason, ['returned', 'withdrawn', 'manual'] as const),
+    inTrip: s.in_trip === true,
   };
 }
 

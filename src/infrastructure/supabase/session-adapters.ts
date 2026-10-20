@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SessionStore, SessionTransport } from '@/application/identity/session-service';
-import type { MfaClient } from '@/application/identity/mfa-service';
 
 interface PublicEndpoint { url: string; publishableKey: string }
 
@@ -41,13 +40,3 @@ export function createSupabaseSessionStore(client: SupabaseClient): SessionStore
   };
 }
 
-export function createMfaClient(client: SupabaseClient): MfaClient {
-  const mfa = client.auth.mfa;
-  return {
-    listFactors: () => mfa.listFactors() as unknown as ReturnType<MfaClient['listFactors']>,
-    enroll: (params) => mfa.enroll({ factorType: 'totp', ...(params?.friendlyName ? { friendlyName: params.friendlyName } : {}) }) as unknown as ReturnType<MfaClient['enroll']>,
-    challenge: (params) => mfa.challenge(params) as unknown as ReturnType<MfaClient['challenge']>,
-    verify: (params) => mfa.verify(params) as unknown as ReturnType<MfaClient['verify']>,
-    unenroll: (params) => mfa.unenroll(params) as unknown as ReturnType<MfaClient['unenroll']>,
-  };
-}

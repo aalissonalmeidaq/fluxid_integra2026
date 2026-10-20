@@ -31,8 +31,7 @@ function serviceReturning(...outcomes: Array<PermissionsOutcome | Promise<Permis
 }
 
 const authValue = (state: AuthState): AuthContextValue => ({
-  state, login: async () => ({ kind: 'unavailable' }), logout: async () => undefined, confirmMfa: async () => false, mfa: null,
-});
+  state, login: async () => ({ kind: 'unavailable' }), logout: async () => undefined, });
 const tenantValue = (activeOrganizationId: string | null): TenantContextValue => ({
   status: 'ready', selection: { kind: 'none' }, options: [], activeOrganizationId, switching: false,
   select: async () => ({ ok: false, reason: 'unavailable' }), beginSwitch: () => undefined, cancelSwitch: () => undefined, reload: async () => undefined,
@@ -97,7 +96,6 @@ describe('PermissionsProvider: consulta ao autenticar (RF-004, RF-006, RF-007)',
   it.each<[string, AuthState]>([
     ['sem sessão', { status: 'signed_out' }],
     ['verificando a sessão', { status: 'checking' }],
-    ['sessão limitada à verificação em duas etapas', { status: 'mfa_required' }],
   ])('não consulta %s e não expõe permissões', async (_nome, auth) => {
     const { service, query } = serviceReturning(success(ADMIN));
     render(tree({ service, auth }));

@@ -53,7 +53,7 @@ function Probe() {
 }
 
 const connectivity: ConnectivityContextValue = { result: { ...initialResult, state: 'connected' }, client: null, config: null, reconnect: vi.fn(), reportOperationalError: vi.fn() };
-const authValue = (state: AuthState): AuthContextValue => ({ state, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), verifySession: vi.fn(async () => true), mfa: null });
+const authValue = (state: AuthState): AuthContextValue => ({ state, login: vi.fn(), logout: vi.fn(), verifySession: vi.fn(async () => true), });
 const authenticated: AuthState = { status: 'authenticated', aal: 'aal1' };
 
 function renderProvider(service: TenantContextService | null, state: AuthState = authenticated, extra: { refreshMs?: number } = {}) {

@@ -6,7 +6,7 @@ export const documentacaoDoShell: readonly DocumentacaoDeComponente[] = [
   {
     nome: 'AppShell',
     descricao: 'Estrutura única de toda tela: link de pular, barra superior, barra de conexão, menu de navegação, conteúdo principal e rodapé.',
-    variantes: ['público (entrada e verificação em duas etapas, sem barra superior nem menu)', 'autenticado com barra superior e menu recolhido (menos de 768 px)', 'autenticado com coluna lateral e barra superior (768 px ou mais)'],
+    variantes: ['público (entrada, sem barra superior nem menu)', 'autenticado com barra superior e menu recolhido (menos de 768 px)', 'autenticado com coluna lateral e barra superior (768 px ou mais)'],
     estados: ['online', 'offline', 'sincronizando'],
     orientacaoDeUso:
       'Envolve a rota já decidida e nunca decide permissão. Sem sessão plena a tela usa a moldura de marca e não mostra dado de organização nem menu; autenticado mostra a organização ativa e o menu da pessoa na barra superior, e o menu lateral. Em 360 px a barra superior quebra em linhas sem rolagem horizontal.',
@@ -44,7 +44,7 @@ export const documentacaoDoShell: readonly DocumentacaoDeComponente[] = [
     variantes: ['coluna fixa (768 px ou mais)', 'painel recolhido sob o cabeçalho (menos de 768 px)'],
     estados: ['pronto', 'carregando', 'erro com "Tentar de novo"', 'offline com as últimas telas', 'offline sem cache', 'item atual', 'foco'],
     orientacaoDeUso:
-      'É conveniência de interface, nunca barreira: esconder um item não protege nada, e o servidor decide o acesso a cada tela. Visão geral e Meu perfil aparecem sempre que há sessão; os demais só depois da confirmação do servidor. Sem sessão, ou com a sessão limitada à verificação em duas etapas, o menu não existe. Ao trocar de organização ou de pessoa, os itens anteriores somem antes do novo contexto aparecer.',
+      'É conveniência de interface, nunca barreira: esconder um item não protege nada, e o servidor decide o acesso a cada tela. Visão geral e Meu perfil aparecem sempre que há sessão; os demais só depois da confirmação do servidor. Sem sessão, o menu não existe. Ao trocar de organização ou de pessoa, os itens anteriores somem antes do novo contexto aparecer.',
     acessibilidade: [
       'É um nav com o nome acessível "Navegação principal", com lista, itens e links; um só landmark main na página.',
       'O item atual usa aria-current="page", o texto "(página atual)" para tecnologia assistiva e uma barra lateral com peso de fonte, nunca só a cor.',

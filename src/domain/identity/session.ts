@@ -5,29 +5,26 @@ export type AuthNotice = 'session_expired' | 'session_revoked' | 'signed_out';
 export type AuthState =
   | { status: 'checking' }
   | { status: 'signed_out'; notice?: AuthNotice; reason?: ExpiryReason }
-  | { status: 'mfa_required' }
   // `offline` (Spec 010, RF-016a): sessão restaurada pelo acesso offline restrito, sem confirmação do servidor; some quando o servidor confirmar.
   | { status: 'authenticated'; aal: AssuranceLevel; offline?: true };
 
 export type AuthEvent =
-  | { type: 'session_active'; aal: AssuranceLevel; mfaRequired?: boolean }
+  | { type: 'session_active'; aal: AssuranceLevel }
   | { type: 'session_offline_restored'; aal: AssuranceLevel }
   | { type: 'session_missing' }
   | { type: 'session_invalid' }
   | { type: 'session_expired'; reason?: ExpiryReason }
   | { type: 'session_revoked' }
   | { type: 'login_succeeded' }
-  | { type: 'login_requires_mfa' }
-  | { type: 'mfa_verified' }
   | { type: 'logout' };
 
 export const initialAuthState: AuthState = { status: 'checking' };
 
 // Transições puras da autenticação; a decisão final de acesso sempre vem da fronteira confiável.
-export function authReducer(state: AuthState, event: AuthEvent): AuthState {
+export function authReducer(_state: AuthState, event: AuthEvent): AuthState {
   switch (event.type) {
     case 'session_active':
-      return event.mfaRequired ? { status: 'mfa_required' } : { status: 'authenticated', aal: event.aal };
+      return { status: 'authenticated', aal: event.aal };
     case 'session_offline_restored':
       return { status: 'authenticated', aal: event.aal, offline: true };
     case 'session_missing':
@@ -39,17 +36,12 @@ export function authReducer(state: AuthState, event: AuthEvent): AuthState {
       return { status: 'signed_out', notice: 'session_revoked' };
     case 'login_succeeded':
       return { status: 'authenticated', aal: 'aal1' };
-    case 'login_requires_mfa':
-      return { status: 'mfa_required' };
-    case 'mfa_verified':
-      // Vale para o login de perfil global e para o desafio adicional de ações críticas.
-      return state.status === 'mfa_required' || state.status === 'authenticated' ? { status: 'authenticated', aal: 'aal2' } : state;
     case 'logout':
       return { status: 'signed_out', notice: 'signed_out' };
   }
 }
 
-export function isProtectedAccessAllowed(state: AuthState, options: { requireAal2?: boolean } = {}): boolean {
-  if (state.status !== 'authenticated') return false;
-  return options.requireAal2 ? state.aal === 'aal2' : true;
+// Spec 013 (RF-021): o acesso é só com e-mail e senha para todos os perfis; nenhuma tela exige segundo fator.
+export function isProtectedAccessAllowed(state: AuthState): boolean {
+  return state.status === 'authenticated';
 }

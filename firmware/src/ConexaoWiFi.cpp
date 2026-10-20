@@ -11,6 +11,7 @@ ConexaoWiFi::ConexaoWiFi(fluxid::ListaDeRedes& lista) : lista(lista), atual(list
 
 void ConexaoWiFi::Iniciar()
 {
+    // Spec 013: o portal de configuracao pode abrir a rede do lacre ao mesmo tempo (WIFI_AP_STA, em PortalWiFi).
     WiFi.mode(WIFI_STA);
     // A escolha da rede e do lacre (lista e padrao), nao da reconexao automatica do ESP32.
     WiFi.setAutoReconnect(false);
@@ -46,8 +47,20 @@ std::vector<fluxid::RedeVisivel> ConexaoWiFi::Procurar()
     return visiveis;
 }
 
+std::string ConexaoWiFi::RedeAtual() const
+{
+    return Conectado() ? atual.ssid : std::string();
+}
+
+bool ConexaoWiFi::ChegaAoFluxID() const
+{
+    return Conectado() && chegouAoFluxID;
+}
+
 bool ConexaoWiFi::Conectar(const fluxid::EscolhaDeRede& escolha)
 {
+    // Rede nova: so volta a "chegar ao FluxID" depois de um envio com resposta por ela.
+    chegouAoFluxID = false;
     WiFi.disconnect();
     WiFi.begin(escolha.ssid.c_str(), escolha.senha.empty() ? nullptr : escolha.senha.c_str());
     // ESP32-C3 Super Mini: com a potencia maxima a antena da placa faz a autenticacao expirar (AUTH_EXPIRE); 8,5 dBm resolve.
@@ -84,10 +97,16 @@ bool ConexaoWiFi::ProcurarEConectar()
         return false;
     };
     const fluxid::EscolhaDeRede escolha = lista.Escolher(visiveis);
+    // Spec 013: sem rede principal (lacre novo ou que esqueceu as redes) e sem extra ao alcance, nao ha o que tentar; o portal abre.
+    if (escolha.ssid.empty())
+    {
+        ultimaTentativaMs = millis();
+        return false;
+    }
     // Rede fora do alcance: nem tenta (conectar bloqueia o laco por ate TEMPO_CONEXAO_WIFI_MS e o GPS perde frases).
     if (visivel(escolha.ssid))
     {
-        if (!Conectar(escolha) && !escolha.padrao && visivel(lista.Padrao().ssid))
+        if (!Conectar(escolha) && !escolha.padrao && !lista.Padrao().ssid.empty() && visivel(lista.Padrao().ssid))
             Conectar(lista.Padrao());
     }
     else
@@ -107,11 +126,19 @@ bool ConexaoWiFi::Atualizar(uint32_t agoraMs)
         return false;
     if (agoraMs - ultimaTentativaMs < INTERVALO_RECONEXAO_MS)
         return false;
+    // Spec 013: sem rede nenhuma guardada nem a padrao da plataforma, procurar nao leva a lugar algum e a varredura faz o radio sair do canal da rede de
+    // configuracao, que some da lista do celular. A rede chega pelo portal.
+    if (!lista.TemRedeParaTentar())
+    {
+        ultimaTentativaMs = agoraMs;
+        return false;
+    }
     return ProcurarEConectar();
 }
 
 void ConexaoWiFi::RegistrarEnvio(bool alcancouFluxID)
 {
+    chegouAoFluxID = alcancouFluxID;
     if (alcancouFluxID)
     {
         falhasSeguidas = 0;
@@ -165,5 +192,5 @@ const std::vector<fluxid::RedeVisivel>& ConexaoWiFi::Visiveis() const
 
 bool ConexaoWiFi::CaiuNaPadrao() const
 {
-    return atual.padrao && !lista.Nomes().empty();
+    return atual.padrao && lista.TemPrincipal() && !lista.Nomes().empty();
 }

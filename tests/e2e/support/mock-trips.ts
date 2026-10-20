@@ -24,8 +24,6 @@ export interface RegisteredTripOperation {
   kind: TripFunctionKind;
   // Permissão exigida; uma lista exige todas elas. Sem permissão, a resposta é 403 ACCESS_DENIED.
   permission: string | readonly string[];
-  // Exige sessão com segundo fator (apenas o desbloqueio excepcional decide isso por dentro da operação; ver `aal`).
-  mfa?: boolean;
   run: TripOperationHandler;
 }
 
@@ -213,7 +211,6 @@ export class TripMock {
     // Operação desconhecida (inclusive exclusão) não existe: o servidor recusa (RF-033).
     if (!definition) return fail('VALIDATION_FAILED', 400);
     if (this.sessionExpired) return fail('AUTH_REQUIRED', 401);
-    if (definition.mfa && this.aal !== 'aal2') return fail('MFA_REQUIRED', 403);
     const required = typeof definition.permission === 'string' ? [definition.permission] : definition.permission;
     if (!required.every((code) => can(org, code))) return fail('ACCESS_DENIED', 403);
 

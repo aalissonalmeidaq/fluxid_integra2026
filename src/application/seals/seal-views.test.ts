@@ -82,3 +82,34 @@ describe('consultas do serviço', () => {
     expect(outcome).toMatchObject({ kind: 'success', value: [{ seal: { lockState: 'locked' } }, { seal: null }] });
   });
 });
+
+// Spec 013 (T037): o tenant vê a aprovação, o "pronto para vincular" e a origem do lacre; o serviço devolve à plataforma e lê o histórico.
+describe('lacre destinado pelo Master (Spec 013)', () => {
+  it('resumo com a data da aprovação, a origem e o pronto para vincular', () => {
+    expect(toSealSummary({ ...RAW_SUMMARY, approved_at: '2026-10-19T10:00:00Z', origin: 'enrollment', ready_to_bind: true, inactive_reason: null })).toMatchObject({
+      approvedAt: '2026-10-19T10:00:00Z', origin: 'enrollment', readyToBind: true, inactiveReason: null,
+    });
+    expect(toSealSummary({ ...RAW_SUMMARY, origin: 'manual', ready_to_bind: false })).toMatchObject({ origin: 'manual', readyToBind: false, approvedAt: null });
+  });
+
+  it('origem desconhecida recusa a visão', () => {
+    expect(toSealSummary({ ...RAW_SUMMARY, origin: 'importado' })).toBeNull();
+  });
+
+  it('lista com o filtro de histórico e o de prontos para vincular', async () => {
+    const t: SealTransport & { call: ReturnType<typeof vi.fn> } = { call: vi.fn(async () => ({ status: 200, body: { code: 'LISTED', items: [], total: 0 } })) };
+    await new SealService(t).listSeals('org', { unbound: true, history: true });
+    expect(t.call).toHaveBeenCalledWith('query-seals', expect.objectContaining({ operation: 'list_seals', unbound: true, history: true }));
+  });
+
+  it('devolver à plataforma: request_id, lacre e justificativa', async () => {
+    const t: SealTransport & { call: ReturnType<typeof vi.fn> } = { call: vi.fn(async () => ({ status: 200, body: { code: 'RETURNED' } })) };
+    expect(await new SealService(t).returnDevice('org', 'dev', 'Lacre com defeito', 'req')).toEqual({ kind: 'success', value: true });
+    expect(t.call).toHaveBeenCalledWith('manage-seals', { operation: 'return_device', organization_id: 'org', request_id: 'req', device_id: 'dev', justification: 'Lacre com defeito' });
+  });
+
+  it('o serviço não oferece mais cadastro, chave nova nem desativação', () => {
+    const service = new SealService({ call: vi.fn() });
+    for (const removed of ['createDevice', 'rotateDeviceKey', 'deactivateDevice']) expect(removed in service).toBe(false);
+  });
+});

@@ -95,7 +95,6 @@ export function authorize(input: {
 
   const granted = effectivePermissions(membership, organization).get(permission);
   if (!granted) return deny('permission_missing');
-  if (granted.critical && session.aal !== 'aal2') return deny('mfa_required');
   return { allowed: true };
 }
 

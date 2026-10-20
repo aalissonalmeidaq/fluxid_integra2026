@@ -3,12 +3,11 @@ import { AuthContext, type AuthContextValue, type OfflineAccessStorePort } from 
 import { useConnectivity } from '@/app/connectivity-context';
 import { authReducer, initialAuthState, type AuthEvent } from '@/domain/identity/session';
 import { SessionService, type SessionCheck } from '@/application/identity/session-service';
-import { MfaService } from '@/application/identity/mfa-service';
 import { restoreOfflineAccess, type OfflineAccessRecord } from '@/domain/identity/offline-access';
 import { OfflineAccessStore } from '@/infrastructure/local-database/offline-access-store';
-import { createFetchSessionTransport, createMfaClient, createSupabaseSessionStore } from '@/infrastructure/supabase/session-adapters';
+import { createFetchSessionTransport, createSupabaseSessionStore } from '@/infrastructure/supabase/session-adapters';
 
-export interface AuthServices { service: SessionService; mfa: MfaService }
+export interface AuthServices { service: SessionService }
 
 export interface AuthProviderProps {
   children: React.ReactNode;
@@ -25,7 +24,7 @@ const ACTIVITY_EVENTS = ['keydown', 'pointerdown'] as const;
 
 function eventFromCheck(result: SessionCheck): AuthEvent | null {
   switch (result.kind) {
-    case 'active': return { type: 'session_active', aal: result.aal, mfaRequired: result.mfaRequired };
+    case 'active': return { type: 'session_active', aal: result.aal };
     case 'expired': return result.reason ? { type: 'session_expired', reason: result.reason } : { type: 'session_expired' };
     case 'revoked': return { type: 'session_revoked' };
     case 'missing': return { type: 'session_missing' };
@@ -48,7 +47,6 @@ export function AuthProvider({ children, services: injected, heartbeatMs = DEFAU
     if (!client || !endpoint) return null;
     return {
       service: new SessionService(createFetchSessionTransport(endpoint), createSupabaseSessionStore(client)),
-      mfa: new MfaService(createMfaClient(client)),
     };
   }, [injected, client, endpoint]);
 
@@ -90,7 +88,7 @@ export function AuthProvider({ children, services: injected, heartbeatMs = DEFAU
   }, [built, resolving]);
 
   // Atividade confiável: só confirma a sessão no servidor quando o usuário realmente interagiu.
-  const authenticated = state.status === 'authenticated' || state.status === 'mfa_required';
+  const authenticated = state.status === 'authenticated';
   useEffect(() => {
     if (!built || !authenticated) return;
     const markActivity = () => { activitySinceCheck.current = true; };
@@ -113,7 +111,6 @@ export function AuthProvider({ children, services: injected, heartbeatMs = DEFAU
     if (!built) return { kind: 'unavailable' };
     const outcome = await built.service.login(input);
     if (outcome.kind === 'authenticated') dispatch({ type: 'login_succeeded' });
-    if (outcome.kind === 'mfa_required') dispatch({ type: 'login_requires_mfa' });
     return outcome;
   }, [built]);
 
@@ -125,16 +122,6 @@ export function AuthProvider({ children, services: injected, heartbeatMs = DEFAU
     dispatch({ type: 'logout' });
   }, [built, offlineStore]);
 
-  const confirmMfa = useCallback(async () => {
-    if (!built) return false;
-    const result = await built.service.check();
-    if (result.kind === 'active' && result.aal === 'aal2') {
-      dispatch({ type: 'mfa_verified' });
-      return true;
-    }
-    return false;
-  }, [built]);
-
   const verifySession = useCallback(async () => {
     if (!built) return false;
     try {
@@ -145,8 +132,8 @@ export function AuthProvider({ children, services: injected, heartbeatMs = DEFAU
   }, [built]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ state, login, logout, confirmMfa, verifySession, mfa: built?.mfa ?? null, offlineAccess: state.status === 'authenticated' && state.offline ? offlineRecord : null, offlineAccessStore: offlineStore }),
-    [state, login, logout, confirmMfa, verifySession, built, offlineRecord, offlineStore],
+    () => ({ state, login, logout, verifySession, offlineAccess: state.status === 'authenticated' && state.offline ? offlineRecord : null, offlineAccessStore: offlineStore }),
+    [state, login, logout, verifySession, offlineRecord, offlineStore],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -4,7 +4,6 @@ import { AuthProvider } from './auth-provider';
 import { useAuth } from './auth-context';
 import { ConnectivityContext, initialResult, type ConnectivityContextValue } from '@/app/connectivity-context';
 import type { SessionCheck, SessionService } from '@/application/identity/session-service';
-import type { MfaService } from '@/application/identity/mfa-service';
 import { buildOfflineAccess } from '@/domain/identity/offline-access';
 
 // Spec 010, T085 (RF-016a, CA-006; research.md §19a): com o servidor inalcançável na abertura, a sessão volta pelo registro de acesso offline (menos de 8
@@ -33,8 +32,7 @@ const services = (check: SessionCheck | (() => Promise<SessionCheck>)) => ({
     login: vi.fn(async () => ({ kind: 'authenticated' as const })),
     logout: vi.fn(async () => undefined),
   } as unknown as SessionService,
-  mfa: {} as MfaService,
-});
+  });
 const store = (stored: unknown) => ({ read: vi.fn(async () => stored), clear: vi.fn(async () => undefined), save: vi.fn(async () => true) });
 
 function renderProvider(s: ReturnType<typeof services> | null, offlineStore: ReturnType<typeof store> | null, connectivity: ConnectivityContextValue['result']['state'] = 'connected') {
@@ -103,7 +101,7 @@ describe('abertura com o servidor inalcançável', () => {
 describe('com o servidor respondendo, nada muda', () => {
   it('sessão ativa: autenticada sem marca offline, sem tocar no registro', async () => {
     const s = store(record(1));
-    renderProvider(services({ kind: 'active', aal: 'aal1', expiresAt: '2026-10-12T20:00:00Z', mfaRequired: false }), s);
+    renderProvider(services({ kind: 'active', aal: 'aal1', expiresAt: '2026-10-12T20:00:00Z' }), s);
     await flush();
     expect(state()).toEqual({ status: 'authenticated', aal: 'aal1' });
     expect(offlineValue()).toBeNull();
@@ -123,7 +121,7 @@ describe('com o servidor respondendo, nada muda', () => {
 
   it('sair da conta apaga o registro', async () => {
     const s = store(record(1));
-    renderProvider(services({ kind: 'active', aal: 'aal1', expiresAt: '2026-10-12T20:00:00Z', mfaRequired: false }), s);
+    renderProvider(services({ kind: 'active', aal: 'aal1', expiresAt: '2026-10-12T20:00:00Z' }), s);
     await flush();
     fireEvent.click(screen.getByText('logout'));
     await flush();
@@ -135,7 +133,7 @@ describe('com o servidor respondendo, nada muda', () => {
 describe('a volta da conexão', () => {
   it('a confirmação do servidor troca a sessão offline por uma comum e limpa o registro exposto', async () => {
     let reachable = false;
-    const s = services(async () => (reachable ? { kind: 'active', aal: 'aal1', expiresAt: '2026-10-12T20:00:00Z', mfaRequired: false } : { kind: 'unreachable' }));
+    const s = services(async () => (reachable ? { kind: 'active', aal: 'aal1', expiresAt: '2026-10-12T20:00:00Z' } : { kind: 'unreachable' }));
     const offlineStore = store(record(1));
     const value = (n: number): ConnectivityContextValue => ({ result: { ...initialResult, state: 'connected', selectedEndpoint: n === 0 ? null : 'local' } as never, client: null, config: null, reconnect: vi.fn(), reportOperationalError: vi.fn() });
     const tree = (n: number) => (

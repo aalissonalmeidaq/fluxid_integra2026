@@ -28,7 +28,7 @@ const permissions = (over: Partial<PermissionsContextValue> = {}): PermissionsCo
 
 function renderRecorder(opts: { state?: AuthState; offlineStore?: ReturnType<typeof store> | null; tenantValue?: TenantContextValue; permissionsValue?: PermissionsContextValue; url?: string | null; actorId?: string | null } = {}) {
   const offlineStore = opts.offlineStore === undefined ? store() : opts.offlineStore;
-  const auth: AuthContextValue = { state: opts.state ?? online, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: null, offlineAccessStore: offlineStore, offlineAccess: null };
+  const auth: AuthContextValue = { state: opts.state ?? online, login: vi.fn(), logout: vi.fn(), offlineAccessStore: offlineStore, offlineAccess: null };
   const view = render(
     <ConnectivityContext.Provider value={connectivity(opts.url === undefined ? 'http://127.0.0.1:54321' : opts.url)}>
       <AuthContext.Provider value={auth}>
@@ -73,7 +73,6 @@ describe('OfflineAccessRecorder', () => {
   it.each([
     ['sessão restaurada offline', { state: { status: 'authenticated', aal: 'aal1', offline: true } as AuthState }],
     ['sem sessão', { state: { status: 'signed_out' } as AuthState }],
-    ['aguardando o segundo fator', { state: { status: 'mfa_required' } as AuthState }],
     ['tenant ainda carregando', { tenantValue: tenant({ status: 'loading', activeOrganizationId: null, selection: { kind: 'none' } }) }],
     ['permissões ainda carregando', { permissionsValue: permissions({ status: 'loading', permissions: null }) }],
     ['permissões com erro', { permissionsValue: permissions({ status: 'error', permissions: null }) }],

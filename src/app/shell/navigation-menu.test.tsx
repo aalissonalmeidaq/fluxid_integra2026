@@ -8,8 +8,7 @@ import { Icon } from '@/design-system/icons/icon';
 import { NavigationMenu } from './navigation-menu';
 
 const authValue = (state: AuthState): AuthContextValue => ({
-  state, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: null,
-});
+  state, login: vi.fn(), logout: vi.fn(), });
 
 const ADMIN: ActorPermissions = { tenant: ['audit.read', 'tenant.manage', 'profile.read'], global: [] };
 const OPERATOR: ActorPermissions = { tenant: ['profile.read'], global: [] };
@@ -73,7 +72,7 @@ describe('NavigationMenu: estrutura e itens por perfil (RF-005, RF-006, RF-009, 
 
   it('Master vê as telas globais e nenhuma do tenant', () => {
     renderMenu({ permissions: { permissions: MASTER } });
-    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Organizações', 'Auditoria da plataforma']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma']);
   });
 
   it('o item atual tem aria-current="page" e o texto "(página atual)"', () => {
@@ -98,7 +97,6 @@ describe('NavigationMenu: sessão (RN-004)', () => {
   it.each<[string, AuthState]>([
     ['sem sessão', { status: 'signed_out' }],
     ['verificando a sessão', { status: 'checking' }],
-    ['sessão limitada à verificação em duas etapas', { status: 'mfa_required' }],
   ])('não renderiza %s', (_nome, auth) => {
     renderMenu({ auth });
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();

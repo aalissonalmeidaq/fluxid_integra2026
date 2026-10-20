@@ -69,7 +69,8 @@ test.describe('Acompanhar o cilindro e a viagem pelo lacre', () => {
     await expect(bloco.getByText('Travamento pendente')).toBeVisible();
   });
 
-  test('destravar: o servidor exige o segundo fator e a tela explica', async ({ page }) => {
+  // Spec 013 (RF-021): destravar pede só a justificativa; não há segundo fator.
+  test('destravar com e-mail e senha: só a justificativa, e o pedido fica pendente', async ({ page }) => {
     const backend = await entrar(page, 'lacres-admin');
     const { cil } = cilindroComLacre(backend, 'CIL-007', { lock_state: 'locked' });
     backend.seals.aal = 'aal1';
@@ -80,8 +81,9 @@ test.describe('Acompanhar o cilindro e a viagem pelo lacre', () => {
     const dialogo = page.getByRole('dialog', { name: 'Destravar o lacre · CIL-007' });
     await dialogo.getByLabel('Justificativa').fill('Cliente pediu a liberação fora da entrega.');
     await apertar(page, dialogo.getByRole('button', { name: 'Pedir para destravar' }));
-    await expect(dialogo.getByText(/verificação em duas etapas/)).toBeVisible();
-    expect(backend.seals.rows('devices').find((d) => d.label === 'Lacre do CIL-007')!.pending_command).toBeNull();
+    await expect(dialogo).toHaveCount(0);
+    await expect(bloco.getByText(/Pedido de destravar enviado/)).toBeVisible();
+    expect(backend.seals.rows('devices').find((d) => d.label === 'Lacre do CIL-007')!.pending_command).not.toBeNull();
   });
 
   test('quem só vê lacres acompanha sem os botões de comando', async ({ page }) => {

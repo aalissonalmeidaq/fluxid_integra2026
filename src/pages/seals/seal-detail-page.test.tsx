@@ -13,7 +13,7 @@ vi.mock('@/components/maps/osm-map', () => ({
 }));
 
 // Spec 012 (T094; RF-031 a RF-034, RF-034a; História 5): detalhe do dispositivo com saúde, trava, bateria, vínculo atual e anteriores,
-// comandos e alertas; ações conforme a permissão (gerar chave nova, desativar, desvincular), todas com justificativa.
+// comandos e alertas; ações conforme a permissão (devolver à plataforma e desvincular), todas com justificativa.
 const NOW = new Date('2026-10-17T14:10:00Z');
 const DEVICE = 'a1400000-0000-4000-8000-0000000000a1';
 const DETAIL = {
@@ -99,14 +99,32 @@ describe('SealDetailView', () => {
     expect(screen.queryByRole('button', { name: 'Descobrir endereço' })).toBeNull();
   });
 
-  it('gerar chave nova: justificativa e a chave aparece uma vez', async () => {
-    const { service: s, call } = service({ get_seal: [{ code: 'FOUND', seal: DETAIL }], rotate_device_key: [{ code: 'ROTATED', device_key: 'fxk_nova-chave' }] });
+  // Spec 013 (RF-013a, História 3, cenários 5 e 6): sem "Gerar chave nova" nem "Desativar"; o tenant devolve o lacre à plataforma.
+  it('devolver à plataforma com justificativa; sem gerar chave nem desativar', async () => {
+    const { service: s, call } = service({ get_seal: [{ code: 'FOUND', seal: DETAIL }], return_device: [{ code: 'RETURNED' }] });
     renderDetail(s);
-    fireEvent.click(await screen.findByRole('button', { name: 'Gerar chave nova' }));
-    fireEvent.change(await screen.findByLabelText('Justificativa'), { target: { value: 'Chave exposta na bancada.' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Gerar a chave' }));
-    expect(await screen.findByText('fxk_nova-chave')).toBeInTheDocument();
-    expect(call).toHaveBeenCalledWith('manage-seals', expect.objectContaining({ operation: 'rotate_device_key', justification: 'Chave exposta na bancada.' }));
+    await screen.findByRole('heading', { level: 2, name: 'Lacre do pátio' });
+    expect(screen.queryByRole('button', { name: 'Gerar chave nova' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Desativar' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Devolver à plataforma' }));
+    fireEvent.change(await screen.findByLabelText('Justificativa'), { target: { value: 'Lacre com defeito no sensor.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Devolver o lacre' }));
+    expect(await screen.findByText(/Lacre devolvido à plataforma/)).toBeInTheDocument();
+    expect(call).toHaveBeenCalledWith('manage-seals', expect.objectContaining({ operation: 'return_device', device_id: DEVICE, justification: 'Lacre com defeito no sensor.' }));
+  });
+
+  it('com o cilindro em viagem, "Devolver à plataforma" fica desabilitado e o motivo aparece em texto', async () => {
+    const { service: s } = service({ get_seal: [{ code: 'FOUND', seal: { ...DETAIL, in_trip: true } }] });
+    renderDetail(s);
+    expect(await screen.findByRole('button', { name: 'Devolver à plataforma' })).toBeDisabled();
+    expect(screen.getByText('O cilindro deste lacre está numa viagem em andamento.')).toBeInTheDocument();
+  });
+
+  it('mostra quando e como o lacre chegou: aprovado pelo Master ou cadastro manual', async () => {
+    const { service: s } = service({ get_seal: [{ code: 'FOUND', seal: { ...DETAIL, approved_at: '2026-10-17T13:00:00Z', origin: 'enrollment' } }] });
+    renderDetail(s);
+    expect(await screen.findByText('Aprovado pelo Master')).toBeInTheDocument();
+    expect(screen.getByText('17/10/2026 10:00')).toBeInTheDocument();
   });
 
   it('desvincular com justificativa; em viagem em andamento, explica a recusa', async () => {
@@ -125,7 +143,7 @@ describe('SealDetailView', () => {
     const { service: s } = service({ get_seal: [{ code: 'FOUND', seal: DETAIL }] });
     renderDetail(s, ['seal.read']);
     await screen.findByRole('heading', { level: 2, name: 'Lacre do pátio' });
-    expect(screen.queryByRole('button', { name: 'Gerar chave nova' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Devolver à plataforma' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Desvincular' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Adicionar rede' })).not.toBeInTheDocument();
   });

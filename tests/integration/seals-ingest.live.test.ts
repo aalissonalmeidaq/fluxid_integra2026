@@ -75,11 +75,9 @@ describe('Lacre: posição do lacre até a tela (Spec 012, US1)', () => {
     refreshB = b.body.session.refresh_token as string;
     cylA = createTestCylinder(ORG_A, `LIVE-A-${run}`);
     const cylB = createTestCylinder(ORG_B, `LIVE-B-${run}`);
-    // US5 (T098): o lacre do Tenant A é cadastrado e vinculado pelas funções reais; a chave volta uma única vez.
-    const created = await callFunction('manage-seals', { operation: 'create_device', organization_id: ORG_A, request_id: crypto.randomUUID(), label: `Lacre live ${run}` }, tokenA);
-    expect(created.status).toBe(200);
-    devA = { device_id: created.body.device_id as string, device_code: created.body.device_code as string };
-    keyA = created.body.device_key as string;
+    // Spec 013 (RF-018): o cadastro manual saiu da borda; o lacre do Tenant A nasce pelo apoio de SQL e o vínculo segue pela função real.
+    keyA = `chave-live-a-${run}`;
+    devA = createTestDevice(ORG_A, keyA, '10000000-0000-0000-0000-000000000002');
     const bound = await callFunction('manage-seals', { operation: 'bind_seal', organization_id: ORG_A, request_id: crypto.randomUUID(), device_id: devA.device_id, cylinder_id: cylA }, tokenA);
     expect(bound.body.code).toBe('BOUND');
     devB = createTestDevice(ORG_B, keyB, ADMIN_B);

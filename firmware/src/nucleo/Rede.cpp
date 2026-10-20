@@ -86,7 +86,19 @@ namespace fluxid
 
     EscolhaDeRede ListaDeRedes::Padrao() const
     {
+        if (padrao.ssid.empty() && !fabrica.ssid.empty())
+            return {true, fabrica.ssid, fabrica.senha};
         return {true, padrao.ssid, padrao.senha};
+    }
+
+    void ListaDeRedes::DefinirRedeDeFabrica(const std::string& ssid, const std::string& senha)
+    {
+        fabrica = RedeGuardada{ssid, senha, senha.empty()};
+    }
+
+    bool ListaDeRedes::TemRedeParaTentar() const
+    {
+        return TemAlgumaRede() || !fabrica.ssid.empty();
     }
 
     std::string ListaDeRedes::Serializar() const
@@ -119,6 +131,71 @@ namespace fluxid
             lidas.push_back({ssid, item["p"] | "", item["a"] | false});
         }
         redes = lidas;
+        return true;
+    }
+
+    bool ListaDeRedes::TemPrincipal() const
+    {
+        return !padrao.ssid.empty();
+    }
+
+    bool ListaDeRedes::TemAlgumaRede() const
+    {
+        return TemPrincipal() || !redes.empty();
+    }
+
+    const RedeGuardada& ListaDeRedes::Principal() const
+    {
+        return padrao;
+    }
+
+    void ListaDeRedes::DefinirPrincipal(const RedeGuardada& rede, bool peloPortal)
+    {
+        padrao = rede;
+        principalDoPortal = peloPortal;
+    }
+
+    bool ListaDeRedes::PrincipalDoPortalDesdeAAprovacao() const
+    {
+        return TemPrincipal() && principalDoPortal;
+    }
+
+    void ListaDeRedes::MarcarAprovado()
+    {
+        principalDoPortal = false;
+    }
+
+    void ListaDeRedes::Esquecer(Esquecimento escopo)
+    {
+        if (escopo == Esquecimento::Nenhum)
+            return;
+        redes.clear();
+        if (escopo == Esquecimento::Todas && !principalDoPortal)
+            padrao = RedeGuardada{"", "", true};
+    }
+
+    std::string ListaDeRedes::SerializarPrincipal() const
+    {
+        JsonDocument documento;
+        documento["s"] = padrao.ssid;
+        documento["p"] = padrao.senha;
+        documento["a"] = padrao.aberta;
+        documento["portal"] = principalDoPortal;
+        std::string texto;
+        serializeJson(documento, texto);
+        return texto;
+    }
+
+    bool ListaDeRedes::RestaurarPrincipal(const std::string& conteudo)
+    {
+        JsonDocument documento;
+        if (deserializeJson(documento, conteudo) || !documento.is<JsonObjectConst>())
+            return false;
+        const std::string ssid = documento["s"] | "";
+        if (ssid.size() > 32)
+            return false;
+        padrao = {ssid, documento["p"] | "", documento["a"] | false};
+        principalDoPortal = documento["portal"] | false;
         return true;
     }
 

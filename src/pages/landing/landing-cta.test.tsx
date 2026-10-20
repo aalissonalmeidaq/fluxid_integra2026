@@ -10,8 +10,6 @@ const contexto = (state: AuthState): AuthContextValue => ({
   state,
   login: async () => ({ kind: 'unavailable' }),
   logout: async () => undefined,
-  confirmMfa: async () => false,
-  mfa: null,
 });
 
 const renderizar = (state: AuthState, props: { variante?: 'principal' | 'cabecalho' } = {}) =>
@@ -21,7 +19,6 @@ describe('LandingCta', () => {
   it.each<[string, AuthState]>([
     ['sessão em verificação', { status: 'checking' }],
     ['sem sessão', { status: 'signed_out' }],
-    ['segundo fator pendente', { status: 'mfa_required' }],
   ])('%s: "Entrar no sistema" leva a /login', (_, state) => {
     renderizar(state);
     const link = screen.getByRole('link', { name: 'Entrar no sistema' });

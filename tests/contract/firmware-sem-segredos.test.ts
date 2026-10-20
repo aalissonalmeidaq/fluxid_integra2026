@@ -28,7 +28,10 @@ describe('firmware sem segredos (CA-012)', () => {
     const versionado = execFileSync('git', ['ls-files', 'firmware/include/secrets.h'], { cwd: ROOT, encoding: 'utf8' }).trim();
     expect(versionado).toBe('');
     const modelo = fs.readFileSync(path.join(FIRMWARE, 'include/secrets.example.h'), 'utf8');
-    for (const linha of modelo.split('\n').filter((l) => l.startsWith('#define FLUXID_'))) expect(linha.trimEnd()).toMatch(/"[^"]*<[^"]+>[^"]*"$/);
+    // A marca do modelo (Spec 013, RF-022) não tem valor: diz ao firmware que é o modelo do CI, que só compila.
+    const MARCA = '#define FLUXID_SEGREDOS_DO_MODELO';
+    expect(modelo.split('\n').map((l) => l.trimEnd())).toContain(MARCA);
+    for (const linha of modelo.split('\n').filter((l) => l.startsWith('#define FLUXID_') && l.trimEnd() !== MARCA)) expect(linha.trimEnd()).toMatch(/"[^"]*<[^"]+>[^"]*"$/);
   });
 
   it('nenhum arquivo tem chave de dispositivo, endereço real, chave secreta ou privada', () => {

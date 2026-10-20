@@ -146,9 +146,8 @@ select throws_ok($$ insert into public.trip_unlocks (organization_id, item_id, r
 select throws_ok($$ insert into public.trip_unlocks (organization_id, item_id, request_id, exceptional, aal, actor_user_id) values
   ('20000000-0000-0000-0000-00000000000a', '9b000000-0000-0000-0000-000000000001', gen_random_uuid(), true, 'aal2', '10000000-0000-0000-0000-000000000002') $$,
   '23514', null, 'desbloqueio excepcional sem justificativa é recusado');
-select throws_ok($$ insert into public.trip_unlocks (organization_id, item_id, request_id, exceptional, justification, aal, actor_user_id) values
-  ('20000000-0000-0000-0000-00000000000a', '9b000000-0000-0000-0000-000000000001', gen_random_uuid(), true, 'Motivo registrado', 'aal1', '10000000-0000-0000-0000-000000000002') $$,
-  '23514', null, 'desbloqueio excepcional sem segundo fator é recusado');
+select is((select count(*)::int from pg_constraint where conname = 'trip_unlocks_exceptional_aal_check'), 0,
+  'desbloqueio excepcional não exige mais o segundo fator (Spec 013)');
 select throws_ok($$ insert into public.trip_events (organization_id, trip_id, sequence, event_type, actor_user_id) values
   ('20000000-0000-0000-0000-00000000000a', '99000000-0000-0000-0000-000000000001', 1, 'trip_exploded', '10000000-0000-0000-0000-000000000002') $$,
   '23514', null, 'tipo de evento fora da lista é recusado');

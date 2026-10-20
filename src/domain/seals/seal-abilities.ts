@@ -58,6 +58,6 @@ export function sealAbilities(c: SealContext): SealAbilities {
     unlock: gate(operate, NO_OPERATE, [c.deviceActive, INACTIVE], [c.bound, NOT_BOUND]) ?? { allowed: true, needsMfa: exceptional },
     changeWifi: gate(admin, NO_ADMIN, [c.deviceActive, INACTIVE]) ?? { allowed: true, needsRiskConfirm: risky },
     closeAlert: gate(operate, NO_OPERATE) ?? { allowed: true },
-    manageDevice: gate(admin, 'Só quem administra dispositivos cadastra, desativa ou troca a chave.') ?? { allowed: true },
+    manageDevice: gate(admin, 'Só quem administra dispositivos devolve o lacre à plataforma.') ?? { allowed: true },
   };
 }

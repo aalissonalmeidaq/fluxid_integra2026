@@ -23,7 +23,7 @@ function servico(load: () => Promise<ProfileOutcome>): ProfileService {
 const ANA: ProfileOutcome = { kind: 'success', value: { displayName: 'Ana Souza', locale: 'pt-BR', avatarUrl: null } };
 
 function renderMenu(service: ProfileService | null, ctx: TenantContextValue = tenant(), logout = vi.fn(async () => undefined)) {
-  const auth: AuthContextValue = { state: { status: 'authenticated', aal: 'aal1' }, login: vi.fn(), logout, confirmMfa: vi.fn(), mfa: null };
+  const auth: AuthContextValue = { state: { status: 'authenticated', aal: 'aal1' }, login: vi.fn(), logout, };
   render(
     <AuthContext.Provider value={auth}>
       <TenantContext.Provider value={ctx}>

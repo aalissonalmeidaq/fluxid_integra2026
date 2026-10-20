@@ -12,7 +12,8 @@ import { sealPositionQuality } from '@/domain/seals/seal-position-format';
 import { alertKind, alertSeverity, COMMAND_KIND_LABELS, commandOrigin, commandStatus, health, lockState, sealState } from '@/domain/seals/seal-vocabulary';
 import { AccessGate } from '@/pages/cylinders/components/access-gate';
 import { ReasonDialog } from '@/pages/cylinders/components/reason-dialog';
-import { DeviceKeyReveal } from './components/device-key-reveal';
+import { formatDateTime } from '@/domain/cylinders/format';
+import { ReturnDeviceDialog } from './components/return-device-dialog';
 import { SealBadge } from './components/seal-badge';
 import { SealPositionMap } from './components/seal-position-map';
 import { SealPositionHistory } from './components/seal-position-history';
@@ -20,17 +21,18 @@ import { WifiNetworksPanel } from './components/wifi-networks-panel';
 import { useSealService } from './use-seal-service';
 
 // Detalhe do dispositivo do lacre (Spec 012, RF-031 a RF-034a; História 5): saúde, trava, bateria, rede em uso e nomes das redes
-// guardadas (nunca senha), vínculo atual e anteriores, comandos e alertas. Gerar chave nova, desativar e desvincular pedem justificativa;
-// a chave nova aparece uma única vez.
+// guardadas (nunca senha), vínculo atual e anteriores, comandos e alertas. Spec 013 (RF-013a, RF-018): o lacre chega pelo Master; o
+// tenant não gera chave nem desativa, e pode devolvê-lo à plataforma. Devolver e desvincular pedem justificativa.
 
 type Load = { kind: 'loading' } | { kind: 'ready'; seal: SealDetail } | { kind: 'not_found' } | { kind: 'error' };
-type Pending = { kind: 'rotate' | 'deactivate' | 'unbind'; trigger: HTMLElement } | null;
+type Pending = { kind: 'return' | 'unbind'; trigger: HTMLElement } | null;
 type PositionAddressState = { positionKey: string; value: ReverseGeocodedAddress | 'loading' | 'confirm' | 'error' } | null;
 
 const FAILURE: Record<string, string> = {
   cylinder_in_trip: 'O cilindro está numa viagem em andamento.',
   justification_required: 'Explique o motivo com 5 a 500 caracteres.',
-  seal_inactive: 'O dispositivo já está desativado.',
+  seal_inactive: 'O dispositivo já está fora de operação.',
+  not_found: 'Este lacre não está mais neste tenant.',
   no_binding: 'O lacre não está vinculado a nenhum cilindro.',
   access_denied: 'Você não tem permissão para esta ação.',
   offline: 'Sem conexão: comandos de lacre exigem conexão.',
@@ -75,7 +77,6 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [newKey, setNewKey] = useState<{ key: string; trigger: HTMLElement | null } | null>(null);
   const [positionAddress, setPositionAddress] = useState<PositionAddressState>(null);
 
   const request = useCallback(() => (service && organizationId ? service.getSeal(organizationId, deviceId) : Promise.resolve(null)), [service, organizationId, deviceId]);
@@ -127,21 +128,14 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
     if (!service || !pending) return;
     setBusy(true);
     setError(null);
-    const trigger = pending.trigger;
-    if (pending.kind === 'rotate') {
-      const outcome = await service.rotateDeviceKey(organizationId, deviceId, justification);
-      setBusy(false);
-      if (outcome.kind === 'success') { setPending(null); setNewKey({ key: outcome.value, trigger }); reload(); return; }
-      setError(FAILURE[outcome.kind] ?? 'Não foi possível gerar a chave agora.');
-      return;
-    }
-    const outcome = pending.kind === 'deactivate'
-      ? await service.deactivateDevice(organizationId, deviceId, justification)
+    const outcome = pending.kind === 'return'
+      ? await service.returnDevice(organizationId, deviceId, justification)
       : await service.unbindSeal(organizationId, deviceId, justification);
     setBusy(false);
     if (outcome.kind === 'success') {
       setPending(null);
-      setNotice(pending.kind === 'deactivate' ? 'Dispositivo desativado. Os envios seguintes deste lacre serão recusados.' : 'Lacre desvinculado do cilindro.');
+      setNotice(pending.kind === 'return'
+        ? 'Lacre devolvido à plataforma. Ele sai da lista de lacres deste tenant e volta para o Master.' : 'Lacre desvinculado do cilindro.');
       reload();
     } else setError(FAILURE[outcome.kind] ?? 'Não foi possível concluir agora. Tente de novo.');
   };
@@ -165,7 +159,11 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
         <div className="flex flex-wrap items-center gap-2">
           <SealBadge presentation={health(seal.health)} />
           <SealBadge presentation={lockState(seal.lockState, seal.pendingCommand?.kind ?? null)} />
-          {seal.status === 'inactive' && <span className="text-corpo font-semibold text-erro">Desativado</span>}
+          {seal.status === 'inactive' && (
+            <span className="text-corpo font-semibold text-erro">
+              {seal.inactiveReason === 'returned' ? 'Devolvido à plataforma' : seal.inactiveReason === 'withdrawn' ? 'Retirado de operação pelo Master' : 'Desativado'}
+            </span>
+          )}
         </div>
       </div>
 
@@ -173,9 +171,10 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
       {error && !pending && <Alert variant="erro">{error}</Alert>}
 
       {abilities.manageDevice.allowed && seal.status === 'active' && (
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secundario" onClick={open('rotate')}>Gerar chave nova</Button>
-          <Button variant="secundario" onClick={open('deactivate')}>Desativar</Button>
+        <div className="flex flex-col gap-2">
+          <Button variant="secundario" className="self-start" disabled={!online || seal.inTrip} onClick={open('return')}>Devolver à plataforma</Button>
+          {seal.inTrip && <p className="m-0 text-legenda text-texto-secundario">O cilindro deste lacre está numa viagem em andamento.</p>}
+          {!online && <p className="m-0 text-legenda text-texto-secundario">Sem conexão: comandos de lacre exigem conexão.</p>}
         </div>
       )}
 
@@ -187,6 +186,8 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
         <Fact label="Identificador do lacre">{seal.sealCode ?? 'Ainda não ativado'}</Fact>
         <Fact label="Ativado">{seal.activatedAt ? positionAge(seal.activatedAt, now()) : '—'}</Fact>
         <Fact label="Firmware">{seal.firmwareVersion ?? '—'}</Fact>
+        <Fact label="Aprovado em">{formatDateTime(seal.approvedAt)}</Fact>
+        <Fact label="Origem">{seal.origin === 'enrollment' ? 'Aprovado pelo Master' : 'Cadastro manual (Spec 012)'}</Fact>
       </dl>
 
       <Section title="Cilindro">
@@ -290,17 +291,18 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
         )}
       </Section>
 
-      {pending && (
+      {pending?.kind === 'return' && (
+        <ReturnDeviceDialog deviceCode={seal.deviceCode} busy={busy} error={error} returnFocusTo={pending.trigger} onCancel={() => setPending(null)}
+          onConfirm={(text) => void confirm(text)} />
+      )}
+      {pending?.kind === 'unbind' && (
         <ReasonDialog
-          title={pending.kind === 'rotate' ? 'Gerar chave nova' : pending.kind === 'deactivate' ? 'Desativar o dispositivo' : 'Desvincular o lacre'}
-          confirmLabel={pending.kind === 'rotate' ? 'Gerar a chave' : pending.kind === 'deactivate' ? 'Desativar' : 'Desvincular o lacre'}
-          description={pending.kind === 'rotate' ? 'A chave atual para de funcionar na hora; grave a nova no lacre.'
-            : pending.kind === 'deactivate' ? 'Os envios seguintes deste lacre serão recusados e o vínculo com o cilindro é encerrado.'
-              : 'As mensagens seguintes deste lacre deixam de valer para o cilindro.'}
+          title="Desvincular o lacre"
+          confirmLabel="Desvincular o lacre"
+          description="As mensagens seguintes deste lacre deixam de valer para o cilindro."
           busy={busy} error={error} returnFocusTo={pending.trigger} onCancel={() => setPending(null)} onConfirm={(text) => void confirm(text)}
         />
       )}
-      {newKey && <DeviceKeyReveal deviceCode={seal.deviceCode} deviceKey={newKey.key} returnFocusTo={newKey.trigger} onDone={() => setNewKey(null)} />}
     </article>
   );
 }

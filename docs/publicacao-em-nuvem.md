@@ -18,7 +18,7 @@ Consequência prática: enquanto o workflow estiver desativado, os avatares anon
 ## O que falta definir antes de qualquer uso em nuvem
 
 1. **Primeiro Master FluxID.** O seed local cria o Master e os administradores, mas não vai para a nuvem. O primeiro Master da nuvem é criado uma única vez por `npm run operacao:primeiro-master` (ver "Primeiro Master na nuvem" abaixo).
-2. **Configuração do Auth.** O `db push` não leva as configurações de autenticação do `config.toml`: MFA TOTP, URLs de redirecionamento de recuperação e convite, modelos de e-mail e SMTP. Em produção, SMTP homologado é obrigatório.
+2. **Configuração do Auth.** O `db push` não leva as configurações de autenticação do `config.toml`: MFA TOTP (desligado desde a Spec 013, RF-021: desative também em *Authentication > Multi-Factor* do projeto), URLs de redirecionamento de recuperação e convite, modelos de e-mail e SMTP. Em produção, SMTP homologado é obrigatório.
 3. **Segredos das funções que dependem da URL do app:** `INVITATION_REDIRECT_URL` e `PASSWORD_RECOVERY_REDIRECT_URL`. Dependem do endereço público definitivo (Vercel).
 4. **Tipo do projeto cloud:** teste ou produção, antes de aplicar migrations.
 
@@ -87,6 +87,22 @@ As migrations dos lacres habilitam `pg_net`, `supabase_vault` e `pg_cron` e agen
 
 As funções `seal-gateway` e `seal-push` são publicadas sem verificação de JWT (`verify_jwt = false` no `supabase/config.toml`): o lacre se identifica pela chave do dispositivo, e o `seal-push` pelo segredo do Vault.
 
+### Aprovação dos lacres pelo Master (Spec 013)
+
+As 7 migrations `20261019120xxx_seals_enrollment_*` criam a fila de pedidos (`seal_enrollments`), as operações do Master e a devolução pelo tenant. A migration de compatibilidade cria um pedido "em operação" para cada lacre da Spec 012 já cadastrado. A função nova `platform-seals` é publicada **com** verificação de JWT (é do Master, com segundo fator), então não entra no `supabase/config.toml`. Depois do `db push` e do `functions deploy platform-seals`:
+
+1. **Senha da rede de configuração no Vault.** É a mesma senha gravada em `FLUXID_PORTAL_SENHA` no `firmware/include/secrets.h` da frota (WPA2, exatamente 8 caracteres). A pessoa responsável grava o valor no SQL Editor do projeto, uma única vez, sem que ele apareça em arquivo, issue ou histórico:
+
+   ```sql
+   select vault.create_secret('<senha-da-rede-de-configuracao>', 'seal_portal_password', 'Spec 013: senha da rede de configuração dos lacres');
+   ```
+
+   A senha é fixa no firmware: para trocá-la, grave um firmware novo em toda a frota e, depois, atualize o Vault com `vault.update_secret`. Nenhuma migration grava esse valor. Sem o segredo, a tela do Master explica que a senha não foi configurada (`NOT_CONFIGURED`).
+
+2. **Conferência.** No SQL Editor: `select status, count(*) from public.seal_enrollments group by 1;` mostra os lacres da Spec 012 como `approved`; `select name from vault.secrets where name = 'seal_portal_password';` mostra o segredo (nunca o valor). Na tela Lacres da plataforma, o Master revela a senha com um motivo, e a consulta aparece na auditoria da plataforma.
+
+3. **Lacres da Spec 012.** Continuam respondendo `200` com a chave do cadastro manual. Antes de retirar ou devolver um deles, regrave-o com o firmware novo (`firmware/README.md`).
+
 ## Vercel (frontend)
 
 A Vercel hospeda apenas o frontend (build estático do Vite). O backend continua no Supabase.
@@ -120,6 +136,7 @@ Publicação manual, quando necessária: numa cópia limpa da `main` (sem arquiv
 - Medição de desempenho (T147) e registro no `validation.md`.
 - Workflow de retenção executado uma vez com sucesso (T149).
 - Lacres (Spec 012): `cron.job` com `fluxid-seal-watchdog` ativo, `seal_push_url` apontando para o projeto e uma notificação recebida.
+- Lacres (Spec 013): `platform-seals` publicada, `seal_portal_password` no Vault e os lacres da Spec 012 em "Em operação" na tela do Master.
 
 ## Primeiro Master na nuvem
 

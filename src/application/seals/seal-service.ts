@@ -95,11 +95,12 @@ export class SealService {
       (p) => (p.code === 'FOUND' ? all(p.items, toTripSealRow) : null));
   }
 
-  listSeals(organizationId: string, filters: { health?: string; lockState?: string; unbound?: boolean; offset?: number; limit?: number } = {}):
+  listSeals(organizationId: string, filters: { health?: string; lockState?: string; unbound?: boolean; history?: boolean; offset?: number; limit?: number } = {}):
     Promise<SealOutcome<{ items: SealListItem[]; total: number }>> {
     return this.run('query-seals', false, {
       operation: 'list_seals', organization_id: organizationId, health: filters.health ?? null, lock_state: filters.lockState ?? null,
-      ...(filters.unbound === undefined ? {} : { unbound: filters.unbound }), offset: filters.offset ?? 0, limit: filters.limit ?? 50,
+      ...(filters.unbound === undefined ? {} : { unbound: filters.unbound }), ...(filters.history ? { history: true } : {}),
+      offset: filters.offset ?? 0, limit: filters.limit ?? 50,
     }, (p) => {
       const items = p.code === 'LISTED' ? all(p.items, toSealListItem) : null;
       return items && typeof p.total === 'number' ? { items, total: p.total } : null;
@@ -161,21 +162,11 @@ export class SealService {
       (p) => (p.code === 'REQUESTED' && typeof p.command_id === 'string' ? p.command_id : null));
   }
 
-  // Dispositivo e vínculo (US5). A chave vem UMA vez na resposta e nunca é guardada pelo serviço.
-  createDevice(organizationId: string, label: string, reportIntervalS: number, requestId = newRequestId()): Promise<SealOutcome<{ deviceId: string; deviceCode: string; deviceKey: string }>> {
-    return this.run('manage-seals', true, { operation: 'create_device', organization_id: organizationId, request_id: requestId, label, report_interval_s: reportIntervalS },
-      (p) => (p.code === 'CREATED' && typeof p.device_id === 'string' && typeof p.device_code === 'string' && typeof p.device_key === 'string'
-        ? { deviceId: p.device_id, deviceCode: p.device_code, deviceKey: p.device_key } : null));
-  }
-
-  rotateDeviceKey(organizationId: string, deviceId: string, justification: string, requestId = newRequestId()): Promise<SealOutcome<string>> {
-    return this.run('manage-seals', true, { operation: 'rotate_device_key', organization_id: organizationId, request_id: requestId, device_id: deviceId, justification },
-      (p) => (p.code === 'ROTATED' && typeof p.device_key === 'string' ? p.device_key : null));
-  }
-
-  deactivateDevice(organizationId: string, deviceId: string, justification: string, requestId = newRequestId()): Promise<SealOutcome<true>> {
-    return this.run('manage-seals', true, { operation: 'deactivate_device', organization_id: organizationId, request_id: requestId, device_id: deviceId, justification },
-      (p) => (p.code === 'INACTIVATED' ? true : null));
+  // Vínculo (US5). Spec 013 (RF-018, RF-013a): o lacre chega pelo Master; o tenant não cadastra, não gera chave nem desativa, e pode
+  // devolver o lacre à plataforma, com justificativa.
+  returnDevice(organizationId: string, deviceId: string, justification: string, requestId = newRequestId()): Promise<SealOutcome<true>> {
+    return this.run('manage-seals', true, { operation: 'return_device', organization_id: organizationId, request_id: requestId, device_id: deviceId, justification },
+      (p) => (p.code === 'RETURNED' ? true : null));
   }
 
   bindSeal(organizationId: string, deviceId: string, cylinderId: string, requestId = newRequestId()): Promise<SealOutcome<true>> {

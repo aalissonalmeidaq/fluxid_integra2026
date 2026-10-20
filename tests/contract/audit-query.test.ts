@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createQueryAuditHandler, type AuditGateway } from '../../supabase/functions/query-audit/handler';
 
+
 const ACTOR = '10000000-0000-0000-0000-000000000002';
 const SESSION = '60000000-0000-0000-0000-000000000001';
 const TENANT_A = '20000000-0000-0000-0000-00000000000a';
@@ -74,11 +75,11 @@ describe('query-audit: consulta do tenant', () => {
 describe('query-audit: consulta global', () => {
   const global = { scope: 'global' };
 
-  it('exige MFA AAL2, não consulta e audita a negação', async () => {
+  it('Spec 013 (RF-021): a consulta global segue com sessão AAL1, sem negação por MFA', async () => {
     const gw = gateway();
-    expect(await call(gw, global)).toEqual({ status: 403, body: { code: 'MFA_REQUIRED' } });
-    expect(gw.query).not.toHaveBeenCalled();
-    expect(gw.audit).toHaveBeenCalledWith({ actorId: ACTOR, action: 'audit.query', result: 'denied', reason: 'mfa_required' });
+    expect((await call(gw, global)).status).toBe(200);
+    expect(gw.query).toHaveBeenCalledWith({ actorId: ACTOR, sessionId: SESSION, scope: 'global' });
+    expect(gw.audit).not.toHaveBeenCalledWith(expect.objectContaining({ reason: 'mfa_required' }));
   });
 
   it('com AAL2 consulta sem informar organização', async () => {

@@ -27,3 +27,15 @@ export const SEAL_LIMITS = {
   // Versões do contrato das mensagens aceitas ao mesmo tempo (RF-007a).
   protocols: [1],
 } as const;
+
+// Limites do pedido de aprovação (Spec 013, data-model.md, "Limites"). Têm o mesmo valor em private.seal_enrollment_limits() e em
+// firmware/include/config.h; tests/contract/seals-limits.test.ts reprova divergência. Tempos em segundos.
+export const SEAL_ENROLLMENT_LIMITS = {
+  newRequestsPerSourcePerHour: 20,
+  pendingRequestsPerMinute: 6,
+  pendingExpiryS: 604800,
+  refusedRetryS: 3600,
+  portalOpenS: 900,
+  portalClosedS: 300,
+  portalButtonHoldS: 5,
+} as const;
