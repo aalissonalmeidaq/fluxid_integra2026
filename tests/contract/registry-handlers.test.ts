@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createOperationsHandler, type OperationSpec, type OperationsGateway } from '../../supabase/functions/_shared/operations';
 import { createCylinderHandler } from '../../supabase/functions/_shared/cylinders';
 
+
 // Spec 007: novidades da borda genérica das funções (T025): MFA, exceção do banco, códigos novos, tipos de campo e prefixo.
 
 const USER = '10000000-0000-4000-8000-000000000002';
@@ -24,7 +25,7 @@ const post = (body: unknown) =>
 const OPERATIONS: Record<string, OperationSpec> = {
   simples: { rpc: 'rpc_simples', fields: { id: [{ t: 'uuid' }, 'p_id'] } },
   anonimizar: {
-    rpc: 'anonymize_driver', action: 'driver.anonymize', mfa: true,
+    rpc: 'anonymize_driver', action: 'driver.anonymize',
     fields: { id: [{ t: 'uuid' }, 'p_driver'], confirmed: [{ t: 'literal-true' }, 'p_confirmed'] },
   },
   formulario: {
@@ -42,38 +43,22 @@ const OPERATIONS: Record<string, OperationSpec> = {
 const handler = (gw: Gateway) => createOperationsHandler(gw, OPERATIONS, { prefix: 'registry' });
 const body = (response: Response) => response.json() as Promise<Record<string, unknown>>;
 
-describe('MFA na borda (RF-055)', () => {
-  it('sem sessão aal2: 403 MFA_REQUIRED, auditoria da negação e nenhuma chamada ao banco', async () => {
-    const gw = gateway({ code: 'ANONYMIZED' }, 'aal1');
-    const response = await handler(gw)(post({ operation: 'anonimizar', organization_id: ORG, id: ENTITY, confirmed: true }));
-    expect(response.status).toBe(403);
-    expect(await body(response)).toEqual({ code: 'MFA_REQUIRED' });
-    expect(gw.rpc).not.toHaveBeenCalled();
-    expect(gw.audit).toHaveBeenCalledWith({ actorId: USER, action: 'driver.anonymize', result: 'denied', reason: 'mfa_required' });
-  });
-
-  it('identidade sem informação de aal também é recusada', async () => {
-    const gw = gateway({ code: 'ANONYMIZED' }, undefined);
-    expect((await handler(gw)(post({ operation: 'anonimizar', organization_id: ORG, id: ENTITY, confirmed: true }))).status).toBe(403);
-  });
-
-  it('com aal2 a operação segue para o banco', async () => {
-    const gw = gateway({ code: 'ANONYMIZED', anonymized_at: '2026-10-07T12:00:00Z' }, 'aal2');
+// Spec 013 (RF-021): o acesso é só com e-mail e senha; a anonimização (RF-055) segue para o banco sem segundo fator, mas continua
+// exigindo a confirmação.
+describe('anonimização na borda sem segundo fator (RF-055, RF-021)', () => {
+  it('com sessão aal1 a operação segue para o banco, sem negação por MFA', async () => {
+    const gw = gateway({ code: 'ANONYMIZED', anonymized_at: '2026-10-07T12:00:00Z' }, 'aal1');
     const response = await handler(gw)(post({ operation: 'anonimizar', organization_id: ORG, id: ENTITY, confirmed: true }));
     expect(response.status).toBe(200);
     expect(gw.rpc).toHaveBeenCalledWith('anonymize_driver', { p_actor: USER, p_session: SESSION, p_organization: ORG, p_driver: ENTITY, p_confirmed: true });
+    expect(gw.audit).not.toHaveBeenCalledWith(expect.objectContaining({ reason: 'mfa_required' }));
   });
 
   it('sem confirmed: true a borda recusa antes do banco', async () => {
-    const gw = gateway({ code: 'ANONYMIZED' }, 'aal2');
+    const gw = gateway({ code: 'ANONYMIZED' }, 'aal1');
     const response = await handler(gw)(post({ operation: 'anonimizar', organization_id: ORG, id: ENTITY }));
     expect(response.status).toBe(400);
     expect(gw.rpc).not.toHaveBeenCalled();
-  });
-
-  it('operação sem mfa não exige aal2', async () => {
-    const gw = gateway({ code: 'OK' }, 'aal1');
-    expect((await handler(gw)(post({ operation: 'simples', organization_id: ORG, id: ENTITY }))).status).toBe(200);
   });
 });
 

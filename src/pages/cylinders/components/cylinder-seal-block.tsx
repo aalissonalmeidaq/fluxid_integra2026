@@ -29,14 +29,12 @@ export interface CylinderSealBlockProps {
   online: boolean;
   realtime: RealtimePort | null;
   now?: () => Date;
-  // Permissões do tenant da pessoa (decidem os botões de travar e destravar) e o segundo fator da sessão (US2).
+  // Permissões do tenant da pessoa (decidem os botões de travar e destravar, US2).
   permissions?: readonly string[];
-  hasSecondFactor?: boolean;
-  secondFactor?: React.ReactNode;
 }
 
 const COMMAND_FAILURE: Record<string, string> = {
-  mfa_required: 'Destravar exige a verificação em duas etapas. Conclua a verificação e tente de novo.',
+  mfa_required: 'Sua sessão não permite esta ação agora. Entre de novo e tente outra vez.',
   no_binding: 'O cilindro não tem lacre vinculado.',
   seal_inactive: 'O dispositivo está desativado.',
   justification_required: 'Explique o motivo com 5 a 500 caracteres.',
@@ -71,7 +69,7 @@ function SealActions({ seal, permissions, online, onOpen }: { seal: SealSummary;
   );
 }
 
-export function CylinderSealBlock({ organizationId, cylinderId, serialNumber, service, online, realtime, now = () => new Date(), permissions = [], hasSecondFactor = false, secondFactor = null }: CylinderSealBlockProps): React.JSX.Element {
+export function CylinderSealBlock({ organizationId, cylinderId, serialNumber, service, online, realtime, now = () => new Date(), permissions = [] }: CylinderSealBlockProps): React.JSX.Element {
   const titleId = useId();
   const [load, setLoad] = useState<Load>(online ? { kind: 'loading' } : { kind: 'offline' });
   const [announcement, setAnnouncement] = useState('');
@@ -211,7 +209,7 @@ export function CylinderSealBlock({ organizationId, cylinderId, serialNumber, se
       )}
       {dialog && load.kind === 'ready' && (
         <LockCommandDialog kind={dialog.kind} serialNumber={serialNumber} busy={busy} error={commandError} returnFocusTo={dialog.trigger}
-          hasSecondFactor={hasSecondFactor} secondFactor={secondFactor} onCancel={() => setDialog(null)} onConfirm={(text) => void send(text)} />
+          onCancel={() => setDialog(null)} onConfirm={(text) => void send(text)} />
       )}
     </section>
   );

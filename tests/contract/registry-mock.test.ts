@@ -8,7 +8,7 @@ const everything = () => true;
 const mock = () => {
   const registry = new RegistryMock();
   registry.register('list_things', { kind: 'query', permission: 'customer.read', run: ({ org }) => ok('LISTED', { org }) });
-  registry.register('sensitive', { kind: 'manage', permission: ['driver.anonymize', 'customer.anonymize'], mfa: true, run: () => ok('ANONYMIZED') });
+  registry.register('sensitive', { kind: 'manage', permission: ['driver.anonymize', 'customer.anonymize'], run: () => ok('ANONYMIZED') });
   return registry;
 };
 
@@ -36,13 +36,6 @@ describe('RegistryMock: borda das operações', () => {
     expect(registry.handle('query', { operation: 'list_things', organization_id: ORG_B }, soA).status).toBe(403);
   });
 
-  it('operação com MFA responde 403 MFA_REQUIRED sem sessão aal2 e funciona com ela', () => {
-    const registry = mock();
-    registry.aal = 'aal1';
-    expect(registry.handle('manage', { operation: 'sensitive', organization_id: ORG_A }, everything)).toEqual({ status: 403, json: { code: 'MFA_REQUIRED' } });
-    registry.aal = 'aal2';
-    expect(registry.handle('manage', { operation: 'sensitive', organization_id: ORG_A }, everything).status).toBe(200);
-  });
 
   it('consulta e comando com o mesmo nome são operações diferentes', () => {
     expect(mock().handle('manage', { operation: 'list_things', organization_id: ORG_A }, everything).status).toBe(400);

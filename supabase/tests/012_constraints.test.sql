@@ -111,8 +111,8 @@ select throws_ok($$ insert into public.seal_commands (organization_id, device_id
   ('20000000-0000-0000-0000-00000000000a', 'a1200000-0000-0000-0000-0000000000a1', 'lock', 'manual', '10000000-0000-0000-0000-000000000002') $$,
   '23514', null, 'manual exige justificativa de 5 a 500');
 select throws_ok($$ insert into public.seal_commands (organization_id, device_id, kind, origin, requested_by, justification, aal) values
-  ('20000000-0000-0000-0000-00000000000a', 'a1200000-0000-0000-0000-0000000000a1', 'unlock', 'exceptional', '10000000-0000-0000-0000-000000000002', 'Cliente pediu', 'aal1') $$,
-  '23514', null, 'exceptional exige aal2');
+  ('20000000-0000-0000-0000-00000000000a', 'a1200000-0000-0000-0000-0000000000a1', 'unlock', 'exceptional', '10000000-0000-0000-0000-000000000002', 'Cliente pediu', 'aal3') $$,
+  '23514', null, 'aal só aceita aal1 ou aal2 (o exceptional não exige mais aal2, Spec 013)');
 select throws_ok($$ insert into public.seal_commands (organization_id, device_id, kind, origin, requested_by) values
   ('20000000-0000-0000-0000-00000000000a', 'a1200000-0000-0000-0000-0000000000a1', 'wifi_reset', 'admin_network', '10000000-0000-0000-0000-000000000002') $$,
   '23514', null, 'wifi_reset exige justificativa de 5 a 500');

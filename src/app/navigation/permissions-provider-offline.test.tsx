@@ -27,7 +27,7 @@ function Probe() {
 
 const connectivity: ConnectivityContextValue = { result: { ...initialResult, state: 'offline' }, client: null, config: null, reconnect: vi.fn(), reportOperationalError: vi.fn() };
 const auth = (state: AuthState): AuthContextValue =>
-  ({ state, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), verifySession: vi.fn(), mfa: null, offlineAccess: state.status === 'authenticated' && state.offline ? record : null });
+  ({ state, login: vi.fn(), logout: vi.fn(), verifySession: vi.fn(), offlineAccess: state.status === 'authenticated' && state.offline ? record : null });
 const flush = () => act(async () => { await new Promise((resolve) => setTimeout(resolve, 10)); });
 const renderWith = (state: AuthState) => render(
   <ConnectivityContext.Provider value={connectivity}>

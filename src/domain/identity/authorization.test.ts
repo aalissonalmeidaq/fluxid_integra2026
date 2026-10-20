@@ -13,6 +13,7 @@ import {
   type SessionContext,
 } from './authorization';
 
+
 const TENANT_A = '20000000-0000-0000-0000-00000000000a';
 const TENANT_B = '20000000-0000-0000-0000-00000000000b';
 const OWNER = '20000000-0000-0000-0000-000000000001';
@@ -112,9 +113,9 @@ describe('authorize', () => {
     expect(decide({ permission: 'tenant.manage' })).toEqual({ allowed: false, reason: 'permission_missing' });
   });
 
-  it('exige AAL2 para permissão crítica e não para as demais', () => {
+  it('Spec 013 (RF-021): permissão crítica também vale com sessão AAL1, sem segundo fator', () => {
     const admin = membership([TENANT_ADMIN]);
-    expect(decide({ membership: admin, permission: 'tenant.manage', session: session({ aal: 'aal1' }) })).toEqual({ allowed: false, reason: 'mfa_required' });
+    expect(decide({ membership: admin, permission: 'tenant.manage', session: session({ aal: 'aal1' }) })).toEqual({ allowed: true });
     expect(decide({ membership: admin, permission: 'tenant.manage' })).toEqual({ allowed: true });
     expect(decide({ membership: admin, permission: 'audit.read', session: session({ aal: 'aal1' }) })).toEqual({ allowed: true });
   });

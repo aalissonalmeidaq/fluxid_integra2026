@@ -66,7 +66,7 @@ export const MANAGE_OPERATIONS: Record<string, OperationSpec> = {
   complete_trip: { rpc: 'complete_trip', action: 'trip.complete', fields: { request_id: requestId, ...tripAndVersion() } },
   cancel_trip: { rpc: 'cancel_trip', action: 'trip.cancel', fields: { request_id: requestId, ...tripAndVersion(), justification: [justification, 'p_justification'] } },
   return_item: { rpc: 'return_item', action: 'trip.return_item', fields: { request_id: requestId, ...tripAndItem(), justification: [justification, 'p_justification'] } },
-  // Desbloqueio como ato independente (US4). O segundo fator do desbloqueio excepcional é decidido pelo banco (MFA_REQUIRED), não pela borda.
+  // Desbloqueio como ato independente (US4). Desde a Spec 013 (RF-021) o desbloqueio excepcional não exige segundo fator.
   register_unlock: { rpc: 'register_unlock', action: 'trip.unlock', fields: { request_id: requestId, ...tripAndItem(), justification: [justification, 'p_justification'] } },
   // Spec 010: decisão sobre uma operação de campo recusada pelo servidor (descartar com justificativa, ou reenviar). A justificativa de 5 a 500 caracteres e a
   // permissão `trip.operate` são conferidas pelo banco; a decisão não é uma operação da fila e não grava a trilha pela borda.

@@ -51,35 +51,15 @@ test.describe('Autenticação e sessão (US1)', () => {
     await expect(page.getByRole('heading', { name: 'Visão geral' })).toHaveCount(0);
   });
 
-  test('perfil global conclui a verificação em duas etapas antes de acessar', async ({ page }) => {
-    const backend = new MockBackend();
-    backend.loginResponses = [backend.authenticated('MFA_REQUIRED')];
-    backend.statusResponse = backend.activeStatus('aal2', false);
+  // Spec 013 (RF-021): o acesso é só com e-mail e senha para todos os perfis, inclusive o global.
+  test('perfil global entra só com e-mail e senha, sem verificação em duas etapas', async ({ page }) => {
+    const backend = new MockBackend().asProfile('master');
+    backend.loginResponses = [backend.authenticated()];
+    backend.statusResponse = backend.activeStatus('aal1');
     await open(page, backend);
     await signIn(page, 'global@e2e.invalid', 'Senha-E2E-Global-1');
-
-    await expect(page.getByRole('heading', { name: 'Verificação em duas etapas' })).toBeVisible();
-    await expect(page.getByRole('img', { name: /qr code/i })).toBeVisible();
-    await expect(page.getByText('JBSWY3DPEHPK3PXP')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Visão geral' })).toHaveCount(0);
-
-    await page.getByLabel(/código de 6 dígitos/i).fill('123456');
-    await page.getByRole('button', { name: 'Verificar' }).click();
     await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
-  });
-
-  test('código MFA incorreto não libera o acesso e mantém mensagem genérica', async ({ page }) => {
-    const backend = new MockBackend();
-    backend.loginResponses = [backend.authenticated('MFA_REQUIRED')];
-    backend.verifyOk = false;
-    await open(page, backend);
-    await signIn(page, 'global@e2e.invalid', 'Senha-E2E-Global-1');
-
-    await page.getByLabel(/código de 6 dígitos/i).fill('000000');
-    await page.getByRole('button', { name: 'Verificar' }).click();
-    await expect(page.getByRole('alert')).toContainText(/código incorreto/i);
-    await expect(page.getByLabel(/código de 6 dígitos/i)).toBeFocused();
-    await expect(page.getByRole('heading', { name: 'Visão geral' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Verificação em duas etapas' })).toHaveCount(0);
   });
 
   test('quarta sessão lista as três ativas e só entra após encerramento explícito', async ({ page }) => {

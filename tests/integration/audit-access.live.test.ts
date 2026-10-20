@@ -1,8 +1,6 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { endAllSessions, login, logout, publishableKey, supabaseUrl, USERS } from '../support/auth-harness';
-import { totp } from '../support/totp';
 
 // Consulta de auditoria com Edge Function, RPC e RLS reais (RF-038, AUD-004, AUD-007, ISO-006).
 const TENANT_A = '20000000-0000-0000-0000-00000000000a';
@@ -32,8 +30,6 @@ async function access(token: string, body: Record<string, unknown>) {
 describe('Consulta de auditoria ao vivo', () => {
   let adminA = '';
   let adminB = '';
-  let client: SupabaseClient;
-  let factorId: string | undefined;
   let roleId = '';
 
   beforeAll(async () => {
@@ -42,15 +38,8 @@ describe('Consulta de auditoria ao vivo', () => {
     expect([a.status, b.status]).toEqual([200, 200]);
     adminB = b.body.session.access_token;
 
-    // Eventos reais: o administrador A eleva a sessão a AAL2 e cria um papel pela fronteira de gestão de acesso.
-    client = createClient(supabaseUrl, publishableKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    await client.auth.setSession({ access_token: a.body.session.access_token, refresh_token: a.body.session.refresh_token });
-    const enrolled = await client.auth.mfa.enroll({ factorType: 'totp' });
-    factorId = enrolled.data!.id;
-    const challenge = await client.auth.mfa.challenge({ factorId });
-    const verified = await client.auth.mfa.verify({ factorId, challengeId: challenge.data!.id, code: totp(enrolled.data!.totp.secret) });
-    expect(verified.error).toBeNull();
-    adminA = verified.data!.access_token;
+    // Eventos reais: o administrador A cria um papel pela fronteira de gestão de acesso (sem segundo fator, Spec 013, RF-021).
+    adminA = a.body.session.access_token;
 
     const created = await access(adminA, { operation: 'save_role', organization_id: TENANT_A, name: `Auditoria ao vivo ${Date.now()}`, description: 'Criado pela suíte ao vivo', permissions: ['audit.read'], justification: 'Evidência para a consulta de auditoria' });
     expect(created.status).toBe(201);
@@ -59,9 +48,7 @@ describe('Consulta de auditoria ao vivo', () => {
 
   afterAll(async () => {
     if (roleId) await access(adminA, { operation: 'set_role_active', organization_id: TENANT_A, role_id: roleId, active: false, expected_version: 1, justification: 'Limpeza da suíte ao vivo' });
-    if (factorId) await client.auth.mfa.unenroll({ factorId });
-    const current = (await client.auth.getSession()).data.session?.access_token ?? adminA;
-    for (const token of [current, adminB]) await logout(token);
+    for (const token of [adminA, adminB]) await logout(token);
     for (const user of [USERS.tenantAAdmin, USERS.auditB]) await endAllSessions(user);
   });
 
@@ -116,8 +103,8 @@ describe('Consulta de auditoria ao vivo', () => {
     // O tenant B do seed não tem administrador com `audit.read`: a negação também vale para o próprio tenant.
     expect(await query(adminB, { scope: 'tenant', organization_id: TENANT_B })).toMatchObject({ status: 403, body: { code: 'ACCESS_DENIED' } });
     expect(await query(adminB, { scope: 'tenant', organization_id: TENANT_A })).toMatchObject({ status: 403 });
-    // Sem AAL2 a consulta global nem chega à verificação de permissão; com AAL2 um administrador de tenant continua negado.
-    expect(await query(adminB, { scope: 'global' })).toMatchObject({ status: 403, body: { code: 'MFA_REQUIRED' } });
+    // Sem o segundo fator obrigatório (Spec 013, RF-021), a consulta global vai direto à verificação de permissão: o tenant é negado.
+    expect(await query(adminB, { scope: 'global' })).toMatchObject({ status: 403, body: { code: 'ACCESS_DENIED' } });
     expect(await query(adminA, { scope: 'global' })).toMatchObject({ status: 403, body: { code: 'ACCESS_DENIED' } });
   });
 

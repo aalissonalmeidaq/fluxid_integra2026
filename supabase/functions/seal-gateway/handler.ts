@@ -3,6 +3,7 @@ import { parseSealRequest } from '../_shared/seal-protocol.ts';
 // Borda do lacre (Spec 012, contracts/mensagens-do-lacre.md). Fina de propósito: valida o formato, calcula o SHA-256 da chave e do
 // endereço de origem e entrega tudo a UMA RPC transacional (`seal_ingest`), que autentica, limita, deduplica e responde. Nunca registra
 // corpo, cabeçalho nem resposta: a chave do dispositivo passa por aqui (RF-040). Toda falha de autenticação tem a mesma resposta.
+// Spec 013: o pedido de aprovação (202, 403) e o limite de pedidos novos (429) passam do banco ao lacre sem nada acrescentado.
 
 export interface SealIngestGateway {
   // Devolve `{ status, body, retry_after? }` exatamente como `public.seal_ingest`.

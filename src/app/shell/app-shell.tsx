@@ -30,7 +30,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   }, []);
   const status = useAuth().state.status;
   const authenticated = status === 'authenticated';
-  const publicShell = status === 'signed_out' || status === 'mfa_required';
+  const publicShell = status === 'signed_out';
   const wide = useMinWidth(pontosDeQuebra.tablet);
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);

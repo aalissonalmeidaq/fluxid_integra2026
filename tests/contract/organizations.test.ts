@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createManageOrganizationsHandler, type OrganizationGateway } from '../../supabase/functions/manage-organizations/handler';
 
+
 const ACTOR = '10000000-0000-0000-0000-000000000001';
 const TENANT = '20000000-0000-0000-0000-000000000099';
 
@@ -64,12 +65,11 @@ describe('manage-organizations', () => {
     expect(gw.audit).not.toHaveBeenCalledWith(expect.objectContaining({ result: 'success' }));
   });
 
-  it('nega AAL1 sem executar mutação e audita a negação', async () => {
+  it('Spec 013 (RF-021): o Master em AAL1 cria a organização, sem negação por MFA', async () => {
     const gw = gateway({ authenticate: vi.fn(async () => ({ userId: ACTOR, aal: 'aal1' as const, sessionActive: true, canManagePlatform: true, canManageMaster: true })) });
-    const result = await call(gw, { operation: 'create', legal_name: 'Empresa Teste Ltda.', display_name: 'Empresa Teste', justification: 'Contrato aprovado' });
-    expect(result).toEqual({ status: 403, body: { code: 'MFA_REQUIRED' } });
-    expect(gw.create).not.toHaveBeenCalled();
-    expect(gw.audit).toHaveBeenCalledWith(expect.objectContaining({ result: 'denied', reason: 'mfa_required' }));
+    await call(gw, { operation: 'create', legal_name: 'Empresa Teste Ltda.', display_name: 'Empresa Teste', justification: 'Contrato aprovado' });
+    expect(gw.create).toHaveBeenCalled();
+    expect(gw.audit).not.toHaveBeenCalledWith(expect.objectContaining({ reason: 'mfa_required' }));
   });
 
   it('nega administrador de tenant e não revela organizações', async () => {

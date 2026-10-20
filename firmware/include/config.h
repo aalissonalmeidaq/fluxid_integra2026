@@ -44,3 +44,12 @@
 // Potencia de transmissao do Wi-Fi. A antena do ESP32-C3 Super Mini falha na autenticacao (AUTH_EXPIRE) na potencia
 // maxima; 8,5 dBm foi o que conectou na bancada (18/10/2026).
 #define POTENCIA_WIFI WIFI_POWER_8_5dBm
+
+// Pedido de aprovacao e portal de configuracao (Spec 013; os mesmos de private.seal_enrollment_limits() no FluxID).
+#define RECUSADO_TENTA_DE_NOVO_S 3600
+#define PORTAL_ABERTO_S 900
+#define PORTAL_FECHADO_S 300
+#define BOTAO_PORTAL_S 5
+
+// Botao BOOT do ESP32-C3 (GPIO9, LOW pressionado): segurado por BOTAO_PORTAL_S, reabre a rede de configuracao (RF-006).
+#define PINO_BOTAO_PORTAL 9

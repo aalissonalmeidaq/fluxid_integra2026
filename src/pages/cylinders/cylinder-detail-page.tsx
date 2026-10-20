@@ -22,8 +22,6 @@ import { ReadCylinderControl } from '@/pages/field/read-cylinder-control';
 import { CustodyInfo } from './components/custody-info';
 import { CylinderSealBlock } from './components/cylinder-seal-block';
 import { useSealService } from '@/pages/seals/use-seal-service';
-import { MfaPage } from '@/pages/auth/mfa-page';
-import { useAuth } from '@/app/auth/auth-context';
 import { IdentifierWarning, StatusBadges } from './components/status-badges';
 import { typeLabel } from './type-label';
 import { useCylinderService } from './use-cylinder-service';
@@ -394,7 +392,6 @@ export function CylinderDetailPage({ cylinderId }: { cylinderId: string }): Reac
   const { service, organizationId, online } = useCylinderService();
   const { service: tripService } = useTripService();
   const seal = useSealService();
-  const auth = useAuth();
   const { permissions } = usePermissions();
   const has = (code: string): boolean => permissions?.tenant.includes(code) ?? false;
   return (
@@ -409,7 +406,7 @@ export function CylinderDetailPage({ cylinderId }: { cylinderId: string }): Reac
         extraActions={<ReadCylinderControl />}
         sealBlock={has('seal.read') ? (serialNumber) => (
           <CylinderSealBlock organizationId={seal.organizationId} cylinderId={cylinderId} serialNumber={serialNumber} service={seal.service} online={seal.online} realtime={seal.realtime}
-            permissions={permissions?.tenant ?? []} hasSecondFactor={auth.state.status === 'authenticated' && auth.state.aal === 'aal2'} secondFactor={<MfaPage />} />
+            permissions={permissions?.tenant ?? []} />
         ) : undefined}
         can={{ write: has('cylinder.write'), deactivate: has('cylinder.deactivate'), identifier: has('cylinder.identifier'), test: has('cylinder.test'), history: has('cylinder.history'), trips: has('trip.read') }}
       />

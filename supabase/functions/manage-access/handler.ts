@@ -126,10 +126,6 @@ export function createManageAccessHandler(gateway: AccessGateway) {
     }
 
     // Toda alteração é ação crítica: exige AAL2 no momento da operação (RF-034, RS-014).
-    if (action && operation !== 'list' && identity.aal !== 'aal2') {
-      await gateway.audit({ actorId: identity.userId, action, result: 'denied', reason: 'mfa_required' });
-      return json({ code: 'MFA_REQUIRED' }, 403);
-    }
     try {
       return await run();
     } catch {

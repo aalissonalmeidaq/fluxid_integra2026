@@ -26,15 +26,12 @@ export const MANAGE_SEAL_OPERATIONS: Record<string, OperationSpec> = {
     },
   },
   push_unsubscribe: { rpc: 'push_unsubscribe', action: 'seal.push_unsubscribe', fields: { request_id: requestId, endpoint: [{ t: 'text', max: 1000 }, 'p_endpoint'] } },
-  // US2: travar e destravar pelo cilindro, sempre com justificativa (5 a 500, conferida no banco). Destravar exige a sessão com segundo
-  // fator, decidido pelo banco (MFA_REQUIRED), não pela borda.
+  // US2: travar e destravar pelo cilindro, sempre com justificativa (5 a 500, conferida no banco). Sem segundo
+  // fator desde a Spec 013 (RF-021).
   request_lock: { rpc: 'request_lock', action: 'seal.command_manual', fields: { request_id: requestId, cylinder_id: [{ t: 'uuid' }, 'p_cylinder'], justification: [justification, 'p_justification'] } },
   request_unlock: { rpc: 'request_unlock', action: 'seal.unlock_exceptional', fields: { request_id: requestId, cylinder_id: [{ t: 'uuid' }, 'p_cylinder'], justification: [justification, 'p_justification'] } },
-  // US5: cadastro do dispositivo e vínculo. A chave volta UMA vez no `device_key` da resposta e nunca é registrada por esta borda.
-  create_device: {
-    rpc: 'create_device', action: 'seal.device_create',
-    fields: { request_id: requestId, label: [{ t: 'text', max: 60 }, 'p_label'], report_interval_s: [{ t: 'int', min: 30, max: 900, optional: true }, 'p_report_interval_s'] },
-  },
+  // US5: dados do dispositivo e vínculo. Spec 013 (RF-018): o cadastro manual, a chave nova e a desativação saíram da borda (as funções
+  // do banco ficam para os testes e os lacres da Spec 012); o lacre chega pelo Master e o tenant o devolve à plataforma.
   update_device: {
     rpc: 'update_device', action: 'seal.device_update',
     fields: {
@@ -42,8 +39,7 @@ export const MANAGE_SEAL_OPERATIONS: Record<string, OperationSpec> = {
       label: [{ t: 'text', max: 60 }, 'p_label'], report_interval_s: [{ t: 'int', min: 30, max: 900 }, 'p_report_interval_s'],
     },
   },
-  deactivate_device: { rpc: 'deactivate_device', action: 'seal.device_deactivate', fields: { request_id: requestId, device_id: [{ t: 'uuid' }, 'p_device'], justification: [justification, 'p_justification'] } },
-  rotate_device_key: { rpc: 'rotate_device_key', action: 'seal.key_rotate', fields: { request_id: requestId, device_id: [{ t: 'uuid' }, 'p_device'], justification: [justification, 'p_justification'] } },
+  return_device: { rpc: 'return_device', action: 'seal.device_return', fields: { request_id: requestId, device_id: [{ t: 'uuid' }, 'p_device'], justification: [justification, 'p_justification'] } },
   bind_seal: { rpc: 'bind_seal', action: 'seal.bind', fields: { request_id: requestId, device_id: [{ t: 'uuid' }, 'p_device'], cylinder_id: [{ t: 'uuid' }, 'p_cylinder'] } },
   unbind_seal: { rpc: 'unbind_seal', action: 'seal.unbind', fields: { request_id: requestId, device_id: [{ t: 'uuid' }, 'p_device'], justification: [justification, 'p_justification'] } },
   // US7: redes Wi-Fi. A senha (8 a 63, ou rede aberta) segue só para o banco, que a guarda no Vault; esta borda nunca a registra. Com viagem

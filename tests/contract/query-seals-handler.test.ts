@@ -34,6 +34,14 @@ describe('query-seals', () => {
     expect(gw.audit).toHaveBeenCalledWith({ actorId: USER, action: 'seal.unknown_operation', result: 'denied', reason: 'operation_not_supported' });
   });
 
+  // Spec 013: a lista do tenant mostra só as linhas ativas; as de destinações anteriores vêm com o filtro de histórico.
+  it('list_seals aceita o filtro de histórico e o repassa ao banco', async () => {
+    const gw = gateway();
+    expect((await createQuerySealsHandler(gw)(post({ operation: 'list_seals', organization_id: ORG, history: true }))).status).toBe(200);
+    expect(gw.rpc).toHaveBeenCalledWith('list_seals', expect.objectContaining({ p_history: true }));
+    expect((await createQuerySealsHandler(gw)(post({ operation: 'list_seals', organization_id: ORG, history: 'sim' }))).status).toBe(400);
+  });
+
   it('nenhuma operação do catálogo escreve ou exclui', () => {
     for (const [name, spec] of Object.entries(QUERY_SEAL_OPERATIONS)) {
       expect(name).not.toMatch(/delete|remove|create|update|bind|request|close/);

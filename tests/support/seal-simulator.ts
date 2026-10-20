@@ -43,6 +43,11 @@ export class SealSimulator {
   readonly commands: Command[] = [];
   // Nomes das redes que o lacre guardou (a senha nunca fica aqui).
   readonly wifiSaved: string[] = [];
+  // Spec 013: a rede principal (a do portal) e a situação do pedido de aprovação, como o firmware novo.
+  principal: { ssid: string; rssi: number } = { ssid: 'Rede-Deposito-Ficticia', rssi: -58 };
+  approval: 'unknown' | 'pending' | 'approved' | 'refused' = 'unknown';
+  // Esquecimento já feito e ainda não aceito pelo FluxID: vai como networks_forgotten até a resposta 202 deixar de pedir.
+  forgotten: 'all' | 'extras' | null = null;
   private readonly confirmed = new Set<string>();
   private readonly fetchImpl: typeof globalThis.fetch;
   private readonly now: () => Date;
@@ -117,6 +122,30 @@ export class SealSimulator {
     }
     const command = response.body.command as Command | null | undefined;
     if (command && !this.confirmed.has(command.id)) this.execute(command);
+    return response;
+  }
+
+  // Spec 013 (contracts/pedido-de-aprovacao.md; research.md, item 4): enquanto não recebe 200, o lacre manda só boot, a rede em uso e,
+  // quando houver, networks_forgotten, sem leituras na fila. Responde a forget_networks apagando as redes e confirmando na chamada seguinte.
+  async requestApproval(): Promise<{ status: number; body: Record<string, unknown> }> {
+    const at = this.now().toISOString();
+    const messages: Message[] = [
+      { message_id: newId(), type: 'event', read_at: at, code: 'boot', detail: null },
+      { message_id: newId(), type: 'network_change', read_at: at, wifi: { ssid: this.principal.ssid, kind: 'default', rssi: this.principal.rssi },
+        saved: [this.principal.ssid, ...this.wifiSaved].slice(0, 5) },
+    ];
+    if (this.forgotten) messages.push({ message_id: newId(), type: 'event', read_at: at, code: 'networks_forgotten', detail: this.forgotten });
+    const response = await this.sendRaw({ protocol: 1, firmware_version: this.options.firmwareVersion ?? 'sim-1.0.0', watch_version: 0, messages });
+    if (response.status === 403) this.approval = 'refused';
+    if (response.status === 200) this.approval = 'approved';
+    if (response.status === 202) {
+      this.approval = 'pending';
+      const forget = response.body.forget_networks;
+      if (forget === 'all' || forget === 'extras') {
+        this.wifiSaved.splice(0, this.wifiSaved.length);
+        this.forgotten = forget;
+      } else this.forgotten = null;
+    }
     return response;
   }
 

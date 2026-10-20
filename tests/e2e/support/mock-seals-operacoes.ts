@@ -1,4 +1,4 @@
-import { fail, type Json, type Reply } from './mock-registry';
+import { fail, ORG_A, type Json, type Reply } from './mock-registry';
 import type { SealMock } from './mock-seals';
 
 // Operações dos lacres no backend simulado dos E2E (Spec 012, contracts/operacoes-servidor.md): dispositivos, vínculo, comandos de
@@ -16,8 +16,9 @@ const justificativaValida = (valor: unknown) => texto(valor).length >= 5 && text
 
 function resumo(device: Json): Json {
   const campos = ['device_id', 'device_code', 'label', 'status', 'health', 'lock_state', 'seal_state', 'battery_pct', 'signal_dbm', 'last_seen_at',
-    'report_interval_s', 'position', 'pending_command', 'watch', 'violation'];
-  return Object.fromEntries(campos.map((campo) => [campo, device[campo] ?? null]));
+    'report_interval_s', 'position', 'pending_command', 'watch', 'violation', 'approved_at', 'inactive_reason'];
+  // Spec 013: a origem (aprovado pelo Master ou cadastro manual) e se o cilindro está numa viagem em andamento.
+  return { ...Object.fromEntries(campos.map((campo) => [campo, device[campo] ?? null])), origin: device.approved_at ? 'enrollment' : 'manual', in_trip: device.in_trip === true };
 }
 
 export function instalarLacres(mock: SealMock, cenario: LacresDoCenario): SealMock {
@@ -37,10 +38,11 @@ export function instalarLacres(mock: SealMock, cenario: LacresDoCenario): SealMo
     kind: 'query', permission: 'seal.read',
     run: ({ org, body }) => {
       const itens = devices().filter((d) => d.organization_id === org)
+        .filter((d) => body.history === true || d.status === 'active')
         .filter((d) => !body.health || d.health === body.health)
         .filter((d) => !body.lock_state || d.lock_state === body.lock_state)
         .filter((d) => body.unbound !== true || cilindroDe(d) === null)
-        .map((d) => ({ ...resumo(d), cylinder: cilindroDe(d) }));
+        .map((d) => ({ ...resumo(d), cylinder: cilindroDe(d), ready_to_bind: d.status === 'active' && cilindroDe(d) === null }));
       return ok({ code: 'LISTED', items: itens, total: itens.length });
     },
   });
@@ -173,36 +175,21 @@ export function instalarLacres(mock: SealMock, cenario: LacresDoCenario): SealMo
 
   mock.register('push_status', { kind: 'query', permission: 'seal.read', run: () => ok({ code: 'FOUND', active: false }) });
 
-  mock.register('create_device', {
-    kind: 'manage', permission: 'seal.admin',
-    run: ({ org, body }) => {
-      const label = texto(body.label);
-      if (label.length < 2 || label.length > 60) return fail('VALIDATION_FAILED', 400, { fields: [{ field: 'label', message: 'Dê um nome de 2 a 60 caracteres ao lacre.' }] });
-      const device = novoDispositivo(mock, org, label, Number(body.report_interval_s ?? 60));
-      return ok({ code: 'CREATED', device_id: device.device_id, device_code: device.device_code, device_key: `fxk_e2e-${String(device.device_code).slice(4).toLowerCase()}-chave-ficticia` });
-    },
-  });
-
-  mock.register('rotate_device_key', {
+  // Spec 013 (RF-013a): o tenant devolve o lacre à plataforma. Não há mais cadastro manual, chave nova nem desativação pela borda.
+  mock.register('return_device', {
     kind: 'manage', permission: 'seal.admin',
     run: ({ org, body }) => {
       const device = daOrg(org, body.device_id);
-      if (!device) return fail('NOT_FOUND', 404);
+      if (!device || device.status !== 'active') return fail('NOT_FOUND', 404);
       if (!justificativaValida(body.justification)) return fail('JUSTIFICATION_REQUIRED', 400);
-      return ok({ code: 'ROTATED', device_key: `fxk_e2e-${String(device.device_code).slice(4).toLowerCase()}-nova-ficticia` });
-    },
-  });
-
-  mock.register('deactivate_device', {
-    kind: 'manage', permission: 'seal.admin',
-    run: ({ org, body }) => {
-      const device = daOrg(org, body.device_id);
-      if (!device) return fail('NOT_FOUND', 404);
-      if (!justificativaValida(body.justification)) return fail('JUSTIFICATION_REQUIRED', 400);
+      if (device.in_trip === true) return fail('CYLINDER_IN_TRIP', 409);
       const vinculo = vinculoAtivo((b) => b.device_id === device.device_id);
       if (vinculo) Object.assign(vinculo, { unbound_at: agora(), unbind_reason: 'device_inactivated' });
-      device.status = 'inactive';
-      return ok({ code: 'INACTIVATED' });
+      Object.assign(device, { status: 'inactive', inactive_reason: 'returned' });
+      const pedido = mock.rows('enrollments').find((e) => e.device_code === device.device_code);
+      if (pedido) Object.assign(pedido, { status: 'returned', organization: null, device_id: null, decision_note: texto(body.justification),
+        forget_networks: 'all', networks_cleared: false, last_organization: { id: org, name: org === ORG_A ? 'Tenant A' : 'Tenant B' }, updated_at: agora() });
+      return ok({ code: 'RETURNED' });
     },
   });
 
@@ -235,7 +222,6 @@ export function instalarLacres(mock: SealMock, cenario: LacresDoCenario): SealMo
 
   const pedirTrava = (kind: 'lock' | 'unlock') => ({ org, body }: { org: string; body: Json }): Reply => {
     if (!justificativaValida(body.justification)) return fail('JUSTIFICATION_REQUIRED', 400);
-    if (kind === 'unlock' && mock.aal !== 'aal2') return fail('MFA_REQUIRED', 403);
     const vinculo = vinculoAtivo((b) => b.organization_id === org && b.cylinder_id === body.cylinder_id);
     const device = vinculo ? daOrg(org, vinculo.device_id) : undefined;
     if (!device) return fail('NO_BINDING', 409);

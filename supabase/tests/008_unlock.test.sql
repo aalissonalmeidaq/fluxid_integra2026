@@ -122,17 +122,17 @@ select is((select count(*)::int from public.trip_items where trip_id = (select t
 
 -- 3. Desbloqueio excepcional (item ainda em trânsito): trip.unlock E trip.exception, aal2 e justificativa.
 select is(pg_temp.unlock((select t from u), 3, 'Cilindro precisa voltar ao depósito', '10000000-0000-0000-0000-0000000008e1', '60000000-0000-0000-0000-0000000800e1') ->> 'code', 'ACCESS_DENIED', 'gestor sem trip.exception não faz desbloqueio excepcional');
-select is(pg_temp.unlock((select t from u), 3, 'Cilindro precisa voltar ao depósito') ->> 'code', 'MFA_REQUIRED', 'sem segundo fator (aal1): MFA_REQUIRED');
+-- Spec 013: o segundo fator deixou de ser exigido; a sessão aal1 segue direto para a justificativa.
+select isnt(pg_temp.unlock((select t from u), 3) ->> 'code', 'MFA_REQUIRED', 'sem segundo fator (aal1) não há mais recusa por MFA');
 select is((select lock_status from public.trip_items where id = pg_temp.item((select t from u), 3)), 'locked', 'e nada mudou');
-select public.start_user_session('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', 'aal2');
 select is(pg_temp.unlock((select t from u), 3) ->> 'code', 'JUSTIFICATION_REQUIRED', 'sem justificativa: JUSTIFICATION_REQUIRED');
 select is(pg_temp.unlock((select t from u), 3, 'ruim') ->> 'code', 'JUSTIFICATION_REQUIRED', 'justificativa com menos de 5 caracteres');
 select is(pg_temp.unlock((select t from u), 3, repeat('j', 501)) ->> 'code', 'JUSTIFICATION_REQUIRED', 'justificativa com 501 caracteres');
-select is((pg_temp.unlock((select t from u), 3, 'Cilindro precisa voltar ao depósito') ->> 'exceptional')::boolean, true, 'excepcional com aal2, trip.exception e justificativa');
+select is((pg_temp.unlock((select t from u), 3, 'Cilindro precisa voltar ao depósito') ->> 'exceptional')::boolean, true, 'excepcional com aal1, trip.exception e justificativa');
 select is((select item_status || '/' || lock_status from public.trip_items where id = pg_temp.item((select t from u), 3)), 'in_transit/unlocked', 'o item segue em trânsito, desbloqueado');
-select is((select aal || '/' || exceptional::text || '/' || justification from public.trip_unlocks where item_id = pg_temp.item((select t from u), 3)), 'aal2/true/Cilindro precisa voltar ao depósito', 'o registro guarda aal2, o excepcional e a justificativa');
+select is((select aal || '/' || exceptional::text || '/' || justification from public.trip_unlocks where item_id = pg_temp.item((select t from u), 3)), 'aal1/true/Cilindro precisa voltar ao depósito', 'o registro guarda o aal real da sessão, o excepcional e a justificativa');
 select is((select custody_status from public.cylinders where id = pg_temp.cy(3)), 'in_transit', 'e o cilindro continua em trânsito');
-select is((select count(*)::int from public.audit_logs where action = 'trip.unlock' and (metadata ->> 'exceptional')::boolean and metadata ->> 'aal' = 'aal2'), 1, 'a auditoria marca o excepcional e o aal2, sem o texto');
+select is((select count(*)::int from public.audit_logs where action = 'trip.unlock' and (metadata ->> 'exceptional')::boolean and metadata ->> 'aal' = 'aal1'), 1, 'a auditoria marca o excepcional e o aal da sessão, sem o texto');
 select is((select count(*)::int from public.audit_logs where metadata::text ~* 'voltar ao dep' or coalesce(justification, '') ~* 'voltar ao dep'), 0, 'e não guarda a justificativa');
 
 -- 4. Permissões e escopo.

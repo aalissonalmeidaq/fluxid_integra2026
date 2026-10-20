@@ -70,7 +70,8 @@ test.describe('Desbloqueio como ato independente', () => {
     expect(backend.trips.unlocks[0]!.exceptional).toBe(false);
   });
 
-  test('o excepcional é recusado sem o segundo fator e aceito com ele, sempre com justificativa', async ({ page }) => {
+  // Spec 013 (RF-021): o excepcional não exige segundo fator, só a justificativa.
+  test('o excepcional exige a justificativa e é aceito só com e-mail e senha', async ({ page }) => {
     const backend = await entrar(page);
     const id = preparar(backend);
     backend.trips.aal = 'aal1';
@@ -81,16 +82,10 @@ test.describe('Desbloqueio como ato independente', () => {
     await expect(dialogo.getByText(/Explique em 5 a 500 caracteres/)).toBeVisible();
     await dialogo.getByLabel('Justificativa').fill('Cilindro precisa voltar ao depósito');
     await dialogo.getByRole('button', { name: 'Registrar desbloqueio excepcional' }).click();
-    await expect(dialogo.getByRole('alert')).toContainText('exige a verificação em duas etapas');
-    expect(backend.trips.unlocks).toHaveLength(0);
-    await expect(dialogo).toBeVisible();
-
-    backend.trips.aal = 'aal2';
-    await dialogo.getByRole('button', { name: 'Registrar desbloqueio excepcional' }).click();
     await expect(dialogo).toHaveCount(0);
     await expect(page.getByRole('status').filter({ hasText: 'Desbloqueio excepcional de CIL-008 registrado' })).toHaveCount(1);
     expect(backend.trips.unlocks).toHaveLength(1);
-    expect(backend.trips.unlocks[0]).toMatchObject({ exceptional: true, aal: 'aal2' });
+    expect(backend.trips.unlocks[0]).toMatchObject({ exceptional: true, aal: 'aal1' });
     // O cilindro continua em trânsito: só o bloqueio mudou.
     await expect(page.getByText('Custódia: Em trânsito')).toBeVisible();
     await expect(page.getByText('Bloqueio: Desbloqueado')).toHaveCount(1);

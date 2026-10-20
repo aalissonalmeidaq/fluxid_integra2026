@@ -18,19 +18,19 @@ describe('visibleScreens', () => {
 
   it('Master vê as telas globais e não as do tenant quando a lista do tenant está vazia', () => {
     expect(labels({ tenant: [], global: ['audit.read', 'platform.manage', 'profile.read', 'tenant.manage'] })).toEqual([
-      'Visão geral', 'Meu perfil', 'Organizações', 'Auditoria da plataforma',
+      'Visão geral', 'Meu perfil', 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma',
     ]);
   });
 
   it('Administrador FluxID vê Organizações e Auditoria da plataforma, nada do tenant', () => {
     expect(labels({ tenant: [], global: ['audit.read', 'platform.manage', 'profile.read'] })).toEqual([
-      'Visão geral', 'Meu perfil', 'Organizações', 'Auditoria da plataforma',
+      'Visão geral', 'Meu perfil', 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma',
     ]);
   });
 
   it('perfil global com permissões no tenant ativo soma os dois conjuntos, cada um só para o seu escopo', () => {
     expect(labels({ tenant: ['tenant.manage'], global: ['platform.manage'] })).toEqual([
-      'Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Organizações',
+      'Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Organizações', 'Lacres da plataforma',
     ]);
   });
 
@@ -57,7 +57,7 @@ describe('visibleScreens', () => {
     const all = visibleScreens({ tenant: ['tenant.manage', 'audit.read'], global: ['platform.manage', 'audit.read'] });
     expect(all.map((screen) => [screen.label, screen.path])).toEqual([
       ['Visão geral', '/visao-geral'], ['Meu perfil', '/perfil'], ['Pessoas do tenant', '/admin/membros'], ['Papéis e permissões', '/admin/papeis'],
-      ['Auditoria do tenant', '/admin/auditoria'], ['Organizações', '/admin/tenants'], ['Auditoria da plataforma', '/admin/auditoria-global'],
+      ['Auditoria do tenant', '/admin/auditoria'], ['Organizações', '/admin/tenants'], ['Lacres da plataforma', '/admin/lacres'], ['Auditoria da plataforma', '/admin/auditoria-global'],
     ]);
   });
 });

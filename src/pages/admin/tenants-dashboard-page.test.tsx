@@ -43,7 +43,7 @@ describe('TenantsDashboardPage', () => {
 
   it.each([
     ['ACCESS_DENIED', 403, 'Acesso negado. Esta ação exige administração global.'],
-    ['MFA_REQUIRED', 403, 'Confirme o segundo fator para administrar organizações.'],
+    ['MFA_REQUIRED', 403, 'Sua sessão não permite esta ação agora. Entre de novo e tente outra vez.'],
     ['INTERNO', 500, 'Não foi possível acessar as organizações agora.'],
   ])('informa a falha %s com alerta e foco', async (code, status, message) => {
     call.mockResolvedValue({ status, body: { code } });

@@ -67,7 +67,7 @@ describe('TenantMembersPage', () => {
   it.each([
     ['delivery_pending', /aguarde alguns minutos/i],
     ['conflict', /já existe um convite/i],
-    ['mfa_required', /segundo fator/i],
+    ['mfa_required', /Entre de novo/i],
     ['access_denied', /acesso negado/i],
   ] as const)('traduz %s no convite sem informar sucesso', async (kind, text) => {
     renderView(fakeService({ invite: vi.fn(async () => ({ kind })) }));

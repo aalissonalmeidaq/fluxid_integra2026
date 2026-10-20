@@ -115,7 +115,7 @@ test.describe('Consulta de auditoria', () => {
     expect(scopes).toEqual([B, A]);
   });
 
-  test('a auditoria da plataforma exige segundo fator e consulta sem organização', async ({ page }) => {
+  test('a auditoria da plataforma consulta sem organização', async ({ page }) => {
     const backend = new MockBackend();
     await enter(page, backend, '/admin/auditoria-global', 'aal1');
     await expect(page.getByRole('heading', { level: 2, name: 'Auditoria da plataforma' })).toHaveCount(0);

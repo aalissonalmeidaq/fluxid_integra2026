@@ -16,7 +16,7 @@ export function DeliveryUnlockNotice({ note, cylinderId }: { note: UnlockNote; c
       <span>{TEXT[note]}</span>
       <span>
         <a className="font-semibold text-azul-profundo underline" href={`/cilindros/${cylinderId}`}>Destravar pelo cilindro (excepcional)</a>
-        {' '}— exige justificativa e verificação em duas etapas.
+        {' '}— exige justificativa.
       </span>
     </span>
   );

@@ -98,8 +98,8 @@ select is(
   public.login_eligibility('10000000-0000-0000-0000-0000000000b1')->>'requires_mfa', 'false',
   'usuário de tenant não exige MFA no login');
 select is(
-  public.login_eligibility('10000000-0000-0000-0000-0000000000b5')->>'requires_mfa', 'true',
-  'perfil global exige MFA no login');
+  public.login_eligibility('10000000-0000-0000-0000-0000000000b5')->>'requires_mfa', 'false',
+  'perfil global também entra só com e-mail e senha (Spec 013)');
 
 -- 20-22. Limite de tentativas por chave sanitizada.
 select public.register_login_failure(repeat('a', 64)) from generate_series(1, 4);

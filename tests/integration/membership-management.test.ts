@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createManageMembershipHandler, type MembershipGateway } from '../../supabase/functions/manage-membership/handler';
 
+
 const TENANT_A='20000000-0000-0000-0000-00000000000a', MEMBER='30000000-0000-0000-0000-000000000099';
 const listed={kind:'listed' as const,members:[{id:MEMBER,display_name:'Operador A',email:'operador-a@example.invalid',status:'active',version:1}],roles:[{id:'50000000-0000-0000-0000-000000000004',name:'Operador técnico'}]};
 const gateway=(overrides:Partial<MembershipGateway>={}):MembershipGateway=>({authenticate:vi.fn(async()=>({userId:'10000000-0000-0000-0000-000000000002',sessionId:'60000000-0000-0000-0000-000000000001',aal:'aal2' as const})),list:vi.fn(async()=>listed),changeStatus:vi.fn(async(input)=>({kind:'changed' as const,membership:{id:input.membershipId,organization_id:input.organizationId,status:input.status,version:2}})),audit:vi.fn(async()=>undefined),...overrides});
@@ -10,7 +11,7 @@ const call=async(gw:MembershipGateway,body:unknown)=>{const response=await creat
 describe('manage-membership: auditoria de negações',()=>{
   const change={organization_id:TENANT_A,membership_id:MEMBER,status:'blocked',expected_version:1,justification:'Alteração aprovada pelo administrador'};
   it('audita negação por permissão sem gravar o alvo nem o tenant solicitado',async()=>{const gw=gateway({changeStatus:vi.fn(async()=>({kind:'access_denied' as const}))});await call(gw,change);expect(gw.audit).toHaveBeenCalledTimes(1);expect(gw.audit).toHaveBeenCalledWith({actorId:'10000000-0000-0000-0000-000000000002',action:'membership.status.change',result:'denied',reason:'permission_denied'});});
-  it('audita a falta de MFA e não executa a mutação',async()=>{const gw=gateway({authenticate:vi.fn(async()=>({userId:'10000000-0000-0000-0000-000000000002',sessionId:'60000000-0000-0000-0000-000000000001',aal:'aal1' as const}))});expect((await call(gw,change)).body).toEqual({code:'MFA_REQUIRED'});expect(gw.changeStatus).not.toHaveBeenCalled();expect(gw.audit).toHaveBeenCalledWith(expect.objectContaining({result:'denied',reason:'mfa_required'}));});
+  it('Spec 013 (RF-021): sessão AAL1 altera o vínculo, sem negação por MFA',async()=>{const gw=gateway({authenticate:vi.fn(async()=>({userId:'10000000-0000-0000-0000-000000000002',sessionId:'60000000-0000-0000-0000-000000000001',aal:'aal1' as const}))});await call(gw,change);expect(gw.changeStatus).toHaveBeenCalled();expect(gw.audit).not.toHaveBeenCalledWith(expect.objectContaining({reason:'mfa_required'}));});
   it('audita acesso cruzado na listagem sem revelar dados',async()=>{const gw=gateway({list:vi.fn(async()=>({kind:'access_denied' as const}))});await call(gw,{operation:'list',organization_id:'20000000-0000-0000-0000-00000000000b'});expect(gw.audit).toHaveBeenCalledWith({actorId:'10000000-0000-0000-0000-000000000002',action:'membership.list',result:'denied',reason:'permission_denied'});});
   it('não audita negação quando a operação é permitida',async()=>{const gw=gateway();await call(gw,change);expect(gw.audit).not.toHaveBeenCalledWith(expect.objectContaining({result:'denied'}));});
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { authReducer, initialAuthState, isProtectedAccessAllowed, type AuthEvent, type AuthState } from './session';
 
+
 const reduce = (events: AuthEvent[], from: AuthState = initialAuthState) => events.reduce(authReducer, from);
 
 describe('authReducer', () => {
@@ -12,9 +13,8 @@ describe('authReducer', () => {
     expect(reduce([{ type: 'session_active', aal: 'aal1' }])).toEqual({ status: 'authenticated', aal: 'aal1' });
   });
 
-  it('restaura perfil global em AAL1 como mfa_required, nunca como autenticado', () => {
-    expect(reduce([{ type: 'session_active', aal: 'aal1', mfaRequired: true }])).toEqual({ status: 'mfa_required' });
-    expect(reduce([{ type: 'session_active', aal: 'aal2', mfaRequired: false }])).toEqual({ status: 'authenticated', aal: 'aal2' });
+  it('Spec 013 (RF-021): perfil global também restaura autenticado só com e-mail e senha', () => {
+    expect(reduce([{ type: 'session_active', aal: 'aal1' }])).toEqual({ status: 'authenticated', aal: 'aal1' });
   });
 
   it('sem sessão restaurada exige login, sem aviso', () => {
@@ -23,21 +23,6 @@ describe('authReducer', () => {
 
   it('login com sucesso autentica em AAL1', () => {
     expect(reduce([{ type: 'login_succeeded' }])).toEqual({ status: 'authenticated', aal: 'aal1' });
-  });
-
-  it('perfil global entra em mfa_required e só libera após AAL2 comprovado', () => {
-    const pending = reduce([{ type: 'login_requires_mfa' }]);
-    expect(pending).toEqual({ status: 'mfa_required' });
-    expect(reduce([{ type: 'mfa_verified' }], pending)).toEqual({ status: 'authenticated', aal: 'aal2' });
-  });
-
-  it('o desafio adicional de ação crítica eleva uma sessão autenticada a AAL2', () => {
-    expect(reduce([{ type: 'session_active', aal: 'aal1' }, { type: 'mfa_verified' }])).toEqual({ status: 'authenticated', aal: 'aal2' });
-  });
-
-  it('MFA verificado fora do fluxo MFA é ignorado', () => {
-    const signedOut = reduce([{ type: 'session_missing' }]);
-    expect(reduce([{ type: 'mfa_verified' }], signedOut)).toEqual(signedOut);
   });
 
   it.each([
@@ -73,13 +58,12 @@ describe('authReducer', () => {
 describe('isProtectedAccessAllowed', () => {
   it('libera somente sessão autenticada', () => {
     expect(isProtectedAccessAllowed({ status: 'authenticated', aal: 'aal1' })).toBe(true);
-    for (const status of ['checking', 'signed_out', 'mfa_required'] as const) {
+    for (const status of ['checking', 'signed_out'] as const) {
       expect(isProtectedAccessAllowed({ status })).toBe(false);
     }
   });
 
-  it('exige AAL2 quando a rota é global ou crítica', () => {
-    expect(isProtectedAccessAllowed({ status: 'authenticated', aal: 'aal1' }, { requireAal2: true })).toBe(false);
-    expect(isProtectedAccessAllowed({ status: 'authenticated', aal: 'aal2' }, { requireAal2: true })).toBe(true);
+  it('Spec 013 (RF-021): nenhuma tela exige segundo fator', () => {
+    expect(isProtectedAccessAllowed({ status: 'authenticated', aal: 'aal1' })).toBe(true);
   });
 });

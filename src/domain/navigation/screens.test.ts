@@ -3,7 +3,7 @@ import { SCREENS, screenByPath } from './screens';
 
 describe('catálogo de telas', () => {
   it('mantém a ordem e os identificadores do modelo de dados', () => {
-    expect(SCREENS.map((screen) => screen.id)).toEqual(['inicio', 'cilindros', 'entrada-estoque', 'clientes', 'geocercas', 'veiculos', 'motoristas', 'viagens', 'lacres', 'alertas', 'perfil', 'membros', 'papeis', 'auditoria', 'organizacoes', 'auditoria-global']);
+    expect(SCREENS.map((screen) => screen.id)).toEqual(['inicio', 'cilindros', 'entrada-estoque', 'clientes', 'geocercas', 'veiculos', 'motoristas', 'viagens', 'lacres', 'alertas', 'perfil', 'membros', 'papeis', 'auditoria', 'organizacoes', 'lacres-plataforma', 'auditoria-global']);
   });
 
   it('não repete identificador nem caminho', () => {
@@ -31,18 +31,19 @@ describe('catálogo de telas', () => {
       lacres: { scope: 'tenant', code: 'seal.read' },
       alertas: { scope: 'tenant', code: 'seal.read' },
       organizacoes: { scope: 'global', code: 'platform.manage' },
+      'lacres-plataforma': { scope: 'global', code: 'platform.manage' },
       'auditoria-global': { scope: 'global', code: 'audit.read' },
     });
   });
 
-  it('segue a tabela de rotas atual: tenant ativo e segundo fator', () => {
-    const flags = Object.fromEntries(SCREENS.map((screen) => [screen.path, [screen.tenantScoped, screen.requireAal2]]));
+  it('segue a tabela de rotas atual: tenant ativo (sem segundo fator, Spec 013, RF-021)', () => {
+    const flags = Object.fromEntries(SCREENS.map((screen) => [screen.path, screen.tenantScoped]));
     expect(flags).toEqual({
-      '/visao-geral': [false, false], '/perfil': [false, false], '/cilindros': [true, false], '/estoque/entrada': [true, false],
-      '/clientes': [true, false], '/geocercas': [true, false], '/veiculos': [true, false], '/motoristas': [true, false], '/viagens': [true, false],
-      '/lacres': [true, false], '/alertas': [true, false],
-      '/admin/membros': [true, true], '/admin/papeis': [true, true], '/admin/auditoria': [true, false],
-      '/admin/tenants': [false, true], '/admin/auditoria-global': [false, true],
+      '/visao-geral': false, '/perfil': false, '/cilindros': true, '/estoque/entrada': true,
+      '/clientes': true, '/geocercas': true, '/veiculos': true, '/motoristas': true, '/viagens': true,
+      '/lacres': true, '/alertas': true,
+      '/admin/membros': true, '/admin/papeis': true, '/admin/auditoria': true,
+      '/admin/tenants': false, '/admin/lacres': false, '/admin/auditoria-global': false,
     });
   });
 

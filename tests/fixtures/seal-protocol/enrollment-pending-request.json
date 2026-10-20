@@ -1,0 +1,26 @@
+{
+  "protocol": 1,
+  "firmware_version": "3.0.0",
+  "watch_version": 0,
+  "messages": [
+    {
+      "message_id": "01JB0000000000000000000001",
+      "type": "event",
+      "read_at": "2026-10-19T12:00:00Z",
+      "code": "boot"
+    },
+    {
+      "message_id": "01JB0000000000000000000002",
+      "type": "network_change",
+      "read_at": "2026-10-19T12:00:00Z",
+      "wifi": {
+        "ssid": "Rede-Deposito-Ficticia",
+        "kind": "default",
+        "rssi": -58
+      },
+      "saved": [
+        "Rede-Deposito-Ficticia"
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import { LoginPage } from './login-page';
 
 function renderLogin(outcome: LoginOutcome | ((input: unknown) => Promise<LoginOutcome>), state: AuthState = { status: 'signed_out' }) {
   const login = vi.fn(typeof outcome === 'function' ? outcome : async () => outcome);
-  const value: AuthContextValue = { state, login, logout: vi.fn(), confirmMfa: vi.fn(), mfa: null };
+  const value: AuthContextValue = { state, login, logout: vi.fn(), };
   render(<AuthContext.Provider value={value}><LoginPage /></AuthContext.Provider>);
   return { login };
 }
@@ -173,7 +173,7 @@ describe('LoginPage: limite de três sessões', () => {
     const login = vi.fn()
       .mockResolvedValueOnce({ kind: 'session_limit', sessions })
       .mockResolvedValueOnce({ kind: 'authenticated' });
-    const value: AuthContextValue = { state: { status: 'signed_out' }, login, logout: vi.fn(), confirmMfa: vi.fn(), mfa: null };
+    const value: AuthContextValue = { state: { status: 'signed_out' }, login, logout: vi.fn(), };
     render(<AuthContext.Provider value={value}><LoginPage /></AuthContext.Provider>);
     fill();
     submit();
@@ -214,10 +214,10 @@ describe('LoginPage: limite de três sessões', () => {
     expect(screen.getByRole('button', { name: 'Entrar' })).toHaveFocus();
   });
 
-  it('identifica cada sessão por datas e nível de verificação, sem cor como único sinal', async () => {
+  it('identifica cada sessão por datas, sem cor como único sinal e sem citar segundo fator (Spec 013, RF-021)', async () => {
     const { dialog } = await reachLimit();
     expect(within(dialog).getAllByText(/última atividade/i)).toHaveLength(3);
-    expect(within(dialog).getByText(/verificação em duas etapas/i)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/verificação em duas etapas/i)).not.toBeInTheDocument();
   });
 });
 
@@ -225,14 +225,14 @@ describe('LoginPage: limite de três sessões', () => {
 // O redesenho da tela virá de uma spec própria de telas e design; até lá, estas garantias não podem regredir.
 describe('LoginPage: escopo da Spec 002', () => {
   it('oferece somente e-mail e senha, sem login social, SSO nem ações sem efeito', () => {
-    const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
+    const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), }}><LoginPage /></AuthContext.Provider>);
     const names = screen.getAllByRole('button').map((button) => button.textContent?.trim());
     expect(names).toEqual(['Mostrar', 'Esqueci minha senha', 'Entrar']);
     expect(container.textContent).not.toMatch(/google|microsoft|apple|sso|lembrar de mim|cadastre-se|criar conta/i);
   });
 
   it('não carrega recursos externos e não cria um segundo landmark principal', () => {
-    const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
+    const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), }}><LoginPage /></AuthContext.Provider>);
     expect(container.innerHTML).not.toMatch(/(src|href)="https?:/i);
     expect(container.querySelector('main')).toBeNull();
     expect(container.querySelectorAll('input:not([type="hidden"])')).toHaveLength(2);
@@ -242,7 +242,7 @@ describe('LoginPage: escopo da Spec 002', () => {
 // Spec 003: apresentação no padrão do design system, sem mudar comportamento nem mensagens de segurança.
 describe('LoginPage: apresentação (Spec 003)', () => {
   it('mostra o logotipo oficial no painel de marca, com o nome FluxID, e nenhum outro logotipo no formulário', () => {
-    const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
+    const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), }}><LoginPage /></AuthContext.Provider>);
     // Duas imagens: o logotipo do painel (h1, com o nome) e o do cartão (decorativo, sem nome).
     expect(container.querySelectorAll('img')).toHaveLength(2);
     const logo = container.querySelector('img[alt="FluxID"]');
@@ -266,7 +266,7 @@ describe('LoginPage: apresentação (Spec 003)', () => {
       { session_id: 's2', started_at: '2026-09-29T12:00:00Z', last_seen_at: '2026-09-29T12:30:00Z', aal: 'aal2' },
     ];
     const login = vi.fn().mockResolvedValue({ kind: 'session_limit', sessions });
-    render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login, logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
+    render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login, logout: vi.fn(), }}><LoginPage /></AuthContext.Provider>);
     fill();
     submit();
     const dialog = await screen.findByRole('dialog');
@@ -279,7 +279,7 @@ describe('LoginPage: apresentação (Spec 003)', () => {
 
   it('o foco fica preso no diálogo de sessões', async () => {
     const login = vi.fn().mockResolvedValue({ kind: 'session_limit', sessions: [{ session_id: 's1', started_at: '2026-09-29T10:00:00Z', last_seen_at: '2026-09-29T11:00:00Z', aal: 'aal1' }] });
-    render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login, logout: vi.fn(), confirmMfa: vi.fn(), mfa: null }}><LoginPage /></AuthContext.Provider>);
+    render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login, logout: vi.fn(), }}><LoginPage /></AuthContext.Provider>);
     fill();
     submit();
     const dialog = await screen.findByRole('dialog');

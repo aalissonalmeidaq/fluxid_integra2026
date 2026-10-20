@@ -37,9 +37,10 @@ describe('Contrato de autenticação e sessões (RF-001–RF-004, RS-009, RS-010
     expect(result.body).toEqual({ code: 'ACCOUNT_UNAVAILABLE' });
   });
 
-  it('exige MFA de perfil global entregando a sessão AAL1 limitada', async () => {
+  // Spec 013 (RF-021): o acesso é só com e-mail e senha para todos os perfis, inclusive o global.
+  it('perfil global entra só com e-mail e senha, sem exigir MFA', async () => {
     const result = await login(USERS.master);
-    expect(result.body.code).toBe('MFA_REQUIRED');
+    expect(result.body.code).toBe('AUTHENTICATED');
     expect(result.body.session.access_token).toBeTruthy();
     await logout(result.body.session.access_token);
   });

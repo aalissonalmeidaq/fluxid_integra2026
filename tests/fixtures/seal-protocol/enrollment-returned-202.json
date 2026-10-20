@@ -1,0 +1,5 @@
+{
+  "status": "pending_approval",
+  "report_interval_s": 60,
+  "forget_networks": "all"
+}

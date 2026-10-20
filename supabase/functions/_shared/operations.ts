@@ -42,8 +42,6 @@ export interface OperationSpec {
   rpc: string;
   // Nome da ação de auditoria (o mesmo que a RPC grava no sucesso); sem ele, usa `<prefixo>.<operação>`.
   action?: string;
-  // Exige sessão com segundo fator (`aal2`); sem ela responde MFA_REQUIRED e audita a negação (ex.: anonimização, RF-055).
-  mfa?: boolean;
   // Campo do corpo -> [regra, nome do argumento da RPC]. `identifier` gera dois argumentos (tipo e valor).
   fields: Record<string, [Rule, string]>;
   // Regra entre campos (ex.: uma justificativa que só vale numa correção). Recebe os argumentos já validados e devolve os problemas, ou nada.
@@ -194,9 +192,9 @@ function check(rule: Rule, value: unknown): Checked {
   }
 }
 
-type Built = { ok: true; args: Record<string, unknown> } | { ok: false; fields: FieldIssue[] };
+export type Built = { ok: true; args: Record<string, unknown> } | { ok: false; fields: FieldIssue[] };
 
-function buildArgs(spec: OperationSpec, body: Record<string, unknown>): Built {
+export function buildArgs(spec: OperationSpec, body: Record<string, unknown>): Built {
   const args: Record<string, unknown> = {};
   const fields: FieldIssue[] = [];
   for (const [field, [rule, arg]] of Object.entries(spec.fields)) {
@@ -259,11 +257,6 @@ export function createOperationsHandler(gateway: OperationsGateway, operations: 
     }
 
     const action = spec.action ?? `${prefix}.${operation}`;
-    if (spec.mfa && identity.aal !== 'aal2') {
-      await gateway.audit({ actorId: identity.userId, action, result: 'denied', reason: 'mfa_required' }).catch(() => undefined);
-      return json({ code: 'MFA_REQUIRED' }, 403);
-    }
-
     const organizationId = body.organization_id;
     if (typeof organizationId !== 'string' || !UUID_PATTERN.test(organizationId)) return json({ code: 'VALIDATION_FAILED' }, 400);
     const built = buildArgs(spec, body);

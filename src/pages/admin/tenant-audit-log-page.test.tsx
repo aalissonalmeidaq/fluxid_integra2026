@@ -73,7 +73,7 @@ describe('AuditLogPage: leitura', () => {
 
   it.each([
     ['access_denied', /acesso negado/i],
-    ['mfa_required', /segundo fator/i],
+    ['mfa_required', /Entre de novo/i],
     ['invalid', /revise os filtros/i],
     ['unavailable', /não foi possível carregar/i],
   ] as const)('anuncia %s como alerta e não exibe eventos', async (kind, message) => {

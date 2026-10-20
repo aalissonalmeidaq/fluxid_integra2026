@@ -9,7 +9,7 @@ import type { SyncPhase, SyncRunResult } from '@/infrastructure/synchronization/
 const authenticated: AuthState = { status: 'authenticated', aal: 'aal1' };
 
 function auth(state: AuthState, logout = vi.fn(async () => undefined)): AuthContextValue {
-  return { state, login: vi.fn(), logout, confirmMfa: vi.fn(), mfa: null };
+  return { state, login: vi.fn(), logout, };
 }
 
 type Factory = (onPhase: (phase: SyncPhase) => void) => SyncRunner;
@@ -32,7 +32,6 @@ describe('SyncGate', () => {
   it.each([
     [{ status: 'signed_out' } as AuthState],
     [{ status: 'checking' } as AuthState],
-    [{ status: 'mfa_required' } as AuthState],
   ])('não sincroniza nem bloqueia sem sessão autenticada (%j)', (state) => {
     const create = vi.fn(runnerFor(ready));
     renderGate(state, create);

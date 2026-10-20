@@ -1,9 +1,7 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { visibleScreens, type ActorPermissions } from '../../src/domain/navigation/visible-screens';
 import { callFunction, endAllSessions, login, logout, publishableKey, supabaseUrl, USERS } from '../support/auth-harness';
-import { totp } from '../support/totp';
 
 // Consulta das próprias permissões e paridade menu × servidor, com Edge Function, RPC e RLS reais (Spec 004).
 // Usa os tenants C e D e usuários próprios do seed (nav-*), para não disputar sessões nem contagens com outras suítes.
@@ -48,7 +46,6 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
   let admin = '';
   let operator = '';
   let fluxid = '';
-  const elevated: Array<{ client: SupabaseClient; factorId: string }> = [];
   let roleId = '';
 
   const access = async (body: Record<string, unknown>) => (await callFunction('manage-access', body, admin));
@@ -57,25 +54,12 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     return { status: result.status, events: (result.body.events ?? []) as AuditEvent[] };
   };
 
-  // Todas as sessões sobem a AAL2: assim o servidor sempre decide pela permissão (e não pelo pedido de segundo fator) ao abrir
-  // cada tela, e a paridade com o menu fica exata. A consulta de permissões em si não depende de AAL.
-  async function elevate(session: { access_token: string; refresh_token: string }): Promise<string> {
-    const client = createClient(supabaseUrl, publishableKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    await client.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
-    const enrolled = await client.auth.mfa.enroll({ factorType: 'totp' });
-    const factorId = enrolled.data!.id;
-    const challenge = await client.auth.mfa.challenge({ factorId });
-    const verified = await client.auth.mfa.verify({ factorId, challengeId: challenge.data!.id, code: totp(enrolled.data!.totp.secret) });
-    expect(verified.error).toBeNull();
-    elevated.push({ client, factorId });
-    return verified.data!.access_token;
-  }
-
   beforeAll(async () => {
     for (const user of [USERS.navAdmin, USERS.navOperator, USERS.navFluxid]) await endAllSessions(user);
     const [a, o, f] = await Promise.all([login(USERS.navAdmin), login(USERS.navOperator), login(USERS.navFluxid)]);
     expect([a.status, o.status, f.status]).toEqual([200, 200, 200]);
-    [admin, operator, fluxid] = await Promise.all([elevate(a.body.session), elevate(o.body.session), elevate(f.body.session)]);
+    // Spec 013 (RF-021): sem segundo fator; o servidor decide pela permissão ao abrir cada tela.
+    [admin, operator, fluxid] = [a.body.session.access_token, o.body.session.access_token, f.body.session.access_token];
   });
 
   afterAll(async () => {
@@ -83,12 +67,7 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
       await access({ operation: 'remove_role', organization_id: TENANT_C, membership_id: OPERATOR_MEMBERSHIP_C, role_id: roleId, justification: JUSTIFICATION });
       await access({ operation: 'set_role_active', organization_id: TENANT_C, role_id: roleId, active: false, expected_version: 1, justification: 'Limpeza da suíte ao vivo' });
     }
-    const tokens: string[] = [];
-    for (const { client, factorId } of elevated) {
-      tokens.push((await client.auth.getSession()).data.session?.access_token ?? '');
-      await client.auth.mfa.unenroll({ factorId });
-    }
-    for (const token of tokens.filter(Boolean)) await logout(token);
+    for (const token of [admin, operator, fluxid].filter(Boolean)) await logout(token);
     for (const user of [USERS.navAdmin, USERS.navOperator, USERS.navFluxid]) await endAllSessions(user);
   });
 
@@ -117,7 +96,7 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     for (const body of [{}, { organization_id: TENANT_C }]) {
       const result = await permissions(fluxid, body);
       expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: [], global: ['audit.read', 'platform.manage', 'profile.read'] });
-      expect(labels(actor(result))).toEqual(['Visão geral', 'Meu perfil', 'Organizações', 'Auditoria da plataforma']);
+      expect(labels(actor(result))).toEqual(['Visão geral', 'Meu perfil', 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma']);
     }
   });
 

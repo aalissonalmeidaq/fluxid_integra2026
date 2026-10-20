@@ -11,7 +11,7 @@ import type { SyncRunResult } from '@/infrastructure/synchronization/sync-coordi
 // e confirma sessão e tenant ANTES de liberar: é o que reconfirma tudo antes de a fila ser enviada.
 const offline: AuthState = { status: 'authenticated', aal: 'aal1', offline: true };
 const online: AuthState = { status: 'authenticated', aal: 'aal1' };
-const authValue = (state: AuthState): AuthContextValue => ({ state, login: vi.fn(), logout: vi.fn(async () => undefined), confirmMfa: vi.fn(), mfa: null });
+const authValue = (state: AuthState): AuthContextValue => ({ state, login: vi.fn(), logout: vi.fn(async () => undefined), });
 const ready = async (): Promise<SyncRunResult> => ({ state: 'ready' });
 
 const tree = (state: AuthState, createRunner: (() => SyncRunner) | null) => (

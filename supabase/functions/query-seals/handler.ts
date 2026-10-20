@@ -18,6 +18,8 @@ export const QUERY_SEAL_OPERATIONS: Record<string, OperationSpec> = {
       unbound: [{ t: 'bool', optional: true }, 'p_unbound'],
       offset: [offset, 'p_offset'],
       limit: [{ t: 'int', min: 1, max: 200, optional: true }, 'p_limit'],
+      // Spec 013: as linhas de destinações anteriores (devolvidas ou retiradas) só aparecem com o histórico.
+      history: [{ t: 'bool', optional: true }, 'p_history'],
     },
   },
   get_seal: { rpc: 'get_seal', fields: { device_id: [{ t: 'uuid' }, 'p_device'] } },

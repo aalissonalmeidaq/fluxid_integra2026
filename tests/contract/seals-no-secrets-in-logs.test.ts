@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 // coordenadas nunca aparecem em log, auditoria ou evento. Varredura estática do código das funções e das migrations do lacre; a suíte
 // `.live` confere também o conteúdo gravado de verdade.
 const ROOT = path.resolve(import.meta.dirname, '../..');
-const FUNCTIONS = ['seal-gateway', 'query-seals', 'manage-seals', 'seal-push'].map((name) => path.join(ROOT, 'supabase/functions', name));
+const FUNCTIONS = ['seal-gateway', 'query-seals', 'manage-seals', 'seal-push', 'platform-seals'].map((name) => path.join(ROOT, 'supabase/functions', name));
 const MIGRATIONS = path.join(ROOT, 'supabase/migrations');
 const read = (file: string) => fs.readFileSync(file, 'utf8');
 const sourcesOf = (dir: string) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.ts')).map((f) => path.join(dir, f)) : []);
@@ -44,6 +44,30 @@ describe('nenhum segredo nem coordenada em log ou auditoria', () => {
   it('os resumos das mensagens recebidas não guardam coordenada nem senha', () => {
     const ingest = read(sealMigrations.find((f) => f.endsWith('_seals_ingest.sql'))!);
     expect(ingest).toMatch(/- 'latitude' - 'longitude' - 'accuracy_m' - 'password'/);
+  });
+
+  // Spec 013 (T061; RF-014, RF-016): nem a chave criada pelo lacre, nem a do aparelho em conflito, nem a senha do portal entram na
+  // auditoria ou na idempotência; o seal_ingest novo continua tirando coordenadas e senha do resumo das mensagens.
+  it('a auditoria e a idempotência das migrations da Spec 013 não levam chave nem a senha do portal', () => {
+    const enrollment = sealMigrations.filter((f) => /_seals_enrollment_/.test(f));
+    expect(enrollment.some((f) => f.endsWith('_seals_enrollment_portal_password.sql'))).toBe(true);
+    for (const file of enrollment) {
+      for (const [call] of read(file).matchAll(/write_audit_event\([\s\S]*?\);/g)) {
+        expect(call, path.relative(ROOT, file)).not.toMatch(/key_hash|conflict_key_hash|v_password|decrypted|p_key/i);
+      }
+      for (const [call] of read(file).matchAll(/seal_remember\([\s\S]*?\);/g)) {
+        expect(call, path.relative(ROOT, file)).not.toMatch(/'password'|v_password|key_hash/i);
+      }
+    }
+    const ingest = read(enrollment.find((f) => f.endsWith('_seals_enrollment_ingest.sql'))!);
+    expect(ingest).toMatch(/- 'latitude' - 'longitude' - 'accuracy_m' - 'password'/);
+  });
+
+  it('nenhum arquivo versionado tem a senha do portal: ela só existe no secrets.h local e no Vault', () => {
+    const fixtures = path.join(ROOT, 'tests/fixtures/seal-protocol');
+    const files = [...FUNCTIONS.flatMap(sourcesOf), ...sealMigrations, path.join(ROOT, 'firmware/include/secrets.example.h'),
+      ...fs.readdirSync(fixtures).map((f) => path.join(fixtures, f))];
+    for (const file of files) expect(read(file), path.relative(ROOT, file)).not.toMatch(/vault\.create_secret\([^)]*seal_portal_password|FLUXID_PORTAL_SENHA\s+"(?!<)/);
   });
 
   it('nenhum arquivo versionado tem chave real de dispositivo, chave VAPID privada ou service_role', () => {

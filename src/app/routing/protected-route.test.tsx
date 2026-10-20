@@ -4,11 +4,10 @@ import { AuthContext, type AuthContextValue } from '@/app/auth/auth-context';
 import type { AuthState } from '@/domain/identity/session';
 import { ProtectedRoute } from './protected-route';
 
+
 function renderRoute(state: AuthState, props: Partial<React.ComponentProps<typeof ProtectedRoute>> = {}) {
-  const mfa = { begin: vi.fn(async () => ({ kind: 'challenge' as const, factorId: 'f' })), verify: vi.fn() };
   const value: AuthContextValue = {
-    state, login: vi.fn(), logout: vi.fn(), confirmMfa: vi.fn(), mfa: mfa as never,
-  };
+    state, login: vi.fn(), logout: vi.fn() };
   return render(
     <AuthContext.Provider value={value}>
       <ProtectedRoute {...props}><p>Conteúdo protegido</p></ProtectedRoute>
@@ -41,25 +40,6 @@ describe('ProtectedRoute', () => {
     expect(notice).toHaveFocus();
   });
 
-  it('exige a verificação em duas etapas quando o login ficou em AAL1 limitado', () => {
-    renderRoute({ status: 'mfa_required' });
-    expect(screen.queryByText('Conteúdo protegido')).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /verificação em duas etapas/i })).toBeInTheDocument();
-  });
-
-  it('em mfa_required a verificação usa a moldura pública: painel de marca, um só h1 e nenhum menu', () => {
-    renderRoute({ status: 'mfa_required' });
-    expect(screen.getByText('Cada cilindro, uma identidade.')).toBeInTheDocument();
-    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
-  });
-
-  it('a verificação exigida de quem já entrou continua sem o painel de marca (dentro do shell autenticado)', () => {
-    renderRoute({ status: 'authenticated', aal: 'aal1' } as AuthState, { requireAal2: true });
-    expect(screen.getByRole('heading', { name: /verificação em duas etapas/i })).toBeInTheDocument();
-    expect(screen.queryByText('Cada cilindro, uma identidade.')).not.toBeInTheDocument();
-  });
-
   it('libera o conteúdo para sessão autenticada autorizada', () => {
     renderRoute({ status: 'authenticated', aal: 'aal1' });
     expect(screen.getByText('Conteúdo protegido')).toBeInTheDocument();
@@ -73,15 +53,10 @@ describe('ProtectedRoute', () => {
     expect(denied).toHaveFocus();
   });
 
-  it('exige AAL2 em rotas globais ou críticas e conduz ao desafio adicional', () => {
-    renderRoute({ status: 'authenticated', aal: 'aal1' }, { requireAal2: true });
-    expect(screen.queryByText('Conteúdo protegido')).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /verificação em duas etapas/i })).toBeInTheDocument();
-  });
-
-  it('libera a rota crítica somente com AAL2', () => {
-    renderRoute({ status: 'authenticated', aal: 'aal2' }, { requireAal2: true });
+  it('Spec 013 (RF-021): nenhuma rota pede a verificação em duas etapas, só com e-mail e senha', () => {
+    renderRoute({ status: 'authenticated', aal: 'aal1' });
     expect(screen.getByText('Conteúdo protegido')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /verificação em duas etapas/i })).not.toBeInTheDocument();
   });
 
   it('a mensagem de acesso negado não revela detalhes internos de segurança', () => {

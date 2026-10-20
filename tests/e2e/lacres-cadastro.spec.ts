@@ -1,49 +1,31 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { MockBackend } from './support/mock-backend';
 import { ORG_A, ORG_B } from './support/mock-registry';
-import { ativarDispositivo } from './support/mock-seals-operacoes';
+import { ativarDispositivo, novoDispositivo } from './support/mock-seals-operacoes';
 import { entrar } from './support/trips-scenario';
 
 test.use({ serviceWorkers: 'block' });
 
-// Spec 012, US5 (T095): cadastro do dispositivo e vínculo com o cilindro, com backend simulado. Cadastrar mostra a chave uma única vez;
-// o lacre "liga" pelo backend (a mensagem de ativação); vincular pelo detalhe do cilindro e desvincular pelo dispositivo, com
-// justificativa. O Tenant B não vê o dispositivo do A. As regras de verdade (chave, isolamento por RLS) estão no pgTAP e nas `.live`.
+// Spec 012, US5 (T095): vínculo do lacre com o cilindro, com backend simulado. Spec 013 (RF-018): o cadastro manual saiu; o lacre chega
+// pelo Master já destinado ao tenant (aqui, semeado no backend), "liga" pelo backend (a mensagem de ativação), é vinculado pelo detalhe do
+// cilindro e desvinculado pelo dispositivo, com justificativa. O Tenant B não vê o dispositivo do A. As regras de verdade estão no pgTAP e
+// nas `.live`.
 
 const cilindro = (backend: MockBackend, serial: string) => backend.cylinders.cylinders.find((c) => c.organization_id === ORG_A && c.serial_number === serial)!;
 
-async function cadastrar(page: Page, nome: string): Promise<string> {
-  await page.goto('/lacres');
-  await page.getByRole('button', { name: 'Cadastrar dispositivo' }).click();
-  const formulario = page.getByRole('dialog', { name: 'Cadastrar dispositivo' });
-  await formulario.getByLabel('Nome do lacre').fill(nome);
-  await formulario.getByRole('button', { name: 'Cadastrar' }).click();
-
-  const chave = page.getByRole('dialog', { name: 'Chave do dispositivo' });
-  await expect(chave.getByText('A chave não aparece de novo.')).toBeVisible();
-  const codigo = (await chave.locator('code').first().textContent()) ?? '';
-  await expect(chave.getByText(/^fxk_e2e-/)).toBeVisible();
-  await chave.getByRole('button', { name: 'Copiar a chave' }).click();
-  await expect(chave.getByText(/^(Chave copiada\.|Não foi possível copiar)/)).toBeVisible();
-  // Concluir só depois de confirmar que guardou a chave.
-  await expect(chave.getByRole('button', { name: 'Concluir' })).toBeDisabled();
-  await chave.getByLabel('Já guardei a chave para gravar no lacre').check();
-  await chave.getByRole('button', { name: 'Concluir' }).click();
-  await expect(chave).toHaveCount(0);
-  await expect(page.getByText(/^fxk_e2e-/)).toHaveCount(0);
-  return codigo;
-}
-
 test.describe('Cadastro e vínculo do lacre', () => {
-  test('cadastrar, ativar, vincular pelo cilindro e desvincular pelo dispositivo', async ({ page }) => {
+  test('lacre destinado pelo Master: ativar, vincular pelo cilindro e desvincular pelo dispositivo', async ({ page }) => {
     const backend = await entrar(page, 'lacres-admin');
-    const codigo = await cadastrar(page, 'Lacre do pátio');
+    const device = novoDispositivo(backend.seals, ORG_A, 'Lacre do pátio');
+    Object.assign(device, { approved_at: backend.seals.now().toISOString() });
+    const codigo = String(device.device_code);
+    await page.goto('/lacres');
     const tabela = page.getByRole('table', { name: 'Lacres da organização' });
     await expect(tabela.getByRole('link', { name: /Lacre do pátio/ })).toBeVisible();
     await expect(tabela.getByText('Nunca comunicou')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Cadastrar dispositivo' })).toHaveCount(0);
 
     // O lacre liga e avisa a ativação (o que a borda gravaria).
-    const device = backend.seals.rows('devices').find((d) => d.device_code === codigo)!;
     ativarDispositivo(backend.seals, String(device.device_id));
 
     const cil = cilindro(backend, 'CIL-006');
@@ -93,8 +75,7 @@ test.describe('Cadastro e vínculo do lacre', () => {
     backend.tenantMemberships = [vinculo(ORG_A, 'Tenant A'), vinculo(ORG_B, 'Tenant B')];
     backend.loginResponses = [backend.authenticated()];
     backend.statusResponse = backend.activeStatus('aal2');
-    const doA = backend.seals.handle('manage', { operation: 'create_device', organization_id: ORG_A, request_id: crypto.randomUUID(), label: 'Lacre do Tenant A' }, () => true);
-    const idDoA = String(doA.json.device_id);
+    const idDoA = String(novoDispositivo(backend.seals, ORG_A, 'Lacre do Tenant A').device_id);
     await backend.install(page);
     await page.goto('/lacres');
     await page.getByLabel('E-mail').fill('admin-a@example.invalid');

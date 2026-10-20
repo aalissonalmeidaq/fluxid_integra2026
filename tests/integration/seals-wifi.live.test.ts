@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { callFunction, endAllSessions, login, logout, supabaseUrl, USERS } from '../support/auth-harness';
-import { sql } from '../support/seal-db';
+import { sql, createTestDevice, loadSealFixtures } from '../support/seal-db';
 import { SealSimulator } from '../support/seal-simulator';
 
 // Spec 012, US7 (T101), contra o Supabase local real: o administrador manda uma rede ao lacre pelo FluxID; a senha fica no Vault só até
@@ -28,9 +28,11 @@ describe('Lacre: redes Wi-Fi configuradas pelo sistema (Spec 012, US7)', () => {
     expect([a.status, b.status]).toEqual([200, 200]);
     tokenA = a.body.session.access_token as string;
     tokenB = b.body.session.access_token as string;
-    const created = await callFunction('manage-seals', { operation: 'create_device', organization_id: ORG_A, request_id: crypto.randomUUID(), label: `Lacre Wi-Fi ${run}` }, tokenA);
-    expect(created.status).toBe(200);
-    device = { id: created.body.device_id as string, code: created.body.device_code as string, key: created.body.device_key as string };
+    // Spec 013 (RF-018): o cadastro manual saiu da borda; o lacre de teste nasce pelo apoio de SQL, já destinado ao Tenant A.
+    loadSealFixtures();
+    const key = `chave-live-wifi-${run}`;
+    const created = createTestDevice(ORG_A, key, '10000000-0000-0000-0000-000000000002');
+    device = { id: created.device_id, code: created.device_code, key };
   });
 
   afterAll(async () => {

@@ -1,22 +1,30 @@
 // Firmware do lacre FluxID (Spec 012, "Requisitos para o firmware"). A cada intervalo combinado (padrao 1 minuto), mesmo
 // parado, le a posicao, guarda na fila e chama o seal-gateway com o lote; le o comando da resposta, executa e confirma.
-// As regras ficam em src/nucleo (testadas no computador); aqui so o hardware e a ordem das coisas.
+// Spec 013: um unico firmware para todos os lacres. O codigo vem do chip e a chave e criada pelo lacre (nucleo/Identidade); sem rede
+// salva (ou com o botao BOOT segurado), abre a rede de configuracao (PortalWiFi); ate o Master aprovar, so pede aprovacao, sem
+// leituras na fila (nucleo/Aprovacao). As regras ficam em src/nucleo (testadas no computador); aqui so o hardware e a ordem das coisas.
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include <esp_random.h>
 #include <esp_sleep.h>
+#include <esp_system.h>
 
 #include <ConexaoWiFi.h>
 #include <Estado.h>
 #include <GPS.h>
 #include <LED.h>
 #include <Memoria.h>
+#include <PortalWiFi.h>
 #include <Relogio.h>
 #include <Sensores.h>
 #include <Solenoide.h>
 #include <Transporte.h>
 #include <config.h>
+#include <nucleo/Aprovacao.h>
 #include <nucleo/Fila.h>
+#include <nucleo/Identidade.h>
+#include <nucleo/Portal.h>
 #include <nucleo/Protocolo.h>
 #include <nucleo/Rede.h>
 #include <nucleo/Trava.h>
@@ -36,12 +44,19 @@ namespace
     MemoriaDaTravaNvs memoriaDaTrava;
     Solenoide solenoide(PINO_SOLENOIDE_FECHAR, PINO_SOLENOIDE_ABRIR, DURACAO_PULSO_SOLENOIDE_MS);
     Trava trava(solenoide, memoriaDaTrava);
-    ListaDeRedes redes(FLUXID_WIFI_SSID, FLUXID_WIFI_SENHA);
+    // Spec 013 (RF-019, RN-006): nenhuma rede vem do firmware; a principal vem do portal e fica na NVS.
+    ListaDeRedes redes("", "");
     ConexaoWiFi conexao(redes);
     Vigilancia vigilancia;
     TrocaDeRede troca;
     RegistroDeComandos registro;
-    GeradorDeIds ids(FLUXID_DISPOSITIVO, 0);
+    GeradorDeIds ids("DSP-00000000", 0);
+    Identidade identidade;
+    Aprovacao aprovacao;
+    PortalWiFi portal;
+    JanelaDoPortal janela;
+    BotaoDoPortal botao;
+    uint32_t proximaChamadaEmEsperaMs = 0;
 
     bool filaDisponivel = false;
     uint32_t intervaloS = INTERVALO_PADRAO_S;
@@ -95,6 +110,7 @@ namespace
     void SalvarRedes()
     {
         GravarTexto("redes", redes.Serializar());
+        GravarTexto("principal", redes.SerializarPrincipal());
     }
 
     Leitura LerLeitura(const Ponto& ponto, bool comGps, double precisaoM)
@@ -132,6 +148,87 @@ namespace
             conexao.ProcurarEConectar();
         GuardarResultado(comandoId, false, motivo);
         GuardarTrocaDeRede();
+    }
+
+    void SalvarAprovacao()
+    {
+        GravarTexto("aprovacao", aprovacao.Serializar());
+    }
+
+    RespostaHttp Chamar(const std::string& pedido)
+    {
+        return EnviarAoFluxID(pedido, identidade.codigo, identidade.chave);
+    }
+
+    void GeradorDeHardware(uint8_t* destino, size_t tamanho)
+    {
+        esp_fill_random(destino, tamanho);
+    }
+
+    void EsvaziarFila()
+    {
+        while (filaDisponivel && fila.Tamanho() > 0)
+            fila.DescartarLote(fila.ProximoLote());
+    }
+
+    // Devolvido ou retirado (RN-006): apaga as redes pedidas, a fila e a vigilancia (nada do tenant antigo segue com o lacre) e
+    // confirma nas proximas chamadas.
+    void AplicarEsquecimento()
+    {
+        const Esquecimento escopo = aprovacao.EsquecimentoPedido();
+        if (escopo == Esquecimento::Nenhum)
+            return;
+        redes.Esquecer(escopo);
+        SalvarRedes();
+        EsvaziarFila();
+        vigilancia.Aplicar(DadosVigilancia{});
+        GravarTexto("vigilancia", vigilancia.Serializar());
+        aprovacao.EsquecimentoFeito(escopo);
+        SalvarAprovacao();
+        Serial.printf("Redes esquecidas (%s); rede principal %s.\n", escopo == Esquecimento::Todas ? "todas" : "extras",
+            redes.TemPrincipal() ? "mantida" : "nenhuma");
+        if (!redes.TemAlgumaRede())
+            WiFi.disconnect();
+    }
+
+    // Toda resposta do FluxID passa por aqui: muda o modo (aguardando, operando, recusado) e aplica o esquecimento das redes.
+    void RegistrarRespostaDoPedido(int codigo, const std::string& corpo)
+    {
+        const ModoDoLacre antes = aprovacao.Modo();
+        aprovacao.AoResponder(codigo, corpo);
+        if (aprovacao.AcabouDeSerAprovado())
+        {
+            // A rede principal passa a ser do tenant em que o lacre opera (RN-006).
+            redes.MarcarAprovado();
+            SalvarRedes();
+            ativacaoPendente = true;
+            Serial.println("Lacre aprovado pelo Master: passa a operar.");
+        }
+        if (antes == ModoDoLacre::Operando && aprovacao.Modo() == ModoDoLacre::Aguardando)
+        {
+            EsvaziarFila();
+            bootRegistrado = false;
+            Serial.println("Lacre fora de operacao: volta a pedir aprovacao.");
+        }
+        AplicarEsquecimento();
+        SalvarAprovacao();
+        if (aprovacao.Modo() == ModoDoLacre::Aguardando)
+            estadoAtual = NAO_CADASTRADO;
+        portal.DefinirAprovacao(aprovacao.Modo() == ModoDoLacre::Operando ? AprovacaoNoPortal::Aprovado : AprovacaoNoPortal::Pendente);
+    }
+
+    // Enquanto aguarda (research.md, item 4): so boot, a rede em uso e a confirmacao do esquecimento, sem leituras na fila.
+    int ChamarEmEspera()
+    {
+        if (!conexao.Conectado() || !RelogioAcertado())
+            return -1;
+        const std::vector<std::string> mensagens = aprovacao.MensagensDeEspera(NovoId, Agora(), conexao.EmUso(), redes.Nomes());
+        const RespostaHttp resposta = Chamar(MontarPedido(FLUXID_VERSAO_FIRMWARE, 0, mensagens));
+        Serial.printf("Pedido de aprovacao: HTTP %d\n", resposta.codigo);
+        conexao.RegistrarEnvio(resposta.codigo > 0 && resposta.codigo < 500);
+        if (resposta.codigo > 0)
+            RegistrarRespostaDoPedido(resposta.codigo, resposta.corpo);
+        return resposta.codigo;
     }
 
     void ExecutarComando(const Comando& comando)
@@ -223,13 +320,20 @@ namespace
             std::vector<std::string> mensagens;
             for (const ItemDaFila& item : lote)
                 mensagens.push_back(item.mensagem);
-            resposta = EnviarAoFluxID(MontarPedido(FLUXID_VERSAO_FIRMWARE, vigilancia.Versao(), mensagens));
+            resposta = Chamar(MontarPedido(FLUXID_VERSAO_FIRMWARE, vigilancia.Versao(), mensagens));
         }
         // 5xx ou nada: o FluxID nao respondeu (conta para a trava por perda de comunicacao e para trocar de rede).
         const bool respondeu = resposta.codigo > 0 && resposta.codigo < 500;
         vigilancia.RegistrarEnvio(respondeu);
         conexao.RegistrarEnvio(respondeu);
         Serial.printf("Envio de %u mensagens: HTTP %d; na fila: %u\n", static_cast<unsigned>(lote.size()), resposta.codigo, static_cast<unsigned>(fila.Tamanho()));
+
+        // Spec 013: devolvido ou retirado (202) e recusado (403) tiram o lacre de operacao; nada mais deste lote vale.
+        if (resposta.codigo == 202 || resposta.codigo == 403)
+        {
+            RegistrarRespostaDoPedido(resposta.codigo, resposta.corpo);
+            return;
+        }
 
         switch (ClassificarResposta(resposta.codigo))
         {
@@ -348,6 +452,64 @@ namespace
         }
     }
 
+    // Teste da rede escolhida no portal (RF-004, RF-005): conecta e confere a chegada ao FluxID antes de guardar. Falhou: nada e
+    // guardado e o lacre volta para a rede em que estava.
+    void TestarRedeDoPortal(const RedeGuardada& rede)
+    {
+        const EscolhaDeRede anterior = conexao.Escolha();
+        std::string motivo;
+        if (!conexao.TestarRede(rede, motivo))
+        {
+            portal.ConcluirTeste(false, motivo);
+            if (!anterior.ssid.empty())
+                conexao.Conectar(anterior);
+            return;
+        }
+        // A chamada ao FluxID exige a hora certa (TLS e read_at): espera o SNTP por ate 10 s na rede nova.
+        IniciarRelogio();
+        const uint32_t inicio = millis();
+        while (!RelogioAcertado() && millis() - inicio < 10000UL)
+            delay(200);
+        const int codigo = ChamarEmEspera();
+        if (codigo == 200 || codigo == 202 || codigo == 403)
+        {
+            redes.DefinirPrincipal(rede, true);
+            SalvarRedes();
+            portal.ConcluirTeste(true, "");
+            janela.Sucesso(millis());
+            return;
+        }
+        portal.ConcluirTeste(false, "wifi_no_internet");
+        if (!anterior.ssid.empty())
+            conexao.Conectar(anterior);
+    }
+
+    void AtenderPortal(uint32_t agora)
+    {
+        if (botao.Atualizar(agora, digitalRead(PINO_BOTAO_PORTAL) == LOW))
+        {
+            Serial.println("Botao BOOT: abrindo a rede de configuracao.");
+            janela.PedirAbertura(agora);
+        }
+        const bool aberta = janela.Atualizar(agora, redes.TemAlgumaRede(), portal.TemCliente());
+        portal.DefinirConexao({conexao.RedeAtual(), conexao.ChegaAoFluxID()});
+        if (aberta && !portal.Aberto())
+        {
+            portal.DefinirAprovacao(aprovacao.Modo() == ModoDoLacre::Operando ? AprovacaoNoPortal::Aprovado : AprovacaoNoPortal::Pendente);
+            portal.Abrir(identidade.codigo, FLUXID_PORTAL_SENHA);
+            estadoAtual = MANUTENCAO;
+        }
+        else if (!aberta && portal.Aberto())
+        {
+            portal.Fechar();
+            estadoAtual = aprovacao.Modo() == ModoDoLacre::Operando ? OPERACIONAL : NAO_CADASTRADO;
+        }
+        portal.Atender();
+        RedeGuardada pedida;
+        if (portal.PegarPedidoDeTeste(pedida))
+            TestarRedeDoPortal(pedida);
+    }
+
     void MontarFila()
     {
         ultimaMontagemMs = millis();
@@ -369,9 +531,26 @@ void setup()
     solenoide.Iniciar();
 
     AbrirMemoria();
-    ids = GeradorDeIds(FLUXID_DISPOSITIVO, LerNumero("ids", 0));
+    pinMode(PINO_BOTAO_PORTAL, INPUT_PULLUP);
+    uint8_t mac[6];
+    esp_efuse_mac_get_default(mac);
+#if defined(FLUXID_DISPOSITIVO) && defined(FLUXID_CHAVE)
+    identidade = DefinirIdentidade(mac, LerTexto("chave"), FLUXID_DISPOSITIVO, FLUXID_CHAVE, GeradorDeHardware);
+#else
+    identidade = DefinirIdentidade(mac, LerTexto("chave"), "", "", GeradorDeHardware);
+#endif
+    if (identidade.chaveNova)
+        GravarTexto("chave", identidade.chave);
+    aprovacao = Aprovacao(identidade.cadastroManual);
+    aprovacao.Restaurar(LerTexto("aprovacao"));
+    ids = GeradorDeIds(identidade.codigo, LerNumero("ids", 0));
     intervaloS = LerNumero("intervalo", INTERVALO_PADRAO_S);
     redes.Restaurar(LerTexto("redes"));
+    redes.RestaurarPrincipal(LerTexto("principal"));
+#ifdef FLUXID_REDE_FABRICA_SSID
+    // Spec 013 (RF-023): a rede padrao da plataforma, so enquanto ninguem escolhe a rede do local pelo portal.
+    redes.DefinirRedeDeFabrica(FLUXID_REDE_FABRICA_SSID, FLUXID_REDE_FABRICA_SENHA);
+#endif
     vigilancia.Restaurar(LerTexto("vigilancia"));
     if (!trava.Iniciar())
         Serial.println("ERRO: a solenoide nao respondeu ao restaurar a trava.");
@@ -380,7 +559,11 @@ void setup()
     conexao.Iniciar();
     conexao.ProcurarEConectar();
     IniciarRelogio();
-    Serial.printf("FluxID lacre %s, valvula %s, fila %u\n", FLUXID_VERSAO_FIRMWARE, trava.Fechada() ? "fechada" : "aberta", static_cast<unsigned>(fila.Tamanho()));
+    estadoAtual = aprovacao.Modo() == ModoDoLacre::Operando ? OPERACIONAL : NAO_CADASTRADO;
+    // Diagnostico de bancada: o codigo (publico: o Master o confere com o lacre em maos), nunca a chave.
+    Serial.printf("FluxID lacre %s, codigo %s, %s, valvula %s, fila %u\n", FLUXID_VERSAO_FIRMWARE, identidade.codigo.c_str(),
+        aprovacao.Modo() == ModoDoLacre::Operando ? "operando" : "aguardando aprovacao", trava.Fechada() ? "fechada" : "aberta",
+        static_cast<unsigned>(fila.Tamanho()));
 }
 
 void loop()
@@ -404,6 +587,19 @@ void loop()
 
     if (troca.EmTeste() && troca.Expirou(agora))
         DesistirDaTrocaDeRede("wifi_no_internet");
+
+    AtenderPortal(agora);
+
+    // Sem aprovacao, nada vira leitura nem vai para a fila (RN-003): so o pedido, no intervalo (ou de hora em hora, recusado).
+    if (aprovacao.Modo() == ModoDoLacre::Aguardando)
+    {
+        if (static_cast<int32_t>(agora - proximaChamadaEmEsperaMs) >= 0)
+        {
+            ChamarEmEspera();
+            proximaChamadaEmEsperaMs = millis() + aprovacao.EsperaS() * 1000UL;
+        }
+        return;
+    }
 
     if (static_cast<int32_t>(agora - proximaLeituraMs) >= 0)
     {

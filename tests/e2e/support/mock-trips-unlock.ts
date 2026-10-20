@@ -16,7 +16,6 @@ function registerUnlock({ org, body, can, mock }: TripOperationContext): Reply {
   const exceptional = item.item_status !== 'delivered';
   if (exceptional) {
     if (!can(org, 'trip.exception')) return fail('ACCESS_DENIED', 403);
-    if (mock.aal !== 'aal2') return fail('MFA_REQUIRED', 403);
     if (justification === null || justification.length < 5 || justification.length > 500) return fail('JUSTIFICATION_REQUIRED', 400);
   } else if (justification !== null && justification.length > 500) {
     return fail('JUSTIFICATION_REQUIRED', 400);

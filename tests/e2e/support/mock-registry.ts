@@ -28,8 +28,6 @@ export interface RegisteredOperation {
   kind: 'query' | 'manage';
   // Permissão exigida; uma lista exige qualquer uma delas. Sem permissão, a resposta é 403 ACCESS_DENIED.
   permission: string | readonly string[];
-  // Exige sessão com segundo fator (anonimização, RF-055).
-  mfa?: boolean;
   run: OperationHandler;
 }
 
@@ -144,7 +142,6 @@ export class RegistryMock {
     const definition = this.operations.get(`${kind}:${operation}`);
     // Operação desconhecida (inclusive exclusão) não existe: o servidor recusa (CA-002).
     if (!definition) return fail('VALIDATION_FAILED', 400);
-    if (definition.mfa && this.aal !== 'aal2') return fail('MFA_REQUIRED', 403);
     const required = typeof definition.permission === 'string' ? [definition.permission] : definition.permission;
     if (!required.some((code) => can(org, code))) return fail('ACCESS_DENIED', 403);
     const result = definition.run({ org, body, can, mock: this });

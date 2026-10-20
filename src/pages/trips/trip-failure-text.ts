@@ -32,7 +32,7 @@ export function describeActionFailure(failure: TripFailure, serialOf: (id: strin
     case 'session_expired':
       return { tone: 'error', title: 'Sessão expirada', message: 'Sua sessão expirou e nada foi gravado. Entre de novo para continuar.' };
     case 'mfa_required':
-      return { tone: 'error', title: 'Segundo fator necessário', message: 'O desbloqueio excepcional exige a verificação em duas etapas. Conclua a verificação e tente de novo.' };
+      return { tone: 'error', title: 'Sessão sem permissão', message: 'Sua sessão não permite esta ação agora. Entre de novo e tente outra vez.' };
     case 'access_denied':
       return { tone: 'error', message: 'Você não tem permissão para esta ação.' };
     case 'not_found':

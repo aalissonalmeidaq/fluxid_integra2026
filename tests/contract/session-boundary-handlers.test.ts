@@ -62,7 +62,6 @@ describe('session-status', () => {
     authenticate: vi.fn(async () => ({ userId: USER, sessionId: SESSION, aal: 'aal1' as const })),
     validate: vi.fn(async () => ({ status: 'active' as const, aal: 'aal1' as const, expires_at: '2026-09-30T08:00:00Z' })),
     upgradeAal: vi.fn(async () => undefined),
-    requiresMfa: vi.fn(async () => false),
     audit: vi.fn(async () => undefined),
     ...overrides,
   });
@@ -71,7 +70,7 @@ describe('session-status', () => {
     const gw = gateway();
     const response = await createSessionStatusHandler(gw)(request('jwt'));
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ code: 'SESSION_ACTIVE', aal: 'aal1', expires_at: '2026-09-30T08:00:00Z', mfa_required: false });
+    expect(await response.json()).toEqual({ code: 'SESSION_ACTIVE', aal: 'aal1', expires_at: '2026-09-30T08:00:00Z' });
     expect(gw.validate).toHaveBeenCalledWith(USER, SESSION);
   });
 
@@ -82,21 +81,7 @@ describe('session-status', () => {
     expect(gw.upgradeAal).toHaveBeenCalledWith(USER, SESSION);
   });
 
-  it('informa mfa_required para perfil global ainda em AAL1', async () => {
-    const gw = gateway({ requiresMfa: vi.fn(async () => true) });
-    const body = await (await createSessionStatusHandler(gw)(request('jwt'))).json();
-    expect(body.mfa_required).toBe(true);
-    expect(gw.requiresMfa).toHaveBeenCalledWith(USER);
-  });
 
-  it('não exige MFA de novo quando a sessão já está em AAL2', async () => {
-    const gw = gateway({
-      authenticate: vi.fn(async () => ({ userId: USER, sessionId: SESSION, aal: 'aal2' as const })),
-      requiresMfa: vi.fn(async () => true),
-    });
-    const body = await (await createSessionStatusHandler(gw)(request('jwt'))).json();
-    expect(body.mfa_required).toBe(false);
-  });
 
   it('não eleva o AAL quando o token é aal1', async () => {
     const gw = gateway();

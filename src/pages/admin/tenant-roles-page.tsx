@@ -26,7 +26,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const ERROR_MESSAGES: Record<AccessFailure, string> = {
   access_denied: 'Acesso negado. Você não tem autorização para administrar papéis deste tenant.',
-  mfa_required: 'Confirme o segundo fator para continuar.',
+  mfa_required: 'Sua sessão não permite esta ação agora. Entre de novo e tente outra vez.',
   not_delegable: 'Uma das permissões escolhidas não pode ser delegada ao tenant.',
   immutable: 'Papéis preestabelecidos não podem ser alterados. Crie um papel personalizado.',
   conflict: 'O papel foi alterado por outra pessoa. Atualize a página e tente novamente.',
@@ -186,7 +186,7 @@ export function TenantRolesView({ organizationId, rbac, members: membershipServi
                 {delegable.map((item) => (
                   <label key={item.code} className="flex min-h-alvo items-start gap-2 rounded-controle border border-borda-suave p-2 text-corpo">
                     <input type="checkbox" checked={draft.permissions.includes(item.code)} onChange={() => togglePermission(item.code)} className="mt-1 size-6" />
-                    <span><span className="font-semibold">{item.code}</span> — {item.description}{item.critical && <span className="ml-1 rounded-controle bg-alerta-fundo px-1 text-legenda font-semibold text-alerta-texto">crítica: exige segundo fator</span>}</span>
+                    <span><span className="font-semibold">{item.code}</span> — {item.description}{item.critical && <span className="ml-1 rounded-controle bg-alerta-fundo px-1 text-legenda font-semibold text-alerta-texto">crítica</span>}</span>
                   </label>
                 ))}
                 {blocked.map((item) => (

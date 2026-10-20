@@ -6,6 +6,7 @@ import { ATTACHMENT_SIGN_PATH, uploadAttachment } from './mock-trips-attachments
 import { createTripMock } from './mock-trips-plan';
 import { createSealMock } from './mock-seals';
 import { instalarLacres } from './mock-seals-operacoes';
+import { instalarPlataforma } from './mock-seals-plataforma';
 
 // Backend simulado por rede para os E2E de autenticação: exercita a interface e o cliente Supabase reais
 // sem depender de um Supabase em execução. Comportamento real de Auth, RLS e sessões é provado nas suítes
@@ -13,7 +14,6 @@ import { instalarLacres } from './mock-seals-operacoes';
 const ORIGIN = 'http://127.0.0.1:54321';
 // QR Code simulado, como o Auth real o envia: SVG puro (o supabase-js acrescenta o prefixo data:image/svg+xml). Sem "#", que
 // quebraria a URL de dados.
-const QR_SIMULADO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8" width="192" height="192"><rect width="8" height="8" fill="white"/><path d="M0 0h3v3H0zM5 0h3v3H5zM0 5h3v3H0zM4 4h1v1H4zM6 5h2v1H6zM5 7h1v1H5zM7 7h1v1H7z" fill="black"/></svg>';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
 
 const base64Url = (value: unknown): string => Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -113,6 +113,8 @@ export class MockBackend {
     serialDe: (id) => this.cylinders.cylinders.find((c) => c.id === id)?.serial_number ?? null,
     itensDaViagem: (id) => this.trips.itemsOf(id),
   });
+  // Lacres da plataforma (Spec 013): a fila de pedidos do Master, sobre os mesmos lacres simulados.
+  readonly platformSeals = instalarPlataforma(this.seals);
   organizations = [{ id:'20000000-0000-0000-0000-00000000000a',legal_name:'Tenant A Sintético',display_name:'Tenant A',status:'active',version:1 }];
   members = [{ id:'30000000-0000-0000-0000-000000000099',display_name:'Operador A',email:'operador-a@example.invalid',status:'active',version:1 }];
   membersB = [{ id:'30000000-0000-0000-0000-000000000098',display_name:'Operador B',email:'operador-b@example.invalid',status:'active',version:1 }];
@@ -151,9 +153,6 @@ export class MockBackend {
   loginResponses: LoginScript[] = [];
   statusResponse: LoginScript = { status: 401, body: { code: 'SESSION_INVALID' } };
   compatibility = '002.1';
-  aalAfterMfa = 'aal2' as const;
-  factors: Array<{ id: string; factor_type: string; status: string }> = [];
-  verifyOk = true;
   readonly calls: Array<{ path: string; body: unknown }> = [];
   // Atraso em milissegundos por caminho, para exercitar os estados de carregamento.
   delayByPath: Record<string, number> = {};
@@ -168,12 +167,13 @@ export class MockBackend {
     return { access_token: fakeJwt({ aal }), refresh_token: 'refresh-simulado', expires_in: 3600, token_type: 'bearer' };
   }
 
-  authenticated(code: 'AUTHENTICATED' | 'MFA_REQUIRED' = 'AUTHENTICATED'): LoginScript {
-    return { status: 200, body: { code, session: this.session() } };
+  // Spec 013 (RF-021): o login é só com e-mail e senha; o servidor nunca responde MFA_REQUIRED.
+  authenticated(): LoginScript {
+    return { status: 200, body: { code: 'AUTHENTICATED', session: this.session() } };
   }
 
-  activeStatus(aal: 'aal1' | 'aal2' = 'aal1', mfaRequired = false): LoginScript {
-    return { status: 200, body: { code: 'SESSION_ACTIVE', aal, expires_at: new Date(Date.now() + 8 * 3600_000).toISOString(), mfa_required: mfaRequired } };
+  activeStatus(aal: 'aal1' | 'aal2' = 'aal1'): LoginScript {
+    return { status: 200, body: { code: 'SESSION_ACTIVE', aal, expires_at: new Date(Date.now() + 8 * 3600_000).toISOString() } };
   }
 
   async install(page: Page): Promise<void> {
@@ -219,6 +219,10 @@ export class MockBackend {
     }
     if (pathname === '/functions/v1/query-trips' || pathname === '/functions/v1/manage-trips') {
       const reply = this.trips.handle(pathname.endsWith('query-trips') ? 'query' : 'manage', (body ?? {}) as Record<string, unknown>, (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code));
+      return respond(reply.status, reply.json);
+    }
+    if (pathname === '/functions/v1/platform-seals') {
+      const reply = this.platformSeals.handle((body ?? {}) as Record<string, unknown>, this.globalPermissions.includes('platform.manage'));
       return respond(reply.status, reply.json);
     }
     if (pathname === '/functions/v1/query-seals' || pathname === '/functions/v1/manage-seals') {
@@ -308,16 +312,7 @@ export class MockBackend {
     }
     if (pathname === '/auth/v1/logout') return route.fulfill({ status: 204, headers: CORS });
     if (pathname === '/auth/v1/user') {
-      return respond(200, { id: '10000000-0000-0000-0000-000000000004', aud: 'authenticated', role: 'authenticated', email: 'usuario@example.invalid', factors: this.factors });
-    }
-    if (pathname === '/auth/v1/factors') {
-      this.factors = [{ id: 'fator-1', factor_type: 'totp', status: 'unverified' }];
-      return respond(200, { id: 'fator-1', type: 'totp', totp: { qr_code: QR_SIMULADO, secret: 'JBSWY3DPEHPK3PXP', uri: 'otpauth://totp/FluxID' } });
-    }
-    if (/^\/auth\/v1\/factors\/[^/]+\/challenge$/.test(pathname)) return respond(200, { id: 'desafio-1', expires_at: Math.floor(Date.now() / 1000) + 300 });
-    if (/^\/auth\/v1\/factors\/[^/]+\/verify$/.test(pathname)) {
-      if (!this.verifyOk) return respond(400, { code: 'mfa_verification_failed', message: 'Invalid TOTP code entered' });
-      return respond(200, { ...this.session(this.aalAfterMfa), user: { id: '10000000-0000-0000-0000-000000000004' } });
+      return respond(200, { id: '10000000-0000-0000-0000-000000000004', aud: 'authenticated', role: 'authenticated', email: 'usuario@example.invalid' });
     }
     return respond(404, { message: 'não simulado' });
   }

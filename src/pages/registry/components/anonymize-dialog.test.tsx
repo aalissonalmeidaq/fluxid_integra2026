@@ -117,10 +117,10 @@ describe('botão "Anonimizar dados pessoais"', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('MFA_REQUIRED mostra a orientação de confirmar o segundo fator e mantém o diálogo aberto', async () => {
+  it('MFA_REQUIRED (não acontece mais, Spec 013) mostra uma orientação genérica e mantém o diálogo aberto', async () => {
     const { onDone } = setup({ kind: 'mfa_required' });
     await run();
-    expect(await screen.findByText(/exige o segundo fator de autenticação/)).toBeInTheDocument();
+    expect(await screen.findByText(/Entre de novo e tente outra vez/)).toBeInTheDocument();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(onDone).not.toHaveBeenCalled();
   });

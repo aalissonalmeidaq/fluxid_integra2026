@@ -17,14 +17,22 @@ describe('rotas administrativas × catálogo de telas', () => {
     expect(Object.keys(ADMIN_ROUTES).sort()).toEqual(SCREENS.filter((screen) => !FIXED.includes(screen.path)).map((screen) => screen.path).sort());
     for (const [path, route] of Object.entries(ADMIN_ROUTES)) {
       const screen = SCREENS.find((candidate) => candidate.path === path);
-      expect([route.tenantScoped, route.requireAal2], path).toEqual([screen?.tenantScoped, screen?.requireAal2]);
+      expect(route.tenantScoped, path).toEqual(screen?.tenantScoped);
     }
   });
 
+  it('Lacres da plataforma (Spec 013) exige platform.manage, sem tenant ativo', () => {
+    expect(SCREENS.find((screen) => screen.path === '/admin/lacres')).toMatchObject({
+      label: 'Lacres da plataforma', requires: { scope: 'global', code: 'platform.manage' }, tenantScoped: false,
+    });
+    const ids = SCREENS.map((screen) => screen.id);
+    expect(ids.indexOf('lacres-plataforma')).toBe(ids.indexOf('organizacoes') + 1);
+  });
+
   it('mantém a tabela atual de exigências (RN-002: nenhuma regra de acesso muda)', () => {
-    expect(Object.fromEntries(Object.entries(ADMIN_ROUTES).map(([path, route]) => [path, [route.tenantScoped, route.requireAal2]]))).toEqual({
-      '/admin/tenants': [false, true], '/admin/membros': [true, true], '/admin/papeis': [true, true],
-      '/admin/auditoria': [true, false], '/admin/auditoria-global': [false, true],
+    expect(Object.fromEntries(Object.entries(ADMIN_ROUTES).map(([path, route]) => [path, route.tenantScoped]))).toEqual({
+      '/admin/tenants': false, '/admin/membros': true, '/admin/papeis': true,
+      '/admin/auditoria': true, '/admin/auditoria-global': false, '/admin/lacres': false,
     });
   });
 });

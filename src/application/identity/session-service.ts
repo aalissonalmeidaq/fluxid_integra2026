@@ -25,7 +25,6 @@ export interface LoginInput { email: string; password: string; revokeSessionId?:
 
 export type LoginOutcome =
   | { kind: 'authenticated' }
-  | { kind: 'mfa_required' }
   | { kind: 'session_limit'; sessions: ActiveSessionSummary[] }
   | { kind: 'invalid_credentials' }
   | { kind: 'account_unavailable' }
@@ -34,13 +33,13 @@ export type LoginOutcome =
   | { kind: 'unavailable' };
 
 export type SessionCheck =
-  | { kind: 'active'; aal: AssuranceLevel; expiresAt: string; mfaRequired: boolean }
+  | { kind: 'active'; aal: AssuranceLevel; expiresAt: string }
   | { kind: 'expired'; reason?: ExpiryReason }
   | { kind: 'revoked' }
   | { kind: 'missing' }
   | { kind: 'unreachable' };
 
-interface Body { code?: unknown; session?: unknown; sessions?: unknown; aal?: unknown; expires_at?: unknown; reason?: unknown; mfa_required?: unknown }
+interface Body { code?: unknown; session?: unknown; sessions?: unknown; aal?: unknown; expires_at?: unknown; reason?: unknown }
 
 const asBody = (value: unknown): Body => (value && typeof value === 'object' ? (value as Body) : {});
 
@@ -69,12 +68,11 @@ export class SessionService {
 
     const body = asBody(response.body);
     switch (body.code) {
-      case 'AUTHENTICATED':
-      case 'MFA_REQUIRED': {
+      case 'AUTHENTICATED': {
         const session = asSession(body.session);
         if (response.status !== 200 || !session) return { kind: 'unavailable' };
         await this.store.apply(session);
-        return { kind: body.code === 'MFA_REQUIRED' ? 'mfa_required' : 'authenticated' };
+        return { kind: 'authenticated' };
       }
       case 'SESSION_LIMIT_REACHED':
         return { kind: 'session_limit', sessions: Array.isArray(body.sessions) ? (body.sessions as ActiveSessionSummary[]) : [] };
@@ -116,7 +114,7 @@ export class SessionService {
 
     const body = asBody(response.body);
     if (body.code === 'SESSION_ACTIVE' && typeof body.expires_at === 'string') {
-      return { kind: 'active', aal: body.aal === 'aal2' ? 'aal2' : 'aal1', expiresAt: body.expires_at, mfaRequired: body.mfa_required === true };
+      return { kind: 'active', aal: body.aal === 'aal2' ? 'aal2' : 'aal1', expiresAt: body.expires_at };
     }
     if (body.code === 'SESSION_EXPIRED') {
       await this.store.clear();

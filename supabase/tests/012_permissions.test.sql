@@ -41,11 +41,10 @@ insert into public.seal_bindings (organization_id, device_id, cylinder_id, bound
   ('20000000-0000-0000-0000-00000000000a', 'a2100000-0000-0000-0000-0000000000a1', 'a2180000-0000-0000-0000-0000000000a1', '10000000-0000-0000-0000-000000000002');
 
 select is(public.request_unlock('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000001205a2', '20000000-0000-0000-0000-00000000000a',
-  gen_random_uuid(), 'a2180000-0000-0000-0000-0000000000a1', 'Cliente conferiu o cilindro.')->>'code', 'MFA_REQUIRED', 'destravar sem segundo fator: MFA_REQUIRED');
-update public.user_sessions set aal = 'aal2' where session_id = '60000000-0000-0000-0000-0000001205a2';
-select is(public.request_unlock('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000001205a2', '20000000-0000-0000-0000-00000000000a',
-  gen_random_uuid(), 'a2180000-0000-0000-0000-0000000000a1', 'Cliente conferiu o cilindro.')->>'code', 'REQUESTED', 'com segundo fator e justificativa: pedido');
-select is((select origin || ':' || aal from public.seal_commands where device_id = 'a2100000-0000-0000-0000-0000000000a1' and kind = 'unlock'), 'exceptional:aal2',
+  gen_random_uuid(), 'a2180000-0000-0000-0000-0000000000a1', 'Cliente conferiu o cilindro.')->>'code', 'REQUESTED', 'destravar com e-mail e senha (aal1) e justificativa: pedido (Spec 013)');
+select is((select count(*)::int from public.seal_commands where device_id = 'a2100000-0000-0000-0000-0000000000a1' and kind = 'unlock'), 1,
+  'um só pedido de destravar');
+select is((select origin || ':' || aal from public.seal_commands where device_id = 'a2100000-0000-0000-0000-0000000000a1' and kind = 'unlock'), 'exceptional:aal1',
   'origem excepcional, com o nível da sessão');
 select ok((select count(*) = 1 and bool_and(metadata::text not like '%conferiu%' and metadata::text !~ '-7\.|-39\.') from public.audit_logs
   where action = 'seal.unlock_exceptional'), 'auditoria do destravamento excepcional sem justificativa nem coordenada');

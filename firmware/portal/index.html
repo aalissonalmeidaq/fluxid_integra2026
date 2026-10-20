@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configurar o lacre FluxID</title>
+<!-- Spec 013 (contracts/portal-do-lacre.md): pagina do portal de configuracao, servida pelo proprio lacre, sem internet e sem nada
+     externo. Embutida no firmware por ferramentas/embutir_portal.py e testada no navegador por tests/e2e/portal-lacre.spec.ts. -->
+<style>
+:root {
+  --navy: #0b1f3a; --azul: #1d4ed8; --azul-escuro: #1e3a8a; --grafite: #1f2937; --secundario: #4b5563; --borda: #9ca3af;
+  --fundo: #f3f6fb; --branco: #ffffff; --erro: #b91c1c; --erro-fundo: #fef2f2; --sucesso: #166534; --sucesso-fundo: #f0fdf4;
+  --info-fundo: #eff6ff; --foco: #f59e0b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fundo); color: var(--grafite); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 40rem; margin: 0 auto; padding: 1rem; }
+h1 { margin: 0 0 .25rem; color: var(--navy); font-size: 1.5rem; line-height: 1.25; }
+h2 { margin: 0 0 .5rem; color: var(--navy); font-size: 1.125rem; }
+p { margin: 0 0 .75rem; }
+.cartao { background: var(--branco); border: 1px solid var(--borda); border-radius: .75rem; padding: 1rem; margin: 0 0 1rem; }
+.codigo { font-weight: 700; font-size: 1.25rem; letter-spacing: .05em; color: var(--navy); overflow-wrap: anywhere; }
+fieldset { border: 0; margin: 0 0 1rem; padding: 0; min-width: 0; }
+legend { font-weight: 700; color: var(--navy); margin-bottom: .5rem; }
+.rede { display: flex; align-items: center; gap: .75rem; min-height: 44px; padding: .5rem .75rem; border: 1px solid var(--borda);
+  border-radius: .5rem; margin-bottom: .5rem; background: var(--branco); cursor: pointer; }
+.rede input { width: 1.25rem; height: 1.25rem; flex: none; }
+.rede .nome { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.rede .detalhe { color: var(--secundario); font-size: .875rem; white-space: nowrap; }
+label.campo { display: block; font-weight: 600; margin: .75rem 0 .25rem; }
+input[type="text"], input[type="password"] { width: 100%; min-height: 44px; padding: .5rem .75rem; border: 1px solid var(--borda);
+  border-radius: .5rem; font: inherit; color: var(--grafite); background: var(--branco); }
+.ajuda { color: var(--secundario); font-size: .875rem; margin: .25rem 0 0; }
+.erro-campo { color: var(--erro); font-size: .875rem; margin: .25rem 0 0; }
+button { min-height: 44px; min-width: 44px; padding: .5rem 1rem; border-radius: .5rem; border: 2px solid var(--azul); font: inherit;
+  font-weight: 700; cursor: pointer; }
+.primario { background: var(--azul); color: var(--branco); }
+.secundario { background: var(--branco); color: var(--azul-escuro); }
+button:disabled { opacity: .6; cursor: not-allowed; }
+.acoes { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+.situacao { border-radius: .5rem; padding: .75rem 1rem; margin: 0 0 1rem; border: 1px solid var(--borda); background: var(--info-fundo); }
+.situacao[data-tom="erro"] { background: var(--erro-fundo); border-color: var(--erro); color: var(--erro); }
+.situacao[data-tom="sucesso"] { background: var(--sucesso-fundo); border-color: var(--sucesso); color: var(--sucesso); }
+.situacao:empty { display: none; }
+.conexao { border-radius: .5rem; padding: .75rem 1rem; margin: 0; border: 1px solid var(--borda); background: var(--info-fundo); }
+.conexao[data-tom="erro"] { background: var(--erro-fundo); border-color: var(--erro); color: var(--erro); }
+.conexao[data-tom="sucesso"] { background: var(--sucesso-fundo); border-color: var(--sucesso); color: var(--sucesso); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Configurar o lacre FluxID</h1>
+  <p>Escolha a rede Wi-Fi que o lacre vai usar. Ele testa a rede antes de guardar.</p>
+
+  <section class="cartao" aria-labelledby="titulo-codigo">
+    <h2 id="titulo-codigo">Código do lacre</h2>
+    <p class="codigo" id="codigo">Carregando…</p>
+    <p class="ajuda">Confira este código com o que aparece para o Master no FluxID.</p>
+  </section>
+
+  <section class="cartao" aria-labelledby="titulo-conexao">
+    <h2 id="titulo-conexao">Conexão do lacre</h2>
+    <p id="conexao" class="conexao" role="status" aria-live="polite" aria-atomic="true" data-tom="info">Consultando a conexão do lacre…</p>
+  </section>
+
+  <div id="situacao" class="situacao" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <form id="formulario" class="cartao" novalidate>
+    <fieldset>
+      <legend>Redes ao alcance</legend>
+      <div id="redes"><p class="ajuda">Procurando redes…</p></div>
+      <label class="rede">
+        <input type="radio" name="rede" value="__oculta__" id="opcao-oculta">
+        <span class="nome">Outra rede (oculta)</span>
+      </label>
+    </fieldset>
+
+    <div id="bloco-oculta" hidden>
+      <label class="campo" for="nome-oculta">Nome da rede</label>
+      <input type="text" id="nome-oculta" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="erro-nome">
+      <p class="erro-campo" id="erro-nome"></p>
+      <label class="rede" for="oculta-aberta"><input type="checkbox" id="oculta-aberta"><span class="nome">Rede aberta, sem senha</span></label>
+    </div>
+
+    <div id="bloco-senha">
+      <label class="campo" for="senha">Senha da rede</label>
+      <input type="password" id="senha" autocomplete="off" aria-describedby="ajuda-senha erro-senha">
+      <p class="ajuda" id="ajuda-senha">De 8 a 63 caracteres.</p>
+      <p class="erro-campo" id="erro-senha"></p>
+    </div>
+    <p class="erro-campo" id="erro-rede"></p>
+
+    <div class="acoes">
+      <button type="submit" class="primario" id="testar">Testar e guardar a rede</button>
+      <button type="button" class="secundario" id="atualizar">Procurar redes de novo</button>
+    </div>
+  </form>
+</main>
+<script>
+(function () {
+  "use strict";
+  var MENSAGENS = {
+    wifi_auth: "Senha errada. Confira a senha da rede e tente de novo.",
+    wifi_not_found: "Rede fora do alcance. Aproxime o lacre do roteador ou escolha outra rede.",
+    wifi_no_internet: "A rede não deu acesso ao FluxID (sem internet ou sem resposta). Escolha outra rede ou confira a conexão."
+  };
+  var codigo = "";
+  var redes = [];
+  var testando = false;
+  var el = function (id) { return document.getElementById(id); };
+  var bytes = function (texto) { return new TextEncoder().encode(texto).length; };
+
+  function avisar(texto, tom) {
+    var caixa = el("situacao");
+    caixa.setAttribute("data-tom", tom || "info");
+    caixa.textContent = texto;
+  }
+
+  function escolhida() {
+    var marcada = document.querySelector('input[name="rede"]:checked');
+    if (!marcada) return null;
+    if (marcada.value === "__oculta__") return { ssid: el("nome-oculta").value, aberta: el("oculta-aberta").checked, oculta: true };
+    var rede = redes[Number(marcada.value)];
+    return { ssid: rede.ssid, aberta: rede.aberta, oculta: false };
+  }
+
+  function atualizarCampos() {
+    var rede = escolhida();
+    el("bloco-oculta").hidden = !(rede && rede.oculta);
+    el("bloco-senha").hidden = Boolean(rede && rede.aberta);
+  }
+
+  function desenharRedes() {
+    var lista = el("redes");
+    lista.textContent = "";
+    if (redes.length === 0) {
+      var vazio = document.createElement("p");
+      vazio.className = "ajuda";
+      vazio.textContent = "Nenhuma rede encontrada. Use “Outra rede (oculta)” ou procure de novo.";
+      lista.appendChild(vazio);
+      return;
+    }
+    redes.forEach(function (rede, indice) {
+      var rotulo = document.createElement("label");
+      rotulo.className = "rede";
+      var opcao = document.createElement("input");
+      opcao.type = "radio";
+      opcao.name = "rede";
+      opcao.value = String(indice);
+      var nome = document.createElement("span");
+      nome.className = "nome";
+      nome.textContent = rede.ssid;
+      var detalhe = document.createElement("span");
+      detalhe.className = "detalhe";
+      detalhe.textContent = "Sinal " + rede.sinal + (rede.aberta ? " · aberta" : "");
+      rotulo.appendChild(opcao);
+      rotulo.appendChild(nome);
+      rotulo.appendChild(detalhe);
+      lista.appendChild(rotulo);
+    });
+  }
+
+  // Spec 013 (RF-024): ao abrir, e a cada 5 s fora de um teste, a pagina mostra se o lacre ja esta conectado, por qual rede e se
+  // chega ao FluxID. O nome da rede entra so como texto (textContent), nunca como HTML.
+  function mostrarConexao(conexao) {
+    var texto, tom;
+    if (!conexao || !conexao.rede) {
+      texto = "O lacre ainda não está conectado a nenhuma rede Wi-Fi. Escolha a rede abaixo."; tom = "erro";
+    } else if (!conexao.fluxid) {
+      texto = "Conectado à rede " + conexao.rede + ", mas ainda sem resposta do FluxID (sem internet ou aguardando o primeiro envio)."; tom = "info";
+    } else if (conexao.aprovacao === "aprovado") {
+      texto = "Conectado à rede " + conexao.rede + ", com internet e acesso ao FluxID. O lacre está em operação."; tom = "sucesso";
+    } else {
+      texto = "Conectado à rede " + conexao.rede + ", com internet e acesso ao FluxID. Aguardando vinculação a um tenant pelo Master."; tom = "sucesso";
+    }
+    var caixa = el("conexao");
+    if (caixa.textContent === texto) return;
+    caixa.setAttribute("data-tom", tom);
+    caixa.textContent = texto;
+  }
+
+  function consultarConexao() {
+    if (testando) { setTimeout(consultarConexao, 5000); return; }
+    fetch("/situacao", { cache: "no-store" }).then(function (resposta) { return resposta.json(); }).then(function (dados) {
+      if (!testando) mostrarConexao(dados.conexao);
+    }).catch(function () {
+      var caixa = el("conexao");
+      caixa.setAttribute("data-tom", "erro");
+      caixa.textContent = "Não foi possível consultar a conexão do lacre. Confira se continua na rede de configuração.";
+    }).then(function () { setTimeout(consultarConexao, 5000); });
+  }
+
+  function carregarRedes() {
+    el("redes").innerHTML = '<p class="ajuda">Procurando redes…</p>';
+    return fetch("/redes", { cache: "no-store" }).then(function (resposta) { return resposta.json(); }).then(function (dados) {
+      codigo = dados.codigo || "";
+      el("codigo").textContent = codigo || "Indisponível";
+      redes = Array.isArray(dados.redes) ? dados.redes : [];
+      desenharRedes();
+      atualizarCampos();
+    }).catch(function () {
+      el("redes").innerHTML = "";
+      avisar("Não foi possível listar as redes. Procure de novo.", "erro");
+    });
+  }
+
+  function acompanhar() {
+    fetch("/situacao", { cache: "no-store" }).then(function (resposta) { return resposta.json(); }).then(function (dados) {
+      if (dados.situacao === "testando") { setTimeout(acompanhar, 2000); return; }
+      testando = false;
+      el("testar").disabled = false;
+      mostrarConexao(dados.conexao);
+      if (dados.situacao === "conectado") {
+        avisar(dados.aprovacao === "aprovado"
+          ? "Conectado. O lacre voltou a operar com a nova rede. Código " + codigo + "."
+          : "Conectado à internet e ao FluxID. O lacre aguarda a vinculação a um tenant pelo Master. Código " + codigo + ".", "sucesso");
+      } else {
+        avisar(MENSAGENS[dados.motivo] || MENSAGENS.wifi_no_internet, "erro");
+      }
+    }).catch(function () { setTimeout(acompanhar, 2000); });
+  }
+
+  function validar(rede, senha) {
+    el("erro-nome").textContent = "";
+    el("erro-senha").textContent = "";
+    el("erro-rede").textContent = "";
+    if (!rede) { el("erro-rede").textContent = "Escolha uma rede."; return false; }
+    if (rede.oculta && (rede.ssid.trim() === "" || bytes(rede.ssid) > 32)) {
+      el("erro-nome").textContent = "Informe o nome da rede com até 32 caracteres.";
+      el("nome-oculta").focus();
+      return false;
+    }
+    if (!rede.aberta && (senha.length < 8 || senha.length > 63)) {
+      el("erro-senha").textContent = "A senha da rede tem de 8 a 63 caracteres.";
+      el("senha").focus();
+      return false;
+    }
+    return true;
+  }
+
+  el("formulario").addEventListener("change", atualizarCampos);
+  el("atualizar").addEventListener("click", function () { carregarRedes(); });
+  el("formulario").addEventListener("submit", function (evento) {
+    evento.preventDefault();
+    if (testando) return;
+    var rede = escolhida();
+    var campoSenha = el("senha");
+    var senha = campoSenha.value;
+    if (!validar(rede, senha)) return;
+    var corpo = new URLSearchParams();
+    corpo.set("ssid", rede.oculta ? rede.ssid.trim() : rede.ssid);
+    corpo.set("senha", rede.aberta ? "" : senha);
+    corpo.set("aberta", rede.aberta ? "1" : "0");
+    // A senha vai so neste pedido e nunca volta para a pagina.
+    campoSenha.value = "";
+    testando = true;
+    el("testar").disabled = true;
+    avisar("Testando a rede… isso pode levar até um minuto.", "info");
+    fetch("/testar", { method: "POST", body: corpo }).then(function (resposta) {
+      if (resposta.status === 409) {
+        testando = false;
+        el("testar").disabled = false;
+        avisar("Já há um teste de rede em andamento. Aguarde e tente de novo.", "erro");
+        return;
+      }
+      setTimeout(acompanhar, 2000);
+    }).catch(function () {
+      testando = false;
+      el("testar").disabled = false;
+      avisar("Não foi possível falar com o lacre. Confira se continua na rede de configuração.", "erro");
+    });
+  });
+
+  carregarRedes();
+  consultarConexao();
+})();
+</script>
+</body>
+</html>

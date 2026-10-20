@@ -30,7 +30,6 @@ export function createInviteUserHandler(gateway:InvitationGateway){return async(
   if(body.operation!=='invite'&&body.operation!=='resend')return json({code:'VALIDATION_FAILED'},400);
   const organizationId=typeof body.organization_id==='string'?body.organization_id:'',roleId=typeof body.role_id==='string'?body.role_id:'',email=typeof body.email==='string'?body.email.trim().toLowerCase():'',justification=typeof body.justification==='string'?body.justification.trim():'';
   if(!UUID_PATTERN.test(organizationId)||!UUID_PATTERN.test(roleId)||!EMAIL.test(email)||email.length>254||justification.length<10||justification.length>500)return json({code:'VALIDATION_FAILED'},400);
-  if(identity.aal!=='aal2')return json({code:'MFA_REQUIRED'},403);
   if(!await gateway.authorize({actorId:identity.userId,sessionId:identity.sessionId,organizationId})){
     // Não grava o tenant solicitado: pode ser sondagem entre tenants e apareceria na auditoria do tenant sondado (AUD-005).
     await gateway.audit({actorId:identity.userId,action:'invitation.send',result:'denied',reason:'permission_denied'});return json({code:'ACCESS_DENIED'},403);

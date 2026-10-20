@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { createFetchSessionTransport, createMfaClient, createSupabaseSessionStore } from './session-adapters';
+import { createFetchSessionTransport, createSupabaseSessionStore } from './session-adapters';
 
 const endpoint = { url: 'https://projeto.example.test/', publishableKey: 'sb_publishable_teste' };
 
@@ -77,19 +77,3 @@ describe('createSupabaseSessionStore', () => {
   });
 });
 
-describe('createMfaClient', () => {
-  it('delega ao cliente de MFA TOTP do Auth', async () => {
-    const mfa = {
-      listFactors: vi.fn(async () => ({ data: { totp: [] }, error: null })),
-      enroll: vi.fn(async () => ({ data: null, error: null })),
-      challenge: vi.fn(async () => ({ data: null, error: null })),
-      verify: vi.fn(async () => ({ data: null, error: null })),
-      unenroll: vi.fn(async () => ({ error: null })),
-    };
-    const adapter = createMfaClient({ auth: { mfa } } as unknown as SupabaseClient);
-    await adapter.enroll({ friendlyName: 'FluxID teste' });
-    await adapter.verify({ factorId: 'f', challengeId: 'c', code: '123456' });
-    expect(mfa.enroll).toHaveBeenCalledWith({ factorType: 'totp', friendlyName: 'FluxID teste' });
-    expect(mfa.verify).toHaveBeenCalledWith({ factorId: 'f', challengeId: 'c', code: '123456' });
-  });
-});

@@ -83,7 +83,7 @@ const reasoned = (target: string, arg: string): Record<string, [Rule, string]> =
   justification: [{ t: 'text', max: 500 }, 'p_justification'],
 });
 
-// Anonimização (RF-055, RF-056): exige sessão aal2 (decidido na borda e repetido no banco), motivo da lista, justificativa e confirmação. A
+// Anonimização (RF-055, RF-056): sem segundo fator desde a Spec 013 (RF-021): motivo da lista, justificativa e confirmação. A
 // confirmação passa adiante como veio: a falta dela é recusada pelo banco como CONFIRMATION_REQUIRED.
 const anonymizationFields = (): Record<string, [Rule, string]> => ({
   reason: [{ t: 'enum', values: ['data_subject_request', 'retention_expired', 'other'] }, 'p_reason'],
@@ -158,14 +158,14 @@ export const MANAGE_OPERATIONS: Record<string, OperationSpec> = {
   inactivate_driver: { rpc: 'inactivate_driver', action: 'driver.inactivate', fields: reasoned('driver_id', 'p_driver') },
   reactivate_driver: { rpc: 'reactivate_driver', action: 'driver.reactivate', fields: reasoned('driver_id', 'p_driver') },
   anonymize_driver: {
-    rpc: 'anonymize_driver', action: 'driver.anonymize', mfa: true,
+    rpc: 'anonymize_driver', action: 'driver.anonymize',
     fields: { driver_id: [{ t: 'uuid' }, 'p_driver'], expected_version: version, ...anonymizationFields() },
   },
   anonymize_customer: {
-    rpc: 'anonymize_customer', action: 'customer.anonymize', mfa: true,
+    rpc: 'anonymize_customer', action: 'customer.anonymize',
     fields: { customer_id: [{ t: 'uuid' }, 'p_customer'], expected_version: version, ...anonymizationFields() },
   },
-  anonymize_contact: { rpc: 'anonymize_contact', action: 'customer.contact_anonymize', mfa: true, fields: { contact_id: [{ t: 'uuid' }, 'p_contact'], ...anonymizationFields() } },
+  anonymize_contact: { rpc: 'anonymize_contact', action: 'customer.contact_anonymize', fields: { contact_id: [{ t: 'uuid' }, 'p_contact'], ...anonymizationFields() } },
   update_site: { rpc: 'update_site', action: 'site.update', fields: { site_id: [{ t: 'uuid' }, 'p_site'], expected_version: version, ...siteFields() } },
 };
 

@@ -31,7 +31,7 @@ const COLUNAS: readonly ColunaDaTabela<AuditEventView>[] = [
 
 const LOAD_FAILURES: Record<AuditFailure, string> = {
   access_denied: 'Acesso negado. Você precisa da permissão de consulta de auditoria.',
-  mfa_required: 'Confirme o segundo fator para consultar a auditoria.',
+  mfa_required: 'Sua sessão não permite esta ação agora. Entre de novo e tente outra vez.',
   invalid: 'Revise os filtros informados.',
   unavailable: 'Não foi possível carregar a auditoria agora.',
 };

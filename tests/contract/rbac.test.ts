@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createManageAccessHandler, type AccessGateway } from '../../supabase/functions/manage-access/handler';
 
+
 const ACTOR = '10000000-0000-0000-0000-000000000002';
 const SESSION = '60000000-0000-0000-0000-000000000001';
 const TENANT_A = '20000000-0000-0000-0000-00000000000a';
@@ -201,7 +202,7 @@ describe('manage-access: atribuição de papéis', () => {
   });
 });
 
-describe('manage-access: MFA e auditoria de negações', () => {
+describe('manage-access: sem segundo fator e auditoria de negações', () => {
   const aal1 = () => gateway({ authenticate: vi.fn(async () => ({ userId: ACTOR, sessionId: SESSION, aal: 'aal1' as const })) });
 
   it.each([
@@ -209,13 +210,10 @@ describe('manage-access: MFA e auditoria de negações', () => {
     ['set_role_active', { operation: 'set_role_active', organization_id: TENANT_A, role_id: ROLE, active: false, expected_version: 1, justification: JUSTIFICATION }, 'role.set_active'],
     ['assign_role', { operation: 'assign_role', organization_id: TENANT_A, membership_id: MEMBER, role_id: ROLE, justification: JUSTIFICATION }, 'role.assign'],
     ['remove_role', { operation: 'remove_role', organization_id: TENANT_A, membership_id: MEMBER, role_id: ROLE, justification: JUSTIFICATION }, 'role.unassign'],
-  ])('exige MFA AAL2 em %s, não executa a mutação e audita a negação', async (_name, body, action) => {
+  ])('Spec 013 (RF-021): %s segue com sessão AAL1, sem negação por MFA', async (_name, body, action) => {
     const gw = aal1();
-    expect(await call(gw, body)).toEqual({ status: 403, body: { code: 'MFA_REQUIRED' } });
-    expect(gw.saveRole).not.toHaveBeenCalled();
-    expect(gw.setRoleActive).not.toHaveBeenCalled();
-    expect(gw.changeAssignment).not.toHaveBeenCalled();
-    expect(gw.audit).toHaveBeenCalledWith({ actorId: ACTOR, action, result: 'denied', reason: 'mfa_required' });
+    expect((await call(gw, body)).body.code).not.toBe('MFA_REQUIRED');
+    expect(gw.audit).not.toHaveBeenCalledWith({ actorId: ACTOR, action, result: 'denied', reason: 'mfa_required' });
   });
 
   it('não grava o tenant solicitado nem o alvo quando a permissão é negada', async () => {

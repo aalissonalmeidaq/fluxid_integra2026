@@ -57,7 +57,6 @@ export function ActiveSessionsDialog({ sessions, pending, onConfirm, onCancel }:
             <span className="text-corpo">
               <span className="block font-medium">Sessão iniciada em {formatDate(session.started_at)}</span>
               <span className="block">Última atividade: {formatDate(session.last_seen_at)}</span>
-              {session.aal === 'aal2' && <span className="block">Verificação em duas etapas ativa</span>}
             </span>
           </label>
         ))}

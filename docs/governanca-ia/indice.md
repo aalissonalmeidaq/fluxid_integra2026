@@ -57,6 +57,8 @@
 
 | RIA-032 | 18/10/2026, 16:26:17 - America/Fortaleza | 012 | 01 | Lacre IoT, geocerca e trava | `registros/32_Lacre_IoT_Geocerca_e_Trava.docx` (`RIA-032-lacre-iot-geocerca-e-trava.md`) | Utilizado |
 
+| RIA-033 | 20/10/2026, 03:09:00 - America/Fortaleza | 013 | 01 | Aprovação e destinação de lacres pelo Master | `registros/RIA-033-aprovacao-e-destinacao-de-lacres-pelo-master.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
@@ -95,3 +97,5 @@
 > Atualização do RIA-032: em 18/10/2026, a pedido da pessoa responsável, o balão do ponto do lacre no mapa passou a mostrar o endereço aproximado das coordenadas. O endereço já consultado aparece ao abrir o balão; se ainda não foi consultado, o balão traz o aviso de que as coordenadas vão ao OpenStreetMap/Nominatim e o botão "Mostrar endereço", cujo clique é a confirmação (a regra de consultar só depois da confirmação foi mantida). O resultado é o mesmo do "Descobrir endereço" da página, sem consulta duplicada, e a linha do endereço é anunciada como status. Testes do balão e do detalhe do lacre, lint, typecheck e build aprovados.
 
 > Atualização do RIA-032: ainda em 18/10/2026, no PR #47, a regressão visual dos lacres oscilou entre execuções (detalhe do lacre e detalhe do alerta). As capturas de referência tinham sido geradas com o mapa vazio: para fotografar a página inteira o Playwright aumenta a janela e o Leaflet redesenha o ponto e a geocerca, então a foto às vezes saía no meio do redesenho. Os testes passaram a esperar a lista de geocercas e a mascarar a área do mapa, mantendo comparado o texto ao redor; as capturas de lacres foram regeneradas no contêiner Linux do Playwright e passaram 4 vezes seguidas (72 de 72).
+
+> Atualização do RIA-033: em 20/10/2026, o link de revisão da equipe passou da branch `feat/013-aprovacao-lacres-master` para o pull request #49 (https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/49), como pede a regra do registro antes do merge.

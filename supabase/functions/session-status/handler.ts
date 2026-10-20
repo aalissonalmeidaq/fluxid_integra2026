@@ -10,7 +10,6 @@ export interface StatusGateway {
   authenticate(accessToken: string): Promise<{ userId: string; sessionId: string; aal: 'aal1' | 'aal2' } | null>;
   validate(userId: string, sessionId: string): Promise<SessionValidation>;
   upgradeAal(userId: string, sessionId: string): Promise<void>;
-  requiresMfa(userId: string): Promise<boolean>;
   audit(event: { action: 'auth.session.expire'; result: 'success'; actorId: string; sessionId: string; reason?: string }): Promise<void>;
 }
 
@@ -36,9 +35,7 @@ export function createSessionStatusHandler(gateway: StatusGateway) {
           await gateway.upgradeAal(identity.userId, identity.sessionId);
         }
         const aal = identity.aal === 'aal2' ? 'aal2' : validation.aal;
-        // Perfil global em AAL1 só tem a sessão limitada ao fluxo MFA, inclusive ao restaurar a sessão.
-        const mfaRequired = aal !== 'aal2' && await gateway.requiresMfa(identity.userId);
-        return json({ code: 'SESSION_ACTIVE', aal, expires_at: validation.expires_at, mfa_required: mfaRequired });
+        return json({ code: 'SESSION_ACTIVE', aal, expires_at: validation.expires_at });
       }
       if (validation.status === 'expired') {
         await gateway.audit({

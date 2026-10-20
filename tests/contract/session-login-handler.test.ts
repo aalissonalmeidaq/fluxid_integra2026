@@ -14,7 +14,7 @@ function gateway(overrides: Partial<LoginGateway> = {}): LoginGateway {
     clearFailures: vi.fn(async () => undefined),
     signIn: vi.fn(async () => ({ ok: true as const, userId: USER, sessionId: SESSION, aal: 'aal1' as const, session: SESSION_TOKEN })),
     signOutSession: vi.fn(async () => undefined),
-    eligibility: vi.fn(async () => ({ eligible: true, requiresMfa: false })),
+    eligibility: vi.fn(async () => ({ eligible: true })),
     endSession: vi.fn(async () => true),
     startSession: vi.fn(async () => ({ status: 'started' as const })),
     audit: vi.fn(async () => undefined),
@@ -76,7 +76,7 @@ describe('session-login', () => {
   });
 
   it('nega conta sem vínculo elegível, encerra a sessão Auth criada e audita', async () => {
-    const gw = gateway({ eligibility: vi.fn(async () => ({ eligible: false, requiresMfa: false })) });
+    const gw = gateway({ eligibility: vi.fn(async () => ({ eligible: false })) });
     const { status, body } = await call(gw);
     expect(status).toBe(403);
     expect(body).toEqual({ code: 'ACCOUNT_UNAVAILABLE' });
@@ -123,11 +123,11 @@ describe('session-login', () => {
     expect(body.code).toBe('SESSION_LIMIT_REACHED');
   });
 
-  it('exige MFA para perfil global entregando a sessão AAL1 limitada', async () => {
-    const gw = gateway({ eligibility: vi.fn(async () => ({ eligible: true, requiresMfa: true })) });
+  it('Spec 013 (RF-021): perfil global entra só com e-mail e senha: AUTHENTICATED', async () => {
+    const gw = gateway({ eligibility: vi.fn(async () => ({ eligible: true })) });
     const { status, body } = await call(gw);
     expect(status).toBe(200);
-    expect(body.code).toBe('MFA_REQUIRED');
+    expect(body.code).toBe('AUTHENTICATED');
     expect(body.session.access_token).toBe('access');
   });
 

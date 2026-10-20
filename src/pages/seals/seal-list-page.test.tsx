@@ -40,12 +40,16 @@ describe('SealListView', () => {
     expect(row).toHaveTextContent('há 1 minuto');
   });
 
-  it('lacre sem cilindro e vazio', async () => {
-    const { service: s } = service([{ code: 'LISTED', items: [{ ...ITEM, cylinder: null }], total: 1 }, { code: 'LISTED', items: [], total: 0 }]);
+  // Spec 013 (RF-015): o lacre destinado pelo Master, ativo e sem cilindro, aparece como "Pronto para vincular", com a data da aprovação.
+  it('pronto para vincular, com ícone, texto e a data da aprovação; o vazio explica que os lacres chegam pelo Master', async () => {
+    const ready = { ...ITEM, cylinder: null, ready_to_bind: true, approved_at: '2026-10-17T13:00:00Z', origin: 'enrollment' };
+    const { service: s } = service([{ code: 'LISTED', items: [ready], total: 1 }, { code: 'LISTED', items: [], total: 0 }]);
     renderList(s);
-    expect(await screen.findByText('Sem cilindro')).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText('Só lacres sem cilindro'));
+    expect(await screen.findByText('Pronto para vincular')).toBeInTheDocument();
+    expect(screen.getByText('Aprovado em 17/10/2026 10:00')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Só prontos para vincular'));
     expect(await screen.findByText('Nenhum lacre encontrado')).toBeInTheDocument();
+    expect(screen.getByText('Os lacres chegam pelo Master da plataforma. Peça a destinação de um lacre ao seu tenant.')).toBeInTheDocument();
   });
 
   it('filtros por saúde, trava e "sem cilindro" chamam o servidor', async () => {
@@ -54,7 +58,7 @@ describe('SealListView', () => {
     await screen.findByRole('table');
     fireEvent.change(screen.getByLabelText('Saúde'), { target: { value: 'no_comm' } });
     fireEvent.change(screen.getByLabelText('Trava'), { target: { value: 'unconfirmed' } });
-    fireEvent.click(screen.getByLabelText('Só lacres sem cilindro'));
+    fireEvent.click(screen.getByLabelText('Só prontos para vincular'));
     await waitFor(() => expect(call).toHaveBeenLastCalledWith('query-seals', expect.objectContaining({ health: 'no_comm', lock_state: 'unconfirmed', unbound: true })));
   });
 
@@ -70,25 +74,21 @@ describe('SealListView', () => {
     expect(document.activeElement).toBe(before);
   });
 
-  it('cadastrar dispositivo (US5): a chave aparece uma vez e a lista recarrega', async () => {
-    const { service: s, call } = service([{ code: 'LISTED', items: [ITEM], total: 1 }]);
-    (call as unknown as { mockImplementation: (fn: (fn: string, body: Record<string, unknown>) => Promise<unknown>) => void }).mockImplementation(async (_fn: string, body: Record<string, unknown>) => ({ status: 200, body: body.operation === 'create_device'
-      ? { code: 'CREATED', device_id: 'd9', device_code: 'DSP-NOVO0001', device_key: 'fxk_chave-nova' } : { code: 'LISTED', items: [ITEM], total: 1 } }));
-    renderList(s, { canAdmin: true });
-    fireEvent.click(await screen.findByRole('button', { name: 'Cadastrar dispositivo' }));
-    fireEvent.change(await screen.findByLabelText('Nome do lacre'), { target: { value: 'Lacre novo' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Cadastrar' }));
-    expect(await screen.findByText('fxk_chave-nova')).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText('Já guardei a chave para gravar no lacre'));
-    fireEvent.click(screen.getByRole('button', { name: 'Concluir' }));
-    await waitFor(() => expect(screen.queryByText('fxk_chave-nova')).not.toBeInTheDocument());
-  });
-
-  it('quem não administra dispositivos não vê o cadastro', async () => {
+  it('não há mais cadastro de dispositivo (Spec 013, RF-018), nem para quem administra', async () => {
     const { service: s } = service([{ code: 'LISTED', items: [ITEM], total: 1 }]);
     renderList(s);
     await screen.findByRole('table');
     expect(screen.queryByRole('button', { name: 'Cadastrar dispositivo' })).not.toBeInTheDocument();
+  });
+
+  it('a aprovação, a retirada ou a devolução (aviso "device") recarregam a lista sozinhas', async () => {
+    const ready = { ...ITEM, device_id: 'd2', device_code: 'DSP-NOVO0001', label: 'Lacre novo', cylinder: null, ready_to_bind: true };
+    const { service: s } = service([{ code: 'LISTED', items: [ITEM], total: 1 }, { code: 'LISTED', items: [ITEM, ready], total: 2 }]);
+    const rt = realtime();
+    renderList(s, { realtime: rt.port });
+    await screen.findByText('Funcionando');
+    act(() => rt.emit({ kind: 'device', deviceId: 'd2', cylinderId: null }));
+    expect(await screen.findByText('Pronto para vincular')).toBeInTheDocument();
   });
 
   it('offline: explica e não chama o servidor', async () => {
