@@ -24,7 +24,7 @@ O desenho reaproveita a Spec 012: o mesmo endpoint, o mesmo formato de código e
 
 - **Issue:** [#48](https://github.com/aalissonalmeidaq/fluxid_integra2026/issues/48), "Spec 013: aprovação e destinação de lacres pelo Master", aberta pela conta `equipefluxid` em 18/10/2026.
 - **Branch:** `feat/013-aprovacao-lacres-master`, a partir da `main` com a Spec 012 integrada (PRs #43 e #47).
-- **Pull request:** a abrir no fechamento (T071).
+- **Pull request:** [#49](https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/49).
 
 ## Contexto técnico
 

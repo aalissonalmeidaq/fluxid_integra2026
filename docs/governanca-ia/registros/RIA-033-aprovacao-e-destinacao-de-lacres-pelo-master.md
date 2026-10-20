@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: Fluxo Spec Kit da Spec 013 (tasks, cinco rodadas de analyze com as correções aplicadas e implement), pedidos do responsável durante o ciclo (remover de vez o segundo fator, senha da rede de configuração com 8 caracteres, rede FluxID como padrão, página do lacre mostrando a conexão, gravar o firmware no ESP32 e integrar com o Supabase em nuvem) e o fechamento da spec.
 - Resposta gerada pela IA: 8 migrations (seals_enrollment_* e auth_sem_segundo_fator), função nova platform-seals e ajustes em seal-gateway, manage-seals e query-seals, tela Lacres da plataforma (/admin/lacres), devolução do lacre pelo tenant, firmware com identidade do chip, pedido de aprovação, portal cativo, rede padrão da plataforma e esquecimento das redes, remoção completa do segundo fator (telas, funções e testes) e os testes pgTAP, de contrato, de unidade, .live, E2E, visuais e nativos do firmware.
 
-Link para validação da equipe: branch feat/013-aprovacao-lacres-master (https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/013-aprovacao-lacres-master); trocar pelo link do pull request antes do merge.
+Link para validação da equipe: pull request #49 (https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/49).
 - Análise crítica da equipe: As regras ficam no banco (RPCs com RLS e isolamento por organização, testadas com dois tenants) e no núcleo do firmware, testado fora do hardware. A bancada revelou problemas reais, todos corrigidos: a rede de configuração não aparecia no celular (potência da antena do C3 Super Mini e varredura sem rede salva), a cadeia de certificados do Supabase exigia a GlobalSign Root CA que saiu da lista do Mozilla, e o firewall do Windows bloqueava o Docker em rede pública. A remoção do segundo fator foi pedida pelo responsável e registrada na spec (RF-021); permissão, justificativa e auditoria das ações sensíveis continuam.
 - Validação humana realizada: Alisson Almeida validou em 20/10/2026, por 40 minutos, com os perfis Master e administrador do Tenant A, várias telas, o lacre físico e um celular Android usado no portal para escolher a rede, no Windows 11 com o Chrome. Resultado: aprovado, sem itens a corrigir.
 - Decisão final: utilizado
@@ -313,7 +313,7 @@ Link para validação da equipe: branch feat/013-aprovacao-lacres-master (https:
 
 ## Decisões e dados pendentes
 
-trocar o link de revisão pelo do pull request antes do merge; entregar o DOCX do RIA depois do merge; desligar o MFA TOTP no painel do Auth do projeto em nuvem; desfazer as mudanças de firewall da bancada; cronometrar MS-001 (configurar a rede em até 3 min) e MS-003 (o lacre aparecer no tenant até 1 min depois da aprovação), que não foram medidos; versão do firmware ainda 2.0.0; T073 (cifragem da flash e senha por lacre) e T074 (Bluetooth) ficam para spec futura.
+entregar o DOCX do RIA depois do merge; desligar o MFA TOTP no painel do Auth do projeto em nuvem; desfazer as mudanças de firewall da bancada; cronometrar MS-001 (configurar a rede em até 3 min) e MS-003 (o lacre aparecer no tenant até 1 min depois da aprovação), que não foram medidos; versão do firmware ainda 2.0.0; T073 (cifragem da flash e senha por lacre) e T074 (Bluetooth) ficam para spec futura.
 
 ## Validação humana
 
