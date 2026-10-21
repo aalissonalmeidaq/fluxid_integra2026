@@ -38,6 +38,9 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 - `src/pages/seals/components/seal-position-history.tsx`
 - `src/pages/seals/seal-detail-page.test.tsx`
 - `src/pages/seals/seal-detail-page.tsx`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-1920-visual-chromium-linux.png`
 - `supabase/migrations/20261021141347_confirmar_localizacao_repetida.sql`
 - `supabase/migrations/20261021145741_remover_limite_sessoes_demo.sql`
 - `supabase/tests/012_ingest_dedupe.test.sql`
@@ -48,7 +51,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 - Comando(s): `npm run lint`; `npm run typecheck`; `npm run build`; testes Vitest direcionados de lacres e sessões; `npx supabase db reset --local --yes`; pgTAP direcionado; `npx supabase test db --local`.
 - Resultado: aprovado nos testes aplicáveis. A suíte Vitest completa não encerrou em duas tentativas, após 5 e 10 minutos, sem relatar teste reprovado; as suítes direcionadas passaram.
-- Evidência: 31 testes direcionados de localização e tempo real; 134 testes ampliados de lacres; 15 testes de contrato de sessão; 109 testes pgTAP direcionados; suíte pgTAP completa com 135 arquivos e 3.402 testes; lint, tipos e build aprovados. O banco local foi recriado com as duas migrations.
+- Evidência: 31 testes direcionados de localização e tempo real; 134 testes ampliados de lacres; 15 testes de contrato de sessão; 109 testes pgTAP direcionados; suíte pgTAP completa com 135 arquivos e 3.402 testes; lint, tipos e build aprovados. O banco local foi recriado com as duas migrations. A primeira execução visual da PR aprovou 285 casos e identificou três referências Linux desatualizadas na tela de detalhe do lacre; as capturas de 360, 768 e 1920 px foram atualizadas a partir do artefato do runner Linux e reenviadas para nova validação.
 
 ## Decisões e dados pendentes
 

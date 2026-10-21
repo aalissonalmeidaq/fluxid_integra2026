@@ -65,7 +65,7 @@ Data técnica: 21/10/2026.
 | `npm run build` | Aprovado |
 | `npm run test` | Inconclusivo: o runner não encerrou em duas tentativas, após 5 e 10 minutos, sem relatar teste reprovado |
 
-A validação humana do ciclo 02, a captura visual no Linux, a publicação e a verificação com o lacre real estão pendentes. Nenhum resultado humano foi presumido a partir dos testes automatizados.
+A validação humana do ciclo 02 foi concluída. Na primeira execução visual da PR, 285 casos passaram e as três referências Linux da tela de detalhe do lacre foram atualizadas, em 360, 768 e 1920 px, para refletir os textos aprovados de confirmação da localização e o rótulo GSM/Telemetria. A nova execução do gate visual, a publicação e a verificação após publicação permanecem pendentes.
 
 ### Sessões simultâneas das contas demo
 
