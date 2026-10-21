@@ -9,7 +9,7 @@
 - Ferramenta de IA utilizada: Codex — modelo registrado pela plataforma
 - Objetivo do uso: convergir os artefatos da Spec 014 com a implementação e as publicações já entregues, identificar evidências realmente ausentes e encerrar as pendências documentais sem presumir resultados.
 - Prompt utilizado, em síntese sanitizada: revisar a Spec 014 após os merges, orientar a validação final e registrar os resultados informados pela pessoa responsável.
-- Resposta gerada pela IA: a convergência encontrou três lacunas de encerramento, registradas como T056 a T058. Depois da validação humana, `tasks.md` e `validation.md` foram reconciliados com as PRs #52 a #55, os RIA-034/RIA-035, a publicação no Supabase e na Vercel e as medições finais. Revisão disponível na [branch](https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/docs/014-convergencia); o link deve ser trocado pelo pull request antes do merge.
+- Resposta gerada pela IA: a convergência encontrou três lacunas de encerramento, registradas como T056 a T058. Depois da validação humana, `tasks.md` e `validation.md` foram reconciliados com as PRs #52 a #55, os RIA-034/RIA-035, a publicação no Supabase e na Vercel e as medições finais. Revisão disponível no [pull request #56](https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/56).
 - Análise crítica da equipe: itens que já tinham evidência foram fechados; os cinco perfis, as medições da nuvem, a rotina manual e a rotação da chave só foram registrados depois da confirmação explícita de Alisson. Nenhuma credencial ou valor de segredo foi incluído.
 - Validação humana realizada: Alisson Almeida aprovou os cinco perfis, informou entrada em 5 segundos, confirmou C262 e lacre visíveis, atualização da localização em 60 segundos, workflow de restauração aprovado, chave antiga rotacionada e segredo do GitHub atualizado, sem correções.
 - Decisão final: utilizado
@@ -39,7 +39,6 @@
 
 ## Decisões e dados pendentes
 
-- Trocar o link da branch pelo pull request antes do merge.
 - Depois do merge, gerar o DOCX do RIA-036 em uma PR exclusiva de documentação.
 
 ## Validação humana
