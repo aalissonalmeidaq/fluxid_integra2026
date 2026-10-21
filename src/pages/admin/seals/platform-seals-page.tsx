@@ -19,10 +19,10 @@ import { ResolveConflictDialog } from './components/resolve-conflict-dialog';
 // cada 30 s e anuncia os pedidos novos num único status, sem mover o foco. A decisão final é sempre do servidor.
 
 export type PlatformSealsPort = Pick<PlatformSealService,
-  'listEnrollments' | 'listTenants' | 'approve' | 'refuse' | 'resolveConflict' | 'withdraw' | 'requestForgetNetworks' | 'revealPortalPassword'>;
+  'listEnrollments' | 'listTenants' | 'approve' | 'refuse' | 'reopen' | 'resolveConflict' | 'withdraw' | 'requestForgetNetworks' | 'revealPortalPassword'>;
 
 const TABS: { status: EnrollmentStatus; label: string; empty: string }[] = [
-  { status: 'pending', label: 'Aguardando', empty: 'Nenhum lacre aguardando vinculação a um tenant' },
+  { status: 'pending', label: 'Aguardando', empty: 'Nenhum lacre aguardando vinculação a uma empresa' },
   { status: 'approved', label: 'Em operação', empty: 'Nenhum lacre em operação' },
   { status: 'returned', label: 'Devolvidos', empty: 'Nenhum lacre devolvido' },
   { status: 'refused', label: 'Recusados', empty: 'Nenhum pedido recusado' },
@@ -61,7 +61,7 @@ export function PlatformSealsView({ service, online, portalPanel }: PlatformSeal
     if (outcome.kind === 'success') {
       const fresh = announce ? newPendingCodes(previous.current, outcome.value.items) : [];
       if (fresh.length > 0) {
-        setAnnouncement(`${plural(fresh.length, 'pedido novo', 'pedidos novos')} de lacre aguardando vinculação a um tenant: ${fresh.join(', ')}.`);
+        setAnnouncement(`${plural(fresh.length, 'pedido novo', 'pedidos novos')} de lacre aguardando vinculação a uma empresa: ${fresh.join(', ')}.`);
       }
       previous.current = outcome.value.items;
       setCounts(outcome.value.counts);
@@ -121,8 +121,8 @@ export function PlatformSealsView({ service, online, portalPanel }: PlatformSeal
       <header className="flex flex-col gap-1">
         <h2 className="m-0 text-h3 font-semibold text-navy">Lacres da plataforma</h2>
         <p className="m-0 max-w-padrao text-corpo text-grafite">
-          Os lacres que chamaram o FluxID pedindo aprovação. Confira o código com o lacre em mãos, destine a um tenant ou recuse. Só o Master
-          decide a que tenant um lacre pertence.
+          Os lacres que chamaram o FluxID pedindo aprovação. Confira o código com o lacre em mãos, destine a uma empresa ou recuse. Só o Master
+          decide a que empresa um lacre pertence.
         </p>
       </header>
       <p role="status" aria-atomic="true" className="sr-only">{announcement}</p>
@@ -168,7 +168,7 @@ export function PlatformSealsView({ service, online, portalPanel }: PlatformSeal
         <ApproveEnrollmentDialog enrollment={open.enrollment} tenants={tenants} busy={busy} error={actionError} returnFocusTo={open.trigger}
           onCancel={() => setOpen(null)}
           onConfirm={(organizationId, justification) => void finish(service.approve(open.enrollment, organizationId, justification),
-            `Lacre ${open.enrollment.deviceCode} aprovado para ${tenants?.find((t) => t.id === organizationId)?.name ?? 'o tenant escolhido'}.`)} />
+            `Lacre ${open.enrollment.deviceCode} aprovado para ${tenants?.find((t) => t.id === organizationId)?.name ?? 'a empresa escolhida'}.`)} />
       )}
       {open?.action === 'refuse' && service && (
         <JustificationDialog title={`Recusar o pedido · ${open.enrollment.deviceCode}`} confirmLabel="Recusar o pedido" danger
@@ -176,13 +176,20 @@ export function PlatformSealsView({ service, online, portalPanel }: PlatformSeal
           busy={busy} error={actionError} returnFocusTo={open.trigger} onCancel={() => setOpen(null)}
           onConfirm={(justification) => void finish(service.refuse(open.enrollment, justification), `Pedido do lacre ${open.enrollment.deviceCode} recusado.`)} />
       )}
+      {open?.action === 'reopen' && service && (
+        <JustificationDialog title={`Retornar para aguardando · ${open.enrollment.deviceCode}`} confirmLabel="Retornar para aguardando"
+          description={<p className="m-0">O lacre volta à fila de vinculação. Ele ainda precisará ser aprovado e destinado a uma empresa.</p>}
+          busy={busy} error={actionError} returnFocusTo={open.trigger} onCancel={() => setOpen(null)}
+          onConfirm={(justification) => void finish(service.reopen(open.enrollment, justification),
+            `Lacre ${open.enrollment.deviceCode} retornou para aguardando vinculação.`)} />
+      )}
       {open?.action === 'withdraw' && service && (
         <JustificationDialog title={`Retirar de operação · ${open.enrollment.deviceCode}`} confirmLabel="Retirar de operação" danger
-          description={<p className="m-0">O vínculo com o cilindro é encerrado, os comandos pendentes são cancelados, os alertas abertos fecham e o
-            tenant deixa de receber o lacre. Lacre com cilindro em viagem em andamento não pode ser retirado.</p>}
+          description={<p className="m-0">O vínculo com o cilindro é encerrado, os comandos pendentes são cancelados, os alertas abertos fecham e a
+            empresa deixa de receber o lacre. Lacre com cilindro em viagem em andamento não pode ser retirado.</p>}
           choice={{ legend: 'Redes Wi-Fi do lacre', initial: 'extras' as const, options: [
-            { value: 'extras' as const, label: 'Manter a rede principal (aprovar de novo no mesmo tenant)', help: 'O lacre esquece só as redes extras e continua chamando pela rede do local.' },
-            { value: 'all' as const, label: 'Esquecer todas as redes (destinar a outro tenant)', help: 'O lacre apaga as redes do tenant e volta ao portal até alguém configurar a rede do novo local.' },
+            { value: 'extras' as const, label: 'Manter a rede principal (aprovar de novo na mesma empresa)', help: 'O lacre esquece só as redes extras e continua chamando pela rede do local.' },
+            { value: 'all' as const, label: 'Esquecer todas as redes (destinar a outra empresa)', help: 'O lacre apaga as redes da empresa e volta ao portal até alguém configurar a rede do novo local.' },
           ] }}
           busy={busy} error={actionError} returnFocusTo={open.trigger} onCancel={() => setOpen(null)}
           onConfirm={(justification, choice) => void finish(service.withdraw(open.enrollment, choice ?? 'extras', justification),
@@ -195,8 +202,8 @@ export function PlatformSealsView({ service, online, portalPanel }: PlatformSeal
       )}
       {open?.action === 'forget' && service && (
         <JustificationDialog title={`Esquecer todas as redes · ${open.enrollment.deviceCode}`} confirmLabel="Pedir o esquecimento"
-          description={<p className="m-0">O lacre apaga as redes Wi-Fi do tenant {open.enrollment.lastOrganization?.name ?? 'anterior'} na próxima chamada.
-            Sem rede configurada no novo local, ele volta ao portal. Depois da confirmação dele, você pode destiná-lo a outro tenant.</p>}
+          description={<p className="m-0">O lacre apaga as redes Wi-Fi da empresa {open.enrollment.lastOrganization?.name ?? 'anterior'} na próxima chamada.
+            Sem rede configurada no novo local, ele volta ao portal. Depois da confirmação dele, você pode destiná-lo a outra empresa.</p>}
           busy={busy} error={actionError} returnFocusTo={open.trigger} onCancel={() => setOpen(null)}
           onConfirm={(justification) => void finish(service.requestForgetNetworks(open.enrollment, justification),
             `Pedido de esquecimento das redes enviado ao lacre ${open.enrollment.deviceCode}.`)} />

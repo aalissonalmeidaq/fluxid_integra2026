@@ -99,7 +99,7 @@ export function Funcionalidades(): React.JSX.Element {
                     </span>
                     <span className="inline-flex items-center gap-2 rounded-full border border-branco/15 bg-branco/10 px-2 py-1 text-legenda font-bold uppercase tracking-wider text-cinza-gelo">
                       <span className="inline-block size-2 rounded-full bg-azul-ciano" aria-hidden="true" />
-                      {item.id === 'offline' ? 'Operação local PWA' : 'Multi-tenant RLS'}
+                      {item.id === 'offline' ? 'Operação local PWA' : 'Multiempresa com RLS'}
                     </span>
                   </div>
 

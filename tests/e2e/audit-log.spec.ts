@@ -29,7 +29,7 @@ test.describe('Consulta de auditoria', () => {
     await page.setViewportSize({ width: 360, height: 740 });
     const backend = new MockBackend();
     await enter(page, backend);
-    await expect(page.getByRole('heading', { level: 2, name: 'Auditoria do tenant' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Auditoria da empresa' })).toBeVisible();
     const rows = page.getByRole('table', { name: 'Eventos de auditoria' }).getByRole('row');
     // Uma única árvore: a linha de cabeçalho (só para tecnologia assistiva) mais os 50 eventos, apresentados como cartões.
     await expect(rows).toHaveCount(51);
@@ -54,7 +54,7 @@ test.describe('Consulta de auditoria', () => {
     await expect(page.getByRole('list', { name: 'Eventos em lista' })).toHaveCount(0);
   });
 
-  test('filtra por resultado e por ação dentro do tenant', async ({ page }) => {
+  test('filtra por resultado e por ação dentro da empresa', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     const backend = new MockBackend();
     await enter(page, backend);
@@ -75,7 +75,7 @@ test.describe('Consulta de auditoria', () => {
   test('valida filtros inválidos com mensagem acessível e sem consultar o servidor', async ({ page }) => {
     const backend = new MockBackend();
     await enter(page, backend);
-    await expect(page.getByRole('heading', { level: 2, name: 'Auditoria do tenant' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Auditoria da empresa' })).toBeVisible();
     const queries = () => backend.calls.filter((call) => call.path === '/functions/v1/query-audit').length;
     // A carga inicial envia a consulta depois de o título aparecer; medir antes dela conta a chamada como se fosse do filtro.
     await expect.poll(queries).toBeGreaterThan(0);
@@ -97,7 +97,7 @@ test.describe('Consulta de auditoria', () => {
     await expect(page.getByRole('table')).toHaveCount(0);
   });
 
-  test('a troca de tenant mostra somente a auditoria do tenant escolhido', async ({ page }) => {
+  test('a troca de empresa mostra somente a auditoria da empresa escolhida', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     const backend = new MockBackend();
     backend.tenantMemberships = [membership(A, 'Tenant A'), membership(B, 'Tenant B')];
@@ -137,7 +137,7 @@ test.describe('Consulta de auditoria', () => {
   test('não possui violações críticas ou graves de acessibilidade, nem com erro de filtro', async ({ page }) => {
     const backend = new MockBackend();
     await enter(page, backend);
-    await expect(page.getByRole('heading', { level: 2, name: 'Auditoria do tenant' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Auditoria da empresa' })).toBeVisible();
     await expect(page.getByRole('table', { name: 'Eventos de auditoria' })).toBeVisible();
     const blocking = async () => (await new AxeBuilder({ page }).analyze()).violations.filter((item) => ['critical', 'serious'].includes(item.impact ?? ''));
     expect(await blocking()).toEqual([]);

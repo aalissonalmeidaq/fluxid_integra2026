@@ -25,9 +25,9 @@ const post = (body: unknown, token = 'token') => new Request('http://x/functions
 const approve = { operation: 'approve_enrollment', request_id: REQUEST, enrollment_id: ENROLLMENT, organization_id: TENANT, justification: 'Lacre conferido', expected_updated_at: AT };
 
 describe('platform-seals', () => {
-  it('tem exatamente as oito operações do contrato', () => {
+  it('tem exatamente as nove operações do contrato', () => {
     expect(Object.keys(PLATFORM_SEAL_OPERATIONS).sort()).toEqual([
-      'approve_enrollment', 'list_enrollments', 'list_tenants_for_seals', 'refuse_enrollment', 'replace_enrollment_key',
+      'approve_enrollment', 'list_enrollments', 'list_tenants_for_seals', 'refuse_enrollment', 'reopen_enrollment', 'replace_enrollment_key',
       'request_forget_networks', 'reveal_portal_password', 'withdraw_device',
     ]);
   });
@@ -74,7 +74,7 @@ describe('platform-seals', () => {
     });
   });
 
-  it('só a aprovação recebe organization_id (o tenant de destino); nas outras operações ele é recusado', async () => {
+  it('só a aprovação recebe organization_id (a empresa de destino); nas outras operações ele é recusado', async () => {
     const { handler, rpc } = setup(MASTER, { code: 'REFUSED' });
     const refuse = { operation: 'refuse_enrollment', request_id: REQUEST, enrollment_id: ENROLLMENT, justification: 'Lacre desconhecido', expected_updated_at: AT };
     expect((await handler(post({ ...refuse, organization_id: TENANT }))).status).toBe(400);
@@ -106,9 +106,11 @@ describe('platform-seals', () => {
     expect(rpc).toHaveBeenLastCalledWith('list_tenants_for_seals', { p_actor: MASTER.userId, p_session: MASTER.sessionId });
     await handler(post({ operation: 'replace_enrollment_key', request_id: REQUEST, enrollment_id: ENROLLMENT, keep_current: true, justification: 'Aparelho estranho', expected_updated_at: AT }));
     expect(rpc).toHaveBeenLastCalledWith('replace_enrollment_key', expect.objectContaining({ p_keep_current: true, p_justification: 'Aparelho estranho' }));
+    await handler(post({ operation: 'reopen_enrollment', request_id: REQUEST, enrollment_id: ENROLLMENT, justification: 'Revisão concluída', expected_updated_at: AT }));
+    expect(rpc).toHaveBeenLastCalledWith('reopen_enrollment', expect.objectContaining({ p_enrollment: ENROLLMENT, p_justification: 'Revisão concluída' }));
     await handler(post({ operation: 'withdraw_device', request_id: REQUEST, enrollment_id: ENROLLMENT, forget_networks: 'all', justification: 'Recolhido', expected_updated_at: AT }));
     expect(rpc).toHaveBeenLastCalledWith('withdraw_device', expect.objectContaining({ p_forget_networks: 'all' }));
-    await handler(post({ operation: 'request_forget_networks', request_id: REQUEST, enrollment_id: ENROLLMENT, justification: 'Vai para outro tenant', expected_updated_at: AT }));
+    await handler(post({ operation: 'request_forget_networks', request_id: REQUEST, enrollment_id: ENROLLMENT, justification: 'Vai para outra empresa', expected_updated_at: AT }));
     expect(rpc).toHaveBeenLastCalledWith('request_forget_networks', expect.objectContaining({ p_enrollment: ENROLLMENT }));
     await handler(post({ operation: 'reveal_portal_password', request_id: REQUEST, justification: 'Instalação no depósito' }));
     expect(rpc).toHaveBeenLastCalledWith('reveal_portal_password', { p_actor: MASTER.userId, p_session: MASTER.sessionId, p_request: REQUEST, p_justification: 'Instalação no depósito' });

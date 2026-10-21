@@ -74,7 +74,7 @@ describe('resolveSelection', () => {
     expect(resolveSelection([optionA], null)).toEqual({ kind: 'selected', option: optionA });
   });
 
-  it('com mais de um vínculo exige escolha antes de acessar áreas do tenant', () => {
+  it('com mais de um vínculo exige escolha antes de acessar áreas da empresa', () => {
     expect(resolveSelection([optionA, optionB], null)).toEqual({ kind: 'choose', options: [optionA, optionB] });
   });
 

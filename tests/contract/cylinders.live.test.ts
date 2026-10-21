@@ -150,7 +150,7 @@ describe('Cilindros ao vivo (Spec 006)', () => {
     expect(fromF.body).toEqual(missing.body);
     expect((await query(tokenF, { operation: 'lookup', organization_id: F, identifier_value: `QR-${run}-ISO` })).status).toBe(404);
     expect((await query(tokenF, { operation: 'list', organization_id: F, search: `LIVE-${run}-ISO` })).body.total).toBe(0);
-    expect((await manage(tokenF, { operation: 'inactivate', organization_id: F, cylinder_id: id, reason: 'lost', justification: 'Tentativa de outro tenant' })).status).toBe(404);
+    expect((await manage(tokenF, { operation: 'inactivate', organization_id: F, cylinder_id: id, reason: 'lost', justification: 'Tentativa de outra empresa' })).status).toBe(404);
     // Pedir o contexto de outra organização é negado.
     expect((await query(tokenF, { operation: 'get', organization_id: E, cylinder_id: id })).status).toBe(403);
     expect((await manage(tokenF, { operation: 'create', organization_id: E, cylinder_type_id: typeE, serial_number: 'X', identifier: { kind: 'qr_code', value: 'X' } })).status).toBe(403);

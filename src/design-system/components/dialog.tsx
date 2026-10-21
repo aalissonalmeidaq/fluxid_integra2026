@@ -12,13 +12,15 @@ export interface DialogProps {
   returnFocusTo?: HTMLElement | null;
   // Largura: `compacto` para confirmações; `padrao` para formulários de cadastro e edição.
   size?: 'compacto' | 'padrao';
+  // Clicar no fundo escurecido fecha. Só para diálogos sem ação sensível (ex.: consulta); o padrão é não fechar.
+  closeOnBackdrop?: boolean;
 }
 
 const FOCAVEIS = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 // Diálogo modal acessível (RF-009): anuncia o título, prende o foco, fecha com Escape, devolve o foco ao acionador e
-// rola por dentro quando o conteúdo é longo. Clicar fora não fecha, para não descartar ações sensíveis por engano.
-export function Dialog({ title, onClose, children, footer, initialFocusRef, returnFocusTo, size = 'compacto' }: DialogProps): React.JSX.Element {
+// rola por dentro quando o conteúdo é longo. Clicar fora só fecha com `closeOnBackdrop`, para não descartar ações sensíveis por engano.
+export function Dialog({ title, onClose, children, footer, initialFocusRef, returnFocusTo, size = 'compacto', closeOnBackdrop = false }: DialogProps): React.JSX.Element {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<Element | null>(null);
@@ -58,7 +60,10 @@ export function Dialog({ title, onClose, children, footer, initialFocusRef, retu
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-navy/50 p-4 tablet:items-center">
+    <div
+      className="fixed inset-0 z-40 flex items-end justify-center bg-navy/50 p-4 tablet:items-center"
+      onClick={closeOnBackdrop ? (event) => { if (event.target === event.currentTarget) onClose(); } : undefined}
+    >
       <div
         ref={dialogRef}
         role="dialog"

@@ -28,9 +28,9 @@ export const SCREENS: readonly Screen[] = [
   { id: 'lacres', label: 'Lacres', path: '/lacres', requires: { scope: 'tenant', code: 'seal.read' }, tenantScoped: true },
   { id: 'alertas', label: 'Alertas', path: '/alertas', requires: { scope: 'tenant', code: 'seal.read' }, tenantScoped: true },
   { id: 'perfil', label: 'Meu perfil', path: '/perfil', tenantScoped: false },
-  { id: 'membros', label: 'Pessoas do tenant', path: '/admin/membros', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true },
+  { id: 'membros', label: 'Pessoas da empresa', path: '/admin/membros', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true },
   { id: 'papeis', label: 'Papéis e permissões', path: '/admin/papeis', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true },
-  { id: 'auditoria', label: 'Auditoria do tenant', path: '/admin/auditoria', requires: { scope: 'tenant', code: 'audit.read' }, tenantScoped: true },
+  { id: 'auditoria', label: 'Auditoria da empresa', path: '/admin/auditoria', requires: { scope: 'tenant', code: 'audit.read' }, tenantScoped: true },
   { id: 'organizacoes', label: 'Organizações', path: '/admin/tenants', requires: { scope: 'global', code: 'platform.manage' }, tenantScoped: false },
   // Spec 013: a fila de pedidos de aprovação dos lacres, só do Master.
   { id: 'lacres-plataforma', label: 'Lacres da plataforma', path: '/admin/lacres', requires: { scope: 'global', code: 'platform.manage' }, tenantScoped: false },

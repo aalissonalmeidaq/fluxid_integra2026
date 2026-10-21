@@ -36,7 +36,7 @@ const renderWith = (state: AuthState) => render(
 );
 
 describe('PermissionsProvider com a sessão restaurada offline', () => {
-  it('as permissões do tenant vêm do registro e o estado é "offline"', async () => {
+  it('as permissões da empresa vêm do registro e o estado é "offline"', async () => {
     renderWith({ status: 'authenticated', aal: 'aal1', offline: true });
     await flush();
     expect(screen.getByTestId('status').textContent).toBe('offline');

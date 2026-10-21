@@ -89,7 +89,7 @@ test.describe('Acessibilidade e Navegação por Teclado (US4)', () => {
 // Spec 002: toda rota nova é varrida pelo axe (contraste incluso, pelas regras WCAG 2.2 AA) e o teclado é exercitado
 // nos diálogos. Usa o backend simulado, sem service worker, para o resultado não depender de rede.
 const AUTHENTICATED_ROUTES = [
-  { path: '/admin/membros', ready: 'Pessoas do tenant' },
+  { path: '/admin/membros', ready: 'Pessoas da empresa' },
   { path: '/admin/papeis', ready: null },
   { path: '/admin/auditoria', ready: null },
   { path: '/admin/tenants', ready: null },
@@ -168,7 +168,7 @@ test.describe('Acessibilidade das telas de identidade (Spec 002)', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await signIn(page, new MockBackend());
     await page.goto('/admin/membros');
-    await expect(page.getByRole('heading', { name: 'Pessoas do tenant' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Pessoas da empresa' })).toBeVisible();
     const running = await page.evaluate(() =>
       document.getAnimations().filter((animation) => animation.playState === 'running' && (animation.effect?.getTiming().iterations ?? 1) === Infinity).length
     );

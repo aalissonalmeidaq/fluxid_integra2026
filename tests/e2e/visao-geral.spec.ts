@@ -53,7 +53,7 @@ async function abrirMenuSeRecolhido(page: Page): Promise<void> {
 
 test.describe('US2: a Visão geral depois de entrar', () => {
   const perfis: Array<[PermissionProfile, string[]]> = [
-    ['administrador', ['Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']],
+    ['administrador', ['Visão geral', 'Meu perfil', 'Pessoas da empresa', 'Papéis e permissões', 'Auditoria da empresa']],
     ['operador', ['Visão geral', 'Meu perfil']],
     ['master', ['Visão geral', 'Meu perfil', 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma']],
   ];
@@ -301,7 +301,7 @@ test.describe('US5: menu da pessoa', () => {
     await expect(page.getByRole('heading', { level: 2, name: 'Bem-vindo de volta' })).toBeVisible();
   });
 
-  test('uma pessoa de dois tenants troca de organização pela barra superior', async ({ page }) => {
+  test('uma pessoa de duas empresas troca de organização pela barra superior', async ({ page }) => {
     const backend = new MockBackend();
     backend.tenantMemberships = [vinculo(A, 'Tenant A'), vinculo(B, 'Tenant B')];
     backend.loginResponses = [backend.authenticated()];

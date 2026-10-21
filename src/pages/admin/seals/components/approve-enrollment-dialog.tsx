@@ -31,7 +31,7 @@ export function ApproveEnrollmentDialog({ enrollment, tenants, busy, error, retu
     event.preventDefault();
     if (busy || block) return;
     if (!tenant) {
-      setTenantError('Escolha o tenant que vai receber o lacre.');
+      setTenantError('Escolha a empresa que vai receber o lacre.');
       selectRef.current?.focus();
       return;
     }
@@ -65,13 +65,13 @@ export function ApproveEnrollmentDialog({ enrollment, tenants, busy, error, retu
         <p className="m-0 text-h3 font-semibold tracking-wide text-navy">{enrollment.deviceCode}</p>
       </div>
       <p className="m-0 text-corpo">
-        O lacre passa a pertencer ao tenant escolhido, em funcionamento e sem cilindro, e fica sabendo da aprovação na próxima chamada.
+        O lacre passa a pertencer à empresa escolhida, em funcionamento e sem cilindro, e fica sabendo da aprovação na próxima chamada.
       </p>
       <form id={formId} noValidate onSubmit={submit} className="flex flex-col gap-4">
         {error && <Alert variant="erro">{error}</Alert>}
-        <Select ref={selectRef} label="Tenant de destino" value={tenant} error={tenantError} disabled={tenants === null}
-          help={tenants === null ? 'Carregando os tenants ativos…' : undefined} onChange={(event) => setTenant(event.target.value)}>
-          <option value="">Escolha o tenant</option>
+        <Select ref={selectRef} label="Empresa de destino" value={tenant} error={tenantError} disabled={tenants === null}
+          help={tenants === null ? 'Carregando as empresas ativas…' : undefined} onChange={(event) => setTenant(event.target.value)}>
+          <option value="">Escolha a empresa</option>
           {(tenants ?? []).map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
         </Select>
         {block && <Alert variant="alerta">{block}</Alert>}

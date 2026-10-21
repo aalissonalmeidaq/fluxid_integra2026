@@ -23,7 +23,7 @@ const serviceWith = (response: { status: number; body: unknown } | Error) => {
 const tenant = { scope: 'tenant' as const, organizationId: TENANT };
 
 describe('AuditService.query', () => {
-  it('monta o pedido do tenant com filtros e cursor no formato do contrato', async () => {
+  it('monta o pedido da empresa com filtros e cursor no formato do contrato', async () => {
     const { service, call } = serviceWith(ok({ code: 'AUDIT_LISTED', events: [], next: null }));
     await service.query(tenant, { from: '2026-01-01T00:00:00Z', to: '2026-01-31T23:59:59Z', action: 'role.create', result: 'denied', actorId: ACTOR, targetType: 'role' }, { occurredAt: '2026-01-05T10:00:00Z', id: 12 }, 25);
     expect(call).toHaveBeenCalledWith({

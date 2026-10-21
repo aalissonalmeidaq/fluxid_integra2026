@@ -9,7 +9,8 @@ const options={auth:{persistSession:false,autoRefreshToken:false}} as const;
 function createGateway(): OrganizationGateway {
   const admin=createClient(env('SUPABASE_URL'),env('SUPABASE_SERVICE_ROLE_KEY'),options);
   let current: { userId:string; sessionId:string } | null=null;
-  const rpc=async <T>(name:string,args:Record<string,unknown>):Promise<T>=>{const {data,error}=await admin.rpc(name,args);if(error)throw new Error('rpc_failed');return data as T;};
+  // Spec 014: a recusa do tenant da demonstração chega como exceção do banco com a mensagem DEMO_RESTRICTED; as demais ficam genéricas.
+  const rpc=async <T>(name:string,args:Record<string,unknown>):Promise<T>=>{const {data,error}=await admin.rpc(name,args);if(error)throw new Error(error.message==='DEMO_RESTRICTED'?'DEMO_RESTRICTED':'rpc_failed');return data as T;};
   const args=()=>{if(!current)throw new Error('identity_missing');return {p_actor:current.userId,p_session:current.sessionId};};
   return {
     async authenticate(token):Promise<GlobalIdentity|null>{

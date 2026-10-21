@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem o C262 e a auditoria dele: fica fora das contagens globais.
 select plan(47);
 
 -- Spec 006, US2: query_cylinders_list, query_cylinder_get e query_cylinder_catalog (RF-012, RF-028, RF-042). Hermético.
@@ -139,7 +140,7 @@ select is((select public.query_cylinder_get(b, sb, ob, '72000000-0000-0000-0000-
 -- 42-44. Auditor lê; motorista não; consultas não gravam auditoria.
 select is((select public.query_cylinder_get('10000000-0000-0000-0000-0000000006d1', '60000000-0000-0000-0000-0000000600d1', oa, '72000000-0000-0000-0000-000000060001')->>'code' from ids), 'FOUND', 'auditor (cylinder.read) lê o detalhe');
 select is((select public.query_cylinder_get('10000000-0000-0000-0000-0000000006c1', '60000000-0000-0000-0000-0000000600c1', oa, '72000000-0000-0000-0000-000000060001')->>'code' from ids), 'ACCESS_DENIED', 'motorista não lê o detalhe');
-select is((select count(*)::int from public.audit_logs where action like 'cylinder.%'), 0, 'consultas não geram auditoria de sucesso');
+select is((select count(*)::int from public.audit_logs where action like 'cylinder.%' and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'), 0, 'consultas não geram auditoria de sucesso');
 
 -- 45-46. Série sem curingas e a organização inativa/suspensa nega.
 select is((select pg_temp.lista(a, sa, oa, '%')->>'total' from ids), '0', 'o texto "%" não casa com tudo');

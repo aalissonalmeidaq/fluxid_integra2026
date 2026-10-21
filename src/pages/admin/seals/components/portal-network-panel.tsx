@@ -55,7 +55,7 @@ export function PortalNetworkPanel({ reveal, online }: PortalNetworkPanelProps):
         <li>Ligue o lacre perto do local de uso. Se ele já tiver rede, segure o botão BOOT da placa por 5 segundos.</li>
         <li>No celular ou no computador, entre na rede FluxID-Lacre-XXXX com a senha abaixo. A página do lacre abre sozinha.</li>
         <li>Escolha o Wi-Fi do local e informe a senha dele. O lacre testa a rede antes de guardar.</li>
-        <li>Conectado à internet, o lacre aparece aqui aguardando a vinculação a um tenant. Confira o código e aprove para o tenant.</li>
+        <li>Conectado à internet, o lacre aparece aqui aguardando a vinculação a uma empresa. Confira o código e aprove para a empresa.</li>
       </ol>
       <p className="m-0 max-w-padrao text-legenda text-texto-secundario">
         A senha é a mesma para todos os lacres e fica fixa no firmware. Para trocá-la, é preciso gravar um firmware novo na frota.

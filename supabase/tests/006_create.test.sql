@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem o C262 e a auditoria dele: fica fora das contagens globais.
 select plan(48);
 
 -- Spec 006, US1: create_cylinder, update_cylinder e save_cylinder_type (RF-001 a RF-004, RF-008, RF-040, RNF-005). Hermético.
@@ -145,7 +146,7 @@ select is((select public.create_cylinder('10000000-0000-0000-0000-000000000002',
   (select type_a from ctx), 'CIL-009', null, null, null, null, 'qr_code', 'QR-009')->'fields'->0->>'field'), 'cylinder_type_id', 'tipo inativo não aceita cilindro novo');
 select is((select public.save_cylinder_type('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000600b3', '20000000-0000-0000-0000-00000000000b',
   (select type_a from ctx), 'Oxigênio', 10, 'l', 'industrial', false)->>'code'), 'NOT_FOUND', 'B não altera o tipo de A');
-select is((select count(*)::int from public.audit_logs where action = 'cylinder.type_save' and result = 'success'), 3, 'cada gravação de tipo gera auditoria');
-select is((select count(*)::int from public.audit_logs where action = 'cylinder.create' and result = 'success'), 3, 'três cadastros auditados (A, B e estoquista)');
+select is((select count(*)::int from public.audit_logs where action = 'cylinder.type_save' and result = 'success' and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'), 3, 'cada gravação de tipo gera auditoria');
+select is((select count(*)::int from public.audit_logs where action = 'cylinder.create' and result = 'success' and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'), 3, 'três cadastros auditados (A, B e estoquista)');
 
 select * from finish(); rollback;

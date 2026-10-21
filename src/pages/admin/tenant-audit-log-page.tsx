@@ -156,13 +156,13 @@ export function AuditLogView({ scope, organizationId, service }: AuditLogViewPro
   };
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]): void => setDraft((current) => ({ ...current, [key]: value }));
-  const title = scope === 'global' ? 'Auditoria da plataforma' : 'Auditoria do tenant';
+  const title = scope === 'global' ? 'Auditoria da plataforma' : 'Auditoria da empresa';
   const summary = loadingMore ? 'Carregando mais eventos…' : `${events.length} ${events.length === 1 ? 'evento exibido' : 'eventos exibidos'}.`;
 
   return (
     <section aria-labelledby="audit-title" className="flex flex-col gap-6">
       <div>
-        <p className="text-legenda font-semibold uppercase text-azul-profundo">{scope === 'global' ? 'Administração global' : 'Administração do tenant'}</p>
+        <p className="text-legenda font-semibold uppercase text-azul-profundo">{scope === 'global' ? 'Administração global' : 'Administração da empresa'}</p>
         <h2 id="audit-title" className="mt-1 text-h2 font-bold text-navy">{title}</h2>
         <p className="mt-1 text-corpo">Somente leitura: a trilha de auditoria não pode ser alterada nem excluída.</p>
       </div>

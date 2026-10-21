@@ -58,7 +58,7 @@ for (const { nome: larguraNome, largura, altura } of LARGURAS) {
       await capturar(page, `entrada-erro-${larguraNome}`);
     });
 
-    test('auditoria do tenant: erro (acesso negado)', async ({ page }) => {
+    test('auditoria da empresa: erro (acesso negado)', async ({ page }) => {
       const backend = new MockBackend();
       backend.auditDenied = true;
       await entrarComoAdministrador(page, backend, 'aal2');
@@ -67,7 +67,7 @@ for (const { nome: larguraNome, largura, altura } of LARGURAS) {
       await capturar(page, `auditoria-erro-${larguraNome}`);
     });
 
-    test('auditoria do tenant: vazio', async ({ page }) => {
+    test('auditoria da empresa: vazio', async ({ page }) => {
       const backend = new MockBackend();
       backend.auditEvents = [];
       await entrarComoAdministrador(page, backend, 'aal2');

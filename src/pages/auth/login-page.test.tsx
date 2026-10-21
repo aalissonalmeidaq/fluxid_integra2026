@@ -226,9 +226,10 @@ describe('LoginPage: limite de três sessões', () => {
 describe('LoginPage: escopo da Spec 002', () => {
   it('oferece somente e-mail e senha, sem login social, SSO nem ações sem efeito', () => {
     const { container } = render(<AuthContext.Provider value={{ state: { status: 'signed_out' }, login: vi.fn(), logout: vi.fn(), }}><LoginPage /></AuthContext.Provider>);
-    const names = screen.getAllByRole('button').map((button) => button.textContent?.trim());
+    // O botão "Acessos de teste" (Spec 014) entra sob demanda e não é método de entrada: só preenche o formulário.
+    const names = screen.getAllByRole('button').map((button) => button.textContent?.trim()).filter((name) => name !== 'Acessos de teste');
     expect(names).toEqual(['Mostrar', 'Esqueci minha senha', 'Entrar']);
-    expect(container.textContent).not.toMatch(/google|microsoft|apple|sso|lembrar de mim|cadastre-se|criar conta/i);
+    expect(container.textContent).not.toMatch(/google|microsoft|apple|\bsso\b|lembrar de mim|cadastre-se|criar conta/i);
   });
 
   it('não carrega recursos externos e não cria um segundo landmark principal', () => {
@@ -302,7 +303,7 @@ describe('LoginPage: moldura renovada (Spec 005)', () => {
 
   it('não oferece login social, "Lembrar de mim", cadastro público nem canal de suporte', () => {
     renderLogin({ kind: 'authenticated' });
-    expect(screen.queryByText(/google|microsoft|apple|facebook|github|sso/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/google|microsoft|apple|facebook|github|\bsso\b/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/lembrar de mim/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(screen.queryByText(/criar conta|cadastre-se|cadastrar/i)).not.toBeInTheDocument();
@@ -328,5 +329,24 @@ describe('LoginPage: moldura renovada (Spec 005)', () => {
     renderLogin({ kind: 'authenticated' });
     const ordem = Array.from(document.body.querySelectorAll<HTMLElement>('input, button')).map((elemento) => (elemento.tagName === 'INPUT' ? (elemento as HTMLInputElement).type : elemento.textContent?.trim()));
     expect(ordem.slice(0, 4)).toEqual(['email', 'password', 'Mostrar', 'Esqueci minha senha']);
+  });
+});
+
+describe('LoginPage: acessos de teste (Spec 014)', () => {
+  it('"Usar este acesso" preenche e-mail e senha, leva o foco a "Entrar" e não envia o login', async () => {
+    const { login } = renderLogin({ kind: 'authenticated' });
+    fireEvent.click(await screen.findByRole('button', { name: 'Acessos de teste' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Usar este acesso de Administrador da empresa' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('E-mail')).toHaveValue('tenant_admin@demo.fluxid.invalid');
+    expect(screen.getByLabelText('Senha')).toHaveValue('FluxID-Demo-01!');
+    expect(screen.getByRole('button', { name: 'Entrar' })).toHaveFocus();
+    expect(login).not.toHaveBeenCalled();
+  });
+
+  it('o botão fica abaixo do formulário, fora dele', async () => {
+    renderLogin({ kind: 'authenticated' });
+    const botao = await screen.findByRole('button', { name: 'Acessos de teste' });
+    expect(botao.closest('form')).toBeNull();
   });
 });

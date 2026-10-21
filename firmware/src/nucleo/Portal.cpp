@@ -150,15 +150,6 @@ namespace fluxid
 
     bool JanelaDoPortal::Atualizar(uint32_t agoraMs, bool temRedeSalva, bool temCliente)
     {
-        if (fecharDepoisDoSucesso)
-        {
-            if (agoraMs - sucessoMs >= DEPOIS_DO_SUCESSO_MS)
-            {
-                fecharDepoisDoSucesso = false;
-                Fechar(agoraMs);
-            }
-            return aberta;
-        }
         if (aberta && temCliente)
             marcoMs = agoraMs;
         if (aberta)
@@ -178,12 +169,6 @@ namespace fluxid
     void JanelaDoPortal::PedirAbertura(uint32_t)
     {
         pedida = true;
-    }
-
-    void JanelaDoPortal::Sucesso(uint32_t agoraMs)
-    {
-        fecharDepoisDoSucesso = true;
-        sucessoMs = agoraMs;
     }
 
     bool JanelaDoPortal::Aberta() const

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/app/auth/auth-context';
 import type { ActiveSessionSummary, LoginOutcome } from '@/application/identity/session-service';
 import { PasswordField } from '@/components/identity/password-field';
@@ -7,6 +7,10 @@ import { AuthLayout } from './auth-layout';
 import { ActiveSessionsDialog } from './active-sessions-dialog';
 import { ArrowRightIcon, LockIcon, MailIcon } from './login-icons';
 import { RecoveryRequestPage } from './recovery-request-page';
+
+// Spec 014 (RF-009): a comparação é constante no build. Com `VITE_DEMO_ACCESS=false`, o Vite troca a expressão por `false` e elimina
+// o import, e as credenciais de demonstração não entram em nenhum arquivo publicado. Mesma regra de `demoAccessEnabled()`.
+const TestAccesses = import.meta.env.VITE_DEMO_ACCESS !== 'false' ? React.lazy(() => import('./test-accesses-dialog')) : null;
 
 const OUTCOME_MESSAGES: Partial<Record<LoginOutcome['kind'], string>> = {
   invalid_credentials: 'E-mail ou senha incorretos. Confira os dados e tente novamente.',
@@ -40,6 +44,8 @@ export function LoginPage(): React.JSX.Element {
   const submitRef = useRef<HTMLButtonElement>(null);
   const noticeRef = useRef<HTMLDivElement>(null);
   const hadLimit = useRef(false);
+  // Depois de "Usar este acesso", o foco vai para Entrar (o diálogo devolve o foco ao botão dele ao fechar; este efeito vem depois).
+  const [focusSubmit, setFocusSubmit] = useState(0);
 
   const notice = state.status === 'signed_out' ? state.notice : undefined;
   const reason = state.status === 'signed_out' ? state.reason : undefined;
@@ -48,6 +54,10 @@ export function LoginPage(): React.JSX.Element {
   useEffect(() => {
     if (alertNotice) noticeRef.current?.focus();
   }, [alertNotice]);
+
+  useEffect(() => {
+    if (focusSubmit > 0) submitRef.current?.focus();
+  }, [focusSubmit]);
 
   useEffect(() => {
     if (!limit && hadLimit.current) submitRef.current?.focus();
@@ -186,6 +196,20 @@ export function LoginPage(): React.JSX.Element {
             {!pending && <ArrowRightIcon />}
           </Button>
         </form>
+
+        {TestAccesses && (
+          <Suspense fallback={null}>
+            <TestAccesses
+              onUse={(nextEmail, nextPassword) => {
+                setEmail(nextEmail);
+                setPassword(nextPassword);
+                setFieldErrors({});
+                setFormError(null);
+                setFocusSubmit((count) => count + 1);
+              }}
+            />
+          </Suspense>
+        )}
 
         {limit && (
           <ActiveSessionsDialog

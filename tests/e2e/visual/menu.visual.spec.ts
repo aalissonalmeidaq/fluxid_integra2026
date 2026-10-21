@@ -45,10 +45,10 @@ for (const { nome, largura, altura } of LARGURAS) {
   test.describe(`menu em ${nome} px`, () => {
     test.use({ viewport: { width: largura, height: altura } });
 
-    test('pronto, com o administrador do tenant', async ({ page }) => {
+    test('pronto, com o administrador da empresa', async ({ page }) => {
       await entrar(page, new MockBackend());
       await abrirSeRecolhido(page);
-      await expect(page.getByRole('link', { name: 'Auditoria do tenant' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Auditoria da empresa' })).toBeVisible();
       await capturar(page, `menu-pronto-${nome}`);
     });
 
@@ -82,7 +82,7 @@ for (const { nome, largura, altura } of LARGURAS) {
     test('offline', async ({ page, context }) => {
       await entrar(page, new MockBackend());
       await abrirSeRecolhido(page);
-      await expect(page.getByRole('link', { name: 'Auditoria do tenant' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Auditoria da empresa' })).toBeVisible();
       await context.setOffline(true);
       await expect(page.getByRole('navigation').getByRole('status')).toContainText('Sem conexão. As telas podem estar desatualizadas.');
       await capturar(page, `menu-offline-${nome}`, false);

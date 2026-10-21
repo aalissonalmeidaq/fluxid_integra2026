@@ -58,7 +58,7 @@ describe('Consulta de auditoria ao vivo', () => {
     expect(await query(adminA, { scope: 'tenant', organization_id: TENANT_A, result: 'quebrado' })).toMatchObject({ status: 400 });
   });
 
-  it('o administrador do tenant lista somente eventos do próprio tenant, sanitizados e ordenados', async () => {
+  it('o administrador da empresa lista somente eventos da própria empresa, sanitizados e ordenados', async () => {
     const result = await query(adminA, { scope: 'tenant', organization_id: TENANT_A, limit: 100 });
     expect(result.status).toBe(200);
     const events = result.body.events!;
@@ -96,7 +96,7 @@ describe('Consulta de auditoria ao vivo', () => {
     expect(none.body.events).toEqual([]);
   });
 
-  it('nega o tenant alheio e a consulta global, sem revelar nada', async () => {
+  it('nega a empresa alheio e a consulta global, sem revelar nada', async () => {
     const foreign = await query(adminA, { scope: 'tenant', organization_id: TENANT_B });
     expect(foreign).toMatchObject({ status: 403, body: { code: 'ACCESS_DENIED' } });
     expect(foreign.body.events).toBeUndefined();

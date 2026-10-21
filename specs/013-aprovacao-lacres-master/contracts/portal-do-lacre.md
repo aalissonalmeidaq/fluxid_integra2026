@@ -11,6 +11,8 @@ Servido pelo próprio lacre na rede `FluxID-Lacre-XXXX` (4 últimos caracteres d
 | `/testar` | POST (`ssid`, `senha`, `aberta`) | `202 {"situacao":"testando"}`; um teste por vez (`409 {"situacao":"ocupado"}`) |
 | `/situacao` | GET | `{"situacao":"testando" \| "conectado" \| "falhou","motivo":"wifi_auth" \| "wifi_not_found" \| "wifi_no_internet" \| null,"aprovacao":"pendente" \| "aprovado" \| null}` |
 
+Depois de uma conexão bem-sucedida, o ponto de acesso e esta página continuam disponíveis enquanto houver um cliente conectado, para que a pessoa confira a rede e o acesso ao FluxID. Sem cliente, o portal fecha após o prazo normal de inatividade; não há fechamento especial 60 segundos depois do sucesso.
+
 ## Regras
 
 - **Sinal em texto:** forte (≥ -60 dBm), médio (-61 a -75) ou fraco (< -75), sempre com a palavra e não só um ícone.
@@ -21,7 +23,7 @@ Servido pelo próprio lacre na rede `FluxID-Lacre-XXXX` (4 últimos caracteres d
 - **Sucesso:**
   - o lacre guarda a rede como a sua rede principal (a "padrão" da Spec 012);
   - mostra o resultado conforme o campo `aprovacao` de `/situacao`: "Conectado à internet e ao FluxID. O lacre aguarda a vinculação a um tenant pelo Master" (`pendente`) ou "Conectado. O lacre voltou a operar com a nova rede" (`aprovado`), sempre com o código;
-  - fecha a rede de configuração 60 s depois, para a página mostrar o resultado.
+  - mantém a rede de configuração e a página disponíveis enquanto houver cliente conectado; sem cliente, fecha após 15 min de inatividade.
 - **Falha:**
   - nada é guardado e a rede de configuração continua aberta;
   - mensagens: senha errada (`wifi_auth`), rede fora do alcance (`wifi_not_found`), sem internet ou sem resposta do FluxID (`wifi_no_internet`).

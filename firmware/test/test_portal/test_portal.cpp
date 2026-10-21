@@ -176,14 +176,14 @@ void test_botao_segurado_5_s_abre_mesmo_com_rede_salva()
     TEST_ASSERT_FALSE(janela.Atualizar(15 * MIN, true, false));
 }
 
-void test_depois_do_sucesso_fecha_em_60_s_para_a_pagina_mostrar_o_resultado()
+void test_depois_do_sucesso_continua_aberto_enquanto_houver_cliente()
 {
     JanelaDoPortal janela;
     janela.Atualizar(0, false, true);
-    janela.Sucesso(MIN);
-    TEST_ASSERT_TRUE(janela.Atualizar(MIN + 59999, true, true));
-    TEST_ASSERT_FALSE(janela.Atualizar(2 * MIN, true, true));
-    TEST_ASSERT_FALSE(janela.Atualizar(30 * MIN, true, false));
+    TEST_ASSERT_TRUE(janela.Atualizar(2 * MIN, true, true));
+    TEST_ASSERT_TRUE(janela.Atualizar(30 * MIN, true, true));
+    TEST_ASSERT_TRUE(janela.Atualizar(44 * MIN, true, false));
+    TEST_ASSERT_FALSE(janela.Atualizar(45 * MIN, true, false));
 }
 
 int main()
@@ -202,6 +202,6 @@ int main()
     RUN_TEST(test_com_alguem_conectado_a_rede_de_configuracao_continua_aberta);
     RUN_TEST(test_com_rede_salva_nunca_abre_sozinha);
     RUN_TEST(test_botao_segurado_5_s_abre_mesmo_com_rede_salva);
-    RUN_TEST(test_depois_do_sucesso_fecha_em_60_s_para_a_pagina_mostrar_o_resultado);
+    RUN_TEST(test_depois_do_sucesso_continua_aberto_enquanto_houver_cliente);
     return UNITY_END();
 }

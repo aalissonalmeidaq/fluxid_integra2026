@@ -58,7 +58,7 @@ describe('pedidos novos para o anúncio', () => {
 
 describe('textos das recusas', () => {
   it.each([
-    ['networks_not_cleared', /redes do tenant anterior/],
+    ['networks_not_cleared', /redes da empresa anterior/],
     ['enrollment_conflict', /Outro aparelho com este código/],
     ['stale', /mudou/],
     ['cylinder_in_trip', /viagem em andamento/],

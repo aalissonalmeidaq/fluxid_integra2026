@@ -56,7 +56,7 @@ async function scenarios() {
   await createSessionLogoutHandler(logout)(post('session-logout', {}));
 
   const recovery = (over: Partial<PasswordRecoveryGateway> = {}): PasswordRecoveryGateway => ({
-    reserve: vi.fn(async () => true), issue: vi.fn(async () => ({ delivery: 'confirmed' as const })), audit: vi.fn(record('password-recovery')), ...over,
+    reserve: vi.fn(async () => true), isDemoEmail: vi.fn(async () => false), issue: vi.fn(async () => ({ delivery: 'confirmed' as const })), audit: vi.fn(record('password-recovery')), ...over,
   });
   await createPasswordRecoveryHandler(recovery())(post('password-recovery', { email: SECRET_EMAIL }, null));
   await createPasswordRecoveryHandler(recovery({ issue: vi.fn(async () => ({ delivery: 'failed' as const })) }))(post('password-recovery', { email: SECRET_EMAIL }, null));
@@ -194,7 +194,7 @@ describe('auditoria: sanitização', () => {
     expect(all.filter((event) => event.justification === FREE_TEXT).every((event) => event.result === 'success')).toBe(true);
   });
 
-  it('negações por permissão não gravam o tenant solicitado nem o alvo (acesso cruzado)', async () => {
+  it('negações por permissão não gravam a empresa solicitado nem o alvo (acesso cruzado)', async () => {
     const all = await scenarios();
     const permissionDenials = all.filter((event) => event.result === 'denied' && event.reason === 'permission_denied');
     expect(permissionDenials.length).toBeGreaterThan(3);

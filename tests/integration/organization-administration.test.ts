@@ -5,7 +5,7 @@ import { createManageOrganizationsHandler, type OrganizationGateway } from '../.
 const request = (body: unknown) => new Request('http://local/manage-organizations', { method: 'POST', headers: { authorization: 'Bearer jwt', 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 describe('administração de organização', () => {
-  it('convite inicial fica restrito ao tenant criado e ao papel Administrador do tenant', async () => {
+  it('convite inicial fica restrito à empresa criado e ao papel Administrador da empresa', async () => {
     const inviteFirstAdmin = vi.fn(async () => ({ invitationId: '30000000-0000-0000-0000-000000000099' }));
     const gw = {
       authenticate: vi.fn(async () => ({ userId: '10000000-0000-0000-0000-000000000001', aal: 'aal2' as const, sessionActive: true, canManagePlatform: true, canManageMaster: false })),

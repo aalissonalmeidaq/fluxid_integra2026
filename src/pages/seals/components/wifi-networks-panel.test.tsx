@@ -24,9 +24,11 @@ const renderPanel = (s: SealService, seal: SealDetail = SEAL, extra: { canAdmin?
   render(<WifiNetworksPanel service={s} organizationId="org-a" seal={seal} online={extra.online ?? true} canAdmin={extra.canAdmin ?? true} now={() => NOW} onChanged={extra.onChanged ?? (() => undefined)} />);
 
 describe('WifiNetworksPanel', () => {
-  it('mostra a rede em uso (da lista, sinal, horário) e só os nomes das redes guardadas', () => {
+  // Pedido do responsável (20/10/2026): a rede em uso aparece como "GSM/Telemetria", não pelo nome do Wi-Fi.
+  it('mostra a rede em uso como GSM/Telemetria (da lista, sinal, horário) e só os nomes das redes guardadas', () => {
     renderPanel(service().service);
-    expect(screen.getByText(/Em uso: Rede-Deposito \(rede da lista, sinal -60 dBm\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Em uso: GSM\/Telemetria \(rede da lista, sinal -60 dBm\)/)).toBeInTheDocument();
+    expect(screen.queryByText(/Em uso: Rede-Deposito/)).not.toBeInTheDocument();
     expect(screen.getByText(/há 1 minuto/)).toBeInTheDocument();
     expect(within(screen.getByRole('list', { name: 'Redes guardadas' })).getByText('Rede-Deposito')).toBeInTheDocument();
   });

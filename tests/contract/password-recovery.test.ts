@@ -14,6 +14,7 @@ const request = (email = ' Pessoa@Example.invalid ') => new Request('http://loca
 function gateway(overrides: Partial<PasswordRecoveryGateway> = {}): PasswordRecoveryGateway {
   return {
     reserve: vi.fn(async () => true),
+    isDemoEmail: vi.fn(async () => false),
     issue: vi.fn(async () => ({ delivery: 'confirmed' as const })),
     audit: vi.fn(async () => undefined),
     ...overrides,
@@ -69,6 +70,22 @@ describe('password-recovery', () => {
     const gw = gateway();
     const result = await call(gw, 'inválido');
     expect(result).toEqual({ status: 400, body: { code: 'INVALID_REQUEST' } });
+    expect(gw.issue).not.toHaveBeenCalled();
+  });
+
+  // Spec 014 (RF-016 c): conta de demonstração não recebe link; a resposta pública é a mesma de sempre.
+  it('e-mail de demonstração: mesmo 202 genérico, nenhum link emitido e entrega registrada como not_applicable', async () => {
+    const gw = gateway({ isDemoEmail: vi.fn(async () => true) });
+    const resposta = await call(gw, ' Tenant_Admin@demo.fluxid.invalid ');
+    expect(resposta).toEqual({ status: 202, body: { code: 'RECOVERY_REQUEST_ACCEPTED' } });
+    expect(gw.isDemoEmail).toHaveBeenCalledWith('tenant_admin@demo.fluxid.invalid');
+    expect(gw.issue).not.toHaveBeenCalled();
+    expect(gw.audit).toHaveBeenCalledWith(expect.objectContaining({ action: 'auth.recovery.request', result: 'not_applicable' }));
+  });
+
+  it('se a consulta de demonstração falhar, responde o mesmo 202 sem emitir link', async () => {
+    const gw = gateway({ isDemoEmail: vi.fn(async () => { throw new Error('rpc_failed'); }) });
+    expect(await call(gw)).toEqual({ status: 202, body: { code: 'RECOVERY_REQUEST_ACCEPTED' } });
     expect(gw.issue).not.toHaveBeenCalled();
   });
 });

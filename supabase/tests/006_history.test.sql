@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem o C262 e a auditoria dele: fica fora das contagens globais.
 select plan(35);
 
 -- Spec 006, US7: query_cylinder_history (RF-024 a RF-026, RF-042). Hermético.
@@ -108,7 +109,7 @@ select is((select public.query_cylinder_history(b, sb, ob, '72000000-0000-0000-0
 select is((select public.query_cylinder_history(b, sb, oa, h2)->>'code' from ids), 'ACCESS_DENIED', 'B pedindo o contexto de A: ACCESS_DENIED');
 
 -- 32-34. Somente leitura.
-select is((select count(*)::int from public.audit_logs where action like 'cylinder.%'), 0, 'ler o histórico não gera auditoria de sucesso');
+select is((select count(*)::int from public.audit_logs where action like 'cylinder.%' and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'), 0, 'ler o histórico não gera auditoria de sucesso');
 select is((select count(*)::int from public.cylinder_events where cylinder_id = (select h1 from ids)), 3000, 'e não altera eventos');
 select is((select jsonb_array_length(public.query_cylinder_history(b, sb, ob, k1)->'events') from ids), 1, 'B lê o próprio histórico');
 

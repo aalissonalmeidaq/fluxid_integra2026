@@ -67,27 +67,24 @@ namespace fluxid
     };
 
     // Quando a rede de configuracao fica aberta. Sem rede salva, abre sozinha; sem ninguem conectado por 15 min, fecha por 5 min e
-    // reabre. Com rede salva, so pelo botao (RN-004), e fecha depois de 15 min sem ninguem. Depois do sucesso, fecha em 60 s.
+    // reabre. Com rede salva, so pelo botao (RN-004). Depois do sucesso, continua aberta enquanto houver cliente e fecha apenas
+    // depois de 15 min sem ninguem, para que a pessoa consiga conferir a rede e o acesso ao FluxID.
     class JanelaDoPortal
     {
     public:
         static const uint32_t ABERTO_MS;
         static const uint32_t FECHADO_MS;
-        static const uint32_t DEPOIS_DO_SUCESSO_MS = 60000UL;
 
         // Devolve se a rede de configuracao deve estar aberta agora.
         bool Atualizar(uint32_t agoraMs, bool temRedeSalva, bool temCliente);
         void PedirAbertura(uint32_t agoraMs);
-        void Sucesso(uint32_t agoraMs);
         bool Aberta() const;
 
     private:
         bool aberta = false;
         bool pedida = false;
         bool comecou = false;
-        bool fecharDepoisDoSucesso = false;
         uint32_t marcoMs = 0;     // abriu, fechou ou o ultimo cliente
-        uint32_t sucessoMs = 0;
 
         void Abrir(uint32_t agoraMs);
         void Fechar(uint32_t agoraMs);

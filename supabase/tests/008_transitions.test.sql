@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem dados de exemplo próprios: fica fora das contagens globais.
 select plan(42);
 
 -- Spec 008 (data-model.md, "Transições"; CA-003): cada operação de transição só vale a partir do estado de origem; qualquer outra é recusada
@@ -99,7 +100,7 @@ select is(pg_temp.op('start_trip', 1) ->> 'code', 'VALIDATION_FAILED', 'iniciar 
 -- O bloqueio nunca volta e o item entregue/liberado não é tocado por estas operações.
 select is((select item_status from public.trip_items where id = '9b000000-0000-0000-0000-000000000004'), 'delivered', 'item entregue intacto');
 select is((select item_status from public.trip_items where id = '9b000000-0000-0000-0000-000000000005'), 'released', 'item liberado intacto');
-select is((select count(*)::int from public.trip_items where lock_status <> 'none'), 0, 'nenhum bloqueio nasceu fora do início da viagem');
+select is((select count(*)::int from public.trip_items where lock_status <> 'none' and organization_id <> '5478e9e3-155b-482f-b843-3513e0938dd6'), 0, 'nenhum bloqueio nasceu fora do início da viagem');
 
 select * from finish();
 rollback;

@@ -95,7 +95,7 @@ describe('Perfil e avatar ao vivo', () => {
     expect(anonymous.status).toBeGreaterThanOrEqual(400);
   });
 
-  it('colega do mesmo tenant sem profile.read e ator de outro tenant não leem o avatar', async () => {
+  it('colega do mesmo tenant sem profile.read e ator de outra empresa não leem o avatar', async () => {
     const path = (await avatarPath(owner))!;
     expect((await sign(colleague, path)).status).toBeGreaterThanOrEqual(400);
     expect((await sign(otherTenant, path)).status).toBeGreaterThanOrEqual(400);

@@ -35,7 +35,7 @@ const input: ConflictInput = {
 const authorized = {
   actorId: 'actor-1',
   sessionValid: true,
-  justification: 'Confirmado com o responsável do tenant.',
+  justification: 'Confirmado com o responsável da empresa.',
   permissions: ['tenant.manage'],
   scope: 'tenant' as const,
   decision: 'keep_remote' as const,
@@ -123,7 +123,7 @@ describe('ConflictResolver', () => {
   it('isola conflitos por tenant', async () => {
     const { database, resolver } = await setup();
     await resolver.register(input);
-    await expect(resolver.register({ ...input, organizationId: 'tenant-b' })).rejects.toThrow(/outro tenant/i);
+    await expect(resolver.register({ ...input, organizationId: 'tenant-b' })).rejects.toThrow(/outra empresa/i);
     database.unlock('tenant-b');
     expect(await resolver.hasOpenConflicts()).toBe(false);
   });

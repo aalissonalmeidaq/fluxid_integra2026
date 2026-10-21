@@ -23,6 +23,7 @@ function gateway(): PasswordRecoveryGateway {
   return {
     reserve: async (identityHash, minimumIntervalSeconds) =>
       Boolean(await rpc('reserve_password_recovery', { p_identity_hash: identityHash, p_interval_seconds: minimumIntervalSeconds })),
+    isDemoEmail: async (email) => Boolean(await rpc('is_demo_email', { p_email: email })),
     async issue({ email }) {
       const { error } = await publicClient.auth.resetPasswordForEmail(email, { redirectTo });
       return { delivery: (error ? 'failed' : 'confirmed') as RecoveryDelivery };

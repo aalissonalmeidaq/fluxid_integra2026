@@ -135,7 +135,7 @@ test.describe('Inicialização da PWA: sincronização com outbox (US9)', () => 
     expect(await outboxState(page)).toEqual([expect.objectContaining({ id: 'item-1', status: 'synced' })]);
   });
 
-  test('isolamento A/B: com o tenant A ativo a pendência do tenant B não é enviada nem alterada', async ({ page }) => {
+  test('isolamento A/B: com a empresa A ativo a pendência da empresa B não é enviada nem alterada', async ({ page }) => {
     const backend = new MockBackend();
     await seedOutbox(page, [outboxItem('item-a', TENANT_A), outboxItem('item-b', TENANT_B)]);
     await login(page, backend);
@@ -204,7 +204,7 @@ test.describe('Inicialização da PWA: sincronização com outbox (US9)', () => 
     expect(await outboxState(page)).toEqual([expect.objectContaining({ id: 'item-1', status: 'failed' })]);
   });
 
-  test('a troca de tenant sincroniza o novo contexto sem reenviar nem misturar as pendências', async ({ page }) => {
+  test('a troca de empresa sincroniza o novo contexto sem reenviar nem misturar as pendências', async ({ page }) => {
     const backend = new MockBackend();
     backend.tenantMemberships = [tenantMembership(TENANT_A, 'Tenant A'), tenantMembership(TENANT_B, 'Tenant B')];
     await seedOutbox(page, [outboxItem('item-a', TENANT_A), outboxItem('item-b', TENANT_B)]);

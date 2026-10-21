@@ -95,13 +95,13 @@ describe('AuditLogPage: escopo', () => {
     expect(service.query).toHaveBeenCalledWith({ scope: 'global' }, {}, undefined, 50);
   });
 
-  it('no escopo do tenant o título indica o tenant e o leitor só consulta, sem ações de edição', async () => {
+  it('no escopo da empresa o título indica a empresa e o leitor só consulta, sem ações de edição', async () => {
     renderView();
-    expect(await screen.findByRole('heading', { level: 2, name: 'Auditoria do tenant' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 2, name: 'Auditoria da empresa' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /excluir|editar|apagar|alterar/i })).not.toBeInTheDocument();
   });
 
-  it('sem o identificador do tenant não consulta e informa o motivo', async () => {
+  it('sem o identificador da empresa não consulta e informa o motivo', async () => {
     const service = fakeService();
     render(<AuditLogView scope="tenant" organizationId={null} service={service} />);
     expect(await screen.findByRole('alert')).toHaveTextContent(/organização não informada/i);

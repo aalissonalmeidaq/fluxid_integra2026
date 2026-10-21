@@ -29,7 +29,7 @@ describe('AccessGate: a permissão é confirmada no servidor antes de exibir a t
     expect(screen.queryByText('conteúdo protegido')).not.toBeInTheDocument();
   });
 
-  it('ser perfil global não concede a permissão do tenant', () => {
+  it('ser perfil global não concede a permissão da empresa', () => {
     renderGate({ permissions: { tenant: [], global: ['cylinder.write'] } });
     expect(screen.queryByText('conteúdo protegido')).not.toBeInTheDocument();
   });

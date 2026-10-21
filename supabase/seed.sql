@@ -30,7 +30,7 @@ insert into public.memberships(id,organization_id,user_id,status,activated_at) v
 -- Catálogo de permissões e papéis globais vêm das migrations. Aqui ficam apenas os papéis do Tenant A com
 -- identificadores fixos usados pelas suítes; os demais papéis e as permissões do tenant_admin vêm do bootstrap.
 insert into public.roles(id,organization_id,code,name,description,scope,system) values
-('50000000-0000-0000-0000-000000000003','20000000-0000-0000-0000-00000000000a','tenant_admin','Administrador do tenant','Administração do tenant','tenant',true),
+('50000000-0000-0000-0000-000000000003','20000000-0000-0000-0000-00000000000a','tenant_admin','Administrador da empresa','Administração da empresa','tenant',true),
 ('50000000-0000-0000-0000-000000000004','20000000-0000-0000-0000-00000000000a','technical_operator','Operador técnico','Perfil sem operação nesta Spec','tenant',true),
 ('50000000-0000-0000-0000-000000000005','20000000-0000-0000-0000-00000000000a','stock_operator','Operador de estoque','Perfil sem operação nesta Spec','tenant',true),
 ('50000000-0000-0000-0000-000000000006','20000000-0000-0000-0000-00000000000a','driver','Motorista','Perfil sem operação nesta Spec','tenant',true) on conflict do nothing;

@@ -47,6 +47,9 @@ function RiskConfirm({ checked, error = null, onChange }: { checked?: boolean; e
   );
 }
 
+// Nome exibido para a rede em uso do lacre (pedido do responsável, 20/10/2026); o nome real do Wi-Fi segue nas listas de escolha.
+const IN_USE_NETWORK_LABEL = 'GSM/Telemetria';
+
 interface WifiOption { ssid: string; current: boolean; available: boolean; rssi: number | null }
 
 function knownNetworks(seal: SealDetail): WifiOption[] {
@@ -226,7 +229,7 @@ export function WifiNetworksPanel({ service, organizationId, seal, online, canAd
     <div className="flex flex-col gap-4">
       <p className="m-0 text-corpo text-grafite">
         {seal.wifiInUse
-          ? <>Em uso: {seal.wifiInUse.ssid} ({seal.wifiInUse.kind === 'default' ? 'rede padrão' : 'rede da lista'}{seal.wifiInUse.rssi === null ? '' : `, sinal ${seal.wifiInUse.rssi} dBm`}).{seal.wifiInUse.at && <span className="text-texto-secundario"> Informada {positionAge(seal.wifiInUse.at, now())}.</span>}</>
+          ? <>Em uso: {IN_USE_NETWORK_LABEL} ({seal.wifiInUse.kind === 'default' ? 'rede padrão' : 'rede da lista'}{seal.wifiInUse.rssi === null ? '' : `, sinal ${seal.wifiInUse.rssi} dBm`}).{seal.wifiInUse.at && <span className="text-texto-secundario"> Informada {positionAge(seal.wifiInUse.at, now())}.</span>}</>
           : 'O lacre ainda não informou a rede em uso.'}
       </p>
       {seal.wifiSaved.length === 0 ? <p className="m-0 text-corpo text-grafite">Redes guardadas: nenhuma além da padrão.</p> : (

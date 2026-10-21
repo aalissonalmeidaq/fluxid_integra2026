@@ -1,5 +1,5 @@
 export interface MembershipTransport{call(endpoint:'invite-user'|'manage-membership',body:Record<string,unknown>):Promise<{status:number;body:unknown}>}
-export type MembershipOutcome<T=unknown>={kind:'success';value:T}|{kind:'access_denied'|'mfa_required'|'last_admin'|'conflict'|'delivery_pending'|'expired'|'invalid'|'unavailable'};
+export type MembershipOutcome<T=unknown>={kind:'success';value:T}|{kind:'access_denied'|'mfa_required'|'last_admin'|'conflict'|'delivery_pending'|'expired'|'invalid'|'unavailable'|'demo_restricted'};
 type Body={code?:unknown;invitation_id?:unknown;status?:unknown;membership?:unknown};
 
 export interface MemberSummary{id:string;display_name:string;email:string;status:string;version:number}
@@ -24,7 +24,7 @@ export class MembershipService{
     }catch{return{kind:'unavailable'};}
   }
   private failure(rawBody:unknown):{kind:Exclude<MembershipOutcome['kind'],'success'>}{
-    const kinds:Record<string,Exclude<MembershipOutcome['kind'],'success'>>={ACCESS_DENIED:'access_denied',MFA_REQUIRED:'mfa_required',LAST_ADMIN_REQUIRED:'last_admin',INVITATION_CONFLICT:'conflict',MEMBERSHIP_UNAVAILABLE:'conflict',DELIVERY_PENDING:'delivery_pending',INVITATION_EXPIRED:'expired',VALIDATION_FAILED:'invalid'};
+    const kinds:Record<string,Exclude<MembershipOutcome['kind'],'success'>>={ACCESS_DENIED:'access_denied',MFA_REQUIRED:'mfa_required',LAST_ADMIN_REQUIRED:'last_admin',INVITATION_CONFLICT:'conflict',MEMBERSHIP_UNAVAILABLE:'conflict',DELIVERY_PENDING:'delivery_pending',INVITATION_EXPIRED:'expired',VALIDATION_FAILED:'invalid',DEMO_RESTRICTED:'demo_restricted'};
     const code=asBody(rawBody).code;
     return{kind:(typeof code==='string'?kinds[code]:undefined)??'unavailable'};
   }

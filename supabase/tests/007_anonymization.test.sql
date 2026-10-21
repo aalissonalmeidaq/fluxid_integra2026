@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem dados de exemplo próprios: fica fora das contagens globais.
 select plan(69);
 
 -- Spec 007, US8: anonymize_driver, anonymize_customer e anonymize_contact (RF-054 a RF-061, CA-016, CA-017). Hermético.
@@ -186,7 +187,7 @@ select is(pg_temp.counts(),
           ((string_to_array(v #>> '{}', '/'))[4]::int + 1) || '/' || (string_to_array(v #>> '{}', '/'))[5] || '/' || (string_to_array(v #>> '{}', '/'))[6] || '/' || (string_to_array(v #>> '{}', '/'))[7]
      from r where k = 'before'),
   'nenhuma linha foi apagada em nenhuma tabela de cadastro: só cresceu pelos dois registros novos que o teste criou');
-select ok(not exists (select 1 from public.drivers d where d.full_name ~* 'carlos' or d.phone is not null), 'nenhum motorista guarda o nome ou telefone antigo');
+select ok(not exists (select 1 from public.drivers d where d.organization_id <> '5478e9e3-155b-482f-b843-3513e0938dd6' and (d.full_name ~* 'carlos' or d.phone is not null)), 'nenhum motorista guarda o nome ou telefone antigo');
 select ok(not exists (select 1 from public.customer_contacts k where k.anonymized_at is not null and (k.phone is not null or k.email is not null)), 'nenhum contato anonimizado guarda telefone ou e-mail');
 select ok(not exists (select 1 from public.registry_events where data::text ~* '(52998224725|12345678900|11144477735|Sigilos|Ana Fantasia|Bruno Parente|ana\.sigilosa|maria\.contato|11987654321|11999998888|11911112222|1133334444|11955556666|privada|Portão azul)'
                        or coalesce(justification, '') ~* '(Sigilos|11144477735)'), 'nenhum valor antigo em nenhum evento');

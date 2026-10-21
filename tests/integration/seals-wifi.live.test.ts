@@ -40,7 +40,7 @@ describe('Lacre: redes Wi-Fi configuradas pelo sistema (Spec 012, US7)', () => {
     await logout(tokenB);
   });
 
-  it('outro tenant não manda rede ao lacre', async () => {
+  it('outra empresa não manda rede ao lacre', async () => {
     const response = await manage(tokenB, { operation: 'wifi_add', ssid: `Intrusa-${run}`, password: 'senha-de-outro-tenant', open: false });
     expect(response.status).not.toBe(200);
     expect(Number(sql(`select count(*) from public.seal_commands where device_id = '${device.id}';`))).toBe(0);

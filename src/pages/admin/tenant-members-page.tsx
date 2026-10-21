@@ -28,14 +28,16 @@ const ACTION_COPY: Record<TargetStatus, { verb: string; confirm: string }> = {
 };
 
 const ERROR_MESSAGES: Record<Exclude<MembershipOutcome['kind'], 'success'>, string> = {
-  access_denied: 'Acesso negado. Você não tem autorização para administrar as pessoas deste tenant.',
+  access_denied: 'Acesso negado. Você não tem autorização para administrar as pessoas desta empresa.',
   mfa_required: 'Sua sessão não permite esta ação agora. Entre de novo e tente outra vez.',
-  last_admin: 'Ação recusada: este é o último administrador ativo do tenant. Atribua o papel a outra pessoa antes.',
+  last_admin: 'Ação recusada: este é o último administrador ativo da empresa. Atribua o papel a outra pessoa antes.',
   conflict: 'Já existe um convite ativo para este e-mail ou o vínculo foi alterado por outra pessoa. Atualize a lista.',
   delivery_pending: 'Aguarde alguns minutos antes de reenviar o convite.',
   expired: 'O convite expirou. Envie um novo convite.',
   invalid: 'Revise os dados informados.',
   unavailable: 'Não foi possível concluir a ação agora. Tente novamente.',
+  // Spec 014 (RF-016 a).
+  demo_restricted: 'Convites não estão disponíveis na empresa da demonstração.',
 };
 
 const actionsFor = (status: string): TargetStatus[] =>
@@ -150,8 +152,8 @@ export function TenantMembersView({ organizationId, service }: TenantMembersView
     <section aria-labelledby="members-title" className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between">
         <div>
-          <p className="text-legenda font-semibold uppercase text-azul-profundo">Administração do tenant</p>
-          <h2 id="members-title" className="mt-1 text-h2 font-bold text-navy">Pessoas do tenant</h2>
+          <p className="text-legenda font-semibold uppercase text-azul-profundo">Administração da empresa</p>
+          <h2 id="members-title" className="mt-1 text-h2 font-bold text-navy">Pessoas da empresa</h2>
           <p className="mt-1 text-corpo">Convide pessoas e gerencie o acesso delas apenas nesta organização.</p>
         </div>
         <Button className="tablet:shrink-0 tablet:whitespace-nowrap" disabled={!service} aria-expanded={showInvite} onClick={() => setShowInvite((visible) => !visible)}>
@@ -189,7 +191,7 @@ export function TenantMembersView({ organizationId, service }: TenantMembersView
           chaveDaLinha={(member) => member.id}
           carregando={loading}
           textoDeCarregamento="Carregando pessoas…"
-          vazio={{ title: 'Nenhuma pessoa vinculada a este tenant.', description: 'Convide a primeira pessoa com o botão Convidar pessoa. O acesso só vale depois de o convite ser aceito.' }}
+          vazio={{ title: 'Nenhuma pessoa vinculada a esta empresa.', description: 'Convide a primeira pessoa com o botão Convidar pessoa. O acesso só vale depois de o convite ser aceito.' }}
         />
       )}
 

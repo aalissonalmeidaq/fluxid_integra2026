@@ -4,6 +4,8 @@ export type RecoveryDelivery = 'confirmed' | 'pending' | 'failed' | 'not_applica
 
 export interface PasswordRecoveryGateway {
   reserve(identityHash: string, minimumIntervalSeconds: number): Promise<boolean>;
+  // Spec 014 (RF-016 c): contas de demonstração têm senha pública e não recebem link de recuperação.
+  isDemoEmail(email: string): Promise<boolean>;
   issue(input: { email: string; identityHash: string; expiresInSeconds: number }): Promise<{ delivery: RecoveryDelivery }>;
   audit(event: { action: 'auth.recovery.request'; result: RecoveryDelivery | 'rate_limited'; identityHash: string }): Promise<void>;
 }
@@ -31,6 +33,10 @@ export function createPasswordRecoveryHandler(gateway: PasswordRecoveryGateway) 
       const identityHash = await sha256Hex(`recovery:${email}`);
       if (!(await gateway.reserve(identityHash, 60))) {
         await gateway.audit({ action: 'auth.recovery.request', result: 'rate_limited', identityHash });
+        return json(PUBLIC_ACCEPTED, 202);
+      }
+      if (await gateway.isDemoEmail(email)) {
+        await gateway.audit({ action: 'auth.recovery.request', result: 'not_applicable', identityHash });
         return json(PUBLIC_ACCEPTED, 202);
       }
       const { delivery } = await gateway.issue({ email, identityHash, expiresInSeconds: 3600 });

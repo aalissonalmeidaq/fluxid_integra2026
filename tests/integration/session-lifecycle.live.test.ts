@@ -69,7 +69,7 @@ describe('Ciclo de vida da sessão', () => {
     expect((await restGet('profiles?select=user_id', token)).body).toEqual([]);
   });
 
-  it('isola o tenant: usuário do Tenant A não recebe dados do Tenant B pela Data API', async () => {
+  it('isola a empresa: usuário do Tenant A não recebe dados do Tenant B pela Data API', async () => {
     const result = await login(USERS.life);
     const token = result.body.session.access_token;
 

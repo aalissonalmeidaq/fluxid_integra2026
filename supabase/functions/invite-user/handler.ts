@@ -1,7 +1,7 @@
 import { json, preflight, UUID_PATTERN } from '../_shared/http.ts';
 
 type Identity={userId:string;sessionId:string;aal:'aal1'|'aal2'};
-type ReserveResult={kind:'reserved';id:string;expiresAt:string}|{kind:'conflict'}|{kind:'delivery_pending'}|{kind:'expired'};
+type ReserveResult={kind:'reserved';id:string;expiresAt:string}|{kind:'conflict'}|{kind:'delivery_pending'}|{kind:'expired'}|{kind:'demo_restricted'};
 type AcceptResult={kind:'accepted';membershipId:string}|{kind:'conflict'}|{kind:'expired'};
 export interface InvitationGateway{
   authenticate(token:string):Promise<Identity|null>;
@@ -14,7 +14,8 @@ export interface InvitationGateway{
 }
 const EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const bearer=(request:Request)=>request.headers.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1]??null;
-const mapReserve=(kind:Exclude<ReserveResult['kind'],'reserved'>)=>kind==='delivery_pending'?json({code:'DELIVERY_PENDING'},429):kind==='expired'?json({code:'INVITATION_EXPIRED'},410):json({code:'INVITATION_CONFLICT'},409);
+// Spec 014: DEMO_RESTRICTED (convite no tenant da demonstração) já vem auditado pelo banco.
+const mapReserve=(kind:Exclude<ReserveResult['kind'],'reserved'>)=>kind==='demo_restricted'?json({code:'DEMO_RESTRICTED'},403):kind==='delivery_pending'?json({code:'DELIVERY_PENDING'},429):kind==='expired'?json({code:'INVITATION_EXPIRED'},410):json({code:'INVITATION_CONFLICT'},409);
 
 export function createInviteUserHandler(gateway:InvitationGateway){return async(request:Request):Promise<Response>=>{
   if(request.method==='OPTIONS')return preflight();if(request.method!=='POST')return json({code:'METHOD_NOT_ALLOWED'},405);

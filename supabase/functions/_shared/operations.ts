@@ -80,6 +80,8 @@ const STATUS: Record<string, number> = {
   // Spec 012 (lacre IoT).
   SEAL_ALREADY_BOUND: 409, CYLINDER_ALREADY_BOUND: 409, SEAL_INACTIVE: 409, NO_BINDING: 409, WIFI_LIST_FULL: 409, WIFI_NOT_IN_LIST: 409,
   WIFI_RISK_NOT_CONFIRMED: 400, ALERT_CLOSED: 409, NOTE_REQUIRED: 400,
+  // Spec 014 (RF-016 d): ação recusada no tenant da demonstração; o banco já auditou a negação.
+  DEMO_RESTRICTED: 403,
 };
 
 // Exceções do banco (gatilhos) que a borda traduz em código de negócio, sem reescrever as RPCs que as provocam.

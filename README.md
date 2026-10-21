@@ -188,6 +188,18 @@ O contrato completo está em `specs/013-aprovacao-lacres-master/`, e a senha da 
 
 Depois de atualizar a branch, rode `npx supabase db reset` e reinicie o Supabase (`npx supabase stop` e `npx supabase start`) para servir as funções novas. As notificações locais precisam das chaves VAPID em `supabase/functions/.env` e da pública em `.env.local` (`VITE_VAPID_PUBLIC_KEY`); veja `.env.example`. A publicação na nuvem está em `docs/publicacao-em-nuvem.md`, e o contrato completo em `specs/012-lacre-iot-geocerca-trava/`.
 
+## Acessos de demonstração (Spec 014)
+
+A tela de login tem o botão **Acessos de teste**, que abre a lista dos 5 perfis de demonstração (administrador, operador de estoque, operador técnico, auditor e motorista) da empresa "Oxigênio Cariri" e preenche o formulário com um clique; a entrada só acontece quando a pessoa aciona Entrar. As credenciais são públicas por decisão do responsável, valem só nessa empresa e são as mesmas no local e na nuvem.
+
+- **Fonte única:** `src/domain/demo/acessos-demonstracao.json`. O seed local (`supabase/seeds/demonstracao.sql`) traz a mesma lista, conferida por teste.
+- **Restrições no servidor:** na empresa da demonstração não há convites nem devolução do lacre à plataforma; a senha das contas de demonstração não muda e a recuperação de senha não envia link para elas.
+- **Restauração:** `npm run operacao:demonstracao` (e a rotina diária do GitHub) devolve perfis, vínculos, papéis e o C262 ao estado publicado. Contra o local: `SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<chave local> npm run operacao:demonstracao -- --permitir-fora-da-nuvem`.
+- **Dados de exemplo:** a empresa da demonstração vem com 13 cilindros, 3 clientes com unidades e geocercas, 2 veículos, 2 motoristas, viagens concluída, em andamento e planejada e 4 lacres simulados com alertas, criados e restaurados pelas operações do sistema.
+- **Desligar:** `VITE_DEMO_ACCESS=false` no build tira o botão e as credenciais do pacote.
+
+No sistema, "tenant" aparece como **empresa** em todas as telas e nos nomes dos papéis; os códigos internos não mudaram. O contrato completo está em `specs/014-perfis-demonstracao/`, e a publicação, em `docs/publicacao-em-nuvem.md`.
+
 ---
 
 ## Governança de IA por ciclo

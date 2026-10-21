@@ -45,7 +45,7 @@ const decide = (over: Partial<Parameters<typeof authorize>[0]> = {}) => authoriz
 });
 
 describe('effectivePermissions', () => {
-  it('une as permissões de todos os papéis ativos do vínculo no tenant', () => {
+  it('une as permissões de todos os papéis ativos do vínculo na empresa', () => {
     const codes = [...effectivePermissions(membership([AUDITOR, role('profile', [P_PROFILE])]), tenantA).keys()].sort();
     expect(codes).toEqual(['audit.read', 'profile.read']);
   });
@@ -96,12 +96,12 @@ describe('authorize', () => {
     expect(decide({ session: session({ active: false }), membership: null })).toEqual({ allowed: false, reason: 'session_invalid' });
   });
 
-  it('trata o tenant recebido do cliente apenas como contexto solicitado', () => {
+  it('trata a empresa recebido do cliente apenas como contexto solicitado', () => {
     expect(decide({ requestedOrganizationId: TENANT_B })).toEqual({ allowed: false, reason: 'organization_mismatch' });
     expect(decide({ organization: { ...tenantA, id: TENANT_B } })).toEqual({ allowed: false, reason: 'organization_mismatch' });
   });
 
-  it.each(['suspended', 'inactive'] as const)('nega quando o tenant está %s', (status) => {
+  it.each(['suspended', 'inactive'] as const)('nega quando a empresa está %s', (status) => {
     expect(decide({ organization: { ...tenantA, status } })).toEqual({ allowed: false, reason: 'organization_unavailable' });
   });
 
@@ -186,7 +186,7 @@ describe('canAssignRole', () => {
     expect(canAssignRole({ role: AUDITOR, membership: membership([], { status: 'invited' }), organization: tenantA })).toEqual({ allowed: false, reason: 'membership_not_active' });
   });
 
-  it('recusa papel de outro tenant', () => {
+  it('recusa papel de outra empresa', () => {
     expect(canAssignRole({ role: role('x', [], { organizationId: TENANT_B }), membership: membership([]), organization: tenantA })).toEqual({ allowed: false, reason: 'organization_mismatch' });
   });
 
@@ -235,7 +235,7 @@ describe('wouldLeaveTenantWithoutAdmin', () => {
     expect(wouldLeaveTenantWithoutAdmin({ organization: owner, memberships: [admin('a')], membershipId: 'a' })).toBe(false);
   });
 
-  it('ignora papel Administrador do tenant inativo', () => {
+  it('ignora papel Administrador da empresa inativo', () => {
     const retired = membership([role('tenant_admin', [P_MANAGE], { system: true, active: false })], { id: 'a' });
     expect(wouldLeaveTenantWithoutAdmin({ organization: tenantA, memberships: [retired], membershipId: 'a' })).toBe(false);
   });

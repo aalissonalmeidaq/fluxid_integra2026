@@ -1,0 +1,52 @@
+name: Restaurar a demonstração
+
+# Spec 014 (RF-017): devolve os acessos de demonstração ao estado publicado uma vez por dia, de madrugada (03:23 de Brasília),
+# e sob demanda. Roda `npm run operacao:demonstracao` (scripts/operacao/demonstracao.mjs) contra o projeto cloud.
+# Contrato: specs/014-perfis-demonstracao/contracts/restauracao-da-demonstracao.md
+#
+# Configuração no repositório (Settings > Secrets and variables > Actions):
+#   variable: SUPABASE_CLOUD_URL (valor público, https://<ref>.supabase.co)
+#   secret:   SUPABASE_SERVICE_ROLE_KEY (chave secreta do projeto; fica só aqui, nunca em arquivo, log ou navegador)
+# A saída mostra só o resumo da restauração, nunca a chave nem senha.
+
+on:
+  schedule:
+    - cron: '23 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: restaurar-demonstracao
+  cancel-in-progress: false
+
+jobs:
+  restaurar:
+    name: Restaurar perfis, vínculos e o C262 da demonstração
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Conferir a configuração
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_CLOUD_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set +x
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::error::Cadastre a variável SUPABASE_CLOUD_URL e o segredo SUPABASE_SERVICE_ROLE_KEY no repositório. Nada foi tentado."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Restaurar a demonstração
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_CLOUD_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set +x
+          npm run --silent operacao:demonstracao

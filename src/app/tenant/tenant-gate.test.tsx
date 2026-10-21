@@ -18,13 +18,13 @@ function value(over: Partial<TenantContextValue> = {}): TenantContextValue {
   };
 }
 
-const renderGate = (ctx: TenantContextValue, child = <p>Área do tenant</p>) =>
+const renderGate = (ctx: TenantContextValue, child = <p>Área da empresa</p>) =>
   render(<TenantContext.Provider value={ctx}><TenantGate>{child}</TenantGate></TenantContext.Provider>);
 
 describe('TenantGate', () => {
   it.each(['idle', 'loading'] as const)('não libera a área enquanto os acessos estão %s e informa o andamento', (status) => {
     renderGate(value({ status, selection: { kind: 'none' }, activeOrganizationId: null, options: [] }));
-    expect(screen.queryByText('Área do tenant')).not.toBeInTheDocument();
+    expect(screen.queryByText('Área da empresa')).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent(/verificando seus acessos/i);
   });
 
@@ -34,30 +34,30 @@ describe('TenantGate', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/não foi possível confirmar seus acessos/i);
     fireEvent.click(screen.getByRole('button', { name: /tentar novamente/i }));
     expect(ctx.reload).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText('Área do tenant')).not.toBeInTheDocument();
+    expect(screen.queryByText('Área da empresa')).not.toBeInTheDocument();
   });
 
   it('sem vínculo elegível nega o acesso com orientação e não libera a área', () => {
     renderGate(value({ selection: { kind: 'none' }, activeOrganizationId: null, options: [] }));
     expect(screen.getByRole('alert')).toHaveTextContent(/nenhum acesso ativo/i);
-    expect(screen.queryByText('Área do tenant')).not.toBeInTheDocument();
+    expect(screen.queryByText('Área da empresa')).not.toBeInTheDocument();
   });
 
   it('com mais de um vínculo exige a escolha antes da área', () => {
     renderGate(value({ selection: { kind: 'choose', options: [optionA, optionB] }, options: [optionA, optionB], activeOrganizationId: null }));
     expect(screen.getByRole('heading', { name: 'Escolha a organização' })).toBeInTheDocument();
-    expect(screen.queryByText('Área do tenant')).not.toBeInTheDocument();
+    expect(screen.queryByText('Área da empresa')).not.toBeInTheDocument();
   });
 
-  it('libera a área do tenant selecionado', () => {
+  it('libera a área da empresa selecionada', () => {
     renderGate(value());
-    expect(screen.getByText('Área do tenant')).toBeInTheDocument();
+    expect(screen.getByText('Área da empresa')).toBeInTheDocument();
   });
 
-  it('durante a troca voluntária esconde a área do tenant atual e permite cancelar', () => {
+  it('durante a troca voluntária esconde a área da empresa atual e permite cancelar', () => {
     const ctx = value({ switching: true, options: [optionA, optionB] });
     renderGate(ctx);
-    expect(screen.queryByText('Área do tenant')).not.toBeInTheDocument();
+    expect(screen.queryByText('Área da empresa')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
     expect(ctx.cancelSwitch).toHaveBeenCalledTimes(1);
   });

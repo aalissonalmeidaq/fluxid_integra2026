@@ -42,13 +42,13 @@ pending  → expired   (7 dias sem chamada, vigia)
 approved → pending   (Master retira de operação, justificativa) → inativa seal_devices (withdrawn); forget_networks = extras ou all (escolha do Master)
 approved → returned  (tenant devolve, justificativa)            → inativa seal_devices (returned); forget_networks = all
 returned → approved  (Master destina de novo, justificativa)    → cria nova linha seal_devices
-refused  → approved  (Master reconsidera, justificativa)        → cria seal_devices no tenant
+refused  → pending   (Master retorna para aguardando, justificativa e auditoria)
 expired  → pending   (o lacre volta a chamar)
 ```
 
 Destinar a outro tenant: com `last_organization_id` preenchido, `approve_enrollment` para um tenant **diferente** é recusado com `NETWORKS_NOT_CLEARED`. Para o mesmo tenant não há essa trava (RN-006).
 
-Recusado continua recusado: o lacre recebe `403` e repete a chamada de hora em hora, o que só atualiza `last_seen_at`, sem reabrir o pedido.
+Recusado continua recusado: o lacre recebe `403` e repete a chamada de hora em hora, o que só atualiza `last_seen_at`. Apenas a ação explícita do Master “Retornar para aguardando” reabre o pedido.
 
 Conflito não é uma situação: é uma marca (`conflict_at` e `conflict_key_hash`) sobre o pedido existente. Enquanto ela existir, o pedido não pode ser aprovado. O Master resolve por `replace_enrollment_key`, com justificativa:
 

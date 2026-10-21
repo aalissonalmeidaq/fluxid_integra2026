@@ -1,0 +1,339 @@
+# Registro do uso de inteligência artificial e validação humana
+
+**FluxID | RIA-034 | Perfis de demonstração e acessos de teste**
+
+> Ponto de atenção: a IA apoia a equipe, mas a responsabilidade final é humana.
+
+## Registro da interação
+
+- Ferramenta de IA utilizada: Codex — modelo registrado pela plataforma
+- Objetivo do uso: implementar e publicar os perfis de demonstração, a restauração diária, os dados de exemplo e os ajustes integrados do lacre.
+- Prompt utilizado, em síntese sanitizada: concluir a Spec 014 e as alterações anteriores do lacre, publicar Supabase e GitHub, validar o fluxo real e preparar commit e pull request.
+- Resposta gerada pela IA: foram implementados cinco perfis públicos isolados, rotina diária de restauração, dados de exemplo, restrições no servidor e melhorias do firmware e do sistema. As migrations e Edge Functions foram publicadas, e o lacre de bancada foi destinado e vinculado ao C262. O código está disponível para revisão na [PR #52](https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/52).
+
+Link para validação da equipe: [PR #52](https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/52).
+- Análise crítica da equipe: o responsável percorreu o fluxo Master, encontrou a proteção contra aprovação de uma versão desatualizada do pedido, atualizou a lista e confirmou a aprovação real do lacre para a empresa de demonstração. Depois, a restauração vinculou o dispositivo ao C262.
+- Validação humana realizada: sim, por Alisson Almeida em 21/10/2026.
+- Decisão final: utilizado
+- Justificativa: o fluxo foi testado e funcionou corretamente; a validação final foi concluída, aprovada e sem correções.
+- Fontes verificadas: documentação oficial do Supabase sobre chaves de API e Management API, além do estado do repositório GitHub.
+- Identificador do registro: RIA-034
+- Data e hora da interação: 21/10/2026, 10:23:36 - America/Fortaleza
+
+## Rastreabilidade técnica do ciclo
+
+- Repositório: fluxid
+- Branch: feat/014-perfis-demonstracao
+- Spec: 014
+- Ciclo: 01
+- Commit-base: 6c003fba6dfdf24a7463020998aaabb1a68b305d
+- Hash do diff funcional preparado: 5d16af3261ba987df0b33132c56bf6c16fb6940b26e16bb5b64dbeddc94c0106
+- Arquivos e áreas afetadas:
+
+- `.env.example`
+- `.github/workflows/restaurar-demonstracao.yml`
+- `README.md`
+- `docs/prd.md`
+- `docs/publicacao-em-nuvem.md`
+- `firmware/README.md`
+- `firmware/src/main.cpp`
+- `firmware/src/nucleo/Portal.cpp`
+- `firmware/src/nucleo/Portal.h`
+- `firmware/test/test_portal/test_portal.cpp`
+- `package-lock.json`
+- `package.json`
+- `playwright.config.ts`
+- `scripts/operacao/demonstracao.mjs`
+- `specs/013-aprovacao-lacres-master/contracts/operacoes-plataforma.md`
+- `specs/013-aprovacao-lacres-master/contracts/portal-do-lacre.md`
+- `specs/013-aprovacao-lacres-master/data-model.md`
+- `specs/013-aprovacao-lacres-master/quickstart.md`
+- `specs/013-aprovacao-lacres-master/spec.md`
+- `specs/013-aprovacao-lacres-master/tasks.md`
+- `specs/014-perfis-demonstracao/baseline.md`
+- `specs/014-perfis-demonstracao/checklists/requirements.md`
+- `specs/014-perfis-demonstracao/contracts/acessos-de-teste.md`
+- `specs/014-perfis-demonstracao/contracts/restauracao-da-demonstracao.md`
+- `specs/014-perfis-demonstracao/data-model.md`
+- `specs/014-perfis-demonstracao/plan.md`
+- `specs/014-perfis-demonstracao/quickstart.md`
+- `specs/014-perfis-demonstracao/research.md`
+- `specs/014-perfis-demonstracao/spec.md`
+- `specs/014-perfis-demonstracao/tasks.md`
+- `specs/014-perfis-demonstracao/validation.md`
+- `src/app/navigation/permissions-provider-offline.test.tsx`
+- `src/app/navigation/permissions-provider.test.tsx`
+- `src/app/shell/navigation-menu.test.tsx`
+- `src/app/sync-gate.test.tsx`
+- `src/app/tenant/tenant-gate.test.tsx`
+- `src/app/tenant/tenant-provider-offline.test.tsx`
+- `src/app/tenant/tenant-provider.test.tsx`
+- `src/application/field/offline-trip-store.test.ts`
+- `src/application/identity/audit-service.test.ts`
+- `src/application/identity/membership-service.test.ts`
+- `src/application/identity/membership-service.ts`
+- `src/application/identity/permissions-service.test.ts`
+- `src/application/seals/platform-seal-service.test.ts`
+- `src/application/seals/platform-seal-service.ts`
+- `src/application/seals/platform-seal-views.test.ts`
+- `src/application/seals/platform-seal-views.ts`
+- `src/application/seals/seal-service.ts`
+- `src/components/identity/confirmation-dialog.tsx`
+- `src/design-system/components/dialog.tsx`
+- `src/domain/demo/acessos-demonstracao.json`
+- `src/domain/demo/demo-access.test.ts`
+- `src/domain/demo/demo-access.ts`
+- `src/domain/identity/authorization.test.ts`
+- `src/domain/identity/tenant-selection.test.ts`
+- `src/domain/navigation/screens.ts`
+- `src/domain/navigation/visible-screens.test.ts`
+- `src/domain/seals/seal-enrollment.test.ts`
+- `src/domain/seals/seal-enrollment.ts`
+- `src/infrastructure/local-database/local-database.test.ts`
+- `src/infrastructure/local-database/local-database.ts`
+- `src/infrastructure/synchronization/conflict-resolver.test.ts`
+- `src/infrastructure/synchronization/conflict-resolver.ts`
+- `src/infrastructure/synchronization/sync-outbox.ts`
+- `src/infrastructure/synchronization/tenant-sync-runner.test.ts`
+- `src/pages/admin/seals/components/approve-enrollment-dialog.tsx`
+- `src/pages/admin/seals/components/enrollment-table.tsx`
+- `src/pages/admin/seals/components/portal-network-panel.tsx`
+- `src/pages/admin/seals/platform-seals-page.test.tsx`
+- `src/pages/admin/seals/platform-seals-page.tsx`
+- `src/pages/admin/tenant-audit-log-page.test.tsx`
+- `src/pages/admin/tenant-audit-log-page.tsx`
+- `src/pages/admin/tenant-members-page.test.tsx`
+- `src/pages/admin/tenant-members-page.tsx`
+- `src/pages/admin/tenant-roles-page.test.tsx`
+- `src/pages/admin/tenant-roles-page.tsx`
+- `src/pages/admin/tenants-dashboard-page.tsx`
+- `src/pages/auth/login-page-demo-off.test.tsx`
+- `src/pages/auth/login-page.test.tsx`
+- `src/pages/auth/login-page.tsx`
+- `src/pages/auth/tenant-selection-page.test.tsx`
+- `src/pages/auth/test-accesses-dialog.test.tsx`
+- `src/pages/auth/test-accesses-dialog.tsx`
+- `src/pages/cylinders/components/access-gate.test.tsx`
+- `src/pages/landing/sections/funcionalidades.tsx`
+- `src/pages/overview/overview-page.test.tsx`
+- `src/pages/seals/components/return-device-dialog.tsx`
+- `src/pages/seals/components/wifi-networks-panel.test.tsx`
+- `src/pages/seals/components/wifi-networks-panel.tsx`
+- `src/pages/seals/seal-detail-page.test.tsx`
+- `src/pages/seals/seal-detail-page.tsx`
+- `src/pages/seals/seal-list-page.test.tsx`
+- `src/pages/seals/seal-list-page.tsx`
+- `supabase/config.toml`
+- `supabase/functions/_shared/operations.ts`
+- `supabase/functions/invite-user/handler.ts`
+- `supabase/functions/invite-user/index.ts`
+- `supabase/functions/manage-organizations/handler.ts`
+- `supabase/functions/manage-organizations/index.ts`
+- `supabase/functions/password-recovery/handler.ts`
+- `supabase/functions/password-recovery/index.ts`
+- `supabase/functions/platform-seals/handler.ts`
+- `supabase/migrations/20261020162240_consolidar_posicao_repetida.sql`
+- `supabase/migrations/20261020170000_demo_markers.sql`
+- `supabase/migrations/20261020170100_demo_restore.sql`
+- `supabase/migrations/20261020170200_demo_restrictions.sql`
+- `supabase/migrations/20261020170300_empresa_nos_papeis.sql`
+- `supabase/migrations/20261020170400_demo_sample.sql`
+- `supabase/migrations/20261020174310_reopen_refused_seal_enrollment.sql`
+- `supabase/seed.sql`
+- `supabase/seeds/demonstracao.sql`
+- `supabase/tests/006_audit.test.sql`
+- `supabase/tests/006_create.test.sql`
+- `supabase/tests/006_history.test.sql`
+- `supabase/tests/006_query.test.sql`
+- `supabase/tests/007_anonymization.test.sql`
+- `supabase/tests/007_geofence_query.test.sql`
+- `supabase/tests/008_history_audit.test.sql`
+- `supabase/tests/008_idempotency.test.sql`
+- `supabase/tests/008_immutability.test.sql`
+- `supabase/tests/008_transitions.test.sql`
+- `supabase/tests/012_binding.test.sql`
+- `supabase/tests/012_ingest_dedupe.test.sql`
+- `supabase/tests/013_approve.test.sql`
+- `supabase/tests/014_demo_isolation.test.sql`
+- `supabase/tests/014_demo_markers.test.sql`
+- `supabase/tests/014_demo_restore.test.sql`
+- `supabase/tests/014_demo_restrictions.test.sql`
+- `supabase/tests/014_demo_sample.test.sql`
+- `tests/contract/audit-query.test.ts`
+- `tests/contract/client-secrets.test.ts`
+- `tests/contract/cylinders-permissions.test.ts`
+- `tests/contract/cylinders.live.test.ts`
+- `tests/contract/demo-access-build.test.ts`
+- `tests/contract/demo-accounts-parity.test.ts`
+- `tests/contract/demo-accounts.test.ts`
+- `tests/contract/demonstracao-script.test.ts`
+- `tests/contract/demonstracao-workflow.test.ts`
+- `tests/contract/invitations.test.ts`
+- `tests/contract/manage-seals-handler.test.ts`
+- `tests/contract/organizations.test.ts`
+- `tests/contract/password-recovery.test.ts`
+- `tests/contract/platform-seals-handler.test.ts`
+- `tests/contract/rbac.test.ts`
+- `tests/contract/registry-anonymization-leak.live.test.ts`
+- `tests/contract/synchronization-idempotency.live.test.ts`
+- `tests/contract/trips-permissions.test.ts`
+- `tests/e2e/accessibility.spec.ts`
+- `tests/e2e/acessos-de-teste.spec.ts`
+- `tests/e2e/app-initialization.spec.ts`
+- `tests/e2e/audit-log.spec.ts`
+- `tests/e2e/lacres-plataforma.spec.ts`
+- `tests/e2e/navegacao-menu.spec.ts`
+- `tests/e2e/rbac.spec.ts`
+- `tests/e2e/responsive.spec.ts`
+- `tests/e2e/support/mock-backend.ts`
+- `tests/e2e/support/mock-seals-plataforma.ts`
+- `tests/e2e/support/telas.ts`
+- `tests/e2e/tenant-members.spec.ts`
+- `tests/e2e/tenant-selection.spec.ts`
+- `tests/e2e/video-demonstracao.gerar.spec.ts`
+- `tests/e2e/visao-geral.spec.ts`
+- `tests/e2e/visual/acessos-de-teste.visual.spec.ts`
+- `tests/e2e/visual/acessos-de-teste.visual.spec.ts-snapshots/acessos-de-teste-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/acessos-de-teste.visual.spec.ts-snapshots/acessos-de-teste-360-visual-chromium-linux.png`
+- `tests/e2e/visual/acessos-de-teste.visual.spec.ts-snapshots/acessos-de-teste-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-ler-cilindro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-cadastro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-entrada-768-visual-chromium-linux.png`
+- `tests/e2e/visual/entrada.visual.spec.ts-snapshots/entrada-erro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/entrada.visual.spec.ts-snapshots/entrada-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/entrada.visual.spec.ts-snapshots/entrada-offline-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/entrada.visual.spec.ts-snapshots/entrada-offline-360-visual-chromium-linux.png`
+- `tests/e2e/visual/entrada.visual.spec.ts-snapshots/entrada-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/entrada.visual.spec.ts-snapshots/entrada-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-aprovar-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-aprovar-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-aprovar-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-fila-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-fila-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-fila-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-rede-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-rede-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-rede-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alerta-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alertas-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-pronto-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-pronto-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-clientes-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocercas-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motorista-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motoristas-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-unidade-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculo-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculos-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-estados-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-estados-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-conflito-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-offline-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-offline-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-saida-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-vazia-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-empresa-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-empresa-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-empresa-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-plataforma-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-erro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-vazio-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-vazio-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-vazio-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/cadastro-de-cilindro-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/detalhe-de-cilindro-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-erro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-no-estoque-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-offline-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/limite-de-sessoes-dialogo-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/limite-de-sessoes-dialogo-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/lista-de-cilindros-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/organizacoes-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/organizacoes-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/organizacoes-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/papeis-e-permissoes-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/papeis-e-permissoes-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/papeis-e-permissoes-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-carregando-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/pessoas-da-empresa-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/pessoas-da-empresa-principal-360-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/pessoas-da-empresa-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/visao-geral-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-cancelada-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-planejada-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-todas-768-visual-chromium-linux.png`
+- `tests/integration/audit-access.live.test.ts`
+- `tests/integration/audit-events.test.ts`
+- `tests/integration/demo-accounts.live.test.ts`
+- `tests/integration/demo-restore.live.test.ts`
+- `tests/integration/membership-management.test.ts`
+- `tests/integration/navigation-permissions.live.test.ts`
+- `tests/integration/organization-administration.test.ts`
+- `tests/integration/profile-avatar.live.test.ts`
+- `tests/integration/rbac-authorization.test.ts`
+- `tests/integration/seals-ingest.live.test.ts`
+- `tests/integration/seals-wifi.live.test.ts`
+- `tests/integration/session-lifecycle.live.test.ts`
+- `tests/integration/tenant-switch.test.ts`
+
+## Testes e evidências
+
+- Comando(s): `npm run lint`; `npm run typecheck`; `npm run test:coverage`; `npx supabase db reset --local --yes`; `npx supabase test db`; `npm run test:live`; `npm run build`; E2E da Spec 014 nos cinco projetos Playwright; `npm audit --audit-level=high`; publicação cloud e `npm run operacao:demonstracao`.
+- Resultado: aprovado
+- Evidência: 5.877 testes de cobertura, 3.397 testes SQL, 151 testes ao vivo e 15 E2E da Spec 014 aprovados; build aprovado; auditoria npm sem vulnerabilidades; cinco migrations e quatro Edge Functions publicadas; cinco perfis restaurados; aprovação Master confirmada e lacre vinculado ao C262. O E2E global chegou a 1.790 de 2.092 casos sem falha antes do limite operacional.
+
+## Decisões e dados pendentes
+
+Nenhuma pendência declarada.
+
+## Validação humana
+
+- Responsável pela revisão da equipe: Alisson Almeida.
+- Data da validação humana: 21/10/2026.
+- Amostra validada: perfil Master; atualização da fila, aprovação do lacre `DSP-P77E49TC` para Oxigênio Cariri e confirmação do estado em operação. Não foram informadas larguras exatas.
+- Ambiente da validação: Google Chrome no Windows e celular Android.
+- Duração da validação: 26 minutos.
+- Resultado da validação humana: aprovado.
+- Itens a corrigir apontados pela pessoa responsável: nenhum.
+- Confirmação do responsável: sim, confirmado por Alisson Almeida em 21/10/2026.
+- Observações: o responsável declarou que a validação final foi concluída, aprovada e sem correções. Decisão `utilizado`, pois o fluxo testado funcionou corretamente.
+
+## Regras de preenchimento
+
+- A validação humana é obrigatória para encerrar a spec. As respostas da seção acima vêm da pessoa responsável, em entrevista conduzida pelo agente de IA, e nunca são inventadas nem presumidas.
+- Registrar apenas interações relevantes para o projeto.
+- Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
+- Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
+- Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
+- Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
+- Evitar dados pessoais, sigilosos ou sensíveis.
+- Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
+
+## Checklist final
+
+- [x] Ferramentas de IA identificadas.
+- [x] Prompts relevantes registrados por síntese sanitizada.
+- [x] Respostas ou resultados documentados.
+- [x] Texto revisado para soar natural, claro e autêntico, sem alterar o sentido original.
+- [x] Quando houve geração de código, a resposta contém resumo e link para o repositório, branch ou, preferencialmente, pull request.
+- [x] Validação humana explicada.
+- [x] Fontes verificadas quando necessário.
+- [x] Decisão ou pendência registrada.
+- [x] O registro não contém segredos, credenciais ou tokens.
+- [x] Dados pessoais foram removidos ou minimizados.

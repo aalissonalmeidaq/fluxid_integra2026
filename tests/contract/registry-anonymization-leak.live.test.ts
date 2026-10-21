@@ -122,7 +122,7 @@ describe('Anonimização ao vivo: nenhum valor antigo resta (Spec 007)', () => {
     // ----- quem não é administrador não anonimiza
     expect((await manage(stock, { operation: 'anonymize_driver', organization_id: G, driver_id: driverId, expected_version: 3, reason: 'data_subject_request', justification: 'Pedido do titular', confirmed: true })).status).toBe(403);
     // ----- outro tenant recebe o mesmo que para um registro inexistente
-    const otherTenant = await manage(h2, { operation: 'anonymize_driver', organization_id: H, driver_id: driverId, expected_version: 3, reason: 'other', justification: 'Tentativa de outro tenant', confirmed: true });
+    const otherTenant = await manage(h2, { operation: 'anonymize_driver', organization_id: H, driver_id: driverId, expected_version: 3, reason: 'other', justification: 'Tentativa de outra empresa', confirmed: true });
     expect([otherTenant.status, otherTenant.body.code], JSON.stringify(otherTenant.body)).toEqual([404, 'NOT_FOUND']);
     // ----- confirmação ausente
     expect((await manage(a2, { operation: 'anonymize_driver', organization_id: G, driver_id: driverId, expected_version: 3, reason: 'other', justification: 'Sem confirmação de verdade' })).body.code).toBe('CONFIRMATION_REQUIRED');

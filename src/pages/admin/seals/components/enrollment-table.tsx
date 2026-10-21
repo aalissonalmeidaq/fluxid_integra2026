@@ -8,7 +8,7 @@ import { SealBadge } from '@/pages/seals/components/seal-badge';
 // Tabela da fila de pedidos (Spec 013, contracts/telas.md). Vira cartões abaixo de 768 px pelo próprio DataTable. Situação e conflito
 // sempre com ícone e texto; o sinal em texto; as ações dependem da situação, e o que impede uma ação aparece em texto.
 
-export type EnrollmentAction = 'approve' | 'refuse' | 'resolve' | 'withdraw' | 'forget';
+export type EnrollmentAction = 'approve' | 'refuse' | 'reopen' | 'resolve' | 'withdraw' | 'forget';
 
 export interface EnrollmentTableProps {
   items: readonly EnrollmentView[];
@@ -19,7 +19,7 @@ export interface EnrollmentTableProps {
 }
 
 const SIGNAL = { forte: 'Forte', médio: 'Médio', fraco: 'Fraco' } as const;
-const approveLabel = (item: EnrollmentView) => (item.status === 'returned' ? 'Destinar de novo' : item.status === 'refused' ? 'Reconsiderar e aprovar' : 'Aprovar');
+const approveLabel = (item: EnrollmentView) => (item.status === 'returned' ? 'Destinar de novo' : 'Aprovar');
 // Ainda há redes do tenant anterior e nenhum pedido de esquecimento aberto (RN-006).
 const canForget = (item: EnrollmentView) => item.status !== 'approved' && !item.networksCleared && item.forgetNetworks === null;
 
@@ -28,10 +28,11 @@ function Actions({ item, online, onAction }: { item: EnrollmentView; online: boo
   const label = `${item.deviceCode}`;
   const conflictBlock = item.conflict && item.status !== 'approved' ? approvalBlock({ ...approvalCandidate(item), lastOrganizationId: null }, '') : null;
   const buttons: React.ReactNode[] = [];
-  if (item.status === 'pending' || item.status === 'returned' || item.status === 'refused') {
+  if (item.status === 'pending' || item.status === 'returned') {
     buttons.push(<Button key="approve" disabled={!online || item.conflict} aria-label={`${approveLabel(item)} ${label}`} onClick={act('approve')}>{approveLabel(item)}</Button>);
   }
   if (item.status === 'pending') buttons.push(<Button key="refuse" variant="secundario" disabled={!online} aria-label={`Recusar ${label}`} onClick={act('refuse')}>Recusar</Button>);
+  if (item.status === 'refused') buttons.push(<Button key="reopen" disabled={!online} aria-label={`Retornar para aguardando ${label}`} onClick={act('reopen')}>Retornar para aguardando</Button>);
   if (item.status === 'approved') buttons.push(<Button key="withdraw" variant="perigoso" disabled={!online} aria-label={`Retirar de operação ${label}`} onClick={act('withdraw')}>Retirar de operação</Button>);
   if (item.conflict) buttons.push(<Button key="resolve" variant="secundario" disabled={!online} aria-label={`Resolver conflito ${label}`} onClick={act('resolve')}>Resolver conflito</Button>);
   if (canForget(item)) buttons.push(<Button key="forget" variant="secundario" disabled={!online} aria-label={`Esquecer todas as redes ${label}`} onClick={act('forget')}>Esquecer todas as redes</Button>);
@@ -60,7 +61,7 @@ export function EnrollmentTable({ items, loading, emptyTitle, online, onAction }
         {item.origin === 'manual' && <span className="text-legenda text-texto-secundario">Cadastro manual (Spec 012)</span>}
       </div>
     ) },
-    { id: 'tenant', cabecalho: 'Tenant', celula: (item) => item.organization?.name
+    { id: 'tenant', cabecalho: 'Empresa', celula: (item) => item.organization?.name
       ?? (item.lastOrganization ? <span className="text-texto-secundario">Último: {item.lastOrganization.name}</span> : '—') },
     { id: 'chamadas', cabecalho: 'Chamadas', celula: (item) => (
       <span className="flex flex-col">

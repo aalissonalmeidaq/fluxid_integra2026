@@ -7,7 +7,7 @@ export const ENROLLMENT_STATUSES = ['pending', 'approved', 'refused', 'expired',
 export type EnrollmentStatus = (typeof ENROLLMENT_STATUSES)[number];
 
 const STATUS: Record<EnrollmentStatus, Presentation> = {
-  pending: { label: 'Aguardando vinculação a um tenant', icon: 'historico', tone: 'pendente' },
+  pending: { label: 'Aguardando vinculação a uma empresa', icon: 'historico', tone: 'pendente' },
   approved: { label: 'Em operação', icon: 'verificado', tone: 'ativo' },
   refused: { label: 'Recusado', icon: 'bloqueio', tone: 'erro' },
   expired: { label: 'Expirado', icon: 'sem-sinal', tone: 'bloqueado' },
@@ -68,7 +68,7 @@ export function approvalBlock(candidate: ApprovalCandidate, organizationId: stri
   if (candidate.status === 'expired') return 'O pedido expirou. Ele volta a aguardar quando o lacre chamar de novo.';
   if (candidate.conflict) return `${CONFLICT_PRESENTATION.label}. Resolva o conflito antes de aprovar.`;
   if (candidate.lastOrganizationId && candidate.lastOrganizationId !== organizationId) {
-    return `Este lacre ainda pode ter redes do tenant ${candidate.lastOrganizationName ?? 'anterior'}. Use "Esquecer todas as redes" e configure a rede no novo local.`;
+    return `Este lacre ainda pode ter redes da empresa ${candidate.lastOrganizationName ?? 'anterior'}. Use "Esquecer todas as redes" e configure a rede no novo local.`;
   }
   return null;
 }
