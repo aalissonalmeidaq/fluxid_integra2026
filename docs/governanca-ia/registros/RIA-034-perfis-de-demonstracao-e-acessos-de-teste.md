@@ -9,9 +9,9 @@
 - Ferramenta de IA utilizada: Codex — modelo registrado pela plataforma
 - Objetivo do uso: implementar e publicar os perfis de demonstração, a restauração diária, os dados de exemplo e os ajustes integrados do lacre.
 - Prompt utilizado, em síntese sanitizada: concluir a Spec 014 e as alterações anteriores do lacre, publicar Supabase e GitHub, validar o fluxo real e preparar commit e pull request.
-- Resposta gerada pela IA: foram implementados cinco perfis públicos isolados, rotina diária de restauração, dados de exemplo, restrições no servidor e melhorias do firmware e do sistema. As migrations e Edge Functions foram publicadas, e o lacre de bancada foi destinado e vinculado ao C262. O código está na [branch `feat/014-perfis-demonstracao`](https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/014-perfis-demonstracao); o link deve ser trocado pelo pull request antes do merge.
+- Resposta gerada pela IA: foram implementados cinco perfis públicos isolados, rotina diária de restauração, dados de exemplo, restrições no servidor e melhorias do firmware e do sistema. As migrations e Edge Functions foram publicadas, e o lacre de bancada foi destinado e vinculado ao C262. O código está disponível para revisão na [PR #52](https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/52).
 
-Link para validação da equipe: [branch `feat/014-perfis-demonstracao`](https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feat/014-perfis-demonstracao).
+Link para validação da equipe: [PR #52](https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/52).
 - Análise crítica da equipe: o responsável percorreu o fluxo Master, encontrou a proteção contra aprovação de uma versão desatualizada do pedido, atualizou a lista e confirmou a aprovação real do lacre para a empresa de demonstração. Depois, a restauração vinculou o dispositivo ao C262.
 - Validação humana realizada: sim, por Alisson Almeida em 21/10/2026.
 - Decisão final: utilizado
