@@ -59,7 +59,7 @@
 
 | RIA-033 | 20/10/2026, 03:09:00 - America/Fortaleza | 013 | 01 | Aprovação e destinação de lacres pelo Master | `registros/33_Aprovacao_e_Destinacao_de_Lacres_pelo_Master.docx` (`RIA-033-aprovacao-e-destinacao-de-lacres-pelo-master.md`) | Utilizado |
 
-| RIA-034 | 21/10/2026, 10:23:36 - America/Fortaleza | 014 | 01 | Perfis de demonstração e acessos de teste | `registros/RIA-034-perfis-de-demonstracao-e-acessos-de-teste.md` | Utilizado |
+| RIA-034 | 21/10/2026, 10:23:36 - America/Fortaleza | 014 | 01 | Perfis de demonstração e acessos de teste | `registros/34_Perfis_de_Demonstracao_e_Acessos_de_Teste.docx` (`RIA-034-perfis-de-demonstracao-e-acessos-de-teste.md`) | Utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
