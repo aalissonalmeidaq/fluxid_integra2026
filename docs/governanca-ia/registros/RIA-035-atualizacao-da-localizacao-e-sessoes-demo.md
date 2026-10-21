@@ -9,9 +9,9 @@
 - Ferramenta de IA utilizada: Codex — modelo registrado pela plataforma
 - Objetivo do uso: corrigir a atualização da localização do lacre parado e permitir que as contas compartilhadas da demonstração aceitem mais de três sessões simultâneas.
 - Prompt utilizado, em síntese sanitizada: verificar por que a localização do lacre não aparecia a cada minuto, manter coordenadas repetidas consolidadas, mostrar a confirmação mais recente e retirar o limite simultâneo somente das contas demo.
-- Resposta gerada pela IA: foram preparados testes, duas migrations e ajustes de interface. Leituras repetidas atualizam `last_seen_at` e enviam aviso em tempo real sem duplicar o ponto; contas marcadas em `private.demo_accounts` não entram no limite de três sessões, enquanto as demais regras de segurança permanecem. Revisão disponível na [branch](https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/fix/014-localizacao-lacre-um-minuto).
+- Resposta gerada pela IA: foram preparados testes, duas migrations e ajustes de interface. Leituras repetidas atualizam `last_seen_at` e enviam aviso em tempo real sem duplicar o ponto; contas marcadas em `private.demo_accounts` não entram no limite de três sessões, enquanto as demais regras de segurança permanecem. Revisão disponível no [pull request #54](https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/54).
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/fix/014-localizacao-lacre-um-minuto (substituir pelo pull request antes do merge).
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/54
 - Análise crítica da equipe: a exceção de sessões foi mantida estreita, baseada na marca privada das cinco contas demo. Não foram removidos o timebox de 8 horas, a inatividade de 30 minutos, o rate limit de login, a auditoria, as permissões nem o isolamento por organização. O Broadcast da localização continua sem coordenadas e leva somente os identificadores necessários para a tela refazer a consulta autorizada.
 - Validação humana realizada: Alisson Almeida testou durante 26 minutos, no Chrome em Windows e em celular Android, a atualização após 1 minuto, a coordenada repetida atualizando somente o horário e quatro ou mais acessos simultâneos na mesma conta demo. O resultado informado foi aprovado, sem correções.
 - Decisão final: utilizado
@@ -52,7 +52,6 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-- Trocar o link da branch pelo pull request antes do merge.
 - Publicar as duas migrations no Supabase cloud e confirmar o deploy do frontend após aprovação e merge do pull request.
 - Gerar o DOCX do RIA-035 depois do merge, em PR exclusivo de documentação.
 
