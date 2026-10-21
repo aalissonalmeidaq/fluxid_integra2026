@@ -47,7 +47,7 @@ export function SealPositionHistory({ service, organizationId, target, now }: Se
                 <li key={`${row.readAt}-${row.latitude}`} className="rounded-controle border border-borda-suave p-2 text-corpo text-grafite">
                   <span className="font-semibold">{positionAge(row.readAt, now())}</span>
                   {' · '}{row.latitude}, {row.longitude}{' · '}{sealPositionQuality(row.quality, row.accuracyM)}
-                  {row.repeatCount > 1 && <span className="text-texto-secundario">{` · visto até ${positionAge(row.lastSeenAt, now())}`}</span>}
+                  {row.lastSeenAt !== row.readAt && <span className="text-texto-secundario">{` · confirmada ${positionAge(row.lastSeenAt, now())}`}</span>}
                 </li>
               ))}
             </ol>

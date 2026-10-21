@@ -120,9 +120,22 @@ describe('CylinderSealBlock', () => {
     act(() => rt.emit({ kind: 'position', deviceId: 'd1', cylinderId: 'cyl-1' }));
     await waitFor(() => expect(vistas(call)).toBe(2));
     const status = screen.getByRole('status');
-    await waitFor(() => expect(status).toHaveTextContent('Posição do lacre atualizada: agora.'));
+    await waitFor(() => expect(status).toHaveTextContent('Localização do lacre confirmada: agora.'));
     expect(status).toHaveAttribute('aria-atomic', 'true');
     expect(document.activeElement).toBe(before);
+  });
+
+  it('coordenada repetida atualiza e anuncia o horário da última confirmação', async () => {
+    const confirmed = { ...SEAL, last_seen_at: '2026-10-17T14:04:00Z', position: { ...SEAL.position, last_seen_at: '2026-10-17T14:04:00Z' } };
+    const { service: s } = service({ cylinder_seal_view: [{ code: 'FOUND', seal: SEAL }, { code: 'FOUND', seal: confirmed }] });
+    const rt = realtime();
+    renderBlock({ service: s, realtime: rt.port });
+    await screen.findByText('Funcionando');
+
+    act(() => rt.emit({ kind: 'position', deviceId: 'd1', cylinderId: 'cyl-1' }));
+
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Localização do lacre confirmada: agora.'));
+    expect(screen.getByText('Última posição').nextElementSibling).toHaveTextContent('agora');
   });
 
   it('aviso de outro cilindro não recarrega', async () => {

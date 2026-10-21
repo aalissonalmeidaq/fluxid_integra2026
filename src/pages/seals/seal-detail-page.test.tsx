@@ -67,10 +67,22 @@ describe('SealDetailView', () => {
     expect(await screen.findByRole('heading', { level: 3, name: 'Posição enviada' })).toBeInTheDocument();
     expect(screen.getByLabelText('Última posição enviada pelo lacre')).toHaveTextContent('-7.209194, -39.306367');
     expect(screen.getByLabelText('Última posição enviada pelo lacre')).toHaveTextContent('Lacre do pátio · DSP-READA001');
-    expect(screen.getByText(/Recebida pelo Supabase há 1 minuto/)).toBeInTheDocument();
+    expect(screen.getByText(/Localização confirmada há 1 minuto/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Ver as posições em texto' }));
     expect(await screen.findByText(/-7.209194, -39.306367/)).toBeInTheDocument();
     expect(call).toHaveBeenCalledWith('query-seals', expect.objectContaining({ operation: 'list_positions', device_id: DEVICE }));
+  });
+
+  it('mostra a confirmação mais recente quando a coordenada permanece igual', async () => {
+    const repeated = { ...DETAIL, position: { ...DETAIL.position, read_at: '2026-10-17T14:00:00Z', last_seen_at: '2026-10-17T14:09:00Z' } };
+    const positions = [{ ...repeated.position, seal_state: 'closed', battery_pct: 87, repeat_count: 1 }];
+    const { service: s } = service({ get_seal: [{ code: 'FOUND', seal: repeated }], list_positions: [{ code: 'LISTED', items: positions }] });
+    renderDetail(s);
+
+    expect(await screen.findByText(/Localização confirmada há 1 minuto/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Última posição enviada pelo lacre')).toHaveTextContent('Confirmação há 1 minuto');
+    fireEvent.click(screen.getByRole('button', { name: 'Ver as posições em texto' }));
+    expect(await screen.findByText(/confirmada há 1 minuto/)).toBeInTheDocument();
   });
 
   it('traduz as coordenadas do lacre em endereço somente depois da confirmação', async () => {

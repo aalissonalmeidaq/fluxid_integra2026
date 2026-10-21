@@ -171,15 +171,15 @@ update public.trips set status = 'completed', completed_at = now(), completed_by
 update public.trip_items set item_status = 'returned' where trip_id = 'd0140000-0000-4000-8000-0000000000b3';
 update public.cylinders set custody_status = 'in_organization' where id = (select cylinder_id from private.demo_tenant);
 
--- Três visitantes no administrador: a restauração funciona e não mexe nas sessões deles.
+-- Vários visitantes no administrador: a restauração funciona, a sessão de serviço é separada e nenhuma sessão interativa é encerrada.
 select public.start_user_session('d0140000-0000-4000-8000-000000000001', '61400000-0000-4000-8000-000000000001', 'aal1');
 select public.start_user_session('d0140000-0000-4000-8000-000000000001', '61400000-0000-4000-8000-000000000002', 'aal1');
 select public.start_user_session('d0140000-0000-4000-8000-000000000001', '61400000-0000-4000-8000-000000000003', 'aal1');
 select is(pg_temp.restore('state')->>'code', 'DEMO_RESTORED', 'com 3 sessões de visitantes, a restauração funciona');
 select is((select count(*)::int from public.user_sessions where user_id = 'd0140000-0000-4000-8000-000000000001' and status = 'active'), 3,
   'as 3 sessões dos visitantes continuam ativas');
-select is((select jsonb_array_length(public.start_user_session('d0140000-0000-4000-8000-000000000001', '61400000-0000-4000-8000-000000000004', 'aal1')->'sessions')), 3,
-  'a lista de sessões ativas do visitante não mostra a sessão de serviço');
+select is(public.start_user_session('d0140000-0000-4000-8000-000000000001', '61400000-0000-4000-8000-000000000004', 'aal1')->>'status', 'started',
+  'a quarta sessão interativa é aceita sem confundir a sessão de serviço da restauração');
 
 -- Senha publicada trocada no manifesto: markers atualiza a marca.
 select is(pg_temp.restore('markers', jsonb_set(pg_temp.manifest(), '{accounts,0,password}', '"FluxID-Demo-91!"'))->>'code', 'DEMO_MARKED',

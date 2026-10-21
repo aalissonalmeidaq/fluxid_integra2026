@@ -79,7 +79,7 @@ export function CylinderSealBlock({ organizationId, cylinderId, serialNumber, se
   const [commandError, setCommandError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [binding, setBinding] = useState<{ trigger: HTMLElement; seals: SealSummary[] } | null>(null);
-  const lastRead = useRef<string | null>(null);
+  const lastConfirmation = useRef<string | null>(null);
   const nowRef = useRef(now);
   useEffect(() => { nowRef.current = now; }, [now]);
 
@@ -87,11 +87,11 @@ export function CylinderSealBlock({ organizationId, cylinderId, serialNumber, se
     if (!service) return;
     const outcome = await service.cylinderSeal(organizationId, cylinderId);
     if (outcome.kind === 'success') {
-      const readAt = outcome.value?.position?.readAt ?? null;
-      if (announce && readAt && readAt !== lastRead.current) {
-        setAnnouncement(`Posição do lacre atualizada: ${positionAge(readAt, nowRef.current())}.`);
+      const confirmedAt = outcome.value?.position?.lastSeenAt ?? null;
+      if (announce && confirmedAt && confirmedAt !== lastConfirmation.current) {
+        setAnnouncement(`Localização do lacre confirmada: ${positionAge(confirmedAt, nowRef.current())}.`);
       }
-      lastRead.current = readAt;
+      lastConfirmation.current = confirmedAt;
       setLoad({ kind: 'ready', seal: outcome.value, at: nowRef.current() });
     } else if (outcome.kind === 'offline') {
       setLoad((current) => (current.kind === 'ready' ? current : { kind: 'offline' }));
@@ -184,7 +184,7 @@ export function CylinderSealBlock({ organizationId, cylinderId, serialNumber, se
           <Fact label="Bateria">{seal.batteryPct === null ? '—' : `${seal.batteryPct}%`}</Fact>
           <Fact label="Estado do lacre"><SealBadge presentation={sealState(seal.sealState)} /></Fact>
           <Fact label="Última posição">
-            {seal.position ? <>{positionAge(seal.position.readAt, now())} <span className="text-texto-secundario">({sealPositionQuality(seal.position.quality, seal.position.accuracyM)})</span></> : 'Sem posição ainda'}
+            {seal.position ? <>{positionAge(seal.position.lastSeenAt, now())} <span className="text-texto-secundario">({sealPositionQuality(seal.position.quality, seal.position.accuracyM)})</span></> : 'Sem posição ainda'}
           </Fact>
           <Fact label="Último contato">{contactAge(seal.lastSeenAt, now())}</Fact>
           <Fact label="Dispositivo">{seal.label} <span className="text-texto-secundario">({seal.deviceCode})</span></Fact>

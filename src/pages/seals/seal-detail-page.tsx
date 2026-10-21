@@ -215,7 +215,7 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
         {seal.position ? (
           <div className="flex flex-col gap-4">
             <p className="m-0 text-corpo text-grafite">
-              Recebida pelo Supabase {positionAge(seal.position.readAt, now())}.{' '}
+              Localização confirmada {positionAge(seal.position.lastSeenAt, now())}.{' '}
               <span className="text-texto-secundario">{sealPositionQuality(seal.position.quality, seal.position.accuracyM)}.</span>
             </p>
             {geocoder && (
@@ -249,7 +249,7 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
               title="Última posição enviada pelo lacre"
               label={seal.label}
               details={[seal.deviceCode, seal.watch ? `Vigilância: ${seal.watch.siteName}` : 'Posição informada pelo lacre']}
-              caption={`Leitura ${positionAge(seal.position.readAt, now())}.`}
+              caption={`Confirmação ${positionAge(seal.position.lastSeenAt, now())}.`}
               // O balão chama `known` e `resolve` só ao abrir e no clique (eventos do Leaflet), nunca durante a renderização.
               // eslint-disable-next-line react-hooks/refs
               {...(mapAddress ? { address: mapAddress } : {})}

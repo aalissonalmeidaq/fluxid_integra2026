@@ -1,5 +1,5 @@
 begin;
-select plan(16);
+select plan(18);
 
 -- Spec 012, US1: cada posição é guardada uma vez, na organização certa (RF-003, RF-005, RF-008, RF-009, RN-009, CA-003, MS-001,
 -- MS-002). Posição a até 20 m da última guardada, com a mesma qualidade e o mesmo estado do lacre, só atualiza "visto por último".
@@ -31,8 +31,17 @@ create function pg_temp.points() returns int language sql as $$
   select count(*)::int from public.seal_positions where device_id = 'a1320000-0000-0000-0000-0000000000a1'
 $$;
 
+create temporary table broadcast_calls (kind text, device_id uuid, cylinder_id uuid);
+create or replace function private.seal_broadcast(p_organization uuid, p_kind text, p_device uuid, p_cylinder uuid) returns void
+language plpgsql security definer set search_path = '' as $$
+begin
+  insert into pg_temp.broadcast_calls (kind, device_id, cylinder_id) values (p_kind, p_device, p_cylinder);
+end $$;
+
 select pg_temp.send('DSP-DEDUPA01', 'chave-d1', jsonb_build_array(pg_temp.pos('P-1', '60 minutes')));
 select is(pg_temp.points(), 1, 'a primeira posição é gravada');
+select is((select count(*)::int from pg_temp.broadcast_calls where kind = 'position'), 1,
+  'a primeira posição envia aviso em tempo real');
 select ok((select p.cylinder_id = 'a1380000-0000-0000-0000-0000000000a1' and p.organization_id = '20000000-0000-0000-0000-00000000000a'
   and p.quality = 'gps' and p.seal_state = 'closed' and p.battery_pct = 80 and p.signal_dbm = -60 and p.read_at = now() - interval '60 minutes'
   and p.received_at is not null from public.seal_positions p where p.device_id = 'a1320000-0000-0000-0000-0000000000a1'),
@@ -51,6 +60,8 @@ select is(pg_temp.points(), 1, 'a até 20 m, nenhuma posição nova');
 select ok((select last_seen_at = now() - interval '59 minutes' and battery_pct = 80 and signal_dbm = -60 and repeat_count = 1
   from public.seal_positions where device_id = 'a1320000-0000-0000-0000-0000000000a1'),
   'posição repetida atualiza somente o horário; os demais dados do ponto permanecem como foram gravados');
+select is((select count(*)::int from pg_temp.broadcast_calls where kind = 'position'), 2,
+  'posição repetida também envia aviso para a tela mostrar a confirmação mais recente');
 
 -- Acima de 20 m, mudança de qualidade e de estado criam ponto novo.
 select pg_temp.send('DSP-DEDUPA01', 'chave-d1', jsonb_build_array(pg_temp.pos('P-3', '58 minutes', 0.0003)));
