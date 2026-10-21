@@ -63,6 +63,8 @@
 
 | RIA-035 | 21/10/2026, 12:19:51 - America/Fortaleza | 014 | 02 | Atualização da localização e sessões demo | `registros/35_Atualizacao_da_Localizacao_e_Sessoes_Demo.docx` (`RIA-035-atualizacao-da-localizacao-e-sessoes-demo.md`) | Utilizado |
 
+| RIA-036 | 21/10/2026, 15:47:38 - America/Fortaleza | 014 | 03 | Convergência e encerramento da Spec 014 | `registros/RIA-036-convergencia-e-encerramento-da-spec-014.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
