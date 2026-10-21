@@ -61,7 +61,7 @@
 
 | RIA-034 | 21/10/2026, 10:23:36 - America/Fortaleza | 014 | 01 | Perfis de demonstração e acessos de teste | `registros/34_Perfis_de_Demonstracao_e_Acessos_de_Teste.docx` (`RIA-034-perfis-de-demonstracao-e-acessos-de-teste.md`) | Utilizado |
 
-| RIA-035 | 21/10/2026, 12:19:51 - America/Fortaleza | 014 | 02 | Atualização da localização e sessões demo | `registros/RIA-035-atualizacao-da-localizacao-e-sessoes-demo.md` | Utilizado |
+| RIA-035 | 21/10/2026, 12:19:51 - America/Fortaleza | 014 | 02 | Atualização da localização e sessões demo | `registros/35_Atualizacao_da_Localizacao_e_Sessoes_Demo.docx` (`RIA-035-atualizacao-da-localizacao-e-sessoes-demo.md`) | Utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
