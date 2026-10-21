@@ -48,3 +48,44 @@ A auditoria de dependências encontrou dois avisos altos no ferramental de build
 - **Decisão:** utilizado.
 - **Justificativa:** o fluxo está sendo testado e, até agora, funciona corretamente.
 - **Confirmação do responsável:** sim; Alisson autorizou registrar as respostas em seu nome.
+
+## Ciclo 02 — confirmação da localização a cada minuto
+
+Data técnica: 21/10/2026.
+
+| Verificação | Resultado |
+| --- | --- |
+| Testes direcionados de interface e tempo real | Aprovado: 31 testes |
+| Suíte ampliada de lacres | Aprovado: 14 arquivos e 134 testes |
+| `npx supabase db reset --local --yes` | Aprovado; migration e seeds reaplicados |
+| pgTAP direcionado de consolidação | Aprovado: 18 testes |
+| `npx supabase test db --local` | Aprovado: suíte completa |
+| `npm run lint` | Aprovado |
+| `npm run typecheck` | Aprovado |
+| `npm run build` | Aprovado |
+| `npm run test` | Inconclusivo: o runner não encerrou em duas tentativas, após 5 e 10 minutos, sem relatar teste reprovado |
+
+A validação humana do ciclo 02 foi concluída. Na primeira execução visual da PR, 285 casos passaram e as três referências Linux da tela de detalhe do lacre foram atualizadas, em 360, 768 e 1920 px, para refletir os textos aprovados de confirmação da localização e o rótulo GSM/Telemetria. A nova execução do gate visual, a publicação e a verificação após publicação permanecem pendentes.
+
+### Sessões simultâneas das contas demo
+
+- Banco local reaplicado com a migration `20261021145741_remover_limite_sessoes_demo.sql`.
+- Testes direcionados aprovados: 109 cenários pgTAP de marcação, restauração e governança de sessões.
+- Suíte pgTAP completa aprovada: 135 arquivos e 3.402 testes.
+- Testes de contrato de sessão aprovados: 15 testes.
+- `npm run lint`, `npm run typecheck` e `npm run build`: aprovados.
+- Confirmado automaticamente: a quarta sessão simultânea de conta demo é aceita; conta comum permanece limitada a três; timebox de 8 horas, inatividade de 30 minutos e rate limit de login não foram removidos.
+- Publicação: pendente.
+
+### Validação humana do ciclo 02
+
+- **Responsável:** Alisson Almeida.
+- **Data:** 21/10/2026.
+- **Amostra registrada:** atualização da localização do lacre/cilindro após 1 minuto; confirmação de coordenada repetida atualizando somente o horário; quatro ou mais acessos simultâneos usando a mesma conta de demonstração, sem afetar o limite das contas comuns.
+- **Ambiente:** Google Chrome no Windows e celular Android.
+- **Duração:** 26 minutos.
+- **Resultado:** aprovado.
+- **Itens a corrigir:** nenhum.
+- **Decisão:** utilizado.
+- **Justificativa:** os fluxos necessários deste ciclo foram utilizados e aprovados sem correções.
+- **Confirmação do responsável:** sim; Alisson autorizou registrar essas respostas em seu nome.

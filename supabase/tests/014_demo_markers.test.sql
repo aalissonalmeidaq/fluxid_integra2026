@@ -1,5 +1,5 @@
 begin;
-select plan(22);
+select plan(25);
 
 -- Spec 014 (RN-004; data-model.md): o banco reconhece o tenant e as contas de demonstração por duas tabelas privadas, sem acesso do
 -- cliente. Hermético: começa sem marcas (o seed da demonstração pode já tê-las gravado) e termina em rollback.
@@ -61,6 +61,22 @@ select ok(not has_function_privilege('authenticated', 'public.is_demo_email(text
 select ok(has_function_privilege('service_role', 'public.is_demo_email(text)', 'execute'), 'a função de recuperação de senha consulta');
 select ok(public.is_demo_email('driver@demo.fluxid.invalid') = false and public.is_demo_email('tenant_admin@demo.fluxid.invalid'),
   'public.is_demo_email repete a resposta da função privada');
+
+-- A conta compartilhada aceita mais de três sessões simultâneas, mas conserva o timebox comum.
+insert into auth.users (id, aud, role, email)
+  values ('0d140000-0000-4000-8000-0000000000f6', 'authenticated', 'authenticated', 'unlimited@demo.fluxid.invalid');
+insert into private.demo_accounts (user_id, email, published_password, role_code)
+  values ('0d140000-0000-4000-8000-0000000000f6', 'unlimited@demo.fluxid.invalid', 'FluxID-Demo-08!', 'tenant_admin');
+select public.start_user_session('0d140000-0000-4000-8000-0000000000f6', '0d140001-0000-4000-8000-000000000001', 'aal1');
+select public.start_user_session('0d140000-0000-4000-8000-0000000000f6', '0d140001-0000-4000-8000-000000000002', 'aal1');
+select public.start_user_session('0d140000-0000-4000-8000-0000000000f6', '0d140001-0000-4000-8000-000000000003', 'aal1');
+select is(public.start_user_session('0d140000-0000-4000-8000-0000000000f6', '0d140001-0000-4000-8000-000000000004', 'aal1')->>'status',
+  'started', 'a quarta sessão simultânea da conta demo é aceita');
+select is((select count(*)::int from public.user_sessions where user_id = '0d140000-0000-4000-8000-0000000000f6' and status = 'active' and kind = 'interactive'),
+  4, 'as quatro sessões demo permanecem ativas');
+select ok((select bool_and(expires_at <= started_at + interval '8 hours') from public.user_sessions
+  where user_id = '0d140000-0000-4000-8000-0000000000f6' and status = 'active' and kind = 'interactive'),
+  'a exceção não remove o timebox das sessões demo');
 
 select * from finish();
 rollback;
