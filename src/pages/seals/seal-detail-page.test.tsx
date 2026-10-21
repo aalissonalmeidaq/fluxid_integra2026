@@ -50,7 +50,9 @@ describe('SealDetailView', () => {
     expect(screen.getByText('Funcionando')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'CIL-0042' })).toHaveAttribute('href', '/cilindros/c1');
     expect(screen.getByText(/CIL-0001/)).toBeInTheDocument();
-    expect(screen.getAllByText(/Rede-Deposito/)).toHaveLength(2);
+    // A rede em uso aparece como GSM/Telemetria; o nome real fica só na lista de redes guardadas.
+    expect(screen.getAllByText(/Rede-Deposito/)).toHaveLength(1);
+    expect(screen.getByText(/Em uso: GSM\/Telemetria/)).toBeInTheDocument();
     expect(screen.getByText(/Início da viagem/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Sem comunicação/ })).toHaveAttribute('href', '/alertas/al1');
     expect(document.body.textContent).not.toMatch(/fxk_|senha/i);
@@ -118,6 +120,18 @@ describe('SealDetailView', () => {
     renderDetail(s);
     expect(await screen.findByRole('button', { name: 'Devolver à plataforma' })).toBeDisabled();
     expect(screen.getByText('O cilindro deste lacre está numa viagem em andamento.')).toBeInTheDocument();
+  });
+
+  // Spec 014 (RF-016 d): no tenant da demonstração, o servidor recusa a devolução do lacre de bancada e a tela explica o motivo.
+  it('devolver na empresa da demonstração: o servidor recusa e a tela explica', async () => {
+    const call = vi.fn(async (_fn: string, body: Record<string, unknown>) => (body.operation === 'return_device'
+      ? { status: 403, body: { code: 'DEMO_RESTRICTED' } } : { status: 200, body: { code: 'FOUND', seal: DETAIL } }));
+    renderDetail(new SealService({ call } as SealTransport));
+    fireEvent.click(await screen.findByRole('button', { name: 'Devolver à plataforma' }));
+    fireEvent.change(await screen.findByLabelText('Justificativa'), { target: { value: 'Visitante tentando devolver.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Devolver o lacre' }));
+    expect(await screen.findByText('Este lacre faz parte da demonstração e não pode ser devolvido à plataforma.')).toBeInTheDocument();
+    expect(screen.queryByText(/Lacre devolvido à plataforma/)).not.toBeInTheDocument();
   });
 
   it('mostra quando e como o lacre chegou: aprovado pelo Master ou cadastro manual', async () => {

@@ -52,9 +52,9 @@ describe('NavigationMenu: estrutura e itens por perfil (RF-005, RF-006, RF-009, 
     expect(within(nav).getByRole('link', { name: 'Papéis e permissões' })).toHaveAttribute('href', '/admin/papeis');
   });
 
-  it('administrador de tenant vê as telas do tenant', () => {
+  it('administrador de tenant vê as telas da empresa', () => {
     renderMenu({ permissions: { permissions: ADMIN } });
-    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Pessoas da empresa', 'Papéis e permissões', 'Auditoria da empresa']);
   });
 
   it('Cilindros e Entrada no estoque usam os ícones oficiais "cilindro" e "inventario", não o ícone genérico', () => {
@@ -70,7 +70,7 @@ describe('NavigationMenu: estrutura e itens por perfil (RF-005, RF-006, RF-009, 
     expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil']);
   });
 
-  it('Master vê as telas globais e nenhuma do tenant', () => {
+  it('Master vê as telas globais e nenhuma da empresa', () => {
     renderMenu({ permissions: { permissions: MASTER } });
     expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma']);
   });
@@ -138,7 +138,7 @@ describe('NavigationMenu: estados (RF-007, RF-018 a RF-020, CA-006)', () => {
 
   it('offline com cache mostra as últimas telas e avisa que podem estar desatualizadas', () => {
     renderMenu({ permissions: { status: 'offline', permissions: ADMIN } });
-    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
+    expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil', 'Pessoas da empresa', 'Papéis e permissões', 'Auditoria da empresa']);
     expect(screen.getByRole('status')).toHaveTextContent('Sem conexão. As telas podem estar desatualizadas.');
   });
 

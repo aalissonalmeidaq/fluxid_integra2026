@@ -99,7 +99,7 @@ export function TenantsDashboardPage(): React.JSX.Element {
         <div>
           <p className="text-legenda font-semibold uppercase text-azul-profundo">Administração global</p>
           <h2 id="organizations-title" className="mt-1 text-h2 font-bold text-navy">Organizações</h2>
-          <p className="mt-1 text-corpo">Cadastre e acompanhe os tenants autorizados no FluxID.</p>
+          <p className="mt-1 text-corpo">Cadastre e acompanhe as empresas autorizadas no FluxID.</p>
         </div>
         <Button className="tablet:shrink-0 tablet:whitespace-nowrap" onClick={() => setShowForm((visible) => !visible)}>{showForm ? 'Cancelar' : 'Nova organização'}</Button>
       </div>

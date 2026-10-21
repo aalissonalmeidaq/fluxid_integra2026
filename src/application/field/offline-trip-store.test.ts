@@ -96,7 +96,7 @@ describe('OfflineTripStore', () => {
   it('recusa trabalhar com a organização do dono diferente da base desbloqueada', async () => {
     const { database } = await setup();
     const wrong = new OfflineTripStore(database, { actorId: 'user-1', endpointId: 'local', organizationId: 'tenant-b' });
-    await expect(wrong.save(raw())).rejects.toThrow(/tenant|organiza/i);
+    await expect(wrong.save(raw())).rejects.toThrow(/empresa|organiza/i);
     await database.close();
   });
 

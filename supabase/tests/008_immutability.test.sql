@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem dados de exemplo próprios: fica fora das contagens globais.
 select plan(18);
 
 -- Spec 008: trip_events, trip_deliveries e trip_unlocks são imutáveis; trips, trip_stops e trip_items nunca são excluídas, para
@@ -41,7 +42,7 @@ select throws_ok($$ delete from public.trips $$, 'P0001', 'trip_record_undeletab
 select throws_ok($$ delete from public.trip_stops $$, 'P0001', 'trip_record_undeletable', 'delete em trip_stops é recusado');
 select throws_ok($$ delete from public.trip_items $$, 'P0001', 'trip_record_undeletable', 'delete em trip_items é recusado');
 select throws_ok($$ truncate public.trips cascade $$, 'P0001', 'trip_record_undeletable', 'truncate em trips é recusado');
-select lives_ok($$ update public.trip_items set item_status = 'checked', checked_at = now(), checked_by = '10000000-0000-0000-0000-000000000002' $$, 'update em trip_items continua permitido às funções de transição');
+select lives_ok($$ update public.trip_items set item_status = 'checked', checked_at = now(), checked_by = '10000000-0000-0000-0000-000000000002' where organization_id <> '5478e9e3-155b-482f-b843-3513e0938dd6' $$, 'update em trip_items continua permitido às funções de transição');
 
 -- service_role: mesmos bloqueios (os gatilhos não dependem de papel).
 set local role service_role;

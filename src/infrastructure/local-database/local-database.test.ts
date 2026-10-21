@@ -39,7 +39,7 @@ describe('LocalDatabase IndexedDB', () => {
     expect(await db.list('local_outbox')).toHaveLength(1);
     db.unlock('tenant-b');
     expect(await db.list('local_outbox')).toHaveLength(0);
-    await expect(db.put('local_outbox', { id: 'bad', organization_id: 'tenant-a' })).rejects.toThrow(/tenant/i);
+    await expect(db.put('local_outbox', { id: 'bad', organization_id: 'tenant-a' })).rejects.toThrow(/outra empresa/i);
     await db.close();
   });
 
@@ -96,7 +96,7 @@ describe('LocalDatabase IndexedDB', () => {
       await db.close();
     });
 
-    it('guarda e lê a viagem guardada e o anexo (com os bytes) no tenant ativo', async () => {
+    it('guarda e lê a viagem guardada e o anexo (com os bytes) na empresa ativa', async () => {
       const db = database(); await db.open(); db.unlock('tenant-a');
       await db.put('local_trips', record('trip-1', { snapshot: { status: 'in_progress' }, fetched_at: '2026-10-12T12:00:00Z' }));
       await db.put('local_attachments', record('att-1', { kind: 'photo', bytes: new Uint8Array([1, 2, 3]).buffer, content_type: 'image/jpeg', size_bytes: 3 }));

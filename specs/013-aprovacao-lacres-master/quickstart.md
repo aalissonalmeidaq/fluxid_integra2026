@@ -33,7 +33,8 @@ cd firmware && pio test -e native && pio run -e esp32c3
 
 1. Gravar o firmware novo (um só para todos os lacres). Ao ligar sem rede salva, a rede `FluxID-Lacre-XXXX` aparece.
 2. O Master abre `/admin/lacres` → Mostrar a senha, informando o motivo. No celular, entrar na rede com essa senha: a página abre sozinha com o código do lacre e as redes ao alcance. Cronometrar até o "Conectado" (MS-001: até 3 minutos).
-3. Testar com a senha errada: a página diz "senha errada" e nada é guardado.
-4. Aprovar no `/admin/lacres` e vincular a um cilindro no Tenant A: as posições aparecem com a geocerca, como na Spec 012.
-5. Segurar o botão BOOT por 5 s: a rede de configuração reabre e o lacre continua usando a rede atual até uma nova ser testada. A página de sucesso diz "Conectado. O lacre voltou a operar com a nova rede".
-6. Devolver o lacre com ele ligado: ele apaga as redes e abre a rede de configuração. Desligar, configurar outra rede pelo portal e conferir em `/admin/lacres` que o esquecimento foi confirmado.
+3. Depois de aparecer "Conectado", manter o celular na rede de configuração por mais de 60 s e confirmar que a página continua acessível e atualizando a situação. Desconectar o celular e confirmar o fechamento somente após 15 min sem cliente.
+4. Testar com a senha errada: a página diz "senha errada" e nada é guardado.
+5. Aprovar no `/admin/lacres` e vincular a um cilindro no Tenant A: as posições aparecem com a geocerca, como na Spec 012. Manter o lacre parado por pelo menos dois envios de 1 min e confirmar que há um único ponto, com somente `last_seen_at` atualizado.
+6. Segurar o botão BOOT por 5 s: a rede de configuração reabre e o lacre continua usando a rede atual até uma nova ser testada. A página de sucesso diz "Conectado. O lacre voltou a operar com a nova rede".
+7. Devolver o lacre com ele ligado: ele apaga as redes e abre a rede de configuração. Desligar, configurar outra rede pelo portal e conferir em `/admin/lacres` que o esquecimento foi confirmado.

@@ -120,7 +120,7 @@ describe('Lacre: posição do lacre até a tela (Spec 012, US1)', () => {
     expect((listB.body.items as { device_id: string }[]).some((item) => item.device_id === devA.device_id)).toBe(false);
   });
 
-  it('o aviso em tempo real chega ao tenant A e não ao B; posição na tela em até 10 s e resposta ao lacre em até 3 s', async () => {
+  it('o aviso em tempo real chega à empresa A e não ao B; posição na tela em até 10 s e resposta ao lacre em até 3 s', async () => {
     const clientA = await realtimeClient(tokenA, refreshA);
     const clientB = await realtimeClient(tokenB, refreshB);
     const a = await listen(clientA, `seals:${ORG_A}`);

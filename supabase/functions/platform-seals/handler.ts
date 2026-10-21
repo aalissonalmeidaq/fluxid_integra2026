@@ -34,6 +34,9 @@ export const PLATFORM_SEAL_OPERATIONS: Record<string, OperationSpec> = {
   refuse_enrollment: { rpc: 'refuse_enrollment', fields: {
     ...command, justification: [justification, 'p_justification'], expected_updated_at: [instant, 'p_expected_updated_at'],
   } },
+  reopen_enrollment: { rpc: 'reopen_enrollment', fields: {
+    ...command, justification: [justification, 'p_justification'], expected_updated_at: [instant, 'p_expected_updated_at'],
+  } },
   replace_enrollment_key: { rpc: 'replace_enrollment_key', fields: {
     ...command, keep_current: [{ t: 'bool', optional: true }, 'p_keep_current'], justification: [justification, 'p_justification'],
     expected_updated_at: [instant, 'p_expected_updated_at'],
@@ -48,7 +51,7 @@ export const PLATFORM_SEAL_OPERATIONS: Record<string, OperationSpec> = {
   reveal_portal_password: { rpc: 'reveal_portal_password', fields: { request_id: [uuid, 'p_request'], justification: [justification, 'p_justification'] } },
 };
 
-const SUCCESS = new Set(['LISTED', 'APPROVED', 'REFUSED', 'KEY_REPLACED', 'CONFLICT_CLEARED', 'WITHDRAWN', 'FORGET_REQUESTED', 'REVEALED']);
+const SUCCESS = new Set(['LISTED', 'APPROVED', 'REFUSED', 'REOPENED', 'KEY_REPLACED', 'CONFLICT_CLEARED', 'WITHDRAWN', 'FORGET_REQUESTED', 'REVEALED']);
 const STATUS: Record<string, number> = {
   AUTH_REQUIRED: 401, ACCESS_DENIED: 403, MFA_REQUIRED: 403, NOT_FOUND: 404, VALIDATION_FAILED: 400, JUSTIFICATION_REQUIRED: 400,
   STALE: 409, INVALID_STATE: 409, ENROLLMENT_CONFLICT: 409, TENANT_INACTIVE: 409, NETWORKS_NOT_CLEARED: 409, CYLINDER_IN_TRIP: 409,

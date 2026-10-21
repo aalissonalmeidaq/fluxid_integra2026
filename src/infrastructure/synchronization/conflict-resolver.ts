@@ -201,7 +201,7 @@ export class ConflictResolver {
   // A permissão e a decisão no servidor são conferidas antes, em `conflict-service` (resolve_sync_conflict, trip.operate).
   async closeFieldConflict(id: string, decision: 'discard_local' | 'keep_local'): Promise<ConflictRecord> {
     const conflict = (await this.list()).find((candidate) => candidate.id === id);
-    if (!conflict) throw new Error('Conflito não encontrado no tenant ativo.');
+    if (!conflict) throw new Error('Conflito não encontrado na empresa ativa.');
     if (conflict.status === 'resolved') throw new Error('Conflito já resolvido.');
     const closed: ConflictRecord = {
       ...conflict,
@@ -230,7 +230,7 @@ export class ConflictResolver {
       throw new Error(`Permissão ${REQUIRED_PERMISSION[context.scope]} é obrigatória para o escopo ${context.scope}.`);
     }
     const conflict = (await this.list()).find((candidate) => candidate.id === id);
-    if (!conflict) throw new Error('Conflito não encontrado no tenant ativo.');
+    if (!conflict) throw new Error('Conflito não encontrado na empresa ativa.');
     if (conflict.status === 'resolved') throw new Error('Conflito já resolvido.');
 
     // Ambas as versões permanecem no registro; somente a decisão é acrescentada.

@@ -16,6 +16,7 @@ const pending = item({ id: 'e1', device_code: 'DSP-APR13001', status: 'pending' 
 const conflicted = item({ id: 'e2', device_code: 'DSP-APR13002', status: 'pending', conflict: true, conflict_at: '2026-10-19T12:00:00Z' });
 const fromA = item({ id: 'e3', device_code: 'DSP-APR13003', status: 'pending', last_organization: { id: 'org-a', name: 'Tenant A' }, networks_cleared: false });
 const approved = item({ id: 'e4', device_code: 'DSP-APR13004', status: 'approved', organization: { id: 'org-a', name: 'Tenant A' }, device_id: 'd4' });
+const refused = item({ id: 'e5', device_code: 'DSP-APR13005', status: 'refused' });
 
 function page(items: EnrollmentView[], over: Partial<EnrollmentPage> = {}): PlatformOutcome<EnrollmentPage> {
   return { kind: 'success', value: { items, total: items.length, counts: { pending: 3, approved: 1, refused: 0, expired: 0, returned: 0 }, conflicts: 1, rateLimitedLast24h: 0, ...over } };
@@ -26,6 +27,7 @@ function port(over: Partial<PlatformSealsPort> = {}): PlatformSealsPort {
     listTenants: vi.fn(async () => ({ kind: 'success' as const, value: [{ id: 'org-a', name: 'Tenant A' }, { id: 'org-b', name: 'Tenant B' }] })),
     approve: vi.fn(async () => ({ kind: 'success' as const, value: true as const })),
     refuse: vi.fn(async () => ({ kind: 'success' as const, value: true as const })),
+    reopen: vi.fn(async () => ({ kind: 'success' as const, value: true as const })),
     resolveConflict: vi.fn(async () => ({ kind: 'success' as const, value: true as const })),
     withdraw: vi.fn(async () => ({ kind: 'success' as const, value: true as const })),
     requestForgetNetworks: vi.fn(async () => ({ kind: 'success' as const, value: true as const })),
@@ -59,14 +61,14 @@ describe('PlatformSealsView', () => {
   it('a linha mostra código, firmware, situação com texto, conflito, chamadas, rede e sinal em texto', async () => {
     render(<PlatformSealsView service={port()} online />);
     const line = within(await screen.findByRole('row', { name: /DSP-APR13002/ }));
-    expect(line.getByText('Aguardando vinculação a um tenant')).toBeInTheDocument();
+    expect(line.getByText('Aguardando vinculação a uma empresa')).toBeInTheDocument();
     expect(line.getByText('Outro aparelho com este código')).toBeInTheDocument();
     expect(line.getByText('Sinal forte (-58 dBm)')).toBeInTheDocument();
     expect(line.getByText('Rede-Ficticia')).toBeInTheDocument();
     expect(line.getByText('Firmware 3.0.0')).toBeInTheDocument();
   });
 
-  it('aprovar: escolhe o tenant, confere o código em destaque, justifica e envia', async () => {
+  it('aprovar: escolhe a empresa, confere o código em destaque, justifica e envia', async () => {
     const service = port();
     render(<PlatformSealsView service={service} online />);
     await screen.findByRole('row', { name: /DSP-APR13001/ });
@@ -75,7 +77,7 @@ describe('PlatformSealsView', () => {
     await within(dialog).findByRole('option', { name: 'Tenant B' });
     expect(within(dialog).getByText('Confira se é o código do lacre em mãos')).toBeInTheDocument();
     expect(within(dialog).getByText('DSP-APR13001')).toBeInTheDocument();
-    fireEvent.change(within(dialog).getByLabelText('Tenant de destino'), { target: { value: 'org-b' } });
+    fireEvent.change(within(dialog).getByLabelText('Empresa de destino'), { target: { value: 'org-b' } });
     fireEvent.change(within(dialog).getByLabelText('Justificativa'), { target: { value: 'Lacre conferido na bancada' } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Aprovar e destinar' }));
     expect(service.approve).toHaveBeenCalledWith(pending, 'org-b', 'Lacre conferido na bancada');
@@ -89,7 +91,7 @@ describe('PlatformSealsView', () => {
     fireEvent.click(within(row('DSP-APR13001')).getByRole('button', { name: /Aprovar/ }));
     const dialog = await screen.findByRole('dialog');
     await within(dialog).findByRole('option', { name: 'Tenant A' });
-    fireEvent.change(within(dialog).getByLabelText('Tenant de destino'), { target: { value: 'org-a' } });
+    fireEvent.change(within(dialog).getByLabelText('Empresa de destino'), { target: { value: 'org-a' } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Aprovar e destinar' }));
     expect(within(dialog).getByText('Escreva uma justificativa de 5 a 500 caracteres.')).toBeInTheDocument();
     expect(service.approve).not.toHaveBeenCalled();
@@ -103,18 +105,18 @@ describe('PlatformSealsView', () => {
     expect(line.getByText(/Resolva o conflito antes de aprovar/)).toBeInTheDocument();
   });
 
-  it('para outro tenant que não o último, o diálogo avisa das redes e não deixa aprovar', async () => {
+  it('para outra empresa que não o último, o diálogo avisa das redes e não deixa aprovar', async () => {
     render(<PlatformSealsView service={port()} online />);
     await screen.findByRole('row', { name: /DSP-APR13003/ });
     fireEvent.click(within(row('DSP-APR13003')).getByRole('button', { name: /Aprovar/ }));
     const dialog = await screen.findByRole('dialog');
     await within(dialog).findByRole('option', { name: 'Tenant B' });
-    fireEvent.change(within(dialog).getByLabelText('Tenant de destino'), { target: { value: 'org-b' } });
-    expect(within(dialog).getByText(/ainda pode ter redes do tenant Tenant A/)).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText('Empresa de destino'), { target: { value: 'org-b' } });
+    expect(within(dialog).getByText(/ainda pode ter redes da empresa Tenant A/)).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: 'Aprovar e destinar' })).toBeDisabled();
   });
 
-  it('esquecer todas as redes num pedido que ainda tem redes do tenant anterior', async () => {
+  it('esquecer todas as redes num pedido que ainda tem redes da empresa anterior', async () => {
     const service = port();
     render(<PlatformSealsView service={service} online />);
     await screen.findByRole('row', { name: /DSP-APR13003/ });
@@ -135,6 +137,18 @@ describe('PlatformSealsView', () => {
     fireEvent.change(within(dialog).getByLabelText('Justificativa'), { target: { value: 'Lacre desconhecido' } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Recusar o pedido' }));
     expect(service.refuse).toHaveBeenCalledWith(pending, 'Lacre desconhecido');
+  });
+
+  it('lacres recusados retornam para aguardando antes de uma nova aprovação', async () => {
+    const service = port({ listEnrollments: vi.fn(async () => page([refused])) });
+    render(<PlatformSealsView service={service} online />);
+    await screen.findByRole('row', { name: /DSP-APR13005/ });
+    expect(within(row('DSP-APR13005')).queryByRole('button', { name: /Aprovar/ })).not.toBeInTheDocument();
+    fireEvent.click(within(row('DSP-APR13005')).getByRole('button', { name: /Retornar para aguardando/ }));
+    const dialog = await screen.findByRole('dialog', { name: /Retornar para aguardando/ });
+    fireEvent.change(within(dialog).getByLabelText('Justificativa'), { target: { value: 'Revisão do cadastro concluída' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Retornar para aguardando' }));
+    expect(service.reopen).toHaveBeenCalledWith(refused, 'Revisão do cadastro concluída');
   });
 
   it('resolver conflito: as duas saídas, com justificativa', async () => {
@@ -176,7 +190,7 @@ describe('PlatformSealsView', () => {
 
   it('vazio por aba', async () => {
     render(<PlatformSealsView service={port({ listEnrollments: vi.fn(async () => page([])) })} online />);
-    expect(await screen.findByText('Nenhum lacre aguardando vinculação a um tenant')).toBeInTheDocument();
+    expect(await screen.findByText('Nenhum lacre aguardando vinculação a uma empresa')).toBeInTheDocument();
   });
 
   it('erro com a ação de tentar de novo', async () => {
@@ -205,7 +219,7 @@ describe('PlatformSealsView', () => {
     const tab = await screen.findByRole('tab', { name: /Aguardando/ });
     tab.focus();
     await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
-    expect(screen.getByText('1 pedido novo de lacre aguardando vinculação a um tenant: DSP-NOVO0001.')).toHaveAttribute('role', 'status');
+    expect(screen.getByText('1 pedido novo de lacre aguardando vinculação a uma empresa: DSP-NOVO0001.')).toHaveAttribute('role', 'status');
     expect(tab).toHaveFocus();
   });
 });

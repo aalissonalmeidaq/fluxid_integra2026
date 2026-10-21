@@ -9,10 +9,10 @@ async function enter(page: import('@playwright/test').Page, backend: MockBackend
   await page.goto('/admin/membros?organization_id=20000000-0000-0000-0000-00000000000a');
 }
 
-test.describe('Convites e vínculos do tenant',()=>{
+test.describe('Convites e vínculos da empresa',()=>{
   test('convida e bloqueia vínculo em 360 px',async({page})=>{
     await page.setViewportSize({width:360,height:740});const backend=new MockBackend();await enter(page,backend);
-    await expect(page.getByRole('heading',{name:'Pessoas do tenant'})).toBeVisible();await expect(page.getByRole('rowheader',{name:'Operador A'})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'Pessoas da empresa'})).toBeVisible();await expect(page.getByRole('rowheader',{name:'Operador A'})).toBeVisible();
     // Em 360 px a tabela vira cartões, com nomes longos sem estouro e ações de 44 px (CA-003, CA-005).
     await expect(page.getByRole('row').nth(1)).toHaveCSS('display','block');
     for (const acao of await page.getByRole('button',{name:/^(Bloquear|Inativar|Reativar) /}).all()) { const caixa=await acao.boundingBox(); expect(caixa?.height??0).toBeGreaterThanOrEqual(44); }

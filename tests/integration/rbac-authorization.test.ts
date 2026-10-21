@@ -140,20 +140,20 @@ describe('autorização RBAC: isolamento entre Tenant A e Tenant B', () => {
     expect((await send(store, 'token-b', list(B))).status).toBe(403);
   });
 
-  it('a listagem do próprio tenant não inclui papéis de outro tenant', async () => {
+  it('a listagem da própria empresa não inclui papéis de outra empresa', async () => {
     const store = createTrustedStore();
     store.roles.set('50000000-0000-0000-0000-0000000000b1', { id: '50000000-0000-0000-0000-0000000000b1', organizationId: B, code: 'segredo_b', scope: 'tenant', system: false, active: true, permissions: [AUDIT] });
     const result = await send(store, 'token-a', list(A));
     expect(JSON.stringify(result.body)).not.toContain('segredo_b');
   });
 
-  it('atribuir a vínculo de outro tenant é indisponível e não vaza a existência do vínculo', async () => {
+  it('atribuir a vínculo de outra empresa é indisponível e não vaza a existência do vínculo', async () => {
     const store = createTrustedStore();
     const result = await send(store, 'token-a', assign(A, MEMBER_B));
     expect(result).toEqual({ status: 409, body: { code: 'ROLE_UNAVAILABLE' } });
   });
 
-  it('as negações entre tenants são auditadas sem o tenant solicitado nem o alvo', async () => {
+  it('as negações entre tenants são auditadas sem a empresa solicitado nem o alvo', async () => {
     const store = createTrustedStore();
     await send(store, 'token-a', list(B));
     await send(store, 'token-a', assign(B, MEMBER_B));

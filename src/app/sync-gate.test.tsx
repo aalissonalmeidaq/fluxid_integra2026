@@ -138,7 +138,7 @@ describe('SyncGate', () => {
     expect(await screen.findByText('Área protegida')).toBeInTheDocument();
   });
 
-  it('bloqueia enquanto o tenant ainda está sendo resolvido, mesmo sem executor, e libera ao resolver', () => {
+  it('bloqueia enquanto a empresa ainda está sendo resolvido, mesmo sem executor, e libera ao resolver', () => {
     const { rerenderWith } = renderGate(authenticated, null, undefined, true);
     expect(screen.queryByText('Área protegida')).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent(/verificando alterações locais/i);
@@ -151,7 +151,7 @@ describe('SyncGate', () => {
     expect(screen.getByText('Área protegida')).toBeInTheDocument();
   });
 
-  it('oferece recuperação quando a resolução do tenant passa do teto de tempo', async () => {
+  it('oferece recuperação quando a resolução da empresa passa do teto de tempo', async () => {
     vi.useFakeTimers();
     try {
       renderGate(authenticated, null, undefined, true);

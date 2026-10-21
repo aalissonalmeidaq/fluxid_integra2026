@@ -59,7 +59,7 @@ for (const { nome, largura, altura } of LARGURAS) {
       await page.getByRole('row', { name: /DSP-7KQ2M9XT/ }).getByRole('button', { name: /^Aprovar/ }).click();
       const dialogo = page.getByRole('dialog', { name: 'Aprovar o lacre DSP-7KQ2M9XT' });
       await expect(dialogo.getByRole('option', { name: 'Tenant A' })).toBeAttached();
-      await dialogo.getByLabel('Tenant de destino').selectOption({ label: 'Tenant A' });
+      await dialogo.getByLabel('Empresa de destino').selectOption({ label: 'Tenant A' });
       await capturar(page, `lacres-plataforma-aprovar-${nome}.png`, false);
     });
 

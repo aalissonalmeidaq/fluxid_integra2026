@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem o C262 e a auditoria dele: fica fora das contagens globais.
 select plan(41);
 
 -- Spec 006, CA-005 e RF-040: toda ação sensível gera, na MESMA transação, o evento de histórico e o registro de auditoria.
@@ -68,7 +69,7 @@ drop trigger block_cylinder_audit on public.audit_logs;
 -- 13-23. Com a auditoria funcionando, cada ação grava o par evento + auditoria.
 create temp table marks as select (select count(*) from public.cylinder_events) as ev, (select count(*) from public.audit_logs) as au;
 select is((select public.create_cylinder(a, sa, oa, ty, 'AU-NOVO', null, null, null, null, 'qr_code', 'QR-NOVO')->>'code' from ids), 'CREATED', 'cadastro');
-select is((select count(*)::int from public.audit_logs where action = 'cylinder.create'), 1, 'cadastro: uma auditoria');
+select is((select count(*)::int from public.audit_logs where action = 'cylinder.create' and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'), 1, 'cadastro: uma auditoria');
 select is((select public.update_cylinder(a, sa, oa, c1, 1, ty, 'AU1', 'Fábrica', null, null, null)->>'code' from ids), 'UPDATED', 'edição');
 select is((select public.save_cylinder_type(a, sa, oa, null, 'Nitrogênio', 40, 'l', 'industrial', null)->>'code' from ids), 'TYPE_SAVED', 'tipo');
 select is((select public.inactivate_cylinder(a, sa, oa, c2, 'lost', 'Perdido em campo')->>'code' from ids), 'OK', 'inativação');
@@ -81,11 +82,11 @@ select is((select public.register_hydrostatic_test(a, sa, oa, c1, current_date -
 select is((select public.rectify_hydrostatic_test(a, sa, oa, '74000000-0000-0000-0000-0000000006f1', current_date - 20, 'approved', null, 'Lab', current_date + 400, null, 'Data corrigida')->>'code' from ids), 'OK', 'retificação de teste');
 
 -- 24-34. Uma auditoria por ação, todas com autor, organização e instante.
-select is((select array_agg(distinct action order by action) from public.audit_logs where action like 'cylinder.%'),
+select is((select array_agg(distinct action order by action) from public.audit_logs where action like 'cylinder.%' and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'),
   array['cylinder.create', 'cylinder.identifier_add', 'cylinder.identifier_deactivate', 'cylinder.identifier_transfer', 'cylinder.inactivate',
         'cylinder.reactivate', 'cylinder.stock_in', 'cylinder.test_rectify', 'cylinder.test_register', 'cylinder.type_save', 'cylinder.update'],
   'as 11 ações sensíveis foram auditadas');
-select is((select count(*)::int from public.audit_logs where action like 'cylinder.%'), 11, 'exatamente uma auditoria por ação');
+select is((select count(*)::int from public.audit_logs where action like 'cylinder.%' and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'), 11, 'exatamente uma auditoria por ação');
 select is((select count(*)::int from public.audit_logs where action like 'cylinder.%' and result = 'success' and organization_id = (select oa from ids)
   and actor_user_id = (select a from ids) and actor_session_id = (select sa from ids) and occurred_at is not null), 11, 'todas com autor, sessão, organização e instante');
 select is((select count(*)::int from public.audit_logs where action in ('cylinder.inactivate', 'cylinder.reactivate', 'cylinder.identifier_deactivate', 'cylinder.identifier_transfer', 'cylinder.test_rectify') and justification is not null), 5, 'as 5 ações com justificativa obrigatória gravam a justificativa na auditoria');
@@ -94,15 +95,15 @@ select is((select count(*)::int from public.audit_logs where action like 'cylind
 select is((select count(*)::int from public.cylinder_events) - (select ev::int from marks), 13, 'os eventos de histórico foram gravados (13 no total: a transferência e a inativação em estoque geram dois cada)');
 select is((select count(*)::int from public.cylinder_events where event_type = 'identifier_transferred_out') + (select count(*)::int from public.cylinder_events where event_type = 'identifier_transferred_in'), 2, 'a transferência gera um evento em cada cilindro');
 select is((select count(*)::int from public.cylinder_events where event_type = 'stock_out_inactivation'), 1, 'a inativação de cilindro em estoque gera o evento de saída');
-select is((select count(distinct actor_user_id)::int from public.cylinder_events), 1, 'todos os eventos têm autor');
+select is((select count(distinct actor_user_id)::int from public.cylinder_events where organization_id <> '5478e9e3-155b-482f-b843-3513e0938dd6'), 1, 'todos os eventos têm autor');
 select is((select count(*)::int from public.cylinder_events where actor_session_id is null), 0, 'e sessão');
 
 -- 35-40. A auditoria é imutável e as ações negadas não deixam rastro de sucesso.
 select throws_ok($$ update public.audit_logs set action = 'x' where action = 'cylinder.create' $$, null, null, 'a auditoria não é alterada');
 select throws_ok($$ delete from public.audit_logs where action = 'cylinder.create' $$, null, null, 'nem apagada');
 select is((select public.create_cylinder('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000deadbeef', (select oa from ids), (select ty from ids), 'AU-X', null, null, null, null, 'qr_code', 'QR-X')->>'code'), 'AUTH_REQUIRED', 'sessão inválida não grava nada');
-select is((select count(*)::int from public.audit_logs where action like 'cylinder.%'), 11, 'e não cria auditoria');
-select is((select count(*)::int from public.cylinders), 5, 'cinco cilindros (4 de partida + 1 cadastrado)');
+select is((select count(*)::int from public.audit_logs where action like 'cylinder.%' and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'), 11, 'e não cria auditoria');
+select is((select count(*)::int from public.cylinders where organization_id <> '5478e9e3-155b-482f-b843-3513e0938dd6'), 5, 'cinco cilindros (4 de partida + 1 cadastrado)');
 select is((select count(*)::int from public.cylinders where serial_number = 'AU-NOVO'), 1, 'e o cadastrado existe uma única vez');
 
 select * from finish(); rollback;

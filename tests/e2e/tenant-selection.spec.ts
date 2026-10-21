@@ -30,13 +30,13 @@ const membersRequests = (backend: MockBackend) =>
   backend.calls.filter((call) => call.path === '/functions/v1/manage-membership' && (call.body as { operation?: string })?.operation === 'list')
     .map((call) => (call.body as { organization_id: string }).organization_id);
 
-test.describe('Seleção e troca do tenant ativo', () => {
-  test('com dois vínculos exige a escolha e mostra somente os dados do tenant escolhido', async ({ page }) => {
+test.describe('Seleção e troca da empresa ativa', () => {
+  test('com dois vínculos exige a escolha e mostra somente os dados da empresa escolhida', async ({ page }) => {
     const backend = new MockBackend();
     backend.tenantMemberships = [membership(A, 'Tenant A'), membership(B, 'Tenant B')];
     await enter(page, backend);
     await expect(page.getByRole('heading', { name: 'Escolha a organização' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Pessoas do tenant' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Pessoas da empresa' })).toHaveCount(0);
     expect(membersRequests(backend)).toEqual([]);
 
     await page.getByRole('button', { name: 'Entrar em Tenant B' }).click();
@@ -68,7 +68,7 @@ test.describe('Seleção e troca do tenant ativo', () => {
     expect(membersRequests(backend)).toEqual([A, B]);
   });
 
-  test('cancelar a troca mantém o tenant e os dados atuais', async ({ page }) => {
+  test('cancelar a troca mantém a empresa e os dados atuais', async ({ page }) => {
     const backend = new MockBackend();
     backend.tenantMemberships = [membership(A, 'Tenant A'), membership(B, 'Tenant B')];
     await enter(page, backend);
@@ -92,7 +92,7 @@ test.describe('Seleção e troca do tenant ativo', () => {
     backend.tenantMemberships = [membership(A, 'Tenant A', { status: 'blocked' }), membership(B, 'Tenant B', { orgStatus: 'suspended' })];
     await enter(page, backend);
     await expect(page.getByRole('alert').filter({ hasText: /nenhum acesso ativo/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Pessoas do tenant' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Pessoas da empresa' })).toHaveCount(0);
     expect(membersRequests(backend)).toEqual([]);
   });
 

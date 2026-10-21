@@ -48,7 +48,7 @@ async function abrirMenuSeRecolhido(page: Page): Promise<void> {
 }
 
 const BASE = ['Visão geral', 'Meu perfil'];
-const ADMINISTRADOR = [...BASE, 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant'];
+const ADMINISTRADOR = [...BASE, 'Pessoas da empresa', 'Papéis e permissões', 'Auditoria da empresa'];
 const GLOBAL = [...BASE, 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma'];
 
 test.describe('US1: só as telas que a pessoa pode usar (CA-001, MS-001)', () => {
@@ -238,7 +238,7 @@ test.describe('US2: celular e desktop, só com teclado (CA-004, CA-005, MS-003, 
 test.describe('US3: o servidor continua decidindo (CA-003, MS-002)', () => {
   const telasRestritas = ['/admin/papeis', '/admin/membros', '/admin/auditoria', '/admin/tenants', '/admin/auditoria-global'];
 
-  test('operador técnico abre cada tela restrita pela URL e vê "Acesso negado", sem dado do tenant', async ({ page }) => {
+  test('operador técnico abre cada tela restrita pela URL e vê "Acesso negado", sem dado da empresa', async ({ page }) => {
     const backend = new MockBackend().asProfile('operador');
     backend.accessDenied = true;
     backend.auditDenied = true;
@@ -261,7 +261,7 @@ test.describe('US3: o servidor continua decidindo (CA-003, MS-002)', () => {
 
     backend.permissionsByOrganization[A] = ['profile.read'];
     backend.accessDenied = true;
-    await menu(page).getByRole('link', { name: 'Pessoas do tenant' }).click();
+    await menu(page).getByRole('link', { name: 'Pessoas da empresa' }).click();
     await expect(page.getByText(/Acesso negado/).first()).toBeVisible();
     await expect(page.getByText('Operador A')).toHaveCount(0);
     await expect.poll(() => itens(page)).toEqual(BASE);
@@ -285,12 +285,12 @@ test.describe('US3: o servidor continua decidindo (CA-003, MS-002)', () => {
   });
 
   // Spec 013 (RF-021): o acesso é só com e-mail e senha; a sessão AAL1 abre a tela sem pedir o segundo fator.
-  test('administrador em AAL1 vê Pessoas do tenant e a abre sem a verificação em duas etapas', async ({ page }) => {
+  test('administrador em AAL1 vê Pessoas da empresa e a abre sem a verificação em duas etapas', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     const backend = new MockBackend();
     await entrar(page, backend, { aal: 'aal1' });
-    await expect.poll(() => itens(page)).toContain('Pessoas do tenant');
-    await menu(page).getByRole('link', { name: 'Pessoas do tenant' }).click();
+    await expect.poll(() => itens(page)).toContain('Pessoas da empresa');
+    await menu(page).getByRole('link', { name: 'Pessoas da empresa' }).click();
     await expect(page.getByRole('rowheader', { name: 'Operador A' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Verificação em duas etapas' })).toHaveCount(0);
   });
@@ -302,7 +302,7 @@ test.describe('US4: trocar de organização e ver o menu certo (CA-002, MS-005)'
     return backend;
   };
 
-  test('a troca de A para B remove os itens do tenant anterior, mostra o carregamento e termina só com Visão geral e Meu perfil', async ({ page }) => {
+  test('a troca de A para B remove os itens da empresa anterior, mostra o carregamento e termina só com Visão geral e Meu perfil', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     const backend = doisTenants(new MockBackend().asProfile('dois-tenants'));
     await entrar(page, backend, { caminho: '/admin/membros' });
@@ -473,23 +473,23 @@ test.describe('US5: aplicativo instalado, recarregando offline (RNF-002)', () =>
 });
 
 test.describe('US6: mudança de permissão refletida (CA-006)', () => {
-  test('em até 60 segundos o item Auditoria do tenant aparece e some, e o servidor já recusa a tela no momento da retirada', async ({ page }) => {
+  test('em até 60 segundos o item Auditoria da empresa aparece e some, e o servidor já recusa a tela no momento da retirada', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     const backend = new MockBackend();
     backend.permissionsByOrganization[A] = ['profile.read', 'tenant.manage'];
     await page.clock.install();
     await entrar(page, backend);
-    await expect.poll(() => itens(page)).toEqual([...BASE, 'Pessoas do tenant', 'Papéis e permissões']);
+    await expect.poll(() => itens(page)).toEqual([...BASE, 'Pessoas da empresa', 'Papéis e permissões']);
 
     backend.permissionsByOrganization[A] = ['audit.read', 'profile.read', 'tenant.manage'];
     await page.clock.fastForward(61_000);
-    await expect.poll(() => itens(page)).toContain('Auditoria do tenant');
+    await expect.poll(() => itens(page)).toContain('Auditoria da empresa');
 
     backend.permissionsByOrganization[A] = ['profile.read', 'tenant.manage'];
     backend.auditDenied = true;
     await page.goto('/admin/auditoria');
     await expect(page.getByText(/Acesso negado/).first()).toBeVisible();
-    await expect.poll(() => itens(page)).not.toContain('Auditoria do tenant');
+    await expect.poll(() => itens(page)).not.toContain('Auditoria da empresa');
   });
 
   test('recarregar a página também reflete a mudança, sem novo login', async ({ page }) => {

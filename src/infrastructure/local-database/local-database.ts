@@ -65,7 +65,7 @@ export class LocalDatabase {
 
   async put(store: LocalStore, record: LocalRecord): Promise<void> {
     const tenant = this.assertUnlocked();
-    if (record.organization_id !== tenant) throw new Error('Registro pertence a outro tenant.');
+    if (record.organization_id !== tenant) throw new Error('Registro pertence a outra empresa.');
     const transaction = this.database!.transaction(store, 'readwrite');
     transaction.objectStore(store).put(record);
     await transactionDone(transaction);
@@ -91,7 +91,7 @@ export class LocalDatabase {
       await operation({
         put: async (store, record) => {
           if (!stores.includes(store)) throw new Error('Store fora da transação.');
-          if (record.organization_id !== tenant) throw new Error('Registro pertence a outro tenant.');
+          if (record.organization_id !== tenant) throw new Error('Registro pertence a outra empresa.');
           await requestResult(transaction.objectStore(store).put(record));
         },
       });

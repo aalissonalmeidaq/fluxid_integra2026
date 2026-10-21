@@ -81,6 +81,10 @@ export class PlatformSealService {
     return this.decide('refuse_enrollment', enrollment, justification, {}, 'REFUSED');
   }
 
+  reopen(enrollment: EnrollmentView, justification: string): Promise<PlatformOutcome<true>> {
+    return this.decide('reopen_enrollment', enrollment, justification, {}, 'REOPENED');
+  }
+
   resolveConflict(enrollment: EnrollmentView, keepCurrent: boolean, justification: string): Promise<PlatformOutcome<true>> {
     return this.decide('replace_enrollment_key', enrollment, justification, { keep_current: keepCurrent }, keepCurrent ? 'CONFLICT_CLEARED' : 'KEY_REPLACED');
   }

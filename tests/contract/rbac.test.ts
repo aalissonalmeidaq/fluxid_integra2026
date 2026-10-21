@@ -92,7 +92,7 @@ describe('manage-access: papéis personalizados', () => {
     expect(gw.saveRole).not.toHaveBeenCalled();
   });
 
-  it('nega permissão não delegável, audita a negação no tenant e não persiste', async () => {
+  it('nega permissão não delegável, audita a negação na empresa e não persiste', async () => {
     const gw = gateway({ saveRole: vi.fn(async () => ({ kind: 'not_delegable' as const })) });
     const result = await call(gw, { ...create, permissions: ['platform.manage'] });
     expect(result).toEqual({ status: 403, body: { code: 'PERMISSION_NOT_DELEGABLE' } });
@@ -173,7 +173,7 @@ describe('manage-access: papéis personalizados', () => {
 describe('manage-access: atribuição de papéis', () => {
   const assign = { operation: 'assign_role', organization_id: TENANT_A, membership_id: MEMBER, role_id: ROLE, justification: JUSTIFICATION };
 
-  it('atribui e remove papel no vínculo do tenant', async () => {
+  it('atribui e remove papel no vínculo da empresa', async () => {
     const gw = gateway();
     expect(await call(gw, assign)).toEqual({ status: 200, body: { code: 'ROLE_ASSIGNED' } });
     expect(await call(gw, { ...assign, operation: 'remove_role' })).toEqual({ status: 200, body: { code: 'ROLE_REMOVED' } });
@@ -216,7 +216,7 @@ describe('manage-access: sem segundo fator e auditoria de negações', () => {
     expect(gw.audit).not.toHaveBeenCalledWith({ actorId: ACTOR, action, result: 'denied', reason: 'mfa_required' });
   });
 
-  it('não grava o tenant solicitado nem o alvo quando a permissão é negada', async () => {
+  it('não grava a empresa solicitado nem o alvo quando a permissão é negada', async () => {
     const gw = gateway({ changeAssignment: vi.fn(async () => ({ kind: 'access_denied' as const })) });
     await call(gw, { operation: 'assign_role', organization_id: TENANT_B, membership_id: MEMBER, role_id: ROLE, justification: JUSTIFICATION });
     expect(gw.audit).toHaveBeenCalledWith({ actorId: ACTOR, action: 'role.assign', result: 'denied', reason: 'permission_denied' });

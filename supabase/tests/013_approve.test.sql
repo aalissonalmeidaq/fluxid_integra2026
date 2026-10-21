@@ -1,5 +1,5 @@
 begin;
-select plan(30);
+select plan(34);
 
 -- Spec 013, US2: aprovação, recusa e leitura da fila pelo Master (contracts/operacoes-plataforma.md; RF-011, RF-012, RF-014, RN-006,
 -- MS-006; constituição, princípio III). Dois tenants (A e B) e o Master do seed. Hermético: rollback.
@@ -93,9 +93,17 @@ select is((select count(*)::int from public.audit_logs where action = 'seal.enro
 select is(pg_temp.m('refuse_enrollment', format(', %L, %L, %L, %L', 'a1341000-0000-0000-0000-000000000011', 'a1340000-0000-0000-0000-000000000001',
   'Lacre desconhecido', pg_temp.at('a1340000-0000-0000-0000-000000000001')))->>'code', 'INVALID_STATE', 'só pedido aguardando pode ser recusado');
 
--- Recusado pode ser reconsiderado e aprovado.
-select is(pg_temp.approve('a1341000-0000-0000-0000-000000000012', 'a1340000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-00000000000b',
-  'Reconsiderado após conferir a nota')->>'code', 'APPROVED', 'recusado → aprovado (o Master reconsidera)');
+-- Recusado volta primeiro à fila de aguardando, com justificativa e auditoria.
+select is(pg_temp.m('reopen_enrollment', format(', %L, %L, %L, %L', 'a1341000-0000-0000-0000-000000000012', 'a1340000-0000-0000-0000-000000000002',
+  'abc', pg_temp.at('a1340000-0000-0000-0000-000000000002')))->>'code', 'JUSTIFICATION_REQUIRED', 'retomar exige justificativa');
+select is(pg_temp.m('reopen_enrollment', format(', %L, %L, %L, %L', 'a1341000-0000-0000-0000-000000000013', 'a1340000-0000-0000-0000-000000000002',
+  'Revisão do cadastro concluída', pg_temp.at('a1340000-0000-0000-0000-000000000002')))->>'code', 'REOPENED', 'o Master retorna o recusado para aguardando');
+select ok((select status = 'pending' and decided_by is null and decided_at is null and decision_note is null
+  from public.seal_enrollments where id = 'a1340000-0000-0000-0000-000000000002'), 'o pedido volta limpo para uma nova decisão');
+select is((select count(*)::int from public.audit_logs where action = 'seal.enrollment_reopen' and organization_id is null
+  and target_id = 'a1340000-0000-0000-0000-000000000002' and justification = 'Revisão do cadastro concluída'), 1, 'retomada auditada na plataforma');
+select is(pg_temp.approve('a1341000-0000-0000-0000-000000000014', 'a1340000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-00000000000b',
+  'Aprovado após nova conferência')->>'code', 'APPROVED', 'depois de aguardando, o lacre pode ser aprovado');
 
 -- Quem não é Master não lê nem aprova.
 select is(public.list_enrollments('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000001310a2', null, null, 0, 100)->>'code',

@@ -105,7 +105,7 @@ describe('PermissionsProvider: consulta ao autenticar (RF-004, RF-006, RF-007)',
     expect(codes()).toBe('nenhuma');
   });
 
-  it('autenticada consulta com o tenant ativo e expõe as permissões em ready', async () => {
+  it('autenticada consulta com a empresa ativa e expõe as permissões em ready', async () => {
     const { service, query } = serviceReturning(success(ADMIN));
     render(tree({ service }));
     await flush();
@@ -155,7 +155,7 @@ describe('PermissionsProvider: consulta ao autenticar (RF-004, RF-006, RF-007)',
 });
 
 describe('PermissionsProvider: troca de organização e de pessoa (RF-015, RF-017)', () => {
-  it('ao trocar o tenant ativo volta a loading antes de qualquer render do novo contexto e descarta as permissões anteriores', async () => {
+  it('ao trocar a empresa ativa volta a loading antes de qualquer render do novo contexto e descarta as permissões anteriores', async () => {
     const pendingB = deferred<PermissionsOutcome>();
     const { service } = serviceReturning(success(ADMIN), pendingB.promise);
     const view = render(tree({ service, organizationId: A }));
@@ -172,7 +172,7 @@ describe('PermissionsProvider: troca de organização e de pessoa (RF-015, RF-01
     expect(codes()).toBe('|');
   });
 
-  it('descarta a resposta atrasada do tenant anterior (geração antiga)', async () => {
+  it('descarta a resposta atrasada da empresa anterior (geração antiga)', async () => {
     const pendingA = deferred<PermissionsOutcome>();
     const { service } = serviceReturning(pendingA.promise, success(OPERATOR));
     const view = render(tree({ service, organizationId: A }));
@@ -198,7 +198,7 @@ describe('PermissionsProvider: troca de organização e de pessoa (RF-015, RF-01
     expect(renders.every((entry) => entry === 'loading:nenhuma')).toBe(true);
   });
 
-  it('perfil global: o conjunto global vem da nova consulta ao trocar o tenant', async () => {
+  it('perfil global: o conjunto global vem da nova consulta ao trocar a empresa', async () => {
     const { service } = serviceReturning(success({ tenant: ['tenant.manage'], global: ['platform.manage'] }), success({ tenant: [], global: ['platform.manage'] }));
     const view = render(tree({ service, organizationId: A }));
     await flush();
@@ -267,7 +267,7 @@ describe('PermissionsProvider: carregamento lento, falha e offline (RF-018 a RF-
     expect(query).not.toHaveBeenCalled();
   });
 
-  it('offline não usa o cache de outro tenant nem de outra pessoa', async () => {
+  it('offline não usa o cache de outra empresa nem de outra pessoa', async () => {
     createPermissionsCache().write('user-1', B, ADMIN);
     createPermissionsCache().write('user-2', A, ADMIN);
     vi.spyOn(window.navigator, 'onLine', 'get').mockReturnValue(false);

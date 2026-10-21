@@ -50,7 +50,7 @@ const tree = (value: AuthContextValue) => (
 afterEach(() => { seen.database = undefined; });
 
 describe('TenantProvider com a sessão restaurada offline', () => {
-  it('o tenant ativo, o nome e a base local vêm do registro, sem servidor', async () => {
+  it('a empresa ativa, o nome e a base local vêm do registro, sem servidor', async () => {
     render(tree(auth(offlineState)));
     await flush();
     expect(text('status')).toBe('ready');

@@ -24,12 +24,12 @@ describe('PlatformSealService', () => {
     expect(call).toHaveBeenCalledWith({ operation: 'list_enrollments', status: 'pending', conflict: true, offset: 0, limit: 100 });
   });
 
-  it('lista os tenants ativos', async () => {
+  it('lista as empresas ativas', async () => {
     const { service } = setup({ status: 200, body: { code: 'LISTED', items: [{ id: 'org-a', name: 'Tenant A' }] } });
     expect(await service.listTenants()).toEqual({ kind: 'success', value: [{ id: 'org-a', name: 'Tenant A' }] });
   });
 
-  it('aprova com o tenant, a justificativa, o request_id e o updated_at lido', async () => {
+  it('aprova com a empresa, a justificativa, o request_id e o updated_at lido', async () => {
     const { service, call } = setup();
     expect((await service.approve(enrollment, 'org-a', ' Lacre conferido ')).kind).toBe('success');
     expect(call).toHaveBeenCalledWith({ operation: 'approve_enrollment', request_id: 'req-1', enrollment_id: 'e1', organization_id: 'org-a',
@@ -40,6 +40,9 @@ describe('PlatformSealService', () => {
     const { service, call } = setup({ status: 200, body: { code: 'REFUSED' } });
     await service.refuse(enrollment, 'Lacre desconhecido');
     expect(call).toHaveBeenLastCalledWith(expect.objectContaining({ operation: 'refuse_enrollment', justification: 'Lacre desconhecido' }));
+    call.mockResolvedValueOnce({ status: 200, body: { code: 'REOPENED' } });
+    await service.reopen(enrollment, 'Revisão concluída');
+    expect(call).toHaveBeenLastCalledWith(expect.objectContaining({ operation: 'reopen_enrollment', justification: 'Revisão concluída' }));
     call.mockResolvedValueOnce({ status: 200, body: { code: 'KEY_REPLACED' } });
     await service.resolveConflict(enrollment, false, 'Lacre reinstalado');
     expect(call).toHaveBeenLastCalledWith(expect.objectContaining({ operation: 'replace_enrollment_key', keep_current: false }));
@@ -47,7 +50,7 @@ describe('PlatformSealService', () => {
     await service.withdraw(enrollment, 'all', 'Recolhido');
     expect(call).toHaveBeenLastCalledWith(expect.objectContaining({ operation: 'withdraw_device', forget_networks: 'all' }));
     call.mockResolvedValueOnce({ status: 200, body: { code: 'FORGET_REQUESTED' } });
-    await service.requestForgetNetworks(enrollment, 'Vai para outro tenant');
+    await service.requestForgetNetworks(enrollment, 'Vai para outra empresa');
     expect(call).toHaveBeenLastCalledWith(expect.objectContaining({ operation: 'request_forget_networks' }));
   });
 

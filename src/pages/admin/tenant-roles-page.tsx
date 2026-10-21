@@ -25,13 +25,13 @@ interface RoleDraft { role: RoleView | null; name: string; description: string; 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const ERROR_MESSAGES: Record<AccessFailure, string> = {
-  access_denied: 'Acesso negado. Você não tem autorização para administrar papéis deste tenant.',
+  access_denied: 'Acesso negado. Você não tem autorização para administrar papéis desta empresa.',
   mfa_required: 'Sua sessão não permite esta ação agora. Entre de novo e tente outra vez.',
-  not_delegable: 'Uma das permissões escolhidas não pode ser delegada ao tenant.',
+  not_delegable: 'Uma das permissões escolhidas não pode ser delegada à empresa.',
   immutable: 'Papéis preestabelecidos não podem ser alterados. Crie um papel personalizado.',
   conflict: 'O papel foi alterado por outra pessoa. Atualize a página e tente novamente.',
-  role_unavailable: 'O papel ou a pessoa não está mais disponível neste tenant.',
-  last_admin: 'Ação recusada: este é o último administrador ativo do tenant. Atribua o papel a outra pessoa antes.',
+  role_unavailable: 'O papel ou a pessoa não está mais disponível nesta empresa.',
+  last_admin: 'Ação recusada: este é o último administrador ativo da empresa. Atribua o papel a outra pessoa antes.',
   invalid: 'Revise os dados informados.',
   unavailable: 'Não foi possível concluir a ação agora. Tente novamente.',
 };
@@ -160,7 +160,7 @@ export function TenantRolesView({ organizationId, rbac, members: membershipServi
     <section aria-labelledby="roles-title" className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between">
         <div>
-          <p className="text-legenda font-semibold uppercase text-azul-profundo">Administração do tenant</p>
+          <p className="text-legenda font-semibold uppercase text-azul-profundo">Administração da empresa</p>
           <h2 id="roles-title" className="mt-1 text-h2 font-bold text-navy">Papéis e permissões</h2>
           <p className="mt-1 text-corpo">Papéis preestabelecidos são fixos. Crie papéis personalizados com permissões delegáveis.</p>
         </div>
@@ -208,10 +208,10 @@ export function TenantRolesView({ organizationId, rbac, members: membershipServi
       )}
 
       {loading ? <Loading label="Carregando papéis…" /> : roles.length === 0 ? (
-        !feedback && <EmptyState title="Nenhum papel disponível neste tenant." description="Os papéis preestabelecidos aparecem aqui assim que o tenant estiver configurado. Papéis personalizados podem ser criados em Novo papel." />
+        !feedback && <EmptyState title="Nenhum papel disponível nesta empresa." description="Os papéis preestabelecidos aparecem aqui assim que a empresa estiver configurado. Papéis personalizados podem ser criados em Novo papel." />
       ) : (
         <>
-          <List variant="cartoes" aria-label="Papéis do tenant" className="tablet:grid tablet:grid-cols-2">
+          <List variant="cartoes" aria-label="Papéis da empresa" className="tablet:grid tablet:grid-cols-2">
             {roles.map((role) => (
               <ListItem key={role.id}>
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -243,7 +243,7 @@ export function TenantRolesView({ organizationId, rbac, members: membershipServi
 
           <section aria-labelledby="assignments-title" className="flex flex-col gap-4">
             <h3 id="assignments-title" className="text-h3 font-semibold text-navy">Papéis por pessoa</h3>
-            {people.length === 0 ? <p className="text-corpo">Nenhuma pessoa ativa neste tenant.</p> : (
+            {people.length === 0 ? <p className="text-corpo">Nenhuma pessoa ativa nesta empresa.</p> : (
               <List variant="cartoes" aria-label="Pessoas e seus papéis" className="tablet:grid tablet:grid-cols-2">
                 {people.map((member) => {
                   const name = member.display_name || member.email;

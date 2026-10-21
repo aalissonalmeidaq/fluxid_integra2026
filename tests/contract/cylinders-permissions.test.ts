@@ -31,7 +31,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
 };
 
 describe('permissões de cilindros', () => {
-  it('as 7 permissões são criadas pela migration como delegáveis do tenant', () => {
+  it('as 7 permissões são criadas pela migration como delegáveis da empresa', () => {
     for (const code of PERMISSIONS) expect(sql, code).toMatch(new RegExp(`'${code.replace('.', '\\.')}', '[^']+', 'tenant', 'tenant_delegable', false`));
   });
 
@@ -48,7 +48,7 @@ describe('permissões de cilindros', () => {
     }
   });
 
-  it('o catálogo de telas exige cylinder.read e cylinder.stock_in, no escopo do tenant', () => {
+  it('o catálogo de telas exige cylinder.read e cylinder.stock_in, no escopo da empresa', () => {
     const byId = Object.fromEntries(SCREENS.map((screen) => [screen.id, screen]));
     expect(byId.cilindros?.requires).toEqual({ scope: 'tenant', code: 'cylinder.read' });
     expect(byId['entrada-estoque']?.requires).toEqual({ scope: 'tenant', code: 'cylinder.stock_in' });

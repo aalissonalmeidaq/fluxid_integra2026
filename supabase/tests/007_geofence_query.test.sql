@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem dados de exemplo próprios: fica fora das contagens globais.
 select plan(27);
 
 -- Spec 007, US3: geofences_containing_point, point_in_geofence, list_geofences e get_geofence (RF-016, RNF-003). Hermético.
@@ -55,7 +56,7 @@ select is((select jsonb_array_length(pg_temp.containing_a(-23.55, -46.633)->'geo
 select is((select pg_temp.containing_a(-23.55, -46.633)->'geofences'->0->>'name'), 'Círculo', 'a resposta traz o nome');
 select is((select jsonb_array_length(pg_temp.containing_a(-10, -50)->'geofences')), 0, 'ponto sem geocerca devolve lista vazia');
 select is((select pg_temp.containing_a(95, 0)->>'code'), 'VALIDATION_FAILED', 'latitude fora do intervalo é recusada');
-select is((select count(*)::int from public.registry_events where event_type like 'geofence%' and entity_type = 'geofence') , 2, 'consultar não grava nada (só os dois eventos de criação)');
+select is((select count(*)::int from public.registry_events where event_type like 'geofence%' and entity_type = 'geofence' and organization_id <> '5478e9e3-155b-482f-b843-3513e0938dd6') , 2, 'consultar não grava nada (só os dois eventos de criação)');
 
 -- ---------- isolamento e inativa
 select is((select public.point_in_geofence('10000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-0000000700b3', '20000000-0000-0000-0000-00000000000b',

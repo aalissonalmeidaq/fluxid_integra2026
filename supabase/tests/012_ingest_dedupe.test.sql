@@ -48,8 +48,9 @@ select ok((pg_temp.send('DSP-DEDUPA01', 'chave-d1', jsonb_build_array(pg_temp.po
 -- A 11 m, mesma qualidade e estado: só "visto por último".
 select pg_temp.send('DSP-DEDUPA01', 'chave-d1', jsonb_build_array(pg_temp.pos('P-2', '59 minutes', 0.0001, 'gps', 'closed', 79)));
 select is(pg_temp.points(), 1, 'a até 20 m, nenhuma posição nova');
-select ok((select last_seen_at = now() - interval '59 minutes' and battery_pct = 79 and repeat_count = 2
-  from public.seal_positions where device_id = 'a1320000-0000-0000-0000-0000000000a1'), 'só o "visto por último", a bateria e a contagem mudam');
+select ok((select last_seen_at = now() - interval '59 minutes' and battery_pct = 80 and signal_dbm = -60 and repeat_count = 1
+  from public.seal_positions where device_id = 'a1320000-0000-0000-0000-0000000000a1'),
+  'posição repetida atualiza somente o horário; os demais dados do ponto permanecem como foram gravados');
 
 -- Acima de 20 m, mudança de qualidade e de estado criam ponto novo.
 select pg_temp.send('DSP-DEDUPA01', 'chave-d1', jsonb_build_array(pg_temp.pos('P-3', '58 minutes', 0.0003)));

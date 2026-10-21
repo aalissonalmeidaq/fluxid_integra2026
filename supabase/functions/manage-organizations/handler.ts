@@ -63,7 +63,12 @@ export function createManageOrganizationsHandler(gateway: OrganizationGateway) {
         return json({ code: 'ADMIN_INVITATION_ACCEPTED', invitation_id: invitation.invitationId }, 202);
       }
       return json({ code: 'INVALID_REQUEST' }, 400);
-    } catch {
+    } catch (error) {
+      // Spec 014 (RF-016 a): o tenant da demonstração não recebe convite; a exceção desfez a transação, então a negação é auditada aqui.
+      if (error instanceof Error && error.message === 'DEMO_RESTRICTED') {
+        await gateway.audit({ actorId: identity.userId, action: 'organization.first_admin.invite', result: 'denied', reason: 'demo_restricted', targetId: String(body.organization_id) }).catch(() => undefined);
+        return json({ code: 'DEMO_RESTRICTED' }, 403);
+      }
       await gateway.audit({ actorId: identity.userId, action: 'organization.operation', result: 'failed', reason: 'internal_error' }).catch(() => undefined);
       return json({ code: 'INTERNAL_ERROR' }, 500);
     }

@@ -109,7 +109,7 @@ export function SealListView({ service, organizationId, online, realtime, now = 
           chaveDaLinha={(row) => row.deviceId}
           carregando={view.kind === 'loading'}
           textoDeCarregamento="Carregando os lacres…"
-          vazio={{ title: 'Nenhum lacre encontrado', description: 'Os lacres chegam pelo Master da plataforma. Peça a destinação de um lacre ao seu tenant.' }}
+          vazio={{ title: 'Nenhum lacre encontrado', description: 'Os lacres chegam pelo Master da plataforma. Peça a destinação de um lacre ao sua empresa.' }}
         />
       )}
     </div>

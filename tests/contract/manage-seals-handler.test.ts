@@ -105,4 +105,12 @@ describe('manage-seals', () => {
     expect((await createManageSealsHandler(gw)(post({ ...body, endpoint: 'http://push.example.invalid/x' }))).status).toBe(400);
     expect((await createManageSealsHandler(gw)(post({ ...body, endpoint: 'https://push.example.invalid/x' }))).status).toBe(200);
   });
+
+  // Spec 014 (RF-016 d): o banco recusa a devolução no tenant da demonstração (e audita); a borda devolve 403 com o corpo do banco.
+  it('DEMO_RESTRICTED na devolução vira 403 com o corpo do banco', async () => {
+    const body = { operation: 'return_device', organization_id: ORG, request_id: REQUEST, device_id: 'a1400000-0000-4000-8000-0000000000a1', justification: 'Lacre com defeito.' };
+    const response = await createManageSealsHandler(gateway({ code: 'DEMO_RESTRICTED' }))(post(body));
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ code: 'DEMO_RESTRICTED' });
+  });
 });

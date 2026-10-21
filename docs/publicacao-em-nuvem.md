@@ -8,7 +8,7 @@ Este documento registra onde o FluxID roda hoje e o que falta para publicá-lo e
 |------|--------|
 | Ambiente de uso | Supabase local (Docker) e `npm run dev`. |
 | `VITE_SUPABASE_CONNECTION_MODE` | `local` no `.env.local`. Com `auto`, o app tentaria a nuvem primeiro e seria bloqueado por incompatibilidade de contrato. |
-| Projeto Supabase cloud | Existe, mas **não tem a Spec 002**: a função `public-compatibility` e a tabela `organizations` respondem 404. Não é um destino homologado. |
+| Projeto Supabase cloud | Existe; em 20/10/2026 recebeu as cinco migrations e as quatro Edge Functions da Spec 014. A restauração das contas/amostra e a homologação publicada ainda precisam concluir o roteiro desta seção. |
 | Variáveis do GitHub | `SUPABASE_CLOUD_URL` e `SUPABASE_CLOUD_PUBLISHABLE_KEY` existem (valores públicos). O segredo `RETENTION_JOB_SECRET` **não** existe. |
 | Workflow `Limpeza de retenção (Storage)` | **Desativado** (`gh workflow disable`), para não falhar todo dia sem segredo nem projeto publicado. |
 | Tarefas da Spec 002 | T146 (prova de contrato e schema em nuvem), T147 (medição de desempenho em nuvem) e T149 (configurar a limpeza de retenção) seguem abertas, não canceladas. |
@@ -102,6 +102,27 @@ As 7 migrations `20261019120xxx_seals_enrollment_*` criam a fila de pedidos (`se
 2. **Conferência.** No SQL Editor: `select status, count(*) from public.seal_enrollments group by 1;` mostra os lacres da Spec 012 como `approved`; `select name from vault.secrets where name = 'seal_portal_password';` mostra o segredo (nunca o valor). Na tela Lacres da plataforma, o Master revela a senha com um motivo, e a consulta aparece na auditoria da plataforma.
 
 3. **Lacres da Spec 012.** Continuam respondendo `200` com a chave do cadastro manual. Antes de retirar ou devolver um deles, regrave-o com o firmware novo (`firmware/README.md`).
+
+### Acessos de demonstração (Spec 014)
+
+As 5 migrations `20261020170xxx` criam as marcas da demonstração, a função `public.demo_restore` (só `service_role`), as restrições (convites e devolução do lacre no tenant da demonstração, senha das contas de demonstração presa à publicada) e os textos "empresa" nos papéis. A recuperação de senha passa a não enviar link a contas de demonstração: publique de novo as funções `password-recovery`, `invite-user`, `manage-organizations` e `manage-seals`. O seed continua fora da nuvem: os acessos de demonstração chegam lá pelo script.
+
+1. **Criar ou restaurar a demonstração.** No terminal de quem opera, com a chave só no ambiente desse terminal:
+
+   ```powershell
+   $env:SUPABASE_URL = "https://<ref-do-projeto>.supabase.co"
+   $env:SUPABASE_SERVICE_ROLE_KEY = "<chave secreta do projeto: Settings > API Keys>"
+   npm run operacao:demonstracao
+   Remove-Item Env:SUPABASE_SERVICE_ROLE_KEY
+   ```
+
+   O script valida `src/domain/demo/acessos-demonstracao.json`, para se algum e-mail de demonstração já pertencer a outro usuário, grava as marcas (`demo_restore` fase `markers`), cria ou atualiza os 5 usuários no Auth (id fixo, senha publicada, e-mail confirmado) e restaura o estado publicado (fase `state`): empresa "Oxigênio Cariri" ativa, perfis, vínculos ativos, um papel por pessoa, o cilindro C262 em estoque e os dados de exemplo (cilindros, clientes, geocercas, veículos, motoristas, viagens e lacres simulados com alertas), pelas operações do domínio. Para sem alterar nada se a empresa tiver vínculo de alguém que não é da demonstração. Cada execução fica na auditoria da plataforma (`demo.restore`), sem senha. Rodar de novo é seguro.
+
+2. **Lacre de bancada.** O Master real aprova o `DSP-P77E49TC` para o "Oxigênio Cariri" em Lacres da plataforma (só o Master destina lacres). Rode o script de novo: o lacre fica vinculado ao C262. Se o lacre deixar de estar destinado à empresa, o script avisa e não mexe.
+
+3. **Rotina diária.** O workflow `.github/workflows/restaurar-demonstracao.yml` roda o mesmo script às 03:23 de Brasília e sob demanda (Actions > Restaurar a demonstração > Run workflow). Cadastre em Settings > Secrets and variables > Actions o segredo `SUPABASE_SERVICE_ROLE_KEY` (a variável `SUPABASE_CLOUD_URL` já existe). Sem o segredo, a rotina falha dizendo o que cadastrar. A saída mostra só o resumo.
+
+4. **Desligar.** Quando a plataforma deixar de ser demonstração, defina `VITE_DEMO_ACCESS=false` nas variáveis da Vercel e publique de novo: o botão e as credenciais saem do pacote. Desligue também a rotina diária.
 
 ## Vercel (frontend)
 

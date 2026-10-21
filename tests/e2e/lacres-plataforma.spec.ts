@@ -42,7 +42,7 @@ test.describe('Lacres da plataforma (Master)', () => {
     await page.getByRole('row', { name: /DSP-E2EAPR01/ }).getByRole('button', { name: /^Aprovar/ }).click();
     const dialogo = page.getByRole('dialog', { name: 'Aprovar o lacre DSP-E2EAPR01' });
     await expect(dialogo.getByText('Confira se é o código do lacre em mãos')).toBeVisible();
-    await dialogo.getByLabel('Tenant de destino').selectOption({ label: 'Tenant A' });
+    await dialogo.getByLabel('Empresa de destino').selectOption({ label: 'Tenant A' });
     await dialogo.getByLabel('Justificativa').fill('Lacre conferido na bancada');
     await dialogo.getByRole('button', { name: 'Aprovar e destinar' }).click();
     await expect(page.getByText('Lacre DSP-E2EAPR01 aprovado para Tenant A.')).toBeVisible();
@@ -91,7 +91,7 @@ test.describe('Lacres da plataforma (Master)', () => {
   });
 });
 
-test.describe('Lacre destinado ao tenant', () => {
+test.describe('Lacre destinado à empresa', () => {
   test('pronto para vincular, vinculado pelo cilindro e devolvido à plataforma', async ({ page }) => {
     const backend = await entrar(page, 'lacres-admin');
     const device = novoDispositivo(backend.seals, ORG_A, 'Lacre aprovado');

@@ -93,7 +93,7 @@ describe('OverviewPage', () => {
     expect(screen.queryByText(/fundação técnica ativa/i)).not.toBeInTheDocument();
   });
 
-  it('não faz requisição de rede e produz o mesmo conteúdo para duas pessoas e dois tenants', async () => {
+  it('não faz requisição de rede e produz o mesmo conteúdo para duas pessoas e duas empresas', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
     const auth: AuthContextValue = { state: { status: 'authenticated', aal: 'aal1' }, login: vi.fn(), logout: vi.fn(), };
     const tenant = (organizationId: string, displayName: string): TenantContextValue => ({

@@ -75,8 +75,12 @@ function privilegedJwts(content: string): string[] {
 //  - Local-only-NNN!: senhas dos usuários sintéticos do seed local, inexistentes fora do ambiente de desenvolvimento;
 //  - JBSWY3DPEHPK3PXP: segredo TOTP de exemplo da RFC 6238 usado em mocks e testes, sem valor de acesso;
 //  - segredo-da-rotina-de-retencao: segredo fictício do teste de contrato da rotina de retenção;
-//  - Senha-/Nova-/Outra-: senhas fictícias digitadas em testes de interface.
-const SYNTHETIC_VALUES = [/^Local-only-\d{3}!$/, /^JBSWY3DPEHPK3PXP$/, /^segredo-da-rotina-de-retencao$/, /^(Senha|Nova-|Outra-)/i];
+//  - Senha-/Nova-/Outra-: senhas fictícias digitadas em testes de interface;
+//  - FluxID-Demo-NN!: senhas públicas dos acessos de demonstração (Spec 014, RN-001), válidas só no tenant da demonstração.
+const DEMO_PASSWORD = /^FluxID-Demo-\d{2}!$/;
+const SYNTHETIC_VALUES = [/^Local-only-\d{3}!$/, /^JBSWY3DPEHPK3PXP$/, /^segredo-da-rotina-de-retencao$/, /^(Senha|Nova-|Outra-)/i, DEMO_PASSWORD];
+// A exceção das senhas de demonstração não se espalha: só a fonte única, o seed local e os testes podem trazê-las.
+const DEMO_PASSWORD_FILES = ['src/domain/demo/acessos-demonstracao.json', 'supabase/seeds/demonstracao.sql'];
 
 const PRIVATE_KEY_PEM = /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/;
 const SECRET_KEY_FORMAT = /sb_secret_[A-Za-z0-9_-]{10,}/;
@@ -250,6 +254,19 @@ describe('Contrato de Segurança: artefatos versionáveis', { timeout: 60_000 },
       });
     }
     expect(offenders.filter((entry) => !/client-secrets\.test\.ts/.test(entry))).toEqual([]);
+  });
+
+  it('as senhas de demonstração só aparecem na fonte única, no seed local e nos testes', () => {
+    const offenders: string[] = [];
+    for (const file of files) {
+      const relative = path.relative(ROOT, file).replace(/\\/g, '/');
+      if (DEMO_PASSWORD_FILES.includes(relative) || /\.test\.tsx?$|\.spec\.ts$|^supabase\/tests\//.test(relative)) continue;
+      if (/\.md$/.test(relative)) continue;
+      fs.readFileSync(file, 'utf8').split('\n').forEach((line, index) => {
+        if (/FluxID-Demo-\d{2}!/.test(line)) offenders.push(`${relative}:${index + 1}`);
+      });
+    }
+    expect(offenders).toEqual([]);
   });
 
   it('o .gitignore protege arquivos de ambiente locais e as chaves', () => {

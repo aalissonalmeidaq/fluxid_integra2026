@@ -13,7 +13,7 @@ const JUSTIFICATION = 'Alteração aprovada pela gestão';
 
 const access = {
   roles: [
-    { id: ADMIN_ROLE, code: 'tenant_admin', name: 'Administrador do tenant', description: 'Administra o tenant', system: true, active: true, version: 1, permissions: ['audit.read', 'tenant.manage'] },
+    { id: ADMIN_ROLE, code: 'tenant_admin', name: 'Administrador da empresa', description: 'Administra a empresa', system: true, active: true, version: 1, permissions: ['audit.read', 'tenant.manage'] },
     { id: CUSTOM, code: 'custom_a', name: 'Auditor interno', description: 'Consulta auditoria', system: false, active: true, version: 3, permissions: ['audit.read'] },
   ],
   permissions: [
@@ -51,12 +51,12 @@ describe('TenantRolesPage: leitura', () => {
   it('apresenta carregamento e depois papéis com tipo, estado e permissões em texto', async () => {
     renderView();
     expect(screen.getByRole('status')).toHaveTextContent(/carregando/i);
-    expect(await screen.findByRole('heading', { name: 'Administrador do tenant' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Administrador da empresa' })).toBeInTheDocument();
     const custom = screen.getByRole('heading', { name: 'Auditor interno' }).closest('li')!;
     expect(within(custom).getByText('Personalizado')).toBeInTheDocument();
     expect(within(custom).getByText('Ativo')).toBeInTheDocument();
     expect(within(custom).getByText('audit.read')).toBeInTheDocument();
-    const system = screen.getByRole('heading', { name: 'Administrador do tenant' }).closest('li')!;
+    const system = screen.getByRole('heading', { name: 'Administrador da empresa' }).closest('li')!;
     expect(within(system).getByText('Preestabelecido')).toBeInTheDocument();
     expect(within(system).getByText(/não pode ser alterado/i)).toBeInTheDocument();
     expect(within(system).queryByRole('button', { name: /editar/i })).not.toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('TenantRolesPage: leitura', () => {
 
   it('marca permissão crítica com texto, não só com cor', async () => {
     renderView();
-    const system = (await screen.findByRole('heading', { name: 'Administrador do tenant' })).closest('li')!;
+    const system = (await screen.findByRole('heading', { name: 'Administrador da empresa' })).closest('li')!;
     expect(within(system).getByText(/tenant\.manage/)).toBeInTheDocument();
     expect(within(system).getAllByText(/crítica/i).length).toBeGreaterThan(0);
   });
@@ -181,7 +181,7 @@ describe('TenantRolesPage: ativação e atribuição', () => {
 
   it('remove o papel atribuído com confirmação e justificativa', async () => {
     const services = renderView();
-    fireEvent.click(await screen.findByRole('button', { name: 'Remover Administrador do tenant de Ana Admin' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Remover Administrador da empresa de Ana Admin' }));
     const dialog = screen.getByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Justificativa da alteração'), { target: { value: JUSTIFICATION } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Confirmar remoção' }));
@@ -190,12 +190,12 @@ describe('TenantRolesPage: ativação e atribuição', () => {
 
   it('anuncia a proteção do último administrador sem alterar a tela', async () => {
     renderView(fakeServices({ removeRole: vi.fn(async () => ({ kind: 'last_admin' })) }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Remover Administrador do tenant de Ana Admin' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Remover Administrador da empresa de Ana Admin' }));
     const dialog = screen.getByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Justificativa da alteração'), { target: { value: JUSTIFICATION } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Confirmar remoção' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/último administrador/i);
-    expect(screen.getByRole('button', { name: 'Remover Administrador do tenant de Ana Admin' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remover Administrador da empresa de Ana Admin' })).toBeInTheDocument();
   });
 
   it('cancela o diálogo com Escape e devolve o foco', async () => {
@@ -220,7 +220,7 @@ describe('TenantRolesPage: ativação e atribuição', () => {
 describe('TenantRolesPage: apresentação (Spec 003)', () => {
   it('papéis em cartões da lista do padrão, com tipo e estado nos indicadores', async () => {
     renderView();
-    const list = await screen.findByRole('list', { name: 'Papéis do tenant' });
+    const list = await screen.findByRole('list', { name: 'Papéis da empresa' });
     expect(list).toHaveAttribute('data-variant', 'cartoes');
     const custom = screen.getByRole('heading', { name: 'Auditor interno' }).closest('li')!;
     expect(within(custom).getByText('Personalizado').closest('[data-variant]')).not.toBeNull();

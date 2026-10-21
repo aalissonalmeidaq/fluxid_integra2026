@@ -476,7 +476,6 @@ namespace
             redes.DefinirPrincipal(rede, true);
             SalvarRedes();
             portal.ConcluirTeste(true, "");
-            janela.Sucesso(millis());
             return;
         }
         portal.ConcluirTeste(false, "wifi_no_internet");

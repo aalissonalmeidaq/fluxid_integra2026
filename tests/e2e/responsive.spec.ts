@@ -68,7 +68,7 @@ for (const viewport of VIEWPORTS) {
     });
 
     for (const route of [
-      { path: '/admin/membros', heading: 'Pessoas do tenant' },
+      { path: '/admin/membros', heading: 'Pessoas da empresa' },
       { path: '/admin/papeis', heading: null },
       { path: '/admin/auditoria', heading: null },
       { path: '/admin/tenants', heading: null },

@@ -9,7 +9,7 @@ import {
 describe('situações do pedido', () => {
   it('as situações são as do data-model, com texto, ícone e tom', () => {
     expect([...ENROLLMENT_STATUSES]).toEqual(['pending', 'approved', 'refused', 'expired', 'returned']);
-    expect(ENROLLMENT_STATUSES.map((s) => enrollmentStatus(s).label)).toEqual(['Aguardando vinculação a um tenant', 'Em operação', 'Recusado', 'Expirado', 'Devolvido']);
+    expect(ENROLLMENT_STATUSES.map((s) => enrollmentStatus(s).label)).toEqual(['Aguardando vinculação a uma empresa', 'Em operação', 'Recusado', 'Expirado', 'Devolvido']);
     for (const s of ENROLLMENT_STATUSES) expect(enrollmentStatus(s).icon).toBeTruthy();
   });
 
@@ -87,7 +87,7 @@ describe('o que impede a aprovação', () => {
   it('para tenant diferente do último, exige o esquecimento das redes (RN-006)', () => {
     const withLast = { ...base, lastOrganizationId: 'tenant-a', lastOrganizationName: 'Tenant A' };
     expect(approvalBlock(withLast, 'tenant-a')).toBeNull();
-    expect(approvalBlock(withLast, 'tenant-b')).toMatch(/redes do tenant Tenant A/);
+    expect(approvalBlock(withLast, 'tenant-b')).toMatch(/redes da empresa Tenant A/);
   });
 });
 

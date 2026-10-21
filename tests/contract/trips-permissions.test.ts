@@ -44,7 +44,7 @@ describe('permissões de viagem (RF-031)', () => {
     expect(migrationRolePermissions('technical_operator')).toEqual([]);
   });
 
-  it('o administrador do tenant recebe todas as de viagem', () => {
+  it('o administrador da empresa recebe todas as de viagem', () => {
     expect(migration).toContain("p.code ~ '^(customer|geofence|vehicle|driver|trip)\\.'");
   });
 });

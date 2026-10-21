@@ -18,7 +18,7 @@ export function ReturnDeviceDialog({ deviceCode, busy, error, returnFocusTo, onC
     <ReasonDialog
       title={`Devolver à plataforma · ${deviceCode}`}
       confirmLabel="Devolver o lacre"
-      description="O vínculo com o cilindro é encerrado, os comandos pendentes são cancelados e os alertas abertos fecham. O lacre esquece as redes Wi-Fi deste tenant e volta para o Master, que decide o destino dele. O histórico continua aqui."
+      description="O vínculo com o cilindro é encerrado, os comandos pendentes são cancelados e os alertas abertos fecham. O lacre esquece as redes Wi-Fi desta empresa e volta para o Master, que decide o destino dele. O histórico continua aqui."
       busy={busy}
       error={error}
       returnFocusTo={returnFocusTo}

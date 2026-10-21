@@ -6,9 +6,9 @@ const labels = (permissions: Parameters<typeof visibleScreens>[0]) => visibleScr
 const BASE = ['Visão geral', 'Meu perfil'];
 
 describe('visibleScreens', () => {
-  it('administrador de tenant vê as telas do tenant, em ordem', () => {
+  it('administrador de tenant vê as telas da empresa, em ordem', () => {
     expect(labels({ tenant: ['audit.read', 'profile.read', 'tenant.manage'], global: [] })).toEqual([
-      'Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant',
+      'Visão geral', 'Meu perfil', 'Pessoas da empresa', 'Papéis e permissões', 'Auditoria da empresa',
     ]);
   });
 
@@ -16,21 +16,21 @@ describe('visibleScreens', () => {
     expect(labels({ tenant: ['profile.read'], global: [] })).toEqual(BASE);
   });
 
-  it('Master vê as telas globais e não as do tenant quando a lista do tenant está vazia', () => {
+  it('Master vê as telas globais e não as da empresa quando a lista da empresa está vazia', () => {
     expect(labels({ tenant: [], global: ['audit.read', 'platform.manage', 'profile.read', 'tenant.manage'] })).toEqual([
       'Visão geral', 'Meu perfil', 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma',
     ]);
   });
 
-  it('Administrador FluxID vê Organizações e Auditoria da plataforma, nada do tenant', () => {
+  it('Administrador FluxID vê Organizações e Auditoria da plataforma, nada da empresa', () => {
     expect(labels({ tenant: [], global: ['audit.read', 'platform.manage', 'profile.read'] })).toEqual([
       'Visão geral', 'Meu perfil', 'Organizações', 'Lacres da plataforma', 'Auditoria da plataforma',
     ]);
   });
 
-  it('perfil global com permissões no tenant ativo soma os dois conjuntos, cada um só para o seu escopo', () => {
+  it('perfil global com permissões na empresa ativa soma os dois conjuntos, cada um só para o seu escopo', () => {
     expect(labels({ tenant: ['tenant.manage'], global: ['platform.manage'] })).toEqual([
-      'Visão geral', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Organizações', 'Lacres da plataforma',
+      'Visão geral', 'Meu perfil', 'Pessoas da empresa', 'Papéis e permissões', 'Organizações', 'Lacres da plataforma',
     ]);
   });
 
@@ -39,8 +39,8 @@ describe('visibleScreens', () => {
     expect(labels({ tenant: [], global: ['tenant.manage'] })).toEqual(BASE);
   });
 
-  it('pessoa com dois tenants: cada consulta decide o seu menu', () => {
-    expect(labels({ tenant: ['tenant.manage', 'audit.read'], global: [] })).toContain('Pessoas do tenant');
+  it('pessoa com duas empresas: cada consulta decide o seu menu', () => {
+    expect(labels({ tenant: ['tenant.manage', 'audit.read'], global: [] })).toContain('Pessoas da empresa');
     expect(labels({ tenant: [], global: [] })).toEqual(BASE);
   });
 
@@ -56,8 +56,8 @@ describe('visibleScreens', () => {
   it('devolve caminhos e nomes iguais aos do modelo de dados', () => {
     const all = visibleScreens({ tenant: ['tenant.manage', 'audit.read'], global: ['platform.manage', 'audit.read'] });
     expect(all.map((screen) => [screen.label, screen.path])).toEqual([
-      ['Visão geral', '/visao-geral'], ['Meu perfil', '/perfil'], ['Pessoas do tenant', '/admin/membros'], ['Papéis e permissões', '/admin/papeis'],
-      ['Auditoria do tenant', '/admin/auditoria'], ['Organizações', '/admin/tenants'], ['Lacres da plataforma', '/admin/lacres'], ['Auditoria da plataforma', '/admin/auditoria-global'],
+      ['Visão geral', '/visao-geral'], ['Meu perfil', '/perfil'], ['Pessoas da empresa', '/admin/membros'], ['Papéis e permissões', '/admin/papeis'],
+      ['Auditoria da empresa', '/admin/auditoria'], ['Organizações', '/admin/tenants'], ['Lacres da plataforma', '/admin/lacres'], ['Auditoria da plataforma', '/admin/auditoria-global'],
     ]);
   });
 });

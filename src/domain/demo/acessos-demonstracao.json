@@ -1,0 +1,393 @@
+{
+  "tenant": {
+    "id": "5478e9e3-155b-482f-b843-3513e0938dd6",
+    "display_name": "Oxigênio Cariri",
+    "legal_name": "Oxigenio Cariri"
+  },
+  "cylinder": {
+    "serial_number": "C262",
+    "identifier": {
+      "kind": "hull_number",
+      "value": "C262"
+    },
+    "notes": "Cilindro de teste da demonstração.",
+    "type": {
+      "gas": "Oxigênio",
+      "capacity_value": 10,
+      "capacity_unit": "m3",
+      "classification": "medicinal"
+    }
+  },
+  "seal": {
+    "device_code": "DSP-P77E49TC"
+  },
+  "accounts": [
+    {
+      "user_id": "0d140000-0000-4000-8000-000000000001",
+      "membership_id": "0d140000-0000-4000-8000-000000000101",
+      "display_name": "Administrador da demonstração",
+      "role_code": "tenant_admin",
+      "description": "Gerencia pessoas, papéis, cilindros, cadastros, viagens e lacres da empresa.",
+      "email": "tenant_admin@demo.fluxid.invalid",
+      "password": "FluxID-Demo-01!"
+    },
+    {
+      "user_id": "0d140000-0000-4000-8000-000000000002",
+      "membership_id": "0d140000-0000-4000-8000-000000000102",
+      "display_name": "Operador de estoque da demonstração",
+      "role_code": "stock_operator",
+      "description": "Cadastra cilindros, registra entradas no estoque, confere a carga das viagens e vincula lacres.",
+      "email": "stock_operator@demo.fluxid.invalid",
+      "password": "FluxID-Demo-02!"
+    },
+    {
+      "user_id": "0d140000-0000-4000-8000-000000000003",
+      "membership_id": "0d140000-0000-4000-8000-000000000103",
+      "display_name": "Operador técnico da demonstração",
+      "role_code": "technical_operator",
+      "description": "Mantém os identificadores e registra os testes hidrostáticos dos cilindros.",
+      "email": "technical_operator@demo.fluxid.invalid",
+      "password": "FluxID-Demo-03!"
+    },
+    {
+      "user_id": "0d140000-0000-4000-8000-000000000004",
+      "membership_id": "0d140000-0000-4000-8000-000000000104",
+      "display_name": "Auditor da demonstração",
+      "role_code": "tenant_auditor",
+      "description": "Consulta cilindros, cadastros, viagens, lacres e históricos, sem alterar nada.",
+      "email": "tenant_auditor@demo.fluxid.invalid",
+      "password": "FluxID-Demo-04!"
+    },
+    {
+      "user_id": "0d140000-0000-4000-8000-000000000005",
+      "membership_id": "0d140000-0000-4000-8000-000000000105",
+      "display_name": "Motorista da demonstração",
+      "role_code": "driver",
+      "description": "Entra como motorista: vê o próprio perfil e as viagens em que for escalado.",
+      "email": "driver@demo.fluxid.invalid",
+      "password": "FluxID-Demo-05!"
+    }
+  ],
+  "sample": {
+    "cylinder_types": [
+      {
+        "ref": "oxigenio-1",
+        "gas": "Oxigênio",
+        "capacity_value": 1,
+        "capacity_unit": "m3",
+        "classification": "medicinal"
+      },
+      {
+        "ref": "nitrogenio-7",
+        "gas": "Nitrogênio",
+        "capacity_value": 7,
+        "capacity_unit": "m3",
+        "classification": "industrial"
+      }
+    ],
+    "cylinders": [
+      {
+        "serial_number": "C263",
+        "type": "publicado",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C264",
+        "type": "publicado",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C265",
+        "type": "oxigenio-1",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C266",
+        "type": "publicado",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C267",
+        "type": "oxigenio-1",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C268",
+        "type": "nitrogenio-7",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C269",
+        "type": "nitrogenio-7",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C270",
+        "type": "publicado",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C271",
+        "type": "publicado",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C272",
+        "type": "oxigenio-1",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C273",
+        "type": "nitrogenio-7",
+        "hydro": "approved",
+        "in_stock": true
+      },
+      {
+        "serial_number": "C274",
+        "type": "publicado",
+        "hydro": "expired",
+        "in_stock": true
+      }
+    ],
+    "customers": [
+      {
+        "ref": "hospital",
+        "person_type": "legal",
+        "document": "14140001000146",
+        "legal_name": "Hospital Exemplo do Cariri Ltda",
+        "trade_name": "Hospital Exemplo do Cariri",
+        "segment": "hospital",
+        "contacts": [
+          {
+            "name": "Central de Gases (exemplo)",
+            "role": "Almoxarifado",
+            "phone": "88999990001",
+            "is_primary": true
+          }
+        ],
+        "site": {
+          "name": "Sede Juazeiro",
+          "postal_code": "63010000",
+          "street": "Rua Exemplo do Hospital",
+          "number": "100",
+          "district": "Centro",
+          "city": "Juazeiro do Norte",
+          "state": "CE",
+          "ibge_code": "2307304",
+          "latitude": -7.2131,
+          "longitude": -39.3153,
+          "receiving_contact_name": "Central de Gases (exemplo)",
+          "receiving_contact_phone": "88999990001"
+        },
+        "geofence": {
+          "name": "Hospital Exemplo, raio de 150 m",
+          "radius_m": 150
+        }
+      },
+      {
+        "ref": "clinica",
+        "person_type": "legal",
+        "document": "14140002000190",
+        "legal_name": "Clínica Exemplo Vida Ltda",
+        "trade_name": "Clínica Exemplo Vida",
+        "segment": "clinic",
+        "contacts": [
+          {
+            "name": "Recepção (exemplo)",
+            "role": "Recepção",
+            "phone": "88999990002",
+            "is_primary": true
+          }
+        ],
+        "site": {
+          "name": "Unidade Crato",
+          "postal_code": "63100000",
+          "street": "Avenida Exemplo da Clínica",
+          "number": "250",
+          "district": "Centro",
+          "city": "Crato",
+          "state": "CE",
+          "ibge_code": "2304202",
+          "latitude": -7.2341,
+          "longitude": -39.4094,
+          "receiving_contact_name": "Recepção (exemplo)",
+          "receiving_contact_phone": "88999990002"
+        },
+        "geofence": {
+          "name": "Clínica Exemplo, raio de 120 m",
+          "radius_m": 120
+        }
+      },
+      {
+        "ref": "metalurgica",
+        "person_type": "legal",
+        "document": "14140003000135",
+        "legal_name": "Metalúrgica Exemplo Barbalha Ltda",
+        "trade_name": "Metalúrgica Exemplo",
+        "segment": "industry",
+        "contacts": [
+          {
+            "name": "Manutenção (exemplo)",
+            "role": "Manutenção",
+            "phone": "88999990003",
+            "is_primary": true
+          }
+        ],
+        "site": {
+          "name": "Fábrica Barbalha",
+          "postal_code": "63180000",
+          "street": "Rodovia Exemplo da Indústria",
+          "number": "1500",
+          "district": "Distrito Industrial",
+          "city": "Barbalha",
+          "state": "CE",
+          "ibge_code": "2301901",
+          "latitude": -7.3058,
+          "longitude": -39.302,
+          "receiving_contact_name": "Manutenção (exemplo)",
+          "receiving_contact_phone": "88999990003"
+        },
+        "geofence": {
+          "name": "Metalúrgica Exemplo, raio de 250 m",
+          "radius_m": 250
+        }
+      }
+    ],
+    "vehicles": [
+      {
+        "plate": "DEM1A14",
+        "vehicle_type": "truck",
+        "brand": "Exemplo",
+        "model": "Caminhão de entrega",
+        "manufacture_year": 2021,
+        "capacity_cylinders": 40,
+        "max_load_kg": 5000,
+        "licensing_due_in_days": 240
+      },
+      {
+        "plate": "DEM2B14",
+        "vehicle_type": "van",
+        "brand": "Exemplo",
+        "model": "Furgão",
+        "manufacture_year": 2022,
+        "capacity_cylinders": 12,
+        "max_load_kg": 1500,
+        "licensing_due_in_days": 300
+      }
+    ],
+    "drivers": [
+      {
+        "ref": "motorista-1",
+        "full_name": "Carlos Exemplo da Silva",
+        "cpf": "14014001083",
+        "cnh_number": "14014000129",
+        "cnh_category": "D",
+        "cnh_valid_in_days": 400,
+        "phone": "88999990011",
+        "account_role": "driver"
+      },
+      {
+        "ref": "motorista-2",
+        "full_name": "Rita Exemplo Souza",
+        "cpf": "14014001164",
+        "cnh_number": "14014000237",
+        "cnh_category": "C",
+        "cnh_valid_in_days": 500,
+        "phone": "88999990012"
+      }
+    ],
+    "trips": [
+      {
+        "ref": "concluida",
+        "state": "completed",
+        "vehicle": "DEM2B14",
+        "driver": "motorista-2",
+        "stops": [
+          {
+            "customer": "hospital",
+            "cylinders": [
+              "C263",
+              "C264",
+              "C265"
+            ]
+          }
+        ]
+      },
+      {
+        "ref": "em-andamento",
+        "state": "in_progress",
+        "vehicle": "DEM1A14",
+        "driver": "motorista-1",
+        "stops": [
+          {
+            "customer": "clinica",
+            "cylinders": [
+              "C266",
+              "C267"
+            ]
+          }
+        ]
+      },
+      {
+        "ref": "planejada",
+        "state": "planned",
+        "planned_in_days": 1,
+        "vehicle": "DEM2B14",
+        "driver": "motorista-2",
+        "stops": [
+          {
+            "customer": "metalurgica",
+            "cylinders": [
+              "C268",
+              "C269"
+            ]
+          }
+        ]
+      }
+    ],
+    "seals": [
+      {
+        "ref": "lacre-1",
+        "label": "Lacre de exemplo 1",
+        "cylinder": "C270",
+        "alert": "low_battery",
+        "latitude": -7.2079,
+        "longitude": -39.3142
+      },
+      {
+        "ref": "lacre-2",
+        "label": "Lacre de exemplo 2",
+        "cylinder": "C271",
+        "alert": "weak_signal",
+        "latitude": -7.2083,
+        "longitude": -39.3149
+      },
+      {
+        "ref": "lacre-3",
+        "label": "Lacre de exemplo 3",
+        "cylinder": "C272",
+        "alert": "seal_open",
+        "latitude": -7.2088,
+        "longitude": -39.3137
+      },
+      {
+        "ref": "lacre-4",
+        "label": "Lacre de exemplo 4",
+        "cylinder": "C273",
+        "alert": "device_off",
+        "latitude": -7.2092,
+        "longitude": -39.3145
+      }
+    ]
+  }
+}

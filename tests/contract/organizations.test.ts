@@ -51,7 +51,7 @@ describe('manage-organizations', () => {
     expect(gw.audit).toHaveBeenCalledWith(expect.objectContaining({ action: 'organization.status.change', result: 'success' }));
   });
 
-  it.each(['active', 'suspended', 'deleted'])('rejeita estado inicial %s: o tenant sempre nasce inactive', async (initial) => {
+  it.each(['active', 'suspended', 'deleted'])('rejeita estado inicial %s: a empresa sempre nasce inactive', async (initial) => {
     const gw = gateway();
     const result = await call(gw, { operation: 'create', legal_name: 'Empresa Teste Ltda.', display_name: 'Empresa Teste', initial_status: initial, justification: 'Contrato aprovado' });
     expect(result).toEqual({ status: 400, body: { code: 'INVALID_REQUEST' } });
@@ -84,5 +84,15 @@ describe('manage-organizations', () => {
     const result = await call(gw, { operation: 'change_status', organization_id: TENANT, status: 'deleted', expected_version: 1, justification: '' });
     expect(result).toEqual({ status: 400, body: { code: 'INVALID_REQUEST' } });
     expect(gw.changeStatus).not.toHaveBeenCalled();
+  });
+
+  // Spec 014 (RF-016 a): o banco recusa o primeiro administrador no tenant da demonstração com uma exceção (DEMO_RESTRICTED), que
+  // desfaz a escrita; a borda devolve 403 e audita a negação.
+  it('DEMO_RESTRICTED no primeiro administrador vira 403 e a negação é auditada', async () => {
+    const gw = gateway({ inviteFirstAdmin: vi.fn(async () => { throw new Error('DEMO_RESTRICTED'); }) });
+    const result = await call(gw, { operation: 'invite_first_admin', organization_id: TENANT, email: 'pessoa@empresa.com.br', justification: 'Primeiro administrador da demonstração' });
+    expect(result).toEqual({ status: 403, body: { code: 'DEMO_RESTRICTED' } });
+    expect(gw.audit).toHaveBeenCalledWith(expect.objectContaining({ action: 'organization.first_admin.invite', result: 'denied', reason: 'demo_restricted', targetId: TENANT }));
+    expect(gw.audit).not.toHaveBeenCalledWith(expect.objectContaining({ result: 'success' }));
   });
 });

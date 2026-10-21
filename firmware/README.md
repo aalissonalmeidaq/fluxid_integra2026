@@ -86,7 +86,7 @@ O `uploadfs` apaga a fila guardada. Use só em placa nova.
 
 **Identidade (Spec 013).** O código do lacre é `DSP-` mais 8 caracteres calculados do MAC de fábrica do chip, sempre o mesmo. Na primeira vez, o lacre sorteia a própria chave (`fxk_…`) com o gerador de hardware e a guarda na NVS; o FluxID guarda só o resumo dela. Ninguém copia chave nenhuma. Memória apagada gera chave nova, e o Master vê o pedido como conflito e aceita a chave nova.
 
-**Rede de configuração (Spec 013).** Sem rede salva, o lacre abre a rede `FluxID-Lacre-` mais os 4 últimos caracteres do código, com a senha padrão. O DNS dela responde a qualquer endereço, e o celular abre a página sozinho. A página mostra o código e as redes ao alcance, com o sinal em texto. O lacre testa a rede escolhida e confere a chegada ao FluxID antes de guardar; com sucesso, a rede vira a principal e a rede de configuração fecha 60 s depois. Se ninguém se conectar em 15 min, ela fecha por 5 min e abre de novo. Com rede salva, ela só abre com o botão BOOT segurado por 5 s, e a rede atual continua até uma nova ser confirmada.
+**Rede de configuração (Spec 013).** Sem rede salva, o lacre abre a rede `FluxID-Lacre-` mais os 4 últimos caracteres do código, com a senha padrão. O DNS dela responde a qualquer endereço, e o celular abre a página sozinho. A página mostra o código e as redes ao alcance, com o sinal em texto. O lacre testa a rede escolhida e confere a chegada ao FluxID antes de guardar; com sucesso, a rede vira a principal e a página continua disponível enquanto o celular permanecer conectado, para conferência. Depois de 15 min sem cliente, ela fecha por 5 min e abre de novo quando ainda não há rede salva. Com rede salva, ela só abre com o botão BOOT segurado por 5 s, e a rede atual continua até uma nova ser confirmada.
 
 **Aguardando aprovação (Spec 013).** Até o Master aprovar, cada chamada leva só `boot`, a rede em uso e, quando houver, `networks_forgotten`. Nenhuma leitura entra na fila. `202` mantém a espera; `403` (recusado) passa a tentar de hora em hora; `200` liga a operação, e então vale o que segue. Devolvido ou retirado, o lacre recebe `202` com `forget_networks`: esvazia a fila e a vigilância, esquece as redes extras (retirado) ou todas, menos a configurada pelo portal depois da última aprovação (devolvido), e confirma nas chamadas seguintes.
 
@@ -97,6 +97,8 @@ Em operação, a cada intervalo combinado (padrão de 1 minuto), mesmo parado:
 3. Envia as mais antigas da fila, até 50, num só pedido HTTPS. O certificado é conferido pelas raízes embutidas. A chave vai só no cabeçalho e nunca aparece no serial.
 4. Tira da fila o que o FluxID decidiu (`stored`, `duplicate` ou `refused`). Sem resposta, com `401`, `429` ou `503`, mantém tudo e tenta de novo no intervalo seguinte, respeitando o `Retry-After`. Com `400`, descarta o lote, porque o problema está no corpo e reenviar não resolve.
 5. Executa o comando da resposta, uma vez por `id`, e confirma com `command_result` num envio imediato.
+
+O FluxID consolida posições repetidas: dentro da tolerância de 20 m, com a mesma qualidade e o mesmo estado do lacre, não cria outro ponto histórico e atualiza somente o horário `last_seen_at`. Bateria, sinal e demais dados correntes continuam atualizados no dispositivo.
 
 **Ao ligar**, envia o evento `boot` e, no primeiro fix, a `activation`, com o estado gravado da válvula.
 

@@ -30,9 +30,10 @@ type PositionAddressState = { positionKey: string; value: ReverseGeocodedAddress
 
 const FAILURE: Record<string, string> = {
   cylinder_in_trip: 'O cilindro está numa viagem em andamento.',
+  demo_restricted: 'Este lacre faz parte da demonstração e não pode ser devolvido à plataforma.',
   justification_required: 'Explique o motivo com 5 a 500 caracteres.',
   seal_inactive: 'O dispositivo já está fora de operação.',
-  not_found: 'Este lacre não está mais neste tenant.',
+  not_found: 'Este lacre não está mais nesta empresa.',
   no_binding: 'O lacre não está vinculado a nenhum cilindro.',
   access_denied: 'Você não tem permissão para esta ação.',
   offline: 'Sem conexão: comandos de lacre exigem conexão.',
@@ -135,7 +136,7 @@ export function SealDetailView({ service, organizationId, deviceId, online, real
     if (outcome.kind === 'success') {
       setPending(null);
       setNotice(pending.kind === 'return'
-        ? 'Lacre devolvido à plataforma. Ele sai da lista de lacres deste tenant e volta para o Master.' : 'Lacre desvinculado do cilindro.');
+        ? 'Lacre devolvido à plataforma. Ele sai da lista de lacres desta empresa e volta para o Master.' : 'Lacre desvinculado do cilindro.');
       reload();
     } else setError(FAILURE[outcome.kind] ?? 'Não foi possível concluir agora. Tente de novo.');
   };

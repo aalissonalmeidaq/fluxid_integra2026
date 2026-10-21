@@ -69,6 +69,8 @@ describe('TenantMembersPage', () => {
     ['conflict', /já existe um convite/i],
     ['mfa_required', /Entre de novo/i],
     ['access_denied', /acesso negado/i],
+    // Spec 014 (RF-016 a): o servidor recusa convite no tenant da demonstração e a tela explica o motivo.
+    ['demo_restricted', /^Convites não estão disponíveis na empresa da demonstração\.$/],
   ] as const)('traduz %s no convite sem informar sucesso', async (kind, text) => {
     renderView(fakeService({ invite: vi.fn(async () => ({ kind })) }));
     await screen.findByRole('rowheader', { name: 'Operador A' });

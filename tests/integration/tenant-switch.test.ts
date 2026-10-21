@@ -92,7 +92,7 @@ describe('seleção de tenant: estado e elegibilidade', () => {
 });
 
 describe('troca de tenant: isolamento, limpeza e preservação', () => {
-  it('trava a base, limpa o contexto anterior e só então libera o novo tenant', async () => {
+  it('trava a base, limpa o contexto anterior e só então libera o nova empresa', async () => {
     const { service, database } = await setup();
     await service.load();
     await service.select(A);
@@ -112,7 +112,7 @@ describe('troca de tenant: isolamento, limpeza e preservação', () => {
     expect(events).toEqual(['pause', 'resume']);
   });
 
-  it('o tenant novo não enxerga outbox, cursor nem conflitos do anterior', async () => {
+  it('a empresa nova não enxerga outbox, cursor nem conflitos do anterior', async () => {
     const { service, database, enqueue } = await setup();
     await service.load();
     await service.select(A);
@@ -125,7 +125,7 @@ describe('troca de tenant: isolamento, limpeza e preservação', () => {
     expect(await database.list('local_sync_conflicts')).toEqual([]);
   });
 
-  it('preserva a pendência do tenant anterior, inacessível, e a devolve intacta ao voltar', async () => {
+  it('preserva a pendência da empresa anterior, inacessível, e a devolve intacta ao voltar', async () => {
     const { service, database, enqueue, outbox } = await setup();
     await service.load();
     await service.select(A);
@@ -137,10 +137,10 @@ describe('troca de tenant: isolamento, limpeza e preservação', () => {
     const restored = await outbox.list();
     expect(restored).toHaveLength(1);
     expect(restored[0]).toMatchObject({ id: item.id, organization_id: A, status: 'pending', payload: { marker: A } });
-    await expect(database.put('local_outbox', { ...item, id: 'cross', organization_id: B })).rejects.toThrow(/outro tenant/i);
+    await expect(database.put('local_outbox', { ...item, id: 'cross', organization_id: B })).rejects.toThrow(/outra empresa/i);
   });
 
-  it('selecionar o tenant já ativo não trava nem limpa nada', async () => {
+  it('selecionar a empresa já ativo não trava nem limpa nada', async () => {
     const { service } = await setup();
     await service.load();
     await service.select(A);
@@ -210,7 +210,7 @@ describe('reavaliação do contexto ativo', () => {
     expect(await outbox.list()).toEqual([]);
   });
 
-  it('mantém o contexto e os dados quando o tenant continua elegível', async () => {
+  it('mantém o contexto e os dados quando a empresa continua elegível', async () => {
     const { service, enqueue, outbox } = await setup();
     await service.load();
     await service.select(A);
@@ -232,7 +232,7 @@ describe('reavaliação do contexto ativo', () => {
 });
 
 describe('opções elegíveis no estado do serviço', () => {
-  it('expõe as opções elegíveis ordenadas, mesmo com um tenant selecionado, e as limpa ao encerrar', async () => {
+  it('expõe as opções elegíveis ordenadas, mesmo com uma empresa selecionada, e as limpa ao encerrar', async () => {
     const { service } = await setup();
     expect(service.snapshot().options).toEqual([]);
     await service.load();
@@ -261,7 +261,7 @@ describe('opções elegíveis no estado do serviço', () => {
 });
 
 describe('confirmação do contexto ativo (gate de sincronização)', () => {
-  it('confirma somente quando o tenant ativo continua elegível no servidor', async () => {
+  it('confirma somente quando a empresa ativa continua elegível no servidor', async () => {
     const { service, state } = await setup();
     await service.load();
     expect(await service.confirm()).toBe(false);
@@ -281,7 +281,7 @@ describe('confirmação do contexto ativo (gate de sincronização)', () => {
     expect(database.activeTenant).toBe(A);
   });
 
-  it('não confirma quando o tenant é confirmado no servidor mas a base local está travada em outro contexto', async () => {
+  it('não confirma quando a empresa é confirmado no servidor mas a base local está travada em outro contexto', async () => {
     const { service, database } = await setup();
     await service.load();
     await service.select(A);

@@ -49,7 +49,7 @@ describe('SealListView', () => {
     expect(screen.getByText('Aprovado em 17/10/2026 10:00')).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText('Só prontos para vincular'));
     expect(await screen.findByText('Nenhum lacre encontrado')).toBeInTheDocument();
-    expect(screen.getByText('Os lacres chegam pelo Master da plataforma. Peça a destinação de um lacre ao seu tenant.')).toBeInTheDocument();
+    expect(screen.getByText('Os lacres chegam pelo Master da plataforma. Peça a destinação de um lacre ao sua empresa.')).toBeInTheDocument();
   });
 
   it('filtros por saúde, trava e "sem cilindro" chamam o servidor', async () => {

@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem dados de exemplo próprios: fica fora das contagens globais.
 select plan(37);
 
 -- Spec 008 (research.md, decisão 5): todo comando de manage-trips é idempotente por `request_id`. Este teste percorre as operações
@@ -56,17 +57,17 @@ select is((select r ->> 'code' from c1), 'CREATED', 'create_trip: primeira chama
 select is(pg_temp.create_a((select create_req from req), array[1]) ->> 'trip_id', (select r ->> 'trip_id' from c1), 'create_trip: a repetição devolve a mesma viagem');
 select is((pg_temp.create_a((select create_req from req), array[1]) ->> 'replayed')::boolean, true, 'create_trip: marcada como repetida');
 select is((select count(*)::int from public.trips where organization_id = '20000000-0000-0000-0000-00000000000a'), 1, 'create_trip: nenhuma viagem duplicada');
-select is((select count(*)::int from public.trip_items), 1, 'create_trip: nenhum item duplicado');
-select is((select count(*)::int from public.trip_events), 1, 'create_trip: nenhum evento duplicado');
-select is((select count(*)::int from public.cylinder_events where event_type = 'trip_reserved'), 1, 'create_trip: nenhuma reserva duplicada no cilindro');
-select is((select count(*)::int from public.audit_logs where action = 'trip.create'), 1, 'create_trip: nenhuma auditoria duplicada');
+select is((select count(*)::int from public.trip_items where organization_id <> '5478e9e3-155b-482f-b843-3513e0938dd6'), 1, 'create_trip: nenhum item duplicado');
+select is((select count(*)::int from public.trip_events where organization_id <> '5478e9e3-155b-482f-b843-3513e0938dd6'), 1, 'create_trip: nenhum evento duplicado');
+select is((select count(*)::int from public.cylinder_events where event_type = 'trip_reserved' and organization_id <> '5478e9e3-155b-482f-b843-3513e0938dd6'), 1, 'create_trip: nenhuma reserva duplicada no cilindro');
+select is((select count(*)::int from public.audit_logs where action = 'trip.create' and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'), 1, 'create_trip: nenhuma auditoria duplicada');
 select is((select (r ->> 'number')::int from c1), 1, 'create_trip: o número não foi consumido pela repetição');
 
 -- update_trip.
 select is(pg_temp.update_a((select update_req from req), (select (r ->> 'trip_id')::uuid from c1), 1, array[1, 2]) ->> 'code', 'UPDATED', 'update_trip: primeira chamada edita');
 select is((pg_temp.update_a((select update_req from req), (select (r ->> 'trip_id')::uuid from c1), 1, array[1, 2]) ->> 'replayed')::boolean, true, 'update_trip: a repetição devolve o resultado gravado (mesmo com a versão já avançada)');
 select is((select version from public.trips where id = (select (r ->> 'trip_id')::uuid from c1)), 2::bigint, 'update_trip: a versão subiu uma vez só');
-select is((select count(*)::int from public.trip_items where item_status = 'planned'), 2, 'update_trip: nenhum item duplicado');
+select is((select count(*)::int from public.trip_items where item_status = 'planned' and organization_id <> '5478e9e3-155b-482f-b843-3513e0938dd6'), 2, 'update_trip: nenhum item duplicado');
 
 -- REQUEST_REUSED: outra operação e outra viagem.
 select is(pg_temp.update_a((select create_req from req), (select (r ->> 'trip_id')::uuid from c1), 2, array[1]) ->> 'code', 'REQUEST_REUSED', 'um request_id de create_trip não vale para update_trip');

@@ -17,7 +17,7 @@ export interface SealTransport {
 export type SealFailureKind =
   | 'offline' | 'unavailable' | 'unknown' | 'session_expired' | 'access_denied' | 'mfa_required' | 'not_found' | 'invalid'
   | 'justification_required' | 'note_required' | 'version_conflict' | 'seal_already_bound' | 'cylinder_already_bound' | 'seal_inactive'
-  | 'no_binding' | 'cylinder_in_trip' | 'wifi_list_full' | 'wifi_not_in_list' | 'wifi_risk_not_confirmed' | 'alert_closed' | 'request_reused';
+  | 'no_binding' | 'cylinder_in_trip' | 'wifi_list_full' | 'wifi_not_in_list' | 'wifi_risk_not_confirmed' | 'alert_closed' | 'request_reused' | 'demo_restricted';
 
 export interface SealFailure {
   kind: SealFailureKind;
@@ -33,6 +33,8 @@ const FAILURES: Record<string, SealFailureKind> = {
   SEAL_ALREADY_BOUND: 'seal_already_bound', CYLINDER_ALREADY_BOUND: 'cylinder_already_bound', SEAL_INACTIVE: 'seal_inactive',
   NO_BINDING: 'no_binding', CYLINDER_IN_TRIP: 'cylinder_in_trip', WIFI_LIST_FULL: 'wifi_list_full', WIFI_NOT_IN_LIST: 'wifi_not_in_list',
   WIFI_RISK_NOT_CONFIRMED: 'wifi_risk_not_confirmed', ALERT_CLOSED: 'alert_closed', REQUEST_REUSED: 'request_reused',
+  // Spec 014 (RF-016 d): devolução recusada no tenant da demonstração.
+  DEMO_RESTRICTED: 'demo_restricted',
 };
 
 export const isObject = (value: unknown): value is Raw => typeof value === 'object' && value !== null && !Array.isArray(value);

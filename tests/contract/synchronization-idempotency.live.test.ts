@@ -86,7 +86,7 @@ describe('Contrato de idempotência da sincronização (T032)', () => {
     expect(body.error).toBe('idempotency_payload_conflict');
   });
 
-  it('nega tenant adulterado sem revelar dados do outro tenant', async () => {
+  it('nega tenant adulterado sem revelar dados do outra empresa', async () => {
     const { status, body } = await sendCommand(clientA, ORG_B, crypto.randomUUID());
 
     expect(status).toBe(403);

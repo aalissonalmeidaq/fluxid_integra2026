@@ -40,4 +40,9 @@ describe('invite-user',()=>{
     const gw=gateway({authorize:vi.fn(async()=>false)});const result=await call(gw,{operation:'invite',organization_id:TENANT,email:'pessoa@example.invalid',role_id:ROLE,justification:'Novo integrante aprovado'});
     expect(result).toEqual({status:403,body:{code:'ACCESS_DENIED'}});expect(gw.reserve).not.toHaveBeenCalled();
   });
+  // Spec 014 (RF-016 a): o banco recusa convite no tenant da demonstração (e audita); a borda devolve 403 sem entregar nada.
+  it('DEMO_RESTRICTED vira 403 com o corpo do banco e nenhum e-mail é enviado',async()=>{
+    const gw=gateway({reserve:vi.fn(async()=>({kind:'demo_restricted'} as const))});const result=await call(gw,{operation:'invite',organization_id:TENANT,email:'pessoa@example.invalid',role_id:ROLE,justification:'Convite na demonstração'});
+    expect(result).toEqual({status:403,body:{code:'DEMO_RESTRICTED'}});expect(gw.deliver).not.toHaveBeenCalled();expect(gw.markDelivery).not.toHaveBeenCalled();
+  });
 });

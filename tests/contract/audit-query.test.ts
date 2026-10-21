@@ -31,8 +31,8 @@ async function call(gw: AuditGateway, body: unknown, token: string | null = 'jwt
 
 const tenant = { scope: 'tenant', organization_id: TENANT_A };
 
-describe('query-audit: consulta do tenant', () => {
-  it('lista os eventos do tenant informado e devolve o cursor da próxima página', async () => {
+describe('query-audit: consulta da empresa', () => {
+  it('lista os eventos da empresa informado e devolve o cursor da próxima página', async () => {
     const next = { occurred_at: '2026-09-30T12:00:00+00:00', id: 7 };
     const gw = gateway({ query: vi.fn(async () => ({ kind: 'listed' as const, events, next })) });
     const result = await call(gw, tenant);
@@ -53,7 +53,7 @@ describe('query-audit: consulta do tenant', () => {
     });
   });
 
-  it('não exige MFA para a consulta do tenant', async () => {
+  it('não exige MFA para a consulta da empresa', async () => {
     const gw = gateway();
     expect((await call(gw, tenant)).status).toBe(200);
   });

@@ -77,7 +77,7 @@ describe('createTenantSyncRunner', () => {
     expect(confirmTenant).not.toHaveBeenCalled();
   });
 
-  it('não libera quando o tenant não é confirmado', async () => {
+  it('não libera quando a empresa não é confirmado', async () => {
     const { runner, confirmTenant } = await setup();
     confirmTenant.mockResolvedValue(false);
     expect(await runner.run()).toEqual({ state: 'gate_failed', failedGate: 'tenant' });

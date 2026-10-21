@@ -83,7 +83,7 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     expect(result.status).toBe(200);
     expect(Object.keys(result.body!).sort()).toEqual(['code', 'global', 'tenant']);
     expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: ADMIN_TENANT, global: [] });
-    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Entrada no estoque', 'Clientes', 'Geocercas', 'Veículos', 'Motoristas', 'Viagens', 'Lacres', 'Alertas', 'Meu perfil', 'Pessoas do tenant', 'Papéis e permissões', 'Auditoria do tenant']);
+    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Entrada no estoque', 'Clientes', 'Geocercas', 'Veículos', 'Motoristas', 'Viagens', 'Lacres', 'Alertas', 'Meu perfil', 'Pessoas da empresa', 'Papéis e permissões', 'Auditoria da empresa']);
   });
 
   it('o operador técnico recebe só as permissões do papel e o menu básico', async () => {
@@ -92,7 +92,7 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Clientes', 'Veículos', 'Meu perfil']);
   });
 
-  it('o Administrador FluxID recebe permissões globais e nenhuma do tenant, com ou sem tenant ativo', async () => {
+  it('o Administrador FluxID recebe permissões globais e nenhuma da empresa, com ou sem tenant ativo', async () => {
     for (const body of [{}, { organization_id: TENANT_C }]) {
       const result = await permissions(fluxid, body);
       expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: [], global: ['audit.read', 'platform.manage', 'profile.read'] });
@@ -100,7 +100,7 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     }
   });
 
-  it('com dois tenants a mesma sessão recebe conjuntos distintos por organização (CA-002)', async () => {
+  it('com duas empresas a mesma sessão recebe conjuntos distintos por organização (CA-002)', async () => {
     const inC = await permissions(admin, { organization_id: TENANT_C });
     const inD = await permissions(admin, { organization_id: TENANT_D });
     expect(inC.body?.tenant).toEqual(ADMIN_TENANT);
@@ -108,7 +108,7 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     expect(labels(actor(inD))).toEqual(['Visão geral', 'Cilindros', 'Clientes', 'Veículos', 'Meu perfil']);
   });
 
-  it('um tenant sem vínculo ativo devolve listas vazias, sem código nem identificador do outro tenant', async () => {
+  it('uma empresa sem vínculo ativo devolve listas vazias, sem código nem identificador do outra empresa', async () => {
     for (const [token, organization] of [[operator, TENANT_D], [admin, TENANT_A], [fluxid, TENANT_A]] as const) {
       const result = await permissions(token, { organization_id: organization });
       expect(result.status).toBe(200);
@@ -131,9 +131,9 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
   // Paridade (RF-008, CA-001): para cada perfil, a lista do menu bate com o que o servidor aceita ao abrir cada tela.
   // "Permitido" é o status 200; "negado" é 403 ACCESS_DENIED.
   const screenCalls: Array<{ label: string; call: (token: string, organization: string | null) => Promise<{ status: number; body: { code?: string } }> }> = [
-    { label: 'Pessoas do tenant', call: (token, organization) => callFunction('manage-membership', { operation: 'list', organization_id: organization }, token) },
+    { label: 'Pessoas da empresa', call: (token, organization) => callFunction('manage-membership', { operation: 'list', organization_id: organization }, token) },
     { label: 'Papéis e permissões', call: (token, organization) => callFunction('manage-access', { operation: 'list', organization_id: organization }, token) },
-    { label: 'Auditoria do tenant', call: (token, organization) => callFunction('query-audit', { scope: 'tenant', organization_id: organization }, token) },
+    { label: 'Auditoria da empresa', call: (token, organization) => callFunction('query-audit', { scope: 'tenant', organization_id: organization }, token) },
     { label: 'Organizações', call: (token) => callFunction('manage-organizations', { operation: 'list' }, token) },
     { label: 'Auditoria da plataforma', call: (token) => callFunction('query-audit', { scope: 'global' }, token) },
   ];
@@ -175,7 +175,7 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     expect((await access({ operation: 'assign_role', ...assign })).status).toBe(200);
     const gained = await permissions(operator, { organization_id: TENANT_C });
     expect(gained.body?.tenant).toContain('audit.read');
-    expect(labels(actor(gained))).toContain('Auditoria do tenant');
+    expect(labels(actor(gained))).toContain('Auditoria da empresa');
     expect((await callFunction('query-audit', { scope: 'tenant', organization_id: TENANT_C }, operator)).status).toBe(200);
 
     // Retirada no meio: o menu antigo ainda mostraria a tela, mas o servidor já recusa.
@@ -183,6 +183,6 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     expect(await callFunction('query-audit', { scope: 'tenant', organization_id: TENANT_C }, operator)).toMatchObject({ status: 403, body: { code: 'ACCESS_DENIED' } });
     const lost = await permissions(operator, { organization_id: TENANT_C });
     expect(lost.body?.tenant).not.toContain('audit.read');
-    expect(labels(actor(lost))).not.toContain('Auditoria do tenant');
+    expect(labels(actor(lost))).not.toContain('Auditoria da empresa');
   });
 });

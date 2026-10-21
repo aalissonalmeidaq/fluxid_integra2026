@@ -90,7 +90,7 @@ describe('TenantProvider', () => {
     expect(text('runner')).toBe('não');
   });
 
-  it('sinaliza a resolução do tenant ao SyncGate: ativa enquanto carrega e inativa ao resolver, sair ou sem serviço', async () => {
+  it('sinaliza a resolução da empresa ao SyncGate: ativa enquanto carrega e inativa ao resolver, sair ou sem serviço', async () => {
     const { service } = makeService([membership(A, 'Tenant A'), membership(B, 'Tenant B')]);
     const { rerenderWith } = renderProvider(service);
     expect(text('resolving')).toBe('true');
@@ -107,7 +107,7 @@ describe('TenantProvider', () => {
     expect(text('resolving')).toBe('false');
   });
 
-  it('com um único vínculo seleciona sozinho e disponibiliza o executor de sincronização do tenant', async () => {
+  it('com um único vínculo seleciona sozinho e disponibiliza o executor de sincronização da empresa', async () => {
     const { service } = makeService([membership(A, 'Tenant A')]);
     const { createRunnerFor } = renderProvider(service);
     expect(text('status')).toBe('loading');
@@ -127,7 +127,7 @@ describe('TenantProvider', () => {
     expect(text('runner')).toBe('não');
   });
 
-  it('seleciona o tenant escolhido, encerra o modo de troca e troca o executor para o novo contexto', async () => {
+  it('seleciona a empresa escolhida, encerra o modo de troca e troca o executor para o novo contexto', async () => {
     const { service } = makeService([membership(A, 'Tenant A'), membership(B, 'Tenant B')]);
     const { createRunnerFor } = renderProvider(service);
     await flush();
@@ -155,7 +155,7 @@ describe('TenantProvider', () => {
     expect(text('options')).toBe('');
   });
 
-  it('cancelar a troca mantém o tenant ativo', async () => {
+  it('cancelar a troca mantém a empresa ativa', async () => {
     const { service } = makeService([membership(A, 'Tenant A')]);
     renderProvider(service);
     await flush();
@@ -191,7 +191,7 @@ describe('TenantProvider', () => {
     expect(database.activeTenant).toBe('');
   });
 
-  it('reavalia periodicamente e descarta o tenant que deixou de ser elegível', async () => {
+  it('reavalia periodicamente e descarta a empresa que deixou de ser elegível', async () => {
     const { service, state } = makeService([membership(A, 'Tenant A')]);
     renderProvider(service, authenticated, { refreshMs: 1000 });
     await flush();

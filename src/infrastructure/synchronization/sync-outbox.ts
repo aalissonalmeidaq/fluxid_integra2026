@@ -178,7 +178,7 @@ export class SyncOutbox {
 
   private async find(id: string): Promise<OutboxItem> {
     const item = (await this.list()).find((candidate) => candidate.id === id);
-    if (!item) throw new Error('Item da outbox não encontrado no tenant ativo.');
+    if (!item) throw new Error('Item da outbox não encontrado na empresa ativa.');
     return item;
   }
 }

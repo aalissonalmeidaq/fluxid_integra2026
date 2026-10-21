@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem dados de exemplo próprios: fica fora das contagens globais.
 select plan(24);
 
 -- Spec 012, US5: cadastro do dispositivo, chave mostrada uma vez, troca de chave, desativação, vínculo e desvínculo (RF-031 a RF-034,
@@ -31,7 +32,7 @@ select ok((select r->>'device_code' ~ '^DSP-[0-9A-Z]{8}$' and r->>'device_key' ~
 select ok((select d.key_hash = extensions.digest((select r->>'device_key' from novo), 'sha256') from public.seal_devices d
   where d.id = (select (r->>'device_id')::uuid from novo)), 'o banco guarda só o SHA-256 da chave');
 select ok(not exists (select 1 from private.seal_requests q where q.result::text like '%fxk_%'), 'a chave não fica no registro de pedidos (a repetição não a devolve)');
-select is((select count(*)::int from public.audit_logs where action = 'seal.device_create' and metadata::text not like '%fxk_%'), 1, 'auditoria do cadastro sem a chave');
+select is((select count(*)::int from public.audit_logs where action = 'seal.device_create' and metadata::text not like '%fxk_%' and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'), 1, 'auditoria do cadastro sem a chave');
 create temp table dev as select (r->>'device_id')::uuid as id, r->>'device_code' as code, r->>'device_key' as key from novo;
 
 -- A chave funciona no endpoint; a troca invalida a antiga na hora e exige justificativa.

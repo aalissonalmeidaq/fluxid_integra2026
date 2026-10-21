@@ -197,7 +197,7 @@ test.describe('Vídeo de demonstração (sob demanda)', () => {
     await legenda(page, fala(admin, 'Entrada com e-mail e senha', 'Sessões com prazo e limite por pessoa; ações sensíveis com justificativa e auditoria.'));
     await entrar(page, page, backend, 'admin');
     await legenda(page, fala(admin, 'Visão geral da operação', 'Mapa e indicadores da distribuidora num só lugar. A organização ativa aparece no topo.'), 2600);
-    await menu(page, 'Pessoas do tenant');
+    await menu(page, 'Pessoas da empresa');
     await legenda(page, fala(admin, 'Pessoas da organização', 'Convidar, bloquear e inativar acessos vale só para esta organização: os dados de cada cliente ficam isolados.'), 3000);
     await menu(page, 'Papéis e permissões');
     await legenda(page, fala(admin, 'Papéis e permissões', 'Papéis fixos e personalizados. Uma permissão crítica não pode ser delegada.'), 1800);
@@ -214,7 +214,7 @@ test.describe('Vídeo de demonstração (sob demanda)', () => {
     await escolher(page, page.getByLabel('Papel', { exact: true }), { label: 'Auditor interno' });
     await digitar(page, page.getByLabel('Justificativa da alteração'), 'Apoio na conferência do estoque');
     await clicar(page, page.getByRole('button', { name: 'Confirmar atribuição' }), 1200);
-    await menu(page, 'Auditoria do tenant');
+    await menu(page, 'Auditoria da empresa');
     await legenda(page, fala(admin, 'Trilha de auditoria', 'Somente leitura: quem fez, o quê, quando e com qual resultado, inclusive as tentativas negadas.'), 3400);
     await sair(page);
     assinar(backend, admin.nome);
@@ -487,7 +487,7 @@ test.describe('Vídeo de demonstração (sob demanda)', () => {
     await digitar(page, page.getByLabel('Justificativa do papel'), 'Auditoria trimestral', RAPIDO);
     await clicar(page, page.getByRole('button', { name: 'Salvar papel' }), 1200);
     await expect(page.getByRole('heading', { name: 'Auditor interno' })).toBeVisible();
-    await menu(page, 'Auditoria do tenant');
+    await menu(page, 'Auditoria da empresa');
     await esperar(2000);
     assinar(backend, admin.nome);
 

@@ -62,12 +62,12 @@ describe('TenantSelectionView', () => {
     expect(screen.getByRole('button', { name: 'Entrar em Tenant A' })).toBeEnabled();
   });
 
-  it('só oferece cancelar quando já existe um tenant ativo para manter', () => {
+  it('só oferece cancelar quando já existe uma empresa ativa para manter', () => {
     renderView();
     expect(screen.queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument();
   });
 
-  it('cancelar mantém o tenant atual e marca a organização atual em texto', () => {
+  it('cancelar mantém a empresa atual e marca a organização atual em texto', () => {
     const onCancel = vi.fn();
     renderView(undefined, { onCancel, currentOrganizationId: A });
     expect(screen.getByText(/organização atual/i)).toBeInTheDocument();

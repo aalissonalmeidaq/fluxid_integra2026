@@ -61,7 +61,7 @@ export function ConfirmationDialog({ title, confirmLabel, busy = false, returnFo
       }
     >
       <form id={formId} noValidate onSubmit={submit} className="flex flex-col gap-4">
-        <p className="text-corpo">A alteração vale somente neste tenant e fica registrada na auditoria.</p>
+        <p className="text-corpo">A alteração vale somente nesta empresa e fica registrada na auditoria.</p>
         {children}
         {disabledReason && <Alert variant="alerta">{disabledReason}</Alert>}
         <Field label="Justificativa da alteração" error={error ?? undefined}>

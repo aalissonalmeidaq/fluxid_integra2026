@@ -30,7 +30,7 @@ export function novoPedido(mock: SealMock, pedido: PedidoDoCenario): Json {
     calls: pedido.calls ?? 3, signal_dbm: pedido.signal_dbm === undefined ? -58 : pedido.signal_dbm, wifi_ssid: 'Rede-Deposito-Ficticia',
     firmware_version: '3.0.0', organization: null, device_id: null, last_organization: pedido.last_organization ?? null,
     networks_cleared: !pedido.last_organization, forget_networks: pedido.status === 'returned' ? 'all' : null, forget_networks_requested_at: null,
-    decided_at: null, decision_note: pedido.status === 'returned' ? 'Devolvido pelo tenant' : null, origin: 'enrollment', updated_at: agora,
+    decided_at: null, decision_note: pedido.status === 'returned' ? 'Devolvido pela empresa' : null, origin: 'enrollment', updated_at: agora,
   };
   mock.rows('enrollments').push(row);
   return row;

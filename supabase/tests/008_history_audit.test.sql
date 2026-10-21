@@ -1,4 +1,5 @@
 begin;
+-- A demonstração do seed (Spec 014, "Oxigênio Cariri") tem dados de exemplo próprios: fica fora das contagens globais.
 select plan(14);
 
 -- Spec 008, US3: o nome do recebedor, a função, a posição e as justificativas não aparecem em evento nem em auditoria (RF-017, RF-032, CA-007).
@@ -90,7 +91,7 @@ select is((select data ->> 'delivered' || '/' || (data ->> 'not_delivered') from
 select is((select count(*)::int from public.trip_events where trip_id = (select t from h) and (data::text ~* 'sigilos|-23\.55|46\.633' or coalesce(justification, '') ~* 'sigilos')), 0, 'nenhum evento tem nome, função, posição ou justificativa de entrega');
 select is((select count(*)::int from public.audit_logs where metadata::text ~* 'sigilos|-23\.55|46\.633' or coalesce(justification, '') ~* 'sigilos' or coalesce(reason_code, '') ~* 'sigilos'), 0, 'nenhuma auditoria tem nome, função, posição ou justificativa');
 select is((select count(*)::int from public.cylinder_events where data::text ~* 'sigilos' or coalesce(justification, '') ~* 'sigilos'), 0, 'nem o histórico do cilindro');
-select is((select count(*)::int from public.audit_logs where action = 'trip.deliver' and (metadata ->> 'has_recipient')::boolean), 2, 'as auditorias trip.deliver dizem só que há recebedor');
+select is((select count(*)::int from public.audit_logs where action = 'trip.deliver' and (metadata ->> 'has_recipient')::boolean and organization_id is distinct from '5478e9e3-155b-482f-b843-3513e0938dd6'), 2, 'as auditorias trip.deliver dizem só que há recebedor');
 
 -- Quem tem trip.recipient vê o nome; quem não tem vê "(restrito)".
 select is(pg_temp.dl('10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-0000000800a2', (select t from h), 1) ->> 'recipient_name', 'Nome-sigiloso-ABC', 'administrador vê o nome');

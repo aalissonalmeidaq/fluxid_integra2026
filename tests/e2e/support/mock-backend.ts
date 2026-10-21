@@ -125,7 +125,7 @@ export class MockBackend {
   // Estado de RBAC do tenant simulado; `accessDenied` faz a fronteira negar organizações, pessoas e papéis (403).
   accessDenied = false;
   accessRoles: Array<{ id: string; code: string; name: string; description: string; system: boolean; active: boolean; version: number; permissions: string[] }> = [
-    { id: '50000000-0000-0000-0000-000000000003', code: 'tenant_admin', name: 'Administrador do tenant', description: 'Administra o tenant', system: true, active: true, version: 1, permissions: ['audit.read', 'tenant.manage'] },
+    { id: '50000000-0000-0000-0000-000000000003', code: 'tenant_admin', name: 'Administrador da empresa', description: 'Administra a empresa', system: true, active: true, version: 1, permissions: ['audit.read', 'tenant.manage'] },
     { id: '50000000-0000-0000-0000-000000000004', code: 'technical_operator', name: 'Operador técnico', description: 'Acesso somente ao próprio perfil', system: true, active: true, version: 1, permissions: [] },
   ];
   accessPermissions = [

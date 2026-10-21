@@ -9,7 +9,7 @@ const serviceWith = (response: { status: number; body: unknown } | Error) => {
 };
 
 describe('PermissionsService.query', () => {
-  it('envia só o tenant ativo e converte a resposta válida', async () => {
+  it('envia só a empresa ativa e converte a resposta válida', async () => {
     const { service, call } = serviceWith({ status: 200, body: { code: 'PERMISSIONS_LISTED', tenant: ['tenant.manage'], global: ['platform.manage'] } });
     expect(await service.query(TENANT)).toEqual({ kind: 'success', value: { tenant: ['tenant.manage'], global: ['platform.manage'] } });
     expect(call).toHaveBeenCalledWith({ organization_id: TENANT });

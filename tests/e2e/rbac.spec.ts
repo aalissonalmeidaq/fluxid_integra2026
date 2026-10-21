@@ -18,13 +18,13 @@ async function enter(page: Page, backend: MockBackend): Promise<void> {
   await page.goto(`/admin/papeis?organization_id=${TENANT}`);
 }
 
-test.describe('Papéis, permissões e atribuições do tenant', () => {
+test.describe('Papéis, permissões e atribuições da empresa', () => {
   test('cria papel personalizado e o atribui a uma pessoa em 360 px', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 740 });
     const backend = new MockBackend();
     await enter(page, backend);
     await expect(page.getByRole('heading', { name: 'Papéis e permissões' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Administrador do tenant' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Administrador da empresa' })).toBeVisible();
     await expect(page.getByText('Papel preestabelecido: não pode ser alterado.').first()).toBeVisible();
 
     await page.getByRole('button', { name: 'Novo papel' }).click();
@@ -59,7 +59,7 @@ test.describe('Papéis, permissões e atribuições do tenant', () => {
     backend.accessDenied = true;
     await enter(page, backend);
     await expect(page.getByRole('alert').filter({ hasText: /acesso negado/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Administrador do tenant' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Administrador da empresa' })).toHaveCount(0);
   });
 
   test('não possui violações críticas ou graves de acessibilidade, inclusive com o formulário e o diálogo abertos', async ({ page }) => {
