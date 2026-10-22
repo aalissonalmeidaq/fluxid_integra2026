@@ -63,7 +63,7 @@
 
 | RIA-035 | 21/10/2026, 12:19:51 - America/Fortaleza | 014 | 02 | Atualização da localização e sessões demo | `registros/35_Atualizacao_da_Localizacao_e_Sessoes_Demo.docx` (`RIA-035-atualizacao-da-localizacao-e-sessoes-demo.md`) | Utilizado |
 
-| RIA-036 | 21/10/2026, 15:47:38 - America/Fortaleza | 014 | 03 | Convergência e encerramento da Spec 014 | `registros/RIA-036-convergencia-e-encerramento-da-spec-014.md` | Utilizado |
+| RIA-036 | 21/10/2026, 15:47:38 - America/Fortaleza | 014 | 03 | Convergência e encerramento da Spec 014 | `registros/36_Convergencia_e_Encerramento_da_Spec_014.docx` (`RIA-036-convergencia-e-encerramento-da-spec-014.md`) | Utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
