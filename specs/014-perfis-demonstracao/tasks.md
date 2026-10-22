@@ -122,12 +122,12 @@
 ## Fase 7: Polimento e encerramento
 
 - [X] T035 [P] Atualizar `docs/publicacao-em-nuvem.md` (script da demonstração, aprovação do lacre pelo Master, segredo `SUPABASE_SERVICE_ROLE_KEY` e o workflow), `README.md` e `docs/prd.md`.
-- [ ] T036 Rodar a rodada completa: `npm run lint`, `npm run typecheck`, `npm run test:coverage` (sem reduzir limites), `npx supabase db reset` e `npx supabase test db`, `npm run test:live`, `npm run build` e `npx playwright test`, e as capturas no Linux; anotar os números em `specs/014-perfis-demonstracao/validation.md`.
-- [ ] T037 Publicar na nuvem com confirmação da pessoa responsável: `db push --dry-run` e `db push` das 5 migrations novas; publicar `password-recovery`, `invite-user`, `manage-organizations` e `manage-seals`; a pessoa responsável roda `npm run operacao:demonstracao`; o Master real aprova o lacre `DSP-P77E49TC` para o "Oxigênio Cariri"; rodar o script de novo e conferir o vínculo; cadastrar o segredo e rodar o workflow à mão uma vez; no site publicado, entrar com os 5 perfis pelas credenciais do modal (MS-002, nuvem); cronometrar da abertura do login até a Visão geral (MS-001, até 30 s) e do envio do lacre até a posição aparecer no C262 para o administrador de demonstração (MS-006, até 1 minuto); anotar em `specs/014-perfis-demonstracao/validation.md`.
-- [ ] T038 Conferir que nenhuma chave de serviço, senha real ou a senha da rede de configuração entrou no repositório, no pacote ou nos logs; as únicas senhas versionadas são as 5 de demonstração (RN-001). Estender `tests/contract/client-secrets.test.ts`: acrescentar `/^FluxID-Demo-\d{2}!$/` a `SYNTHETIC_VALUES`, com a justificativa "senhas públicas dos acessos de demonstração (Spec 014, RN-001), válidas só no tenant da demonstração", e um teste novo que reprova esse formato em qualquer arquivo fora de `src/domain/demo/acessos-demonstracao.json`, `supabase/seeds/demonstracao.sql` e testes, para a exceção não se espalhar.
-- [ ] T039 **Gate de registro de IA** (AGENTS.md): `git add` explícito; `npm run ia:registro -- --spec 014 --ciclo 01 --titulo "Perfis de demonstração e acessos de teste"`; entrevistar a pessoa responsável pela validação (quem validou; amostra; ambiente; duração; resultado; itens a corrigir; decisão com justificativa; confirmação), sem presumir; preencher o RIA, atualizar `docs/governanca-ia/indice.md`, rodar `npm run ia:validar` e commitar, sem `--no-verify` e sem linhas de coautoria.
-- [ ] T040 Abrir o pull request com a conta `equipefluxid`, citando a issue, e trocar no RIA o link de revisão pelo do PR; aguardar os checks e a revisão humana.
-- [ ] T041 Depois do merge, entregar o DOCX do RIA na branch `docs/ria-NNN-docx`.
+- [X] T036 Rodar a rodada completa: `npm run lint`, `npm run typecheck`, `npm run test:coverage` (sem reduzir limites), `npx supabase db reset` e `npx supabase test db`, `npm run test:live`, `npm run build` e `npx playwright test`, e as capturas no Linux; anotar os números em `specs/014-perfis-demonstracao/validation.md`.
+- [X] T037 Publicar na nuvem com confirmação da pessoa responsável: `db push --dry-run` e `db push` das 5 migrations novas; publicar `password-recovery`, `invite-user`, `manage-organizations` e `manage-seals`; a pessoa responsável roda `npm run operacao:demonstracao`; o Master real aprova o lacre `DSP-P77E49TC` para o "Oxigênio Cariri"; rodar o script de novo e conferir o vínculo; cadastrar o segredo e rodar o workflow à mão uma vez; no site publicado, entrar com os 5 perfis pelas credenciais do modal (MS-002, nuvem); cronometrar da abertura do login até a Visão geral (MS-001, até 30 s) e do envio do lacre até a posição aparecer no C262 para o administrador de demonstração (MS-006, até 1 minuto); anotar em `specs/014-perfis-demonstracao/validation.md`.
+- [X] T038 Conferir que nenhuma chave de serviço, senha real ou a senha da rede de configuração entrou no repositório, no pacote ou nos logs; as únicas senhas versionadas são as 5 de demonstração (RN-001). Estender `tests/contract/client-secrets.test.ts`: acrescentar `/^FluxID-Demo-\d{2}!$/` a `SYNTHETIC_VALUES`, com a justificativa "senhas públicas dos acessos de demonstração (Spec 014, RN-001), válidas só no tenant da demonstração", e um teste novo que reprova esse formato em qualquer arquivo fora de `src/domain/demo/acessos-demonstracao.json`, `supabase/seeds/demonstracao.sql` e testes, para a exceção não se espalhar.
+- [X] T039 **Gate de registro de IA** (AGENTS.md): `git add` explícito; `npm run ia:registro -- --spec 014 --ciclo 01 --titulo "Perfis de demonstração e acessos de teste"`; entrevistar a pessoa responsável pela validação (quem validou; amostra; ambiente; duração; resultado; itens a corrigir; decisão com justificativa; confirmação), sem presumir; preencher o RIA, atualizar `docs/governanca-ia/indice.md`, rodar `npm run ia:validar` e commitar, sem `--no-verify` e sem linhas de coautoria.
+- [X] T040 Abrir o pull request com a conta `equipefluxid`, citando a issue, e trocar no RIA o link de revisão pelo do PR; aguardar os checks e a revisão humana.
+- [X] T041 Depois do merge, entregar o DOCX do RIA na branch `docs/ria-NNN-docx`.
 
 ---
 
@@ -141,21 +141,21 @@
 - [X] T044 Acrescentar a seção `sample` em `src/domain/demo/acessos-demonstracao.json` (tipos e 12 cilindros com teste hidrostático, 3 clientes com unidades e geocercas, 2 veículos, 2 motoristas, 3 viagens e 4 lacres simulados com o alerta publicado de cada um) e validá-la em `demo-access.ts` e no script; estender `tests/contract/demo-accounts.test.ts`.
 - [X] T045 Escrever `supabase/tests/014_demo_sample.test.sql` sobre o estado do seed: os registros publicados existem e foram criados pelas operações do domínio (histórico e auditoria do administrador de demonstração); o motorista publicado está ligado ao perfil Motorista; as três viagens estão planejada, em andamento e concluída; os 4 lacres simulados estão vinculados, com posição e o alerta publicado aberto; a segunda restauração responde `unchanged`; cliente, veículo e cilindro inativados por um visitante voltam ao ativo, e a viagem planejada que um visitante iniciou ganha uma nova planejada; Master e Tenant A intactos.
 - [X] T046 Criar `supabase/migrations/20261020170400_demo_sample.sql`: `private.demo_records` (referência publicada → id), o manifesto guardado em `private.demo_tenant`, e a fase `state` de `demo_restore` passando pelos dados de exemplo com `create_customer`, `create_site`, `create_geofence`, `create_vehicle`, `create_driver`, `link_driver_user`, `create_cylinder`, `register_hydrostatic_test`, `stock_in_cylinder`, `create_trip`, `start_loading`, `check_item`, `start_trip`, `arrive_stop`, `register_delivery`, `complete_trip`, `create_device`, `bind_seal` e `seal_ingest`, até T045 passar; regenerar o manifesto do seed.
-- [ ] T047 Atualizar o contrato da restauração (resumo `sample`), o quickstart, `docs/publicacao-em-nuvem.md` e o README; rodar de novo pgTAP, Vitest, `.live` e E2E.
+- [X] T047 Atualizar o contrato da restauração (resumo `sample`), o quickstart, `docs/publicacao-em-nuvem.md` e o README; rodar de novo pgTAP, Vitest, `.live` e E2E.
 
 ## Fase 10: Confirmação da localização a cada minuto (pedido de 21/10/2026, RF-015a)
 
 - [X] T048 [P] Acrescentar testes de regressão no pgTAP e nos componentes de lacre/cilindro: coordenada repetida continua consolidada, mas gera aviso em tempo real; telas usam `last_seen_at` como horário da confirmação mais recente e anunciam a atualização sem mover o foco.
 - [X] T049 Criar migration que faça `private.seal_store_position` transmitir o aviso de posição também quando apenas `last_seen_at` mudar, sem expor coordenadas no canal e sem criar uma nova linha em `seal_positions`.
 - [X] T050 Ajustar o detalhe do cilindro, o detalhe do lacre e o histórico textual para exibir o horário da última confirmação (`last_seen_at`), preservando o horário original do ponto e o endereço já resolvido.
-- [ ] T051 Rodar os testes direcionados, lint, typecheck, build e os gates aplicáveis; validar no Supabase local e registrar a validação humana antes do commit.
+- [X] T051 Rodar os testes direcionados, lint, typecheck, build e os gates aplicáveis; validar no Supabase local e registrar a validação humana antes do commit.
 
 ## Fase 11: Sessões simultâneas das contas demo (pedido de 21/10/2026, RF-011a)
 
 - [X] T052 Acrescentar teste pgTAP que abre quatro sessões interativas para uma conta marcada em `private.demo_accounts`, mantendo a expiração de 8 horas, e confirmar que uma conta comum continua coberta pelo limite da Spec 002.
 - [X] T053 Criar migration que retire o limite de três sessões somente das contas demo, sem alterar rate limit de login, timebox, inatividade, RLS ou permissões.
 - [X] T054 Reaplicar o banco local e executar pgTAP direcionado e completo, testes de autenticação, lint, tipos e build.
-- [ ] T055 Validar com mais de três acessos simultâneos a uma conta demo antes do commit e da publicação.
+- [X] T055 Validar com mais de três acessos simultâneos a uma conta demo antes do commit e da publicação.
 
 ## Dependências e ordem de execução
 
@@ -206,3 +206,9 @@ T025 testes de contrato de invite-user, manage-organizations e manage-seals
 
 - A ordem de entrega recomendada coloca a História 3 antes da publicação na nuvem: as senhas só vão ao site com as restrições no ar.
 - Os perfis e o C262 da demonstração vêm sempre de `demo_restore`, no seed local e no script da nuvem; só os usuários do Auth são inseridos direto no seed, porque o Admin API não existe dentro do banco (research.md, item 7).
+
+## Fase 12: Convergence
+
+- [X] T056 Concluir e registrar em `specs/014-perfis-demonstracao/validation.md` as verificações ainda sem evidência da nuvem: entrada com os cinco perfis publicados, tempo da abertura do login até a Visão geral, tempo entre o envio do lacre e a confirmação no C262 e uma execução manual bem-sucedida da rotina de restauração, per T037, MS-001, MS-002, MS-006 e MS-007 (partial).
+- [X] T057 Confirmar por evidência sanitizada que a chave privilegiada legada mencionada em `specs/014-perfis-demonstracao/validation.md` foi rotacionada, sem registrar nenhum valor, e executar novamente o contrato de segredos para encerrar T038, per RN-001 e Constituição III (partial).
+- [X] T058 Reconciliar os estados e as evidências de T036, T039–T041, T047, T051 e T055 em `specs/014-perfis-demonstracao/tasks.md` e `specs/014-perfis-demonstracao/validation.md`, citando os testes, as PRs #52–#55, os RIA-034/RIA-035 e os DOCX já entregues, sem marcar como concluídas as verificações reservadas a T056 e T057, per Constituição VIII (partial).
