@@ -9,9 +9,9 @@
 - Ferramenta de IA utilizada: Codex — modelo registrado pela plataforma
 - Objetivo do uso: Incluir Alisson Almeida na equipe apresentada pela landing page, com foto, função e formação, preservando o padrão visual e responsivo existente.
 - Prompt utilizado, em síntese sanitizada: A pessoa responsável pediu a inclusão de sua foto e de seus dados profissionais e acadêmicos na seção "Quem faz o FluxID" da landing page.
-- Resposta gerada pela IA: A equipe da landing passou a ter seis integrantes. A foto foi incorporada em WebP nas resoluções de 192 e 384 px, o cartão recebeu a função e as três formações informadas, e os testes de conteúdo foram atualizados. A mudança pode ser revisada na [branch do repositório](https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feature/015-rastreamento-proximidade-relatorios); substituir este link pelo pull request antes do merge.
+- Resposta gerada pela IA: A equipe da landing passou a ter seis integrantes. A foto foi incorporada em WebP nas resoluções de 192 e 384 px, o cartão recebeu a função e as três formações informadas, e os testes de conteúdo foram atualizados. A mudança pode ser revisada no [pull request #59](https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/59).
 
-Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feature/015-rastreamento-proximidade-relatorios
+Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/59
 - Análise crítica da equipe: A alteração reutiliza a estrutura existente e não adiciona dependências. A grade de desktop foi ajustada de cinco para seis colunas. A validação humana foi breve e não informou larguras específicas; essa limitação fica registrada sem ampliar a amostra declarada.
 - Validação humana realizada: Alisson Almeida verificou a landing page no Chrome, em Windows 11 e celular Android, durante 30 segundos. Ele aprovou a alteração, informou que não havia itens a corrigir e autorizou o registro destas respostas em seu nome.
 - Decisão final: utilizado
@@ -47,7 +47,7 @@ Link para validação da equipe: https://github.com/aalissonalmeidaq/fluxid_inte
 
 ## Decisões e dados pendentes
 
-Substituir o link da branch pelo link do pull request antes do merge. Não há correção funcional pendente informada pela validação humana.
+Não há correção funcional pendente informada pela validação humana.
 
 ## Validação humana
 
