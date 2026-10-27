@@ -9,10 +9,11 @@ const DOMINIOS: Record<string, { dominio: string; icone: IconName }> = {
   'john-walter': { dominio: 'Frontend & PWA', icone: 'rede' },
   'simao-bastos': { dominio: 'IoT & Prototipagem', icone: 'sensor' },
   'kauan-evangelista': { dominio: 'Design & UX', icone: 'usuario' },
+  'alisson-almeida': { dominio: 'Mentoria & Inovação', icone: 'usuario' },
 };
 
-// Quem faz o FluxID (Spec 011; apresentação do projeto, 14/10/2026; polimento de 16/10/2026): os cinco integrantes e os marcos do projeto,
-// e a faixa das instituições. Os cinco cabem na tela, então não há carrossel: no computador ficam lado a lado, no tablet em grade e no
+// Quem faz o FluxID (Spec 011; apresentação do projeto, 14/10/2026; polimento de 16/10/2026): os seis integrantes e os marcos do projeto,
+// e a faixa das instituições. Os seis cabem na tela, então não há carrossel: no computador ficam lado a lado, no tablet em grade e no
 // celular cada um vira uma linha (foto à esquerda), sem rolagem lateral. A formação fica à vista, sem cartão que vira (o que exige clique
 // esconde o que a banca quer ler). Os marcos formam uma linha do tempo: horizontal do tablet em diante, vertical no celular.
 export function Equipe(): React.JSX.Element {
@@ -24,7 +25,7 @@ export function Equipe(): React.JSX.Element {
           <span className="inline-block size-2 rounded-full bg-azul-royal" aria-hidden="true" />
           {equipe.integrantesTitulo}
         </h3>
-        <ul className="m-0 grid list-none gap-4 p-0 tablet:grid-cols-3 desktop:grid-cols-5">
+        <ul className="m-0 grid list-none gap-4 p-0 tablet:grid-cols-3 desktop:grid-cols-6">
           {EQUIPE.map((pessoa) => {
             const dominio = DOMINIOS[pessoa.id];
             return (

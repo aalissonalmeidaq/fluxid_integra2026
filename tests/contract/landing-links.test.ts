@@ -124,8 +124,8 @@ describe('Conteúdo da landing: fidelidade ao produto', () => {
     expect([...ids, ...Object.values(VIDEO_DA_SECAO)].sort()).toEqual(MATERIAIS.map((item) => item.id).sort());
   });
 
-  it('a equipe tem os cinco integrantes da apresentação, cada um com foto local que existe, função e formação', () => {
-    expect(EQUIPE.map((pessoa) => pessoa.nome)).toEqual(['Natã Baracho', 'Carlos Augusto', 'John Walter', 'Simão Bastos', 'Kauan Evangelista']);
+  it('a equipe tem os seis integrantes da apresentação, cada um com foto local que existe, função e formação', () => {
+    expect(EQUIPE.map((pessoa) => pessoa.nome)).toEqual(['Natã Baracho', 'Carlos Augusto', 'John Walter', 'Simão Bastos', 'Kauan Evangelista', 'Alisson Almeida']);
     for (const pessoa of EQUIPE) {
       expect(pessoa.foto).toMatch(/^\/landing\/equipe\/[a-z-]+\.webp$/);
       const bytes = readFileSync(join(import.meta.dirname, '..', '..', 'public', pessoa.foto));

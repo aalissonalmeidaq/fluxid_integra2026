@@ -65,6 +65,8 @@
 
 | RIA-036 | 21/10/2026, 15:47:38 - America/Fortaleza | 014 | 03 | Convergência e encerramento da Spec 014 | `registros/36_Convergencia_e_Encerramento_da_Spec_014.docx` (`RIA-036-convergencia-e-encerramento-da-spec-014.md`) | Utilizado |
 
+| RIA-037 | 27/10/2026, 09:58:59 - America/Fortaleza | 011 | 02 | Inclusão de Alisson Almeida na landing page | `registros/RIA-037-inclusao-de-alisson-almeida-na-landing-page.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.
