@@ -203,6 +203,7 @@ export const EQUIPE: readonly IntegranteDaEquipe[] = [
   { id: 'john-walter', nome: 'John Walter', funcao: 'Desenvolvedor frontend e mobile', formacao: ['Técnico em Desenvolvimento de Sistemas'], foto: '/landing/equipe/john-walter.webp' },
   { id: 'simao-bastos', nome: 'Simão Bastos', funcao: 'Engenheiro de IoT e prototipação física', formacao: ['Técnico em Desenvolvimento de Sistemas'], foto: '/landing/equipe/simao-bastos.webp' },
   { id: 'kauan-evangelista', nome: 'Kauan Evangelista', funcao: 'UI designer', formacao: ['Técnico em Desenvolvimento de Sistemas'], foto: '/landing/equipe/kauan-evangelista.webp' },
+  { id: 'alisson-almeida', nome: 'Alisson Almeida', funcao: 'Mentor e orientador de inovação e tecnologia', formacao: ['Tecnólogo em Análise e Desenvolvimento de Sistemas', 'Especialização em Inteligência Artificial', 'MBA em Gestão de Projetos'], foto: '/landing/equipe/alisson-almeida.webp' },
 ];
 
 // Logos institucionais (pedido da pessoa responsável em 15/10/2026), recortadas da folha enviada por ela com

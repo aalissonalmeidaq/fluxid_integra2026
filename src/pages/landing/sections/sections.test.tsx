@@ -190,7 +190,7 @@ describe('Conteúdo das seções', () => {
     for (const etapa of TEXTOS.piloto.etapas) expect(screen.getByText(etapa.titulo)).toBeInTheDocument();
   });
 
-  it('Equipe mostra os cinco integrantes com foto descrita pelo nome, função e formação, e os marcos já cumpridos com data', () => {
+  it('Equipe mostra os seis integrantes com foto descrita pelo nome, função e formação, e os marcos já cumpridos com data', () => {
     const { container } = render(<Equipe />);
     for (const pessoa of EQUIPE) {
       expect(screen.getByRole('heading', { level: 3, name: pessoa.nome })).toBeInTheDocument();
@@ -200,7 +200,7 @@ describe('Conteúdo das seções', () => {
       const cartao = container.querySelector(`[data-integrante="${pessoa.id}"]`) as HTMLElement;
       for (const item of pessoa.formacao) expect(within(cartao).getByText(item)).toBeVisible();
     }
-    // Os cinco cabem na tela: nada de carrossel, setas, pontos ou cartão que vira.
+    // Os seis cabem na tela: nada de carrossel, setas, pontos ou cartão que vira.
     expect(screen.queryByRole('button', { name: /integrante|Ir para/i })).not.toBeInTheDocument();
     expect(container.querySelector('#equipe [aria-pressed]')).toBeNull();
     // Os textos da seção vêm de landing-content: concluído e agendado em texto, sem legenda inventada por marco.

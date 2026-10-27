@@ -22,6 +22,7 @@ const FOTOS = [
   { id: 'john-walter', rosto: { x: 0.5, olhos: 0.5, largura: 0.38 }, fundo: [255, 255, 255] },
   { id: 'simao-bastos', rosto: { x: 0.44, olhos: 0.38, largura: 0.33 }, fundo: [255, 255, 255] },
   { id: 'kauan-evangelista', rosto: { x: 0.51, olhos: 0.37, largura: 0.38 }, fundo: [255, 255, 255] },
+  { id: 'alisson-almeida', extensao: 'jpg', preservarFundo: true, qualidade: 0.78, rosto: { x: 0.5, olhos: 0.38, largura: 0.34 }, fundo: [64, 64, 64] },
 ];
 
 // No quadro final: o rosto ocupa 38% da largura e os olhos ficam a 41% da altura (retrato de crachá, com ombros).
@@ -29,7 +30,7 @@ const ALVO = { largura: 0.38, olhos: 0.41 };
 // Degradê do fundo novo: info-fundo no alto, branco embaixo (tokens do design system).
 const FUNDO = { alto: '#E8F1FC', baixo: '#FFFFFF' };
 
-function processar({ dados, rosto, fundo, alvo, cores, lado }) {
+function processar({ dados, rosto, fundo, preservarFundo = false, qualidade = 0.9, alvo, cores, lado }) {
   return new Promise((resolve, reject) => {
     const imagem = new Image();
     imagem.onerror = reject;
@@ -64,8 +65,9 @@ function processar({ dados, rosto, fundo, alvo, cores, lado }) {
       }
       // Alfa: fundo transparente, borda suavizada pela distância de cor e por um desfoque de 1 px da máscara.
       const alfa = new Float32Array(w * h);
+      if (preservarFundo) alfa.fill(1);
       for (let p = 0; p < w * h; p += 1) {
-        alfa[p] = eFundo[p] ? Math.min(1, Math.max(0, (distancia(p * 4) - (LIMITE - SUAVE)) / SUAVE)) : 1;
+        if (!preservarFundo) alfa[p] = eFundo[p] ? Math.min(1, Math.max(0, (distancia(p * 4) - (LIMITE - SUAVE)) / SUAVE)) : 1;
       }
       for (let y = 0; y < h; y += 1) {
         for (let x = 0; x < w; x += 1) {
@@ -123,7 +125,7 @@ function processar({ dados, rosto, fundo, alvo, cores, lado }) {
         let texto = '';
         for (let i = 0; i < bytes.length; i += 0x8000) texto += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
         resolve(btoa(texto));
-      }), 'image/webp', 0.9);
+      }), 'image/webp', qualidade);
     };
     imagem.src = dados;
   });
@@ -134,9 +136,20 @@ const navegador = await chromium.launch();
 const pagina = await navegador.newPage();
 await pagina.setContent('<!doctype html><title>fotos</title>');
 for (const foto of FOTOS) {
-  const dados = `data:image/png;base64,${readFileSync(join(ORIGEM, `${foto.id}.png`)).toString('base64')}`;
+  const extensao = foto.extensao ?? 'png';
+  const mime = extensao === 'jpg' ? 'image/jpeg' : `image/${extensao}`;
+  const dados = `data:${mime};base64,${readFileSync(join(ORIGEM, `${foto.id}.${extensao}`)).toString('base64')}`;
   for (const lado of LARGURAS) {
-    const base64 = await pagina.evaluate(processar, { dados, rosto: foto.rosto, fundo: foto.fundo, alvo: ALVO, cores: FUNDO, lado });
+    const base64 = await pagina.evaluate(processar, {
+      dados,
+      rosto: foto.rosto,
+      fundo: foto.fundo,
+      preservarFundo: foto.preservarFundo,
+      qualidade: foto.qualidade,
+      alvo: ALVO,
+      cores: FUNDO,
+      lado,
+    });
     const arquivo = lado === Math.max(...LARGURAS) ? `${foto.id}.webp` : `${foto.id}-${lado}.webp`;
     const bytes = Buffer.from(base64, 'base64');
     writeFileSync(join(DESTINO, arquivo), bytes);
