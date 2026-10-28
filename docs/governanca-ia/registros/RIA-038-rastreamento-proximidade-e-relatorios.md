@@ -11,7 +11,7 @@
 - Prompt utilizado, em síntese sanitizada: seguir o fluxo Spec Kit da Spec 015 até a Fase 9, corrigir os defeitos encontrados na validação humana, recuperar o orçamento de LCP da landing e resolver as pendências da validação (leitor de tela, CSV no Excel, cenário 3g, alerta por ocorrência e envio em segundo plano).
 - Resposta gerada pela IA: a IA implementou as histórias US1 a US6: serviço nativo de localização no Android (Capacitor), fila no aparelho com envio retrospectivo, regras de proximidade, ocorrências, auditoria e RLS no Supabase, telas de acompanhamento, histórico, relatórios e preferências de e-mail, além da função de exportação CSV protegida contra fórmulas. Na validação, corrigiu T113 a T129; depois, recuperou o LCP da landing (T130), cobriu o cenário 3g (T131), passou a abrir um alerta por afastamento confirmado (T132), manteve o envio das posições em qualquer tela (T133), ajustou um teste E2E (T134) e conferiu o CSV no Excel (T135).
 
-Link para validação da equipe: branch https://github.com/aalissonalmeidaq/fluxid_integra2026/tree/feature/015-rastreamento-proximidade-relatorios (pendência obrigatória: trocar pelo link do pull request antes do merge)
+Link para validação da equipe: [pull request #61](https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/61)
 - Análise crítica da equipe: as decisões de regra foram tomadas pela pessoa responsável: tratar o LCP neste ciclo, um alerta por ocorrência de afastamento e o comportamento do envio fora da tela da viagem. Os defeitos achados na validação viraram tarefas com testes antes da correção. Uma mudança no redutor de sessão foi testada e revertida por piorar o E2E; o app manteve o contrato da Spec 010 e só o teste foi ajustado.
 - Validação humana realizada: Alisson Almeida validou em 28/10/2026, por 58 minutos, os perfis gestor e motorista em celular, tablet e desktop no fluxo de viagens, incluindo o envio das posições com o app minimizado e o leitor de tela. Resultado: aprovado, sem itens a corrigir.
 - Decisão final: utilizado
@@ -503,7 +503,7 @@ Link para validação da equipe: branch https://github.com/aalissonalmeidaq/flux
 
 ## Decisões e dados pendentes
 
-Trocar o link da branch pelo link do pull request antes do merge. Depois do merge, gerar o DOCX do RIA em uma PR exclusiva de documentação.
+Depois do merge, gerar o DOCX do RIA em uma PR exclusiva de documentação.
 
 ## Validação humana
 
