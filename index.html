@@ -44,6 +44,20 @@
         mascote.setAttribute('imagesizes', '(min-width: 1024px) 19rem, 10rem');
         mascote.setAttribute('fetchpriority', 'high');
         document.head.appendChild(mascote);
+        // Spec 015: o módulo que desenha a abertura (e o estilo dele) vem junto com o pacote de entrada, sem esperar ele rodar. O build troca o
+        // marcador pela lista (scripts/landing/pre-carregar-modulo.ts); no servidor de desenvolvimento ela fica vazia.
+        var modulos = [] /* MODULOS_DA_LANDING */;
+        for (var i = 0; i < modulos.length; i += 1) {
+          var modulo = document.createElement('link');
+          if (/\.css$/.test(modulos[i])) {
+            modulo.rel = 'preload';
+            modulo.as = 'style';
+          } else {
+            modulo.rel = 'modulepreload';
+          }
+          modulo.href = modulos[i];
+          document.head.appendChild(modulo);
+        }
       }
     </script>
   </head>

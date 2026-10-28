@@ -126,6 +126,8 @@ jobs:
             echo "VAPID_PUBLIC_KEY=$PUBLICA"
             echo "VAPID_PRIVATE_KEY=$PRIVADA"
             echo "VAPID_SUBJECT=mailto:ci@fluxid.invalid"
+            # Spec 015 (US6): avisos por e-mail só com o provedor falso; nenhum provedor real foi escolhido.
+            echo "EMAIL_PROVIDER=fake"
           } > supabase/functions/.env
 
       - name: Subir o Supabase local (migrations, seed sintético e Edge Functions)

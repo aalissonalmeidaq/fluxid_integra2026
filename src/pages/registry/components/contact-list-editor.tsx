@@ -30,7 +30,7 @@ export function ContactListEditor({ contacts, onChange, errors, disabled = false
       {contacts.length === 0 ? <p className="text-corpo text-texto-secundario">Nenhum contato informado. Adicione quem atende pelo cliente.</p> : null}
       <ul className="flex flex-col gap-4">
         {contacts.map((contact, index) => (
-          <li key={index} className="flex flex-col gap-4 rounded-card border border-borda bg-branco p-4">
+          <li key={index} className="flex flex-col gap-4 rounded-card border border-borda-suave bg-branco p-4">
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-corpo font-semibold text-grafite">Contato {index + 1}</h3>
               <Button variant="secundario" disabled={disabled} aria-label={`Remover contato ${index + 1}`} onClick={() => remove(index)}>Remover</Button>

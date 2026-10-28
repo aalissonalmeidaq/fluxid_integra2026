@@ -11,6 +11,8 @@ const FORBIDDEN_SECRET_PATTERNS = [
   /VITE_.*PASSWORD/i,
   /VITE_.*PRIVATE_KEY/i,
   /VITE_.*ADMIN/i,
+  /VITE_.*(EMAIL|RESEND|SMTP|MAIL)/i,
+  /VITE_.*(S3|STORAGE).*(KEY|SECRET|TOKEN)/i,
 ];
 
 export function validateNoClientSecrets(keys: string[]): string[] {
@@ -97,6 +99,27 @@ describe('Contrato de Segurança: Segredos no Cliente (Client Secrets Contract)'
 
     const violations = validateNoClientSecrets(maliciousKeys);
     expect(violations).toEqual(maliciousKeys);
+  });
+
+  // Spec 015 (T007): o provedor de e-mail e o Storage das exportações só existem no servidor.
+  it('rejeita chaves de provedor de e-mail e de Storage com prefixo VITE_', () => {
+    const maliciousKeys = [
+      'VITE_EMAIL_PROVIDER_API_KEY',
+      'VITE_RESEND_API_KEY',
+      'VITE_SMTP_USER',
+      'VITE_MAIL_TOKEN',
+      'VITE_STORAGE_S3_ACCESS_KEY_ID',
+      'VITE_S3_ACCESS_KEY',
+    ];
+
+    expect(validateNoClientSecrets(maliciousKeys)).toEqual(maliciousKeys);
+  });
+
+  it('declara no tipo do ambiente somente as variáveis públicas usadas pelo cliente', () => {
+    const declaration = fs.readFileSync(path.join(ROOT, 'src', 'vite-env.d.ts'), 'utf8');
+    const declared = [...declaration.matchAll(/readonly (VITE_[A-Z0-9_]+)\??:/g)].map((match) => match[1]!);
+    expect(declared).toEqual(expect.arrayContaining(['VITE_SUPABASE_CONNECTION_MODE', 'VITE_VAPID_PUBLIC_KEY', 'VITE_DEMO_ACCESS']));
+    expect(validateNoClientSecrets(declared)).toEqual([]);
   });
 
   it('permite variáveis públicas legítimas', () => {

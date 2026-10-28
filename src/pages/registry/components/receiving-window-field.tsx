@@ -23,7 +23,7 @@ export function ReceivingWindowField({ value, onChange, error, disabled = false 
       <legend className="text-corpo font-medium text-grafite">Horário de recebimento</legend>
       <div className="flex flex-wrap gap-2">
         {WEEK_DAY_LABELS.map((label, day) => (
-          <label key={label} className="flex min-h-alvo items-center gap-2 rounded-card border border-borda px-4 text-corpo text-grafite">
+          <label key={label} className="flex min-h-alvo items-center gap-2 rounded-card border border-borda-controle px-4 text-corpo text-grafite">
             <input type="checkbox" className="size-6" checked={value.days.includes(day)} onChange={() => toggle(day)} />
             {label}
           </label>

@@ -11,6 +11,17 @@ export interface MapPoint {
   // Endereço aproximado das coordenadas no balão: `known` devolve o já consultado (ou null) e `resolve` consulta, depois do clique
   // da pessoa em "Mostrar endereço". Mantenha o objeto estável entre renderizações para o balão não fechar.
   address?: { known: () => string | null; resolve: () => Promise<string | null> };
+  // Spec 015: origem da posição no rastreamento (celular ou lacre), que muda o tamanho e o traço do marcador, e a seleção sincronizada
+  // com a lista. O texto da lista continua sendo a alternativa acessível; o mapa nunca é a única representação.
+  origin?: 'mobile' | 'seal';
+  selected?: boolean;
+}
+
+// Spec 015: trecho contínuo de uma origem. Trechos diferentes nunca são ligados: entre eles há uma lacuna sem evidência (RF-020).
+export interface MapTrail {
+  id: string;
+  origin: 'mobile' | 'seal';
+  coordinates: readonly { latitude: number; longitude: number }[];
 }
 
 // `emphasis` diferencia, além da cor, pela espessura e pelo traço: 'destaque' (a geocerca esperada) e 'discreta' (as próximas).

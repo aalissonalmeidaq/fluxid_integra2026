@@ -1,9 +1,10 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { injetarModulosDaLanding } from './scripts/landing/pre-carregar-modulo.ts';
 
 // Destino do repasse de desenvolvimento: o Supabase CLI desta máquina (mesmo valor de VITE_SUPABASE_LOCAL_URL).
 const SUPABASE_LOCAL = loadEnv('development', process.cwd(), 'VITE_').VITE_SUPABASE_LOCAL_URL || 'http://127.0.0.1:54321';
@@ -13,10 +14,21 @@ const HTTPS_CHAVE = process.env.FLUXID_DEV_HTTPS_KEY;
 const HTTPS_CERT = process.env.FLUXID_DEV_HTTPS_CERT;
 const https = HTTPS_CHAVE && HTTPS_CERT ? { key: readFileSync(HTTPS_CHAVE), cert: readFileSync(HTTPS_CERT) } : undefined;
 
+// Spec 015 (T130): no build, o index.html passa a pedir o módulo da landing junto com o pacote de entrada (orçamento de LCP da Spec 011).
+const preCarregarLanding = (): Plugin => ({
+  name: 'fluxid-pre-carregar-landing',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler: (html, contexto) => injetarModulosDaLanding(html, contexto.bundle ?? {}, '/'),
+  },
+});
+
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    preCarregarLanding(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],

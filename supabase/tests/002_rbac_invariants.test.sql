@@ -17,7 +17,7 @@ insert into public.memberships (id, organization_id, user_id, status) values
 -- 1-6. Catálogo instalado pelas migrations (não depende do seed).
 select is((select count(*)::int from public.permissions where code in ('platform.manage','tenant.manage','audit.read','profile.read')), 4, 'catálogo inicial fechado com 4 permissões');
 select is((select delegability from public.permissions where code = 'platform.manage'), 'non_delegable', 'platform.manage não é delegável');
-select is((select count(*)::int from public.role_permissions rp join public.roles r on r.id = rp.role_id where r.code = 'master_fluxid'), 42, 'Master possui todas as permissões');
+select is((select count(*)::int from public.role_permissions rp join public.roles r on r.id = rp.role_id where r.code = 'master_fluxid'), 46, 'Master possui todas as permissões');
 select is(
   (select array_agg(p.code order by p.code) from public.role_permissions rp join public.roles r on r.id = rp.role_id join public.permissions p on p.id = rp.permission_id where r.code = 'admin_fluxid'),
   array['audit.read','platform.manage','profile.read'], 'Administrador FluxID gerencia a plataforma e audita, sem tenant.manage');

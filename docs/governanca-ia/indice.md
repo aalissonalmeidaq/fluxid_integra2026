@@ -67,6 +67,8 @@
 
 | RIA-037 | 27/10/2026, 09:58:59 - America/Fortaleza | 011 | 02 | Inclusão de Alisson Almeida na landing page | `registros/RIA-037-inclusao-de-alisson-almeida-na-landing-page.md` | Utilizado |
 
+| RIA-038 | 28/10/2026, 19:29:47 - America/Fortaleza | 015 | 01 | Rastreamento, proximidade e relatórios | `registros/RIA-038-rastreamento-proximidade-e-relatorios.md` | Utilizado |
+
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
 > Atualização do RIA-016: os gates remotos da PR #2 foram aprovados em 29/09/2026.

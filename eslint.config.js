@@ -15,6 +15,8 @@ export default tseslint.config(
       'scripts',
       'playwright-report',
       'test-results',
+      // Casca Android da Spec 015: código nativo e cópias geradas do dist.
+      'android',
     ],
   },
   {

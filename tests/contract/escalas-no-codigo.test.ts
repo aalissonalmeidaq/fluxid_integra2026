@@ -84,8 +84,30 @@ describe('Tokens no código (CA-013, RNF-006)', { timeout: 30_000 }, () => {
       if (relative in PENDENTES) continue;
       const classes = classesDoArquivo(fs.readFileSync(file, 'utf8'));
       const css = compilador.build(classes);
-      for (const classe of classes) if (!css.includes(`.${escapar(classe)}`)) ofensores.push(`${relative}: ${classe}`);
+      // O seletor precisa terminar ali: `.border-borda` dentro de `.border-borda-suave` não conta como estilo gerado.
+      for (const classe of classes) if (!new RegExp(`\\.${escapar(classe).replace(/[\\.]/g, '\\$&')}(?![\\w-])`).test(css)) ofensores.push(`${relative}: ${classe}`);
     }
+    expect(ofensores).toEqual([]);
+  });
+
+  // Spec 015 (T102): as telas novas entram na varredura, e nenhuma transição pode atrasar o anel de foco. A garantia é global: em
+  // `base.css`, todo `:focus-visible` limita a transição a fundo e borda com `!important`, o que vence `transition-all` e afins do
+  // Tailwind. Nenhuma outra regra de CSS pode animar `outline` ou `box-shadow` com `!important` por cima dela.
+  it('as telas da Spec 015 estão na varredura', () => {
+    for (const dir of ['src/pages/tracking', 'src/pages/reports', 'src/pages/settings', 'src/components/maps']) {
+      expect(FILES.some((file) => path.relative(ROOT, file).split(path.sep).join('/').startsWith(`${dir}/`)), dir).toBe(true);
+    }
+  });
+
+  it('nenhuma transição atrasa o anel de foco', () => {
+    const base = fs.readFileSync(path.join(SRC, 'styles', 'base.css'), 'utf8');
+    const foco = base.match(/:focus-visible[^{]*\{([^}]*)\}/)?.[1] ?? '';
+    expect(foco).toMatch(/outline:\s*3px solid/);
+    expect(foco).toMatch(/transition-property:\s*background-color,\s*border-color\s*!important/);
+    const ofensores = FILES.filter((file) => file.endsWith('.css')).flatMap((file) =>
+      (fs.readFileSync(file, 'utf8').match(/transition(?:-property)?\s*:[^;]*!important/g) ?? [])
+        .filter((regra) => /\b(all|outline|box-shadow)\b/.test(regra))
+        .map((regra) => `${path.relative(ROOT, file)}: ${regra}`));
     expect(ofensores).toEqual([]);
   });
 

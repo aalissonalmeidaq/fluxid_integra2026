@@ -19,16 +19,18 @@ export interface DataTableProps<T> {
   vazio?: Pick<EmptyStateProps, 'title' | 'description' | 'action'>;
   carregando?: boolean;
   textoDeCarregamento?: string;
+  // Tabela larga (por exemplo, relatório): a partir de 768 px quebra só entre palavras; quem usa põe a tabela numa área com rolagem própria.
+  quebraSoEntrePalavras?: boolean;
 }
 
 // Tabela de dados que se adapta a cartões abaixo de 768 px por CSS, na mesma árvore DOM (RF-007, RF-020, D-010).
 // Papéis explícitos preservam a semântica de tabela quando o CSS troca o display dos elementos.
-export function DataTable<T>({ legenda, colunas, linhas, chaveDaLinha, vazio, carregando = false, textoDeCarregamento = 'Carregando…' }: DataTableProps<T>): React.JSX.Element {
+export function DataTable<T>({ legenda, colunas, linhas, chaveDaLinha, vazio, carregando = false, textoDeCarregamento = 'Carregando…', quebraSoEntrePalavras = false }: DataTableProps<T>): React.JSX.Element {
   if (carregando) return <Loading label={textoDeCarregamento} />;
   if (linhas.length === 0 && vazio) return <EmptyState {...vazio} />;
 
   return (
-    <table role="table" className="tabela-de-dados w-full border-collapse text-left text-corpo text-grafite">
+    <table role="table" className={`tabela-de-dados${quebraSoEntrePalavras ? ' tabela-de-dados--palavras-inteiras' : ''} w-full border-collapse text-left text-corpo text-grafite`}>
       <caption className="sr-only">{legenda}</caption>
       <thead role="rowgroup">
         <tr role="row" className="border-b border-borda-suave">

@@ -12,6 +12,12 @@ import {
 const MIGRATIONS = path.resolve(import.meta.dirname, '../../../supabase/migrations');
 const schema = fs.readFileSync(path.join(MIGRATIONS, fs.readdirSync(MIGRATIONS).find((f) => f.endsWith('_seals_schema.sql'))!), 'utf8');
 const listAfter = (pattern: RegExp): string[] => [...pattern.exec(schema)![1]!.matchAll(/'([a-z_]+)'/g)].map((m) => m[1] as string);
+// Restrições recriadas por specs posteriores (por exemplo, o tipo de alerta da Spec 015) valem pela última migration que as define.
+const allMigrations = fs.readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort().map((f) => fs.readFileSync(path.join(MIGRATIONS, f), 'utf8')).join('\n');
+const latestListAfter = (pattern: RegExp): string[] => {
+  const matches = [...allMigrations.matchAll(new RegExp(pattern.source, 'g'))];
+  return [...matches.at(-1)![1]!.matchAll(/'([a-z_]+)'/g)].map((m) => m[1] as string);
+};
 
 describe('vocabulário igual ao do banco', () => {
   it('saúde, trava e estado do lacre', () => {
@@ -27,7 +33,7 @@ describe('vocabulário igual ao do banco', () => {
   });
 
   it('alertas', () => {
-    expect(listAfter(/seal_alerts_kind_check check \(kind in \(([^)]*)\)\)/)).toEqual([...ALERT_KINDS]);
+    expect(latestListAfter(/seal_alerts_kind_check check \(kind in \(([^)]*)\)\)/)).toEqual([...ALERT_KINDS]);
     expect(listAfter(/seal_alerts_severity_check check \(severity in \(([^)]*)\)/)).toEqual([...ALERT_SEVERITIES]);
     expect(listAfter(/seal_alerts_status_check check \(status in \(([^)]*)\)/)).toEqual([...ALERT_STATUSES]);
   });

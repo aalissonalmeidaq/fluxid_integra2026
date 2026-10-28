@@ -27,6 +27,7 @@ const actor = (response: Awaited<ReturnType<typeof permissions>>): ActorPermissi
 const labels = (value: ActorPermissions) => visibleScreens(value).map((screen) => screen.label);
 
 // Spec 007: o administrador recebe as 20 permissões de cadastros e o operador técnico recebe a leitura de clientes e veículos.
+// Spec 015: Relatórios aparece com qualquer leitura da matriz; o operador técnico o vê pelo histórico de cilindros (custódia).
 const ADMIN_TENANT = [
   'audit.read',
   'customer.anonymize', 'customer.deactivate', 'customer.document', 'customer.history', 'customer.read', 'customer.write',
@@ -39,7 +40,9 @@ const ADMIN_TENANT = [
   // Spec 008: as oito permissões de viagem.
   'trip.cancel', 'trip.exception', 'trip.history', 'trip.operate', 'trip.read', 'trip.recipient', 'trip.unlock', 'trip.write',
   'vehicle.deactivate', 'vehicle.history', 'vehicle.read', 'vehicle.write',
-];
+  // Spec 015: acompanhamento, exportação de relatórios, categorias de aviso por e-mail e a regra de proximidade (crítica).
+  'tracking.read', 'report.export', 'notification_category.manage', 'proximity_rule.manage',
+].sort();
 const OPERADOR_TECNICO = ['customer.read', 'cylinder.history', 'cylinder.identifier', 'cylinder.read', 'cylinder.test', 'vehicle.read'];
 
 describe('Consulta de permissões e paridade do menu ao vivo', () => {
@@ -83,13 +86,13 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     expect(result.status).toBe(200);
     expect(Object.keys(result.body!).sort()).toEqual(['code', 'global', 'tenant']);
     expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: ADMIN_TENANT, global: [] });
-    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Entrada no estoque', 'Clientes', 'Geocercas', 'Veículos', 'Motoristas', 'Viagens', 'Lacres', 'Alertas', 'Meu perfil', 'Pessoas da empresa', 'Papéis e permissões', 'Auditoria da empresa']);
+    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Entrada no estoque', 'Clientes', 'Geocercas', 'Veículos', 'Motoristas', 'Viagens', 'Lacres', 'Alertas', 'Rastreamento', 'Relatórios', 'Meu perfil', 'Pessoas da empresa', 'Papéis e permissões', 'Auditoria da empresa']);
   });
 
   it('o operador técnico recebe só as permissões do papel e o menu básico', async () => {
     const result = await permissions(operator, { organization_id: TENANT_C });
     expect(result.body).toEqual({ code: 'PERMISSIONS_LISTED', tenant: OPERADOR_TECNICO, global: [] });
-    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Clientes', 'Veículos', 'Meu perfil']);
+    expect(labels(actor(result))).toEqual(['Visão geral', 'Cilindros', 'Clientes', 'Veículos', 'Relatórios', 'Meu perfil']);
   });
 
   it('o Administrador FluxID recebe permissões globais e nenhuma da empresa, com ou sem tenant ativo', async () => {
@@ -105,7 +108,7 @@ describe('Consulta de permissões e paridade do menu ao vivo', () => {
     const inD = await permissions(admin, { organization_id: TENANT_D });
     expect(inC.body?.tenant).toEqual(ADMIN_TENANT);
     expect(inD.body?.tenant).toEqual(OPERADOR_TECNICO);
-    expect(labels(actor(inD))).toEqual(['Visão geral', 'Cilindros', 'Clientes', 'Veículos', 'Meu perfil']);
+    expect(labels(actor(inD))).toEqual(['Visão geral', 'Cilindros', 'Clientes', 'Veículos', 'Relatórios', 'Meu perfil']);
   });
 
   it('uma empresa sem vínculo ativo devolve listas vazias, sem código nem identificador do outra empresa', async () => {

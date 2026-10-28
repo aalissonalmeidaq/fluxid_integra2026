@@ -1,7 +1,7 @@
 import React, { lazy, Suspense, useMemo } from 'react';
 import { useOnlineStatus } from '@/app/use-online-status';
 import { Icon, Loading } from '@/design-system';
-import type { MapPoint, MapShape } from './map-types';
+import type { MapPoint, MapShape, MapTrail } from './map-types';
 
 // Mapas de visualização (Leaflet + OpenStreetMap, carregados sob demanda). Sem conexão, o mapa dá lugar a um aviso; a alternativa
 // em texto traz sempre o ponto e o link para abrir o mapa inteiro.
@@ -10,7 +10,7 @@ const MapView = lazy(() => import('./map-view'));
 const validPoint = (latitude: number, longitude: number): boolean =>
   Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
 
-function MapFrame({ title, points, shapes = [], fallback, singleZoom, onPick, className }: { title: string; points: readonly MapPoint[]; shapes?: readonly MapShape[]; fallback: { latitude: number; longitude: number; zoom: number }; singleZoom?: number; onPick?: (latitude: number, longitude: number) => void; className?: string }): React.JSX.Element {
+function MapFrame({ title, points, shapes = [], fallback, singleZoom, onPick, trails, onSelect, className }: { title: string; points: readonly MapPoint[]; shapes?: readonly MapShape[]; fallback: { latitude: number; longitude: number; zoom: number }; singleZoom?: number; onPick?: (latitude: number, longitude: number) => void; trails?: readonly MapTrail[]; onSelect?: (id: string) => void; className?: string }): React.JSX.Element {
   const online = useOnlineStatus();
   if (!online) {
     return (
@@ -22,9 +22,15 @@ function MapFrame({ title, points, shapes = [], fallback, singleZoom, onPick, cl
   }
   return (
     <Suspense fallback={<Loading label="Carregando o mapa…" />}>
-      <MapView title={title} points={points} shapes={shapes} fallback={fallback} {...(singleZoom !== undefined ? { singleZoom } : {})} {...(onPick ? { onPick } : {})} {...(className ? { className } : {})} />
+      <MapView title={title} points={points} shapes={shapes} fallback={fallback} {...(singleZoom !== undefined ? { singleZoom } : {})} {...(onPick ? { onPick } : {})} {...(trails ? { trails } : {})} {...(onSelect ? { onSelect } : {})} {...(className ? { className } : {})} />
     </Suspense>
   );
+}
+
+// Spec 015: trajeto recente das origens do rastreamento. Cada trecho é uma linha; o clique num marcador seleciona o item da lista
+// equivalente, que continua sendo a alternativa acessível (RF-004).
+export function TrailsMap({ title, points, trails, fallback, onSelect, className }: { title: string; points: readonly MapPoint[]; trails: readonly MapTrail[]; fallback: { latitude: number; longitude: number; zoom: number }; onSelect?: (id: string) => void; className?: string }): React.JSX.Element {
+  return <MapFrame title={title} points={points} trails={trails} fallback={fallback} {...(onSelect ? { onSelect } : {})} {...(className ? { className } : {})} />;
 }
 
 // Vários pontos (Visão geral): enquadra todos. Sem pontos, abre na região de `fallback`.

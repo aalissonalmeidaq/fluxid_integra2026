@@ -104,4 +104,12 @@ describe('DataTable', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Carregando membros');
     expect(screen.queryByText('Ana Souza')).toBeNull();
   });
+  // Spec 015 (validação humana de 27/10/2026): tabela larga de relatório partia datas e palavras ("27/10/202 6"). Com a opção, a partir de
+  // 768 px a quebra acontece só entre palavras; nos cartões (abaixo de 768 px) nada muda.
+  it('pode quebrar só entre palavras, sem mudar a tabela padrão', () => {
+    const { rerender } = render(<DataTable legenda="Membros" colunas={COLUNAS} linhas={LINHAS} chaveDaLinha={(l) => l.id} />);
+    expect(screen.getByRole('table')).not.toHaveClass('tabela-de-dados--palavras-inteiras');
+    rerender(<DataTable legenda="Membros" colunas={COLUNAS} linhas={LINHAS} chaveDaLinha={(l) => l.id} quebraSoEntrePalavras />);
+    expect(screen.getByRole('table')).toHaveClass('tabela-de-dados', 'tabela-de-dados--palavras-inteiras');
+  });
 });

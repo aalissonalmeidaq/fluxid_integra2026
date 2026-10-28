@@ -193,6 +193,15 @@ describe('detalhe: conferir e iniciar a viagem', () => {
     expect(screen.queryByRole('button', { name: 'Iniciar viagem' })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Conferência da carga' })).not.toBeInTheDocument();
   });
+
+  it('o painel de localização da motorista vem antes dos avisos informativos (Spec 015: visível sem rolar no celular)', async () => {
+    const items = checkedAll().map((item) => ({ ...item, itemStatus: 'in_transit' as const, lockStatus: 'locked' as const }));
+    renderDetail(fakeTripService({ getTrip: vi.fn(async () => ({ kind: 'success', value: withStatus('in_progress', items) })) }),
+      { abilities: OPERATOR, trackingPanel: () => <section aria-label="Localização da viagem">painel</section> });
+    const notice = await screen.findByText('Bloqueio lógico');
+    const panel = screen.getByRole('region', { name: 'Localização da viagem' });
+    expect(panel.compareDocumentPosition(notice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });
 
 describe('detalhe: retirar da viagem (exceção)', () => {

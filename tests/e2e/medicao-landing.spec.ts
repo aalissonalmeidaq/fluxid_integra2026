@@ -41,6 +41,9 @@ test.describe('Medição da landing em 4G (Spec 011)', () => {
         }).observe({ type: 'layout-shift', buffered: true });
       });
       await new MockBackend().install(page);
+      // Spec 015 (T130): a fila e o envio de campo só carregam com a conta autenticada; na landing não disputam a rede.
+      const modulosDeCampo: string[] = [];
+      page.on('request', (pedido) => { if (/(field-sync|offline-field)-factory-/.test(pedido.url())) modulosDeCampo.push(pedido.url()); });
       const imagens: number[] = [];
       page.on('response', (resposta) => {
         if (resposta.request().resourceType() !== 'image') return;
@@ -58,6 +61,7 @@ test.describe('Medição da landing em 4G (Spec 011)', () => {
       const { lcp, cls } = await page.evaluate(() => (window as unknown as { __medidas: { lcp: number; cls: number } }).__medidas);
       lcps.push(lcp);
       clss.push(cls);
+      expect(modulosDeCampo, 'módulos de campo baixados na landing').toEqual([]);
       totalImagens = Math.max(totalImagens, imagens.reduce((soma, bytes) => soma + bytes, 0));
       await context.close();
     }

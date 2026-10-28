@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { OsmMap, PointsMap, ShapeMap } from './osm-map';
+import { OsmMap, PointsMap, ShapeMap, TrailsMap } from './osm-map';
 
 describe('OsmMap (um ponto)', () => {
   afterEach(() => vi.restoreAllMocks());
@@ -175,5 +175,48 @@ describe('PointsMap (vários pontos)', () => {
       await waitFor(() => expect(setView).toHaveBeenCalled());
       expect(setView.mock.calls[0]?.[1]).toBe(4);
     });
+  });
+});
+
+// Spec 015 (T027/T028; RF-004, RF-020): trilhas do rastreamento. Cada trecho é uma linha própria (uma lacuna nunca vira percurso), o
+// marcador diz a origem, a seleção nasce do clique e o selecionado se destaca. A lista ao lado continua sendo a alternativa em texto.
+describe('TrailsMap (trilhas do rastreamento)', () => {
+  const FALLBACK = { latitude: -7.2, longitude: -39.3, zoom: 12 };
+  const points = [
+    { id: 'm1', label: 'Celular do motorista', latitude: -7.23, longitude: -39.31, origin: 'mobile' as const },
+    { id: 's1', label: 'Lacre do C1', latitude: -7.231, longitude: -39.311, origin: 'seal' as const, selected: true },
+  ];
+  const trails = [
+    { id: 'mobile:0', origin: 'mobile' as const, coordinates: [{ latitude: -7.22, longitude: -39.30 }, { latitude: -7.225, longitude: -39.305 }] },
+    { id: 'mobile:1', origin: 'mobile' as const, coordinates: [{ latitude: -7.23, longitude: -39.31 }, { latitude: -7.232, longitude: -39.312 }] },
+  ];
+
+  it('desenha uma linha por trecho, sem ligar trechos separados por lacuna', async () => {
+    const { container } = render(<TrailsMap title="Trajeto recente" points={points} trails={trails} fallback={FALLBACK} />);
+    await waitFor(() => expect(container.querySelectorAll('.fluxid-map-trail--mobile')).toHaveLength(2));
+  });
+
+  it('o marcador traz a origem e o selecionado fica destacado', async () => {
+    const { container } = render(<TrailsMap title="Trajeto recente" points={points} trails={[]} fallback={FALLBACK} />);
+    await waitFor(() => expect(container.querySelector('.fluxid-map-point--mobile')).not.toBeNull());
+    expect(container.querySelector('.fluxid-map-point--seal.fluxid-map-point--selected')).not.toBeNull();
+  });
+
+  it('o clique no marcador seleciona o ponto', async () => {
+    const onSelect = vi.fn();
+    const { container } = render(<TrailsMap title="Trajeto recente" points={points} trails={[]} fallback={FALLBACK} onSelect={onSelect} />);
+    await waitFor(() => expect(container.querySelector('.fluxid-map-point--mobile')).not.toBeNull());
+    fireEvent.click(container.querySelector('.fluxid-map-point--mobile')!);
+    expect(onSelect).toHaveBeenCalledWith('m1');
+  });
+
+  // Validação humana (27/10/2026): o ponto recebia foco pelo teclado sem nome para o leitor de tela e só era escolhido com o mouse.
+  it('o marcador tem nome acessível e é escolhido também por Enter ou Espaço', async () => {
+    const onSelect = vi.fn();
+    render(<TrailsMap title="Trajeto recente" points={points} trails={[]} fallback={FALLBACK} onSelect={onSelect} />);
+    const marker = await screen.findByRole('button', { name: 'Celular do motorista' });
+    fireEvent.keyDown(marker, { key: 'Enter' });
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Lacre do C1' }), { key: ' ' });
+    expect(onSelect.mock.calls).toEqual([['m1'], ['s1']]);
   });
 });

@@ -33,6 +33,12 @@ describe('Button', () => {
     expect(botao.className).toContain(classe);
   });
 
+  it('rótulo que quebra em duas linhas (360 px) mantém respiro vertical, sem mudar a altura de uma linha', () => {
+    render(<Button>Registrar desbloqueio</Button>);
+    // 8 px em cima e embaixo: com uma linha (24 px) a altura continua 44 px pelo alvo mínimo.
+    expect(screen.getByRole('button', { name: 'Registrar desbloqueio' }).className).toContain('py-2');
+  });
+
   it('o rótulo de cada variante atende 4,5:1 contra o fundo (texto normal)', () => {
     const usos: UsoDeCor[] = Object.values(CORES_DAS_VARIANTES).map(({ texto, fundo }) => ({ texto, fundo, finalidade: 'texto-normal' }));
     expect(verificarUsos(cores, usos)).toEqual([]);
