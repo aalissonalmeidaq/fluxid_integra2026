@@ -2,13 +2,16 @@
 // O servidor continua sendo a única barreira de acesso; esta tabela só decide o que mostrar (RN-001, RN-002).
 export type PermissionScope = 'tenant' | 'global';
 
-export interface ScreenRequirement { scope: PermissionScope; code: string }
+// `anyOf`: códigos alternativos; a tela aparece com o principal ou com qualquer um deles (Spec 015: Relatórios depende do tipo).
+export interface ScreenRequirement { scope: PermissionScope; code: string; anyOf?: readonly string[] }
 
 export interface Screen {
   id: string;
   label: string;
   path: string;
   requires?: ScreenRequirement;
+  // Spec 015: tela que aparece só para quem é motorista vinculado na empresa ativa (o papel Motorista não tem permissões).
+  driverOnly?: true;
   tenantScoped: boolean;
 }
 
@@ -17,6 +20,8 @@ export const VISAO_GERAL = '/visao-geral';
 
 export const SCREENS: readonly Screen[] = [
   { id: 'inicio', label: 'Visão geral', path: VISAO_GERAL, tenantScoped: false },
+  // Spec 015 (validação humana): a pessoa motorista chega à coleta de posição das próprias viagens, sem trip.read.
+  { id: 'minha-viagem', label: 'Minha viagem', path: '/minha-viagem', driverOnly: true, tenantScoped: true },
   { id: 'cilindros', label: 'Cilindros', path: '/cilindros', requires: { scope: 'tenant', code: 'cylinder.read' }, tenantScoped: true },
   { id: 'entrada-estoque', label: 'Entrada no estoque', path: '/estoque/entrada', requires: { scope: 'tenant', code: 'cylinder.stock_in' }, tenantScoped: true },
   { id: 'clientes', label: 'Clientes', path: '/clientes', requires: { scope: 'tenant', code: 'customer.read' }, tenantScoped: true },
@@ -27,6 +32,10 @@ export const SCREENS: readonly Screen[] = [
   // Spec 012: lacres e alertas reais (a página de alertas deixa de ser exemplo e passa a exigir a permissão de ver lacres).
   { id: 'lacres', label: 'Lacres', path: '/lacres', requires: { scope: 'tenant', code: 'seal.read' }, tenantScoped: true },
   { id: 'alertas', label: 'Alertas', path: '/alertas', requires: { scope: 'tenant', code: 'seal.read' }, tenantScoped: true },
+  // Spec 015: acompanhamento das viagens em andamento (celular do motorista e lacres), com permissão própria.
+  { id: 'rastreamento', label: 'Rastreamento', path: '/rastreamento', requires: { scope: 'tenant', code: 'tracking.read' }, tenantScoped: true },
+  // Spec 015: Relatórios aparece com qualquer leitura da matriz; ver a tela não concede exportação (report.export é conferida no servidor).
+  { id: 'relatorios', label: 'Relatórios', path: '/relatorios', requires: { scope: 'tenant', code: 'trip.read', anyOf: ['tracking.read', 'seal.read', 'cylinder.history'] }, tenantScoped: true },
   { id: 'perfil', label: 'Meu perfil', path: '/perfil', tenantScoped: false },
   { id: 'membros', label: 'Pessoas da empresa', path: '/admin/membros', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true },
   { id: 'papeis', label: 'Papéis e permissões', path: '/admin/papeis', requires: { scope: 'tenant', code: 'tenant.manage' }, tenantScoped: true },

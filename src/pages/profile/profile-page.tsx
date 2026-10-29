@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ProfileService,
   type ProfileFailure,
@@ -11,6 +11,9 @@ import { DevicePushSettings } from './push-settings';
 import { createProfilePorts } from '@/infrastructure/supabase/profile-adapter';
 import { validateProfileUpdate } from '@/domain/identity/profile';
 import { Alert, Button, Card, FormSection, Loading, TextField } from '@/design-system';
+
+// Spec 015: as escolhas de aviso por e-mail carregam só quando o perfil abre; o perfil está no pacote de entrada (orçamento da Spec 011).
+const MyEmailPreferences = lazy(() => import('@/pages/settings/email-notification-settings').then((m) => ({ default: m.MyEmailPreferences })));
 
 type Feedback = { kind: 'success' | 'error'; message: string };
 
@@ -188,5 +191,15 @@ export function ProfilePage(): React.JSX.Element {
     [client, endpoint],
   );
   const { permissions } = usePermissions();
-  return <ProfileView service={service} extra={permissions?.tenant.includes('seal.read') ? <DevicePushSettings /> : undefined} />;
+  const tenant = permissions?.tenant ?? [];
+  // Spec 015 (US6): avisos por e-mail para quem lê lacres ou rastreamento (as categorias exigem uma das duas leituras).
+  const email = tenant.includes('seal.read') || tenant.includes('tracking.read');
+  return (
+    <ProfileView service={service} extra={tenant.includes('seal.read') || email ? (
+      <div className="flex flex-col gap-8">
+        {tenant.includes('seal.read') && <DevicePushSettings />}
+        {email && <Suspense fallback={<Loading label="Carregando suas escolhas…" />}><MyEmailPreferences /></Suspense>}
+      </div>
+    ) : undefined} />
+  );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { lazy, Suspense, useEffect, useRef } from 'react';
 import { Alert } from '@/design-system/components/alert';
 import { Button } from '@/design-system/components/button';
 import { Logo } from '@/design-system/brand/logo';
@@ -8,6 +8,7 @@ import { Icon } from '@/design-system/icons/icon';
 import type { IconName } from '@/design-system/icons/tipos';
 import { pontosDeQuebra } from '@/design-system/tokens';
 import { visibleScreens } from '@/domain/navigation/visible-screens';
+import { useMyDriverTrips } from '@/pages/tracking/use-my-driver-trips';
 import { useAuth } from '../auth/auth-context';
 import { usePermissions } from '../navigation/permissions-context';
 import { useMinWidth } from '../use-min-width';
@@ -15,9 +16,14 @@ import { markMenuNavigation } from './menu-navigation-focus';
 
 export const MENU_ID = 'menu-principal';
 
+// Spec 015 (T133): a coleta e o envio da viagem em andamento do motorista seguem em qualquer tela. O código só carrega com viagem em
+// andamento (fora do pacote de entrada, orçamento da Spec 011).
+const DriverTrackingKeeper = lazy(() => import('@/pages/tracking/driver-tracking-keeper').then((m) => ({ default: m.DriverTrackingKeeper })));
+
 // Ícones do catálogo da Spec 003; nenhum ícone novo (RF-010).
 const ICONS: Record<string, IconName> = {
   inicio: 'dashboard',
+  'minha-viagem': 'mapa',
   cilindros: 'cilindro',
   'entrada-estoque': 'inventario',
   clientes: 'entrega',
@@ -27,11 +33,14 @@ const ICONS: Record<string, IconName> = {
   viagens: 'localizacao',
   lacres: 'lacre',
   alertas: 'alerta',
+  rastreamento: 'gps',
+  relatorios: 'relatorios',
   perfil: 'usuario',
   membros: 'rede',
   papeis: 'escudo',
   auditoria: 'historico',
   organizacoes: 'armazem',
+  'lacres-plataforma': 'lacre',
   'auditoria-global': 'relatorios',
 };
 
@@ -44,8 +53,11 @@ export interface NavigationMenuProps {
 }
 
 const linkClass =
-  'flex min-h-alvo min-w-0 items-center gap-2 break-words rounded-controle border-l-4 px-4 py-2 text-corpo text-azul-profundo hover:bg-info-fundo';
-const currentClass = 'border-azul-profundo bg-info-fundo font-bold';
+  'relative flex min-h-alvo min-w-0 items-center gap-2 break-words rounded-controle px-4 py-2 text-corpo text-azul-profundo hover:bg-info-fundo';
+const currentClass = 'bg-info-fundo font-bold';
+// Marcador da página atual: filete em pílula, recuado das bordas do item. É borda (não só fundo) para continuar visível
+// em cores forçadas; o estado também vem em texto (aria-current e "página atual").
+const currentMarkerClass = 'absolute inset-y-2 start-0 w-1 rounded-full border-2 border-azul-profundo bg-azul-profundo';
 
 // Menu de navegação: mostra só as telas que as permissões confirmadas pelo servidor liberam. É conveniência de interface,
 // nunca barreira: o servidor decide o acesso a cada tela (RN-001). Sem sessão, ou com a sessão limitada à verificação em
@@ -53,6 +65,8 @@ const currentClass = 'border-azul-profundo bg-info-fundo font-bold';
 export function NavigationMenu({ open, onClose, toggleRef }: NavigationMenuProps): React.JSX.Element | null {
   const { state } = useAuth();
   const { status, permissions, retry } = usePermissions();
+  // Spec 015: "Minha viagem" depende só do vínculo de motorista (o papel Motorista não tem permissões); sem conexão vale o guardado.
+  const { load: driverTrips, organizationId } = useMyDriverTrips();
   const navRef = useRef<HTMLElement>(null);
   const authenticated = state.status === 'authenticated';
   // A partir de 768 px o menu é uma coluna sempre visível; abaixo disso fica recolhido (`hidden`) até o botão abri-lo.
@@ -87,8 +101,10 @@ export function NavigationMenu({ open, onClose, toggleRef }: NavigationMenuProps
   if (!authenticated) return null;
 
   // Fora de `ready` e `offline` nunca há item restrito, mesmo que o contexto traga permissões (RF-007).
-  const screens = visibleScreens(status === 'ready' || status === 'offline' ? permissions : null);
+  const screens = visibleScreens(status === 'ready' || status === 'offline' ? permissions : null,
+    { driver: driverTrips.kind === 'ready' && driverTrips.view.isDriver });
   const currentPath = window.location.pathname;
+  const tripsInProgress = driverTrips.kind === 'ready' ? driverTrips.view.trips.filter((trip) => trip.status === 'in_progress').map((trip) => trip.id) : [];
 
   return (
     <>
@@ -111,7 +127,8 @@ export function NavigationMenu({ open, onClose, toggleRef }: NavigationMenuProps
           const current = screen.path === currentPath;
           return (
             <li key={screen.id} className="min-w-0">
-              <a href={screen.path} onClick={markMenuNavigation} {...(current ? { 'aria-current': 'page' as const } : {})} className={`${linkClass} ${current ? currentClass : 'border-transparent'}`}>
+              <a href={screen.path} onClick={markMenuNavigation} {...(current ? { 'aria-current': 'page' as const } : {})} className={current ? `${linkClass} ${currentClass}` : linkClass}>
+                {current && <span aria-hidden="true" className={currentMarkerClass} />}
                 <Icon name={ICONS[screen.id] ?? 'dashboard'} size={24} />
                 <span className="min-w-0 break-words">{screen.label}{current && <>{' '}<VisuallyHidden>(página atual)</VisuallyHidden></>}</span>
               </a>
@@ -128,6 +145,9 @@ export function NavigationMenu({ open, onClose, toggleRef }: NavigationMenuProps
       )}
       {status === 'offline' && <Alert variant="alerta" className="mt-2">Sem conexão. As telas podem estar desatualizadas.</Alert>}
     </nav>
+    {tripsInProgress.length > 0 && organizationId && (
+      <Suspense fallback={null}><DriverTrackingKeeper organizationId={organizationId} tripIds={tripsInProgress} /></Suspense>
+    )}
     </>
   );
 }

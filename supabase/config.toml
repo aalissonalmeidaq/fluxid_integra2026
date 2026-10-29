@@ -451,3 +451,7 @@ verify_jwt = false
 # Spec 012: chamada pelo banco (pg_net); o segredo do Vault vai no cabeçalho e o banco o confere.
 [functions.seal-push]
 verify_jwt = false
+
+# Spec 015: avisos por e-mail, chamada pelo banco (pg_net) ou pela operação; o segredo do Vault vai no cabeçalho e o banco o confere.
+[functions.email-notifications]
+verify_jwt = false

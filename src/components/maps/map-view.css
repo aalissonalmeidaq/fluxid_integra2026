@@ -10,6 +10,35 @@
   fill: var(--color-ciano-acessivel);
 }
 
+/* Spec 015: origens do rastreamento. Celular: marcador maior e azul; lacre: menor, ciano e com borda grafite. A lista ao lado nomeia
+   cada ponto em texto. O selecionado ganha borda mais grossa. */
+.fluxid-map-point--seal {
+  fill: var(--color-ciano-acessivel);
+  stroke: var(--color-grafite);
+}
+
+.fluxid-map-point--selected {
+  stroke: var(--color-navy);
+  stroke-width: 5px;
+}
+
+/* Trecho do trajeto: só entre posições contínuas; lacunas não são desenhadas. O lacre usa traço pontilhado. */
+.fluxid-map-trail {
+  fill: none;
+  stroke-width: 4px;
+  stroke-opacity: 0.8;
+  stroke-linecap: round;
+}
+
+.fluxid-map-trail--mobile {
+  stroke: var(--color-azul-profundo);
+}
+
+.fluxid-map-trail--seal {
+  stroke: var(--color-ciano-acessivel);
+  stroke-dasharray: var(--spacing-1) var(--spacing-2);
+}
+
 /* A borda e o preenchimento tornam o limite legível sobre diferentes tipos de rua sem depender apenas da cor. */
 .fluxid-map-geofence {
   fill: var(--color-ciano-acessivel);

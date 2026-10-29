@@ -66,6 +66,8 @@ const COMMAND_STATUS: Record<CommandStatus, Presentation> = {
 export const ALERT_KINDS = [
   'possible_loss', 'no_comm', 'device_off', 'no_gps', 'low_battery', 'weak_signal', 'seal_open', 'seal_broken', 'geofence_violation',
   'comm_loss_lock', 'command_failed', 'command_expired', 'command_not_delivered', 'watch_suspended', 'rate_limited', 'wifi_change_failed',
+  // Spec 015: afastamento confirmado entre o celular do motorista e o lacre (três comparações válidas consecutivas).
+  'proximity_separation',
 ] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 const ALERT: Record<AlertKind, Presentation> = {
@@ -85,6 +87,7 @@ const ALERT: Record<AlertKind, Presentation> = {
   watch_suspended: { label: 'Vigilância suspensa', icon: 'geocerca', tone: 'pendente' },
   rate_limited: { label: 'Envios acima do limite', icon: 'alerta', tone: 'pendente' },
   wifi_change_failed: { label: 'Troca de rede falhou', icon: 'rede', tone: 'pendente' },
+  proximity_separation: { label: 'Afastamento do motorista', icon: 'rota', tone: 'erro' },
 };
 
 export const ALERT_SEVERITIES = ['medium', 'high', 'critical'] as const;

@@ -71,13 +71,15 @@ export function OfflineFieldProvider({ children }: { children: React.ReactNode }
     return () => { active = false; clearInterval(timer); window.removeEventListener('online', confirm); };
   }, [gates, authenticated, restored, offlineAccess, offlineAccessStore]);
 
-  // O código da fila e dos anexos carrega depois de o aplicativo abrir (fora do pacote de entrada).
+  // O código da fila e dos anexos carrega só com a conta autenticada, inclusive a restaurada offline (fora do pacote de entrada). Na landing
+  // e na entrada ele não é baixado: disputaria a rede com a página pública (Spec 015, T130; orçamento de LCP da Spec 011).
   const [factory, setFactory] = useState<typeof import('./offline-field-factory') | null>(null);
   useEffect(() => {
+    if (!authenticated || factory) return undefined;
     let active = true;
     void import('./offline-field-factory').then((module) => { if (active) setFactory(module); }).catch(() => undefined);
     return () => { active = false; };
-  }, []);
+  }, [authenticated, factory]);
   useEffect(() => { gates.connect(client && endpoint ? { client, endpoint } : null); }, [gates, client, endpoint]);
 
   const value = useMemo<OfflineFieldValue | null>(() => {

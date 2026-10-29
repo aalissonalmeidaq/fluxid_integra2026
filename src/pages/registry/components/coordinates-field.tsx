@@ -153,7 +153,7 @@ export function CoordinatesField({
       </div>
 
       {asking !== null && (
-        <div role="group" aria-labelledby="geocode-consent-title" className="flex flex-col gap-4 rounded-card border border-borda p-4">
+        <div role="group" aria-labelledby="geocode-consent-title" className="flex flex-col gap-4 rounded-card border border-borda-suave p-4">
           <h3 id="geocode-consent-title" className="text-corpo font-semibold text-navy">Enviar {asking === 'forward' ? 'o endereço' : 'as coordenadas'} ao serviço externo?</h3>
           <p className="text-corpo text-grafite">{asking === 'forward' ? GEOCODING_NOTICE : REVERSE_GEOCODING_NOTICE}</p>
           <div className="flex flex-wrap items-center gap-2">
@@ -165,7 +165,7 @@ export function CoordinatesField({
       <p role="status" aria-atomic="true" className="min-h-6 text-legenda text-texto-secundario">{messageOf(status)}</p>
 
       {reverseAddress && (
-        <div role="group" aria-labelledby="reverse-geocode-review-title" className="flex flex-col gap-4 rounded-card border border-borda p-4">
+        <div role="group" aria-labelledby="reverse-geocode-review-title" className="flex flex-col gap-4 rounded-card border border-borda-suave p-4">
           <h3 id="reverse-geocode-review-title" className="text-corpo font-semibold text-navy">Confira o endereço encontrado</h3>
           <p className="m-0 text-corpo text-grafite">{reverseAddress.displayName || [reverseAddress.street, reverseAddress.number, reverseAddress.city, reverseAddress.state].filter(Boolean).join(', ')}</p>
           <Alert variant="informacao">O serviço pode retornar o endereço mais próximo. Confirme visualmente o ponto no mapa.</Alert>
@@ -191,7 +191,7 @@ export function CoordinatesField({
       {adjusted && <Alert variant="informacao">O ponto foi corrigido à mão. Ao salvar, as coordenadas contam como informadas à mão, sem a confirmação da busca.</Alert>}
 
       {active && (
-        <div role="group" aria-labelledby="geocode-review-title" className="flex flex-col gap-4 rounded-card border border-borda p-4">
+        <div role="group" aria-labelledby="geocode-review-title" className="flex flex-col gap-4 rounded-card border border-borda-suave p-4">
           <h3 id="geocode-review-title" className="text-corpo font-semibold text-navy">Confira o endereço e o ponto</h3>
           <dl className="grid gap-1 text-corpo text-grafite">
             <div><dt className="inline font-semibold">Endereço encontrado: </dt><dd className="inline">{active.location.displayName || 'não informado pelo serviço'}</dd></div>

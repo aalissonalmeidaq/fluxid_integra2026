@@ -63,6 +63,8 @@ const SUCCESS = new Set([
   'RESOLVED',
   // Spec 012 (lacre IoT).
   'BOUND', 'UNBOUND', 'REQUESTED', 'ACKNOWLEDGED', 'CLOSED', 'SUBSCRIBED', 'UNSUBSCRIBED', 'ROTATED',
+  // Spec 015 (rastreamento e relatórios).
+  'INGESTED', 'ENDED', 'REQUESTED',
 ]);
 const STATUS: Record<string, number> = {
   AUTH_REQUIRED: 401, ACCESS_DENIED: 403, MFA_REQUIRED: 403, NOT_FOUND: 404, VALIDATION_FAILED: 400, JUSTIFICATION_REQUIRED: 400,
@@ -82,6 +84,12 @@ const STATUS: Record<string, number> = {
   WIFI_RISK_NOT_CONFIRMED: 400, ALERT_CLOSED: 409, NOTE_REQUIRED: 400,
   // Spec 014 (RF-016 d): ação recusada no tenant da demonstração; o banco já auditou a negação.
   DEMO_RESTRICTED: 403,
+  // Spec 015 (rastreamento): sessão de coleta encerrada, aparelho ou contexto diferente do da sessão, lote acima de 100 itens.
+  SESSION_ENDED: 409, CONTEXT_MISMATCH: 409, BATCH_TOO_LARGE: 400,
+  // Spec 015 (relatórios): filtro ou período inválido e arquivo de exportação vencido.
+  INVALID_FILTER: 400, INVALID_PERIOD: 400, EXPORT_EXPIRED: 410,
+  // Spec 015 (avisos por e-mail): categoria não liberada ou fora da permissão de leitura de quem escolhe.
+  CATEGORY_NOT_ALLOWED: 409,
 };
 
 // Exceções do banco (gatilhos) que a borda traduz em código de negócio, sem reescrever as RPCs que as provocam.

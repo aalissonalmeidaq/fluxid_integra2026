@@ -25,7 +25,7 @@ select is(pg_temp.seal_perms('20000000-0000-0000-0000-00000000000b', 'tenant_adm
 
 -- Nenhum papel perdeu permissão das specs anteriores: o gestor logístico continua com as 12 da Spec 008.
 select is((select count(*)::int from public.roles r join public.role_permissions rp on rp.role_id = r.id join public.permissions p on p.id = rp.permission_id
-  where r.organization_id = '20000000-0000-0000-0000-00000000000a' and r.code = 'logistics_manager' and p.code not like 'seal.%'), 12,
+  where r.organization_id = '20000000-0000-0000-0000-00000000000a' and r.code = 'logistics_manager' and p.code not like 'seal.%' and p.code not in ('tracking.read', 'report.export')), 12,
   'gestor logístico mantém as permissões da Spec 008');
 
 -- Destravamento excepcional (US3; RF-025, RN-005): pela tela, sempre com segundo fator e justificativa; auditoria sem a justificativa.

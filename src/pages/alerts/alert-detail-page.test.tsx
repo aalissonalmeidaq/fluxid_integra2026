@@ -2,6 +2,9 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SealService, type SealTransport } from '@/application/seals/seal-service';
+import { EmailNotificationService } from '@/application/tracking/email-notification-service';
+import type { TrackingTransport } from '@/application/tracking/tracking-ports';
+import { EmailDeliveriesPanel } from '@/pages/settings/email-notification-settings';
 import { AlertDetailView } from './alert-detail-page';
 
 // Spec 012 (T055; RF-036, RF-036c, RF-042, RF-043): detalhe do alerta (destino do toque na notificação) com a última posição do lacre
@@ -36,6 +39,18 @@ const renderDetail = (s: SealService, extra: Partial<React.ComponentProps<typeof
   render(<AlertDetailView service={s} organizationId="org-a" alertId={ID} online realtime={null} canOperate now={() => NOW} {...extra} />);
 
 describe('AlertDetailView', () => {
+  it('Spec 015 (US6): a falha do aviso por e-mail aparece no detalhe e não muda nem duplica o alerta', async () => {
+    const { service: s, call } = service({ get_alert: [{ code: 'FOUND', alert: ALERT }] });
+    const email = new EmailNotificationService({ call: vi.fn(async () => ({ status: 200, body: { code: 'FOUND', items: [
+      { category: 'seal_high_critical', transition: 'opened', status: 'failed', updated_at: '2026-10-17T14:03:00Z', sent_at: null, error_code: 'DELIVERY_REJECTED' },
+    ] } })) } as TrackingTransport);
+    renderDetail(s, { emailDeliveries: <EmailDeliveriesPanel service={email} organizationId="org-a" alertId={ID} /> });
+    expect(await screen.findByText(/Abertura: Falhou — o provedor recusou o envio/)).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 2, name: 'Possível extravio' })).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Encerrar alerta' })).toBeEnabled();
+    expect(call.mock.calls.every(([fn]) => fn.startsWith('query-')), JSON.stringify(call.mock.calls.map(([fn]) => fn))).toBe(true);
+  });
+
   it('mostra tipo, severidade, lacre, cilindro e a última posição no mapa e em texto', async () => {
     const { service: s } = service({ get_alert: [{ code: 'FOUND', alert: ALERT }] });
     renderDetail(s);
@@ -94,5 +109,21 @@ describe('AlertDetailView', () => {
     const call = vi.fn(async () => ({ status: 404, body: { code: 'NOT_FOUND' } }));
     renderDetail(new SealService({ call } as SealTransport));
     expect(await screen.findByText('Alerta não encontrado')).toBeInTheDocument();
+  });
+
+  // Spec 015 (T069): o alerta de afastamento leva à ocorrência de proximidade, com as evidências e o tratamento próprios.
+  it('alerta de afastamento mostra o link para a ocorrência e diz quando foi detectado depois', async () => {
+    const proximity = { ...ALERT, kind: 'proximity_separation', occurrence_id: 'f1560000-0000-4000-8000-0000000000a1', retrospective: true };
+    const { service: s } = service({ get_alert: [{ code: 'FOUND', alert: proximity }] });
+    renderDetail(s);
+    expect(await screen.findByRole('link', { name: 'Ver a ocorrência de afastamento' })).toHaveAttribute('href', '/rastreamento/ocorrencias/f1560000-0000-4000-8000-0000000000a1');
+    expect(screen.getByText(/detectado depois/)).toBeInTheDocument();
+  });
+
+  it('outros alertas não mostram o link da ocorrência', async () => {
+    const { service: s } = service({ get_alert: [{ code: 'FOUND', alert: ALERT }] });
+    renderDetail(s);
+    await screen.findByText('CIL-0042');
+    expect(screen.queryByRole('link', { name: 'Ver a ocorrência de afastamento' })).toBeNull();
   });
 });

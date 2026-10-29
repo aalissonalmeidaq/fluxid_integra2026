@@ -95,6 +95,18 @@ Primeiras capacidades classificadas como `offline-safe` (a política `OfflineOpe
 - **Sessão offline.** O acesso offline restrito guarda só identificadores e códigos de permissão (nunca token) e vale até 8 horas desde a última confirmação do servidor; o servidor decide quando a fila é enviada.
 - **Escrita única.** Nada é escrito em duas instâncias ao mesmo tempo: o conflito de estado é decidido pelo servidor e a decisão humana fica na trilha `private.trip_sync_events` e na auditoria.
 
+## Fila de posições do motorista (Spec 015)
+
+A coleta de posições do celular durante a viagem tem fila própria (`src/infrastructure/tracking/tracking-queue.ts`), separada da fila de operações de campo da Spec 010.
+
+- **Fila presa ao dono e ao destino.** Cada posição pertence a conta, organização, **destino Supabase**, viagem e sessão de coleta. Ela só é enviada à sessão e ao destino em que foi coletada. Trocar de destino não leva posições de um projeto para outro: os itens de outro destino ficam onde estão, sem duplicar nada.
+- **Capacidade.** A fila comporta 600 posições, folga sobre as 480 de 8 horas a uma por minuto (RF-007h). Passadas 8 horas sem confirmação online, a coleta pausa sem perder o que já está na fila.
+- **Envio idempotente.** Os lotes têm até 100 posições, em ordem. Cada posição leva identificador do cliente e sequência; o servidor responde gravada ou duplicada, e só então ela sai da fila. Reenviar não duplica. Posição que chega depois do limite de idade da regra é marcada como retrospectiva e avaliada como tal, sem abrir alerta em viagem já encerrada.
+- **Sem fallback em autenticação.** Erro de sessão pausa a coleta e pede nova entrada; não troca de destino. Quando o servidor informa que a sessão terminou ou que a viagem já não está em andamento, o aparelho para de coletar.
+- **Modo nativo e modo degradado.** No aplicativo Android (Capacitor), a coleta segue em segundo plano com notificação permanente; o backup automático do Android fica desligado para não encerrar o processo. No navegador, a coleta só acontece com a tela aberta (`foreground_only`), e o estado degradado é informado à pessoa motorista e ao gestor. Localização negada ou indisponível também vira estado degradado, nunca afastamento.
+- **Envio só com o aplicativo aberto.** Na validação de 27/10/2026, as posições coletadas em segundo plano ficaram na fila e foram enviadas ao reabrir o aplicativo, como retrospectivas. O envio em segundo plano depende da plataforma e não é garantido.
+- **Tempo real sem dado sensível.** O banco avisa pelo canal privado `tracking:<organização>` só o tipo do evento e o id da viagem; a tela busca o restante pela consulta autorizada.
+
 ## Critérios de aceitação futuros
 
 - selecionar corretamente cada modo explícito;

@@ -351,6 +351,9 @@ test.describe('US4: trocar de organização e ver o menu certo (CA-002, MS-005)'
     await entrar(page, backend);
     await expect.poll(() => itens(page)).toEqual(ADMINISTRADOR);
     expect(await page.evaluate(() => Object.keys(sessionStorage).filter((chave) => chave.startsWith('fluxid.menu.')).length)).toBeGreaterThan(0);
+    // O envio da fila de campo reconfirma a sessão ao abrir (Spec 010) e carrega depois da entrada (Spec 015, T130): espera ele terminar, senão
+    // a página antiga recebe a expiração e apaga a sessão antes de recarregar, e a página nova não tem o que expirar.
+    await page.waitForLoadState('networkidle');
 
     backend.statusResponse = { status: 401, body: { code: 'SESSION_EXPIRED', reason: 'inactivity' } };
     await page.reload();

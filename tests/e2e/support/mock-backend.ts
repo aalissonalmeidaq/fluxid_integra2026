@@ -5,6 +5,8 @@ import { createHash } from 'node:crypto';
 import { ATTACHMENT_SIGN_PATH, uploadAttachment } from './mock-trips-attachments';
 import { createTripMock } from './mock-trips-plan';
 import { createSealMock } from './mock-seals';
+import { createTrackingMock } from './mock-tracking';
+import { createReportMock, REPORT_DOWNLOAD_PATH } from './mock-reports';
 import { instalarLacres } from './mock-seals-operacoes';
 import { instalarPlataforma } from './mock-seals-plataforma';
 
@@ -59,7 +61,8 @@ export type PermissionProfile = 'administrador' | 'operador' | 'master' | 'admin
   | 'cilindros-admin' | 'cilindros-estoquista' | 'cilindros-tecnico' | 'cilindros-auditor'
   | 'cadastros-admin' | 'cadastros-estoquista' | 'cadastros-tecnico' | 'cadastros-auditor' | 'cadastros-motorista'
   | 'viagens-admin' | 'viagens-gestor' | 'viagens-estoquista' | 'viagens-auditor'
-  | 'lacres-admin' | 'lacres-operador' | 'lacres-auditor' | 'lacres-dois-tenants';
+  | 'lacres-admin' | 'lacres-operador' | 'lacres-auditor' | 'lacres-dois-tenants'
+  | 'rastreamento-gestor' | 'relatorios-consulta';
 
 // Permissões de cilindros (Spec 006) por papel padrão, como o servidor as devolve em `query-permissions`.
 const CILINDROS_TODAS = ['cylinder.read', 'cylinder.write', 'cylinder.deactivate', 'cylinder.identifier', 'cylinder.stock_in', 'cylinder.test', 'cylinder.history'];
@@ -99,6 +102,10 @@ const PROFILES: Record<PermissionProfile, { byOrganization: Record<string, strin
   'lacres-operador': { byOrganization: { [TENANT_A]: [...VIAGENS_LEITURAS, 'trip.read', 'trip.operate', 'seal.read', 'seal.operate'] }, global: [] },
   'lacres-auditor': { byOrganization: { [TENANT_A]: [...VIAGENS_LEITURAS, 'trip.read', 'seal.read'] }, global: [] },
   'lacres-dois-tenants': { byOrganization: { [TENANT_A]: ['audit.read', 'tenant.manage', 'cylinder.read', ...LACRES_TODAS], [TENANT_B]: ['cylinder.read', ...LACRES_TODAS] }, global: [] },
+  // Spec 015: gestor logístico com consulta de rastreamento e exportação (contracts/permissoes-e-papeis.md).
+  // Spec 015: consulta todos os relatórios, mas não exporta.
+  'relatorios-consulta': { byOrganization: { [TENANT_A]: ['trip.read', 'tracking.read', 'seal.read', 'cylinder.history'] }, global: [] },
+  'rastreamento-gestor': { byOrganization: { [TENANT_A]: [...VIAGENS_LEITURAS, 'trip.read', 'trip.operate', 'seal.read', 'seal.operate', 'tracking.read', 'report.export', 'notification_category.manage'] }, global: [] },
 };
 
 export class MockBackend {
@@ -115,6 +122,10 @@ export class MockBackend {
   });
   // Lacres da plataforma (Spec 013): a fila de pedidos do Master, sobre os mesmos lacres simulados.
   readonly platformSeals = instalarPlataforma(this.seals);
+  // Rastreamento simulado (Spec 015): consultas de query-tracking.
+  readonly tracking = createTrackingMock();
+  // Relatórios simulados (Spec 015, US5): report-export e o arquivo baixado.
+  readonly reports = createReportMock();
   organizations = [{ id:'20000000-0000-0000-0000-00000000000a',legal_name:'Tenant A Sintético',display_name:'Tenant A',status:'active',version:1 }];
   members = [{ id:'30000000-0000-0000-0000-000000000099',display_name:'Operador A',email:'operador-a@example.invalid',status:'active',version:1 }];
   membersB = [{ id:'30000000-0000-0000-0000-000000000098',display_name:'Operador B',email:'operador-b@example.invalid',status:'active',version:1 }];
@@ -223,6 +234,23 @@ export class MockBackend {
     }
     if (pathname === '/functions/v1/platform-seals') {
       const reply = this.platformSeals.handle((body ?? {}) as Record<string, unknown>, this.globalPermissions.includes('platform.manage'));
+      return respond(reply.status, reply.json);
+    }
+    if (pathname === '/functions/v1/report-export') {
+      const reply = this.reports.handle((body ?? {}) as Record<string, unknown>, (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code));
+      return respond(reply.status, reply.json);
+    }
+    if (pathname.startsWith(REPORT_DOWNLOAD_PATH)) {
+      const csv = this.reports.csvOf(pathname.slice(REPORT_DOWNLOAD_PATH.length).replace(/\.csv$/, ''));
+      return csv === null ? respond(404, { code: 'NOT_FOUND' })
+        : route.fulfill({ status: 200, body: csv, headers: { ...CORS, 'content-type': 'text/csv; charset=utf-8', 'content-disposition': 'attachment; filename="relatorio.csv"' } });
+    }
+    if (pathname === '/functions/v1/manage-tracking') {
+      const reply = this.tracking.manage((body ?? {}) as Record<string, unknown>, (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code));
+      return respond(reply.status, reply.json);
+    }
+    if (pathname === '/functions/v1/query-tracking') {
+      const reply = this.tracking.handle((body ?? {}) as Record<string, unknown>, (organizationId, code) => (this.permissionsByOrganization[organizationId] ?? []).includes(code));
       return respond(reply.status, reply.json);
     }
     if (pathname === '/functions/v1/query-seals' || pathname === '/functions/v1/manage-seals') {

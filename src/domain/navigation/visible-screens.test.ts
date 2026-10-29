@@ -60,4 +60,19 @@ describe('visibleScreens', () => {
       ['Auditoria da empresa', '/admin/auditoria'], ['Organizações', '/admin/tenants'], ['Lacres da plataforma', '/admin/lacres'], ['Auditoria da plataforma', '/admin/auditoria-global'],
     ]);
   });
+
+  // Spec 015 (T086): Relatórios aparece para quem lê pelo menos um dos tipos; report.export sozinho não abre a tela.
+  it('Relatórios aparece com qualquer leitura da matriz e não só com report.export', () => {
+    for (const code of ['trip.read', 'tracking.read', 'seal.read', 'cylinder.history']) {
+      expect(visibleScreens({ tenant: [code], global: [] }).map((screen) => screen.id), code).toContain('relatorios');
+    }
+    expect(visibleScreens({ tenant: ['report.export'], global: [] }).map((screen) => screen.id)).not.toContain('relatorios');
+  });
+
+  // Spec 015 (validação humana): "Minha viagem" aparece só para quem é motorista vinculado, sem depender de permissão.
+  it('Minha viagem aparece só para motorista, logo depois da Visão geral', () => {
+    expect(visibleScreens({ tenant: [], global: [] }, { driver: true }).map((screen) => screen.label)).toEqual(['Visão geral', 'Minha viagem', 'Meu perfil']);
+    expect(visibleScreens(null, { driver: true }).map((screen) => screen.label)).toContain('Minha viagem');
+    expect(labels({ tenant: ['tracking.read', 'trip.read'], global: [] })).not.toContain('Minha viagem');
+  });
 });

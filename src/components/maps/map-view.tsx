@@ -2,7 +2,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import React, { useEffect, useRef } from 'react';
 import { popupContent } from './map-popup';
-import type { MapPoint, MapShape } from './map-types';
+import type { MapPoint, MapShape, MapTrail } from './map-types';
 import './map-view.css';
 
 // Mapa Leaflet com blocos do OpenStreetMap. Carregado sob demanda (map-lazy.tsx): fora das telas com mapa, nada disto entra no
@@ -19,24 +19,36 @@ export interface MapViewProps {
   singleZoom?: number;
   // Presente, o mapa é editável: um clique (ou toque) escolhe o novo ponto. A alternativa por teclado fica nos campos de coordenadas.
   onPick?: (latitude: number, longitude: number) => void;
+  // Spec 015: trechos do trajeto (uma linha por trecho) e a seleção de um ponto pelo clique, sincronizada com a lista.
+  trails?: readonly MapTrail[];
+  onSelect?: (id: string) => void;
   className?: string;
 }
 
+const pointClass = (point: MapPoint): string => [
+  'fluxid-map-point',
+  point.confirmed === false ? 'fluxid-map-point--unconfirmed' : '',
+  point.origin ? `fluxid-map-point--${point.origin}` : '',
+  point.selected ? 'fluxid-map-point--selected' : '',
+].filter(Boolean).join(' ');
+
 const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
-export default function MapView({ title, points, shapes = [], fallback, singleZoom = 15, onPick, className }: MapViewProps): React.JSX.Element {
+export default function MapView({ title, points, shapes = [], fallback, singleZoom = 15, onPick, trails = [], onSelect, className }: MapViewProps): React.JSX.Element {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const layer = useRef<L.LayerGroup | null>(null);
   // Depois da primeira exibição, trocar o ponto só recentra o mapa: o zoom escolhido pela pessoa é mantido.
   const framed = useRef(false);
   const pick = useRef(onPick);
+  const select = useRef(onSelect);
   const editable = onPick !== undefined;
 
   // O clique usa sempre a função mais recente, sem recriar o mapa a cada renderização.
   useEffect(() => {
     pick.current = onPick;
-  }, [onPick]);
+    select.current = onSelect;
+  }, [onPick, onSelect]);
 
   useEffect(() => {
     const element = container.current;
@@ -80,13 +92,46 @@ export default function MapView({ title, points, shapes = [], fallback, singleZo
         ? L.latLng(shape.center.latitude, shape.center.longitude).toBounds(shape.radiusM * 2)
         : boundary.getBounds());
     }
+    const trailBounds = L.latLngBounds([]);
+    for (const trail of trails) {
+      if (trail.coordinates.length < 2) continue;
+      const line = L.polyline(trail.coordinates.map((c) => [c.latitude, c.longitude] as [number, number]), {
+        className: `fluxid-map-trail fluxid-map-trail--${trail.origin}`, interactive: false,
+      }).addTo(group);
+      trailBounds.extend(line.getBounds());
+    }
     for (const point of points) {
-      const popup = popupContent(point);
-      L.circleMarker([point.latitude, point.longitude], { radius: 9, className: point.confirmed === false ? 'fluxid-map-point fluxid-map-point--unconfirmed' : 'fluxid-map-point' })
-        .bindPopup(popup.element)
-        .on('popupopen', popup.refresh)
-        .bindTooltip(point.label)
-        .addTo(group);
+      const marker = L.circleMarker([point.latitude, point.longitude], { radius: point.origin === 'seal' ? 7 : 9, className: pointClass(point) })
+        .bindTooltip(point.label);
+      // No rastreamento, o clique seleciona o item da lista; nos demais mapas, abre o balão.
+      if (point.origin) marker.on('click', () => select.current?.(point.id));
+      else {
+        const popup = popupContent(point);
+        marker.bindPopup(popup.element).on('popupopen', popup.refresh);
+      }
+      // O ponto recebe foco pelo teclado: leva o nome da dica e responde a Enter ou Espaço como ao clique. O elemento só existe
+      // quando o ponto entra no mapa.
+      marker.on('add', () => {
+        const element = marker.getElement();
+        if (!element) return;
+        element.setAttribute('role', 'button');
+        element.setAttribute('tabindex', '0');
+        element.setAttribute('aria-label', point.label);
+        element.addEventListener('keydown', (event) => {
+          const { key } = event as KeyboardEvent;
+          if (key !== 'Enter' && key !== ' ') return;
+          event.preventDefault();
+          if (point.origin) select.current?.(point.id);
+          else marker.openPopup();
+        });
+      });
+      marker.addTo(group);
+    }
+    if (trailBounds.isValid()) {
+      for (const point of points) trailBounds.extend([point.latitude, point.longitude]);
+      instance.fitBounds(trailBounds, { padding: [32, 32], maxZoom: 17 });
+      framed.current = true;
+      return;
     }
 
     const first = points[0];
@@ -97,14 +142,14 @@ export default function MapView({ title, points, shapes = [], fallback, singleZo
     else if (points.length === 1) instance.setView([first.latitude, first.longitude], framed.current && editable ? instance.getZoom() : singleZoom);
     else instance.fitBounds(L.latLngBounds(points.map((point) => [point.latitude, point.longitude] as [number, number])), { padding: [32, 32], maxZoom: 16 });
     framed.current = true;
-  }, [points, shapes, fallback.latitude, fallback.longitude, fallback.zoom, singleZoom, editable]);
+  }, [points, shapes, trails, fallback.latitude, fallback.longitude, fallback.zoom, singleZoom, editable]);
 
   return (
     <div
       ref={container}
       role="group"
       aria-label={title}
-      className={['fluxid-map aspect-square w-full rounded-card border border-borda bg-cinza-gelo tablet:aspect-video', editable ? 'fluxid-map--editable' : '', className].filter(Boolean).join(' ')}
+      className={['fluxid-map aspect-square w-full rounded-card border border-borda-suave bg-cinza-gelo tablet:aspect-video', editable ? 'fluxid-map--editable' : '', className].filter(Boolean).join(' ')}
     />
   );
 }

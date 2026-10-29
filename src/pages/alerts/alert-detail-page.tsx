@@ -7,6 +7,7 @@ import { SealPositionMap } from '@/pages/seals/components/seal-position-map';
 import { Alert, Button, ErrorState, Loading } from '@/design-system';
 import { contactAge, positionAge } from '@/domain/seals/seal-age';
 import { ALERT_STATUS_LABELS, alertKind, alertSeverity, health, lockState } from '@/domain/seals/seal-vocabulary';
+import { AlertEmailDeliveries } from '@/pages/settings/email-notification-settings';
 import { AccessGate } from '@/pages/cylinders/components/access-gate';
 import { ReasonDialog } from '@/pages/cylinders/components/reason-dialog';
 import { SealBadge } from '@/pages/seals/components/seal-badge';
@@ -36,9 +37,11 @@ export interface AlertDetailViewProps {
   realtime: RealtimePort | null;
   canOperate: boolean;
   now?: () => Date;
+  // Spec 015 (US6): estado dos avisos por e-mail deste alerta; só leitura, nunca muda o alerta.
+  emailDeliveries?: React.ReactNode;
 }
 
-export function AlertDetailView({ service, organizationId, alertId, online, realtime, canOperate, now = () => new Date() }: AlertDetailViewProps): React.JSX.Element {
+export function AlertDetailView({ service, organizationId, alertId, online, realtime, canOperate, now = () => new Date(), emailDeliveries }: AlertDetailViewProps): React.JSX.Element {
   const [load, setLoad] = useState<Load>(online ? { kind: 'loading' } : { kind: 'offline' });
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -122,12 +125,22 @@ export function AlertDetailView({ service, organizationId, alertId, online, real
         {alert.closeNote && <Fact label="Observação do encerramento">{alert.closeNote}</Fact>}
       </dl>
 
+      {alert.kind === 'proximity_separation' && alert.occurrenceId && (
+        <p className="m-0 text-corpo text-grafite">
+          {alert.retrospective ? 'Afastamento detectado depois, quando as posições atrasadas chegaram. ' : ''}
+          <a className="font-semibold text-azul-profundo underline" href={`/rastreamento/ocorrencias/${alert.occurrenceId}`}>Ver a ocorrência de afastamento</a>
+          {' '}com as comparações que a confirmaram.
+        </p>
+      )}
+
       {seal?.position
         ? <SealPositionMap service={service} organizationId={organizationId} deviceId={alert.device.id} position={seal.position}
             title="Última posição do lacre" label={`${kind.label} · ${alert.device.label}`}
             details={[alert.device.deviceCode, alert.cylinder?.serialNumber ?? 'Sem cilindro vinculado', seal.watch ? `Vigilância: ${seal.watch.siteName}` : 'Local do alerta']}
             caption={`Lida ${positionAge(seal.position.readAt, now())}.`} />
         : <p className="m-0 text-corpo text-grafite">O lacre ainda não enviou posição.</p>}
+
+      {emailDeliveries}
 
       {canOperate && open && (
         <div className="flex flex-col gap-2">
@@ -163,7 +176,7 @@ export function AlertDetailPage({ alertId }: { alertId: string }): React.JSX.Ele
   return (
     <AccessGate permission="seal.read">
       <AlertDetailView key={`${organizationId}:${alertId}`} service={service} organizationId={organizationId} alertId={alertId} online={online}
-        realtime={realtime} canOperate={permissions?.tenant.includes('seal.operate') ?? false} />
+        realtime={realtime} canOperate={permissions?.tenant.includes('seal.operate') ?? false} emailDeliveries={<AlertEmailDeliveries alertId={alertId} />} />
     </AccessGate>
   );
 }

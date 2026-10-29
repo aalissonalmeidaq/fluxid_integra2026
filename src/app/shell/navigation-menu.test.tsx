@@ -65,6 +65,12 @@ describe('NavigationMenu: estrutura e itens por perfil (RF-005, RF-006, RF-009, 
     expect(svgDe('Entrada no estoque')).toBe(oficial('inventario'));
   });
 
+  it('nenhum item repete o ícone de outro (Lacres da plataforma usa "lacre", não o genérico da Visão geral)', () => {
+    renderMenu({ permissions: { permissions: MASTER } });
+    const icones = within(screen.getByRole('navigation')).getAllByRole('link').map((link) => link.querySelector('svg')?.innerHTML);
+    expect(new Set(icones).size).toBe(icones.length);
+  });
+
   it('operador vê só Visão geral e Meu perfil', () => {
     renderMenu({ permissions: { permissions: OPERATOR } });
     expect(itemLabels()).toEqual(['Visão geral', 'Meu perfil']);

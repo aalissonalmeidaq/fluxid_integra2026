@@ -1,0 +1,543 @@
+# Registro do uso de inteligência artificial e validação humana
+
+**FluxID | RIA-038 | Rastreamento, proximidade e relatórios**
+
+> Ponto de atenção: a IA apoia a equipe, mas a responsabilidade final é humana.
+
+## Registro da interação
+
+- Ferramenta de IA utilizada: Claude Code (Claude Opus 5.5)
+- Objetivo do uso: implementar a Spec 015: coleta de posições do motorista no app Android, comparação de proximidade entre celular e lacre no banco, ocorrências e alertas de afastamento, histórico, relatórios com exportação CSV e avisos por e-mail, conduzindo a validação humana até o encerramento.
+- Prompt utilizado, em síntese sanitizada: seguir o fluxo Spec Kit da Spec 015 até a Fase 9, corrigir os defeitos encontrados na validação humana, recuperar o orçamento de LCP da landing e resolver as pendências da validação (leitor de tela, CSV no Excel, cenário 3g, alerta por ocorrência e envio em segundo plano).
+- Resposta gerada pela IA: a IA implementou as histórias US1 a US6: serviço nativo de localização no Android (Capacitor), fila no aparelho com envio retrospectivo, regras de proximidade, ocorrências, auditoria e RLS no Supabase, telas de acompanhamento, histórico, relatórios e preferências de e-mail, além da função de exportação CSV protegida contra fórmulas. Na validação, corrigiu T113 a T129; depois, recuperou o LCP da landing (T130), cobriu o cenário 3g (T131), passou a abrir um alerta por afastamento confirmado (T132), manteve o envio das posições em qualquer tela (T133), ajustou um teste E2E (T134) e conferiu o CSV no Excel (T135).
+
+Link para validação da equipe: [pull request #61](https://github.com/aalissonalmeidaq/fluxid_integra2026/pull/61)
+- Análise crítica da equipe: as decisões de regra foram tomadas pela pessoa responsável: tratar o LCP neste ciclo, um alerta por ocorrência de afastamento e o comportamento do envio fora da tela da viagem. Os defeitos achados na validação viraram tarefas com testes antes da correção. Uma mudança no redutor de sessão foi testada e revertida por piorar o E2E; o app manteve o contrato da Spec 010 e só o teste foi ajustado.
+- Validação humana realizada: Alisson Almeida validou em 28/10/2026, por 58 minutos, os perfis gestor e motorista em celular, tablet e desktop no fluxo de viagens, incluindo o envio das posições com o app minimizado e o leitor de tela. Resultado: aprovado, sem itens a corrigir.
+- Decisão final: utilizado
+- Justificativa: Atendeu sem ajustes.
+- Fontes verificadas: artefatos da Spec 015 (spec, plan, data-model, quickstart, tasks e validation-results), contratos das Specs 010, 011 e 012 e documentação do Capacitor sobre execução em segundo plano; nenhuma fonte externa adicional.
+- Identificador do registro: RIA-038
+- Data e hora da interação: 28/10/2026, 19:29:47 - America/Fortaleza
+
+## Rastreabilidade técnica do ciclo
+
+- Repositório: fluxid
+- Branch: feature/015-rastreamento-proximidade-relatorios
+- Spec: 015
+- Ciclo: 01
+- Commit-base: 41cb991483f35a4294c14b81b2069090f7354e34
+- Hash do diff funcional preparado: 9c6f4b43e4d519356412f95c6ff484f2e403a7c33e65fbb380c6d693fc706dac
+- Arquivos e áreas afetadas:
+
+- `.github/workflows/quality.yml`
+- `android/.gitignore`
+- `android/app/.gitignore`
+- `android/app/build.gradle`
+- `android/app/capacitor.build.gradle`
+- `android/app/proguard-rules.pro`
+- `android/app/src/androidTest/java/br/com/fluxid/tracking/TrackingServiceTest.java`
+- `android/app/src/debug/AndroidManifest.xml`
+- `android/app/src/debug/res/xml/network_security_config.xml`
+- `android/app/src/main/AndroidManifest.xml`
+- `android/app/src/main/java/br/com/fluxid/MainActivity.java`
+- `android/app/src/main/java/br/com/fluxid/tracking/IntervalGate.java`
+- `android/app/src/main/java/br/com/fluxid/tracking/PositionBuffer.java`
+- `android/app/src/main/java/br/com/fluxid/tracking/TrackingPlugin.java`
+- `android/app/src/main/java/br/com/fluxid/tracking/TrackingService.java`
+- `android/app/src/main/res/drawable-land-hdpi/splash.png`
+- `android/app/src/main/res/drawable-land-mdpi/splash.png`
+- `android/app/src/main/res/drawable-land-xhdpi/splash.png`
+- `android/app/src/main/res/drawable-land-xxhdpi/splash.png`
+- `android/app/src/main/res/drawable-land-xxxhdpi/splash.png`
+- `android/app/src/main/res/drawable-port-hdpi/splash.png`
+- `android/app/src/main/res/drawable-port-mdpi/splash.png`
+- `android/app/src/main/res/drawable-port-xhdpi/splash.png`
+- `android/app/src/main/res/drawable-port-xxhdpi/splash.png`
+- `android/app/src/main/res/drawable-port-xxxhdpi/splash.png`
+- `android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml`
+- `android/app/src/main/res/drawable/ic_launcher_background.xml`
+- `android/app/src/main/res/drawable/splash.png`
+- `android/app/src/main/res/layout/activity_main.xml`
+- `android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`
+- `android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml`
+- `android/app/src/main/res/mipmap-hdpi/ic_launcher.png`
+- `android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png`
+- `android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png`
+- `android/app/src/main/res/mipmap-mdpi/ic_launcher.png`
+- `android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png`
+- `android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png`
+- `android/app/src/main/res/mipmap-xhdpi/ic_launcher.png`
+- `android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png`
+- `android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png`
+- `android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png`
+- `android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png`
+- `android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png`
+- `android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png`
+- `android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png`
+- `android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png`
+- `android/app/src/main/res/values/ic_launcher_background.xml`
+- `android/app/src/main/res/values/strings.xml`
+- `android/app/src/main/res/values/styles.xml`
+- `android/app/src/main/res/xml/file_paths.xml`
+- `android/app/src/test/java/br/com/fluxid/tracking/IntervalGateTest.java`
+- `android/app/src/test/java/br/com/fluxid/tracking/PositionBufferTest.java`
+- `android/build.gradle`
+- `android/capacitor.settings.gradle`
+- `android/gradle.properties`
+- `android/gradle/wrapper/gradle-wrapper.jar`
+- `android/gradle/wrapper/gradle-wrapper.properties`
+- `android/gradlew`
+- `android/gradlew.bat`
+- `android/settings.gradle`
+- `android/variables.gradle`
+- `capacitor.config.ts`
+- `docs/arquitetura-conectividade-supabase.md`
+- `docs/prd.md`
+- `eslint.config.js`
+- `index.html`
+- `package-lock.json`
+- `package.json`
+- `scripts/landing/pre-carregar-modulo.ts`
+- `scripts/tracking/medir-desempenho.mjs`
+- `specs/015-rastreamento-proximidade-relatorios/checklists/requirements.md`
+- `specs/015-rastreamento-proximidade-relatorios/contracts/avisos-email.md`
+- `specs/015-rastreamento-proximidade-relatorios/contracts/consultas-relatorios-exportacoes.md`
+- `specs/015-rastreamento-proximidade-relatorios/contracts/permissoes-e-papeis.md`
+- `specs/015-rastreamento-proximidade-relatorios/contracts/rastreamento-e-sincronizacao.md`
+- `specs/015-rastreamento-proximidade-relatorios/data-model.md`
+- `specs/015-rastreamento-proximidade-relatorios/performance.md`
+- `specs/015-rastreamento-proximidade-relatorios/plan.md`
+- `specs/015-rastreamento-proximidade-relatorios/quickstart.md`
+- `specs/015-rastreamento-proximidade-relatorios/research.md`
+- `specs/015-rastreamento-proximidade-relatorios/spec.md`
+- `specs/015-rastreamento-proximidade-relatorios/tasks.md`
+- `specs/015-rastreamento-proximidade-relatorios/validation-results.md`
+- `src/app/App.tsx`
+- `src/app/admin-routes.test.ts`
+- `src/app/field/field-providers-carga.test.tsx`
+- `src/app/field/field-sync-provider.tsx`
+- `src/app/field/offline-field-provider.tsx`
+- `src/app/reports/report-routes.test.ts`
+- `src/app/reports/report-routes.ts`
+- `src/app/shell/navigation-menu-motorista.test.tsx`
+- `src/app/shell/navigation-menu.test.tsx`
+- `src/app/shell/navigation-menu.tsx`
+- `src/app/tracking/tracking-routes.test.ts`
+- `src/app/tracking/tracking-routes.ts`
+- `src/app/use-effective-path.test.ts`
+- `src/app/use-effective-path.ts`
+- `src/application/reports/index.ts`
+- `src/application/reports/report-service.test.ts`
+- `src/application/reports/report-service.ts`
+- `src/application/seals/seal-views.ts`
+- `src/application/tracking/active-trips-filter.test.ts`
+- `src/application/tracking/active-trips-filter.ts`
+- `src/application/tracking/email-notification-service.test.ts`
+- `src/application/tracking/email-notification-service.ts`
+- `src/application/tracking/proximity-occurrence-service.test.ts`
+- `src/application/tracking/proximity-occurrence-service.ts`
+- `src/application/tracking/proximity-rule-service.test.ts`
+- `src/application/tracking/proximity-rule-service.ts`
+- `src/application/tracking/tracking-gateway.test.ts`
+- `src/application/tracking/tracking-gateway.ts`
+- `src/application/tracking/tracking-history-service.test.ts`
+- `src/application/tracking/tracking-history-service.ts`
+- `src/application/tracking/tracking-ports.ts`
+- `src/application/tracking/tracking-realtime.test.ts`
+- `src/application/tracking/tracking-realtime.ts`
+- `src/application/tracking/tracking-sync-service.test.ts`
+- `src/application/tracking/tracking-sync-service.ts`
+- `src/application/tracking/tracking-views.ts`
+- `src/application/tracking/trip-tracking-service.test.ts`
+- `src/application/tracking/trip-tracking-service.ts`
+- `src/components/maps/map-types.ts`
+- `src/components/maps/map-view.css`
+- `src/components/maps/map-view.tsx`
+- `src/components/maps/osm-map.test.tsx`
+- `src/components/maps/osm-map.tsx`
+- `src/design-system/components/button.test.tsx`
+- `src/design-system/components/button.tsx`
+- `src/design-system/components/data-table.css`
+- `src/design-system/components/data-table.test.tsx`
+- `src/design-system/components/data-table.tsx`
+- `src/domain/navigation/screens.test.ts`
+- `src/domain/navigation/screens.ts`
+- `src/domain/navigation/visible-screens.test.ts`
+- `src/domain/navigation/visible-screens.ts`
+- `src/domain/reports/report-catalog.test.ts`
+- `src/domain/reports/report-catalog.ts`
+- `src/domain/seals/seal-vocabulary.test.ts`
+- `src/domain/seals/seal-vocabulary.ts`
+- `src/domain/tracking/email-notification-eligibility.test.ts`
+- `src/domain/tracking/email-notification-eligibility.ts`
+- `src/domain/tracking/freshness.test.ts`
+- `src/domain/tracking/freshness.ts`
+- `src/domain/tracking/history-query.test.ts`
+- `src/domain/tracking/history-query.ts`
+- `src/domain/tracking/index.ts`
+- `src/domain/tracking/proximity-evaluator.test.ts`
+- `src/domain/tracking/proximity-evaluator.ts`
+- `src/domain/tracking/tracking-filters.test.ts`
+- `src/domain/tracking/tracking-filters.ts`
+- `src/domain/tracking/tracking-timeline.test.ts`
+- `src/domain/tracking/tracking-timeline.ts`
+- `src/domain/tracking/tracking-types.ts`
+- `src/domain/tracking/tracking-vocabulary.test.ts`
+- `src/domain/tracking/tracking-vocabulary.ts`
+- `src/infrastructure/supabase/storage-url.test.ts`
+- `src/infrastructure/supabase/storage-url.ts`
+- `src/infrastructure/supabase/tracking-adapter.test.ts`
+- `src/infrastructure/supabase/tracking-adapter.ts`
+- `src/infrastructure/supabase/tracking-realtime-adapter.ts`
+- `src/infrastructure/tracking/capacitor-location-adapter.test.ts`
+- `src/infrastructure/tracking/capacitor-location-adapter.ts`
+- `src/infrastructure/tracking/my-driver-trips-cache.test.ts`
+- `src/infrastructure/tracking/my-driver-trips-cache.ts`
+- `src/infrastructure/tracking/tracking-queue.test.ts`
+- `src/infrastructure/tracking/tracking-queue.ts`
+- `src/infrastructure/tracking/web-location-adapter.test.ts`
+- `src/infrastructure/tracking/web-location-adapter.ts`
+- `src/pages/alerts/alert-detail-page.test.tsx`
+- `src/pages/alerts/alert-detail-page.tsx`
+- `src/pages/profile/profile-page.tsx`
+- `src/pages/registry/components/contact-list-editor.tsx`
+- `src/pages/registry/components/coordinates-field.tsx`
+- `src/pages/registry/components/receiving-window-field.tsx`
+- `src/pages/reports/report-catalog-page.test.tsx`
+- `src/pages/reports/report-catalog-page.tsx`
+- `src/pages/reports/report-export-page.test.tsx`
+- `src/pages/reports/report-export-page.tsx`
+- `src/pages/reports/report-filters.tsx`
+- `src/pages/reports/report-page.test.tsx`
+- `src/pages/reports/report-page.tsx`
+- `src/pages/reports/reports-area.tsx`
+- `src/pages/reports/use-report-service.ts`
+- `src/pages/settings/email-notification-settings.test.tsx`
+- `src/pages/settings/email-notification-settings.tsx`
+- `src/pages/settings/use-email-notification-service.ts`
+- `src/pages/tracking/active-trips-page.tsx`
+- `src/pages/tracking/components/map-legend.tsx`
+- `src/pages/tracking/components/offline-notice.tsx`
+- `src/pages/tracking/components/tracking-timeline.tsx`
+- `src/pages/tracking/driver-tracking-keeper.tsx`
+- `src/pages/tracking/driver-tracking-panel.test.tsx`
+- `src/pages/tracking/driver-tracking-panel.tsx`
+- `src/pages/tracking/driver-tracking-registry.test.ts`
+- `src/pages/tracking/driver-tracking-registry.ts`
+- `src/pages/tracking/my-driver-trips-page.test.tsx`
+- `src/pages/tracking/my-driver-trips-page.tsx`
+- `src/pages/tracking/proximity-occurrence-page.test.tsx`
+- `src/pages/tracking/proximity-occurrence-page.tsx`
+- `src/pages/tracking/proximity-rule-settings.test.tsx`
+- `src/pages/tracking/proximity-rule-settings.tsx`
+- `src/pages/tracking/tracking-area.tsx`
+- `src/pages/tracking/tracking-history-page.test.tsx`
+- `src/pages/tracking/tracking-history-page.tsx`
+- `src/pages/tracking/trip-tracking-page.test.tsx`
+- `src/pages/tracking/trip-tracking-page.tsx`
+- `src/pages/tracking/use-driver-tracking.ts`
+- `src/pages/tracking/use-my-driver-trips.ts`
+- `src/pages/tracking/use-tracking-service.ts`
+- `src/pages/trips/trip-detail-page.test.tsx`
+- `src/pages/trips/trip-detail-page.tsx`
+- `src/vite-env.d.ts`
+- `supabase/config.toml`
+- `supabase/functions/_shared/alert-kinds.ts`
+- `supabase/functions/_shared/operations.ts`
+- `supabase/functions/email-notifications/deno.json`
+- `supabase/functions/email-notifications/email-provider.ts`
+- `supabase/functions/email-notifications/handler.ts`
+- `supabase/functions/email-notifications/index.ts`
+- `supabase/functions/manage-tracking/deno.json`
+- `supabase/functions/manage-tracking/handler.ts`
+- `supabase/functions/manage-tracking/index.ts`
+- `supabase/functions/query-tracking/deno.json`
+- `supabase/functions/query-tracking/handler.ts`
+- `supabase/functions/query-tracking/index.ts`
+- `supabase/functions/report-export/csv.ts`
+- `supabase/functions/report-export/deno.json`
+- `supabase/functions/report-export/handler.ts`
+- `supabase/functions/report-export/index.ts`
+- `supabase/functions/report-export/values.ts`
+- `supabase/migrations/20261022090000_tracking_permissions.sql`
+- `supabase/migrations/20261022090100_tracking_foundation.sql`
+- `supabase/migrations/20261022090200_proximity_rules.sql`
+- `supabase/migrations/20261022090300_tracking_sessions.sql`
+- `supabase/migrations/20261022090400_mobile_positions.sql`
+- `supabase/migrations/20261022091000_tracking_queries.sql`
+- `supabase/migrations/20261022091100_tracking_realtime.sql`
+- `supabase/migrations/20261022092010_proximity_rule_management.sql`
+- `supabase/migrations/20261022092150_proximity_alert_kind.sql`
+- `supabase/migrations/20261022092200_proximity_schema.sql`
+- `supabase/migrations/20261022092300_mobile_position_ingestion.sql`
+- `supabase/migrations/20261022092400_proximity_evaluation.sql`
+- `supabase/migrations/20261022092410_proximity_delivery_hooks.sql`
+- `supabase/migrations/20261022092600_tracking_queries_us2.sql`
+- `supabase/migrations/20261022092700_driver_tracking_status.sql`
+- `supabase/migrations/20261022093000_tracking_history.sql`
+- `supabase/migrations/20261022094000_proximity_occurrence_management.sql`
+- `supabase/migrations/20261022094100_proximity_alert_view.sql`
+- `supabase/migrations/20261022095000_report_exports.sql`
+- `supabase/migrations/20261022095100_report_storage.sql`
+- `supabase/migrations/20261022095200_report_queries.sql`
+- `supabase/migrations/20261022095300_report_export_jobs.sql`
+- `supabase/migrations/20261022100000_email_notifications.sql`
+- `supabase/migrations/20261022100100_email_notification_operations.sql`
+- `supabase/migrations/20261022100200_email_notification_enqueue.sql`
+- `supabase/migrations/20261022100300_driver_my_trips.sql`
+- `supabase/migrations/20261022100400_proximity_alert_path_audit.sql`
+- `supabase/migrations/20261022100500_report_criteria_text.sql`
+- `supabase/migrations/20261022100600_email_category_withdraw_preferences.sql`
+- `supabase/migrations/20261022100700_report_period_indexes.sql`
+- `supabase/migrations/20261022100800_proximity_alert_per_occurrence.sql`
+- `supabase/tests/002_rbac_invariants.test.sql`
+- `supabase/tests/002_rbac_rls.test.sql`
+- `supabase/tests/012_permissions.test.sql`
+- `supabase/tests/015_delivery_geofence_handoff.test.sql`
+- `supabase/tests/015_driver_my_trips.test.sql`
+- `supabase/tests/015_email_notifications.test.sql`
+- `supabase/tests/015_ingestion.test.sql`
+- `supabase/tests/015_mobile_tracking.test.sql`
+- `supabase/tests/015_proximity.test.sql`
+- `supabase/tests/015_proximity_alert_per_occurrence.test.sql`
+- `supabase/tests/015_proximity_occurrence_management.test.sql`
+- `supabase/tests/015_proximity_rule_management.test.sql`
+- `supabase/tests/015_report_indexes.test.sql`
+- `supabase/tests/015_reports.test.sql`
+- `supabase/tests/015_tracking_foundation.test.sql`
+- `supabase/tests/015_tracking_history.test.sql`
+- `supabase/tests/015_tracking_queries.test.sql`
+- `tests/contract/alert-kinds-shared.test.ts`
+- `tests/contract/capacitor-config.test.ts`
+- `tests/contract/client-secrets.test.ts`
+- `tests/contract/email-notifications-handler.test.ts`
+- `tests/contract/escalas-no-codigo.test.ts`
+- `tests/contract/landing-pre-carregamento.test.ts`
+- `tests/contract/report-export-csv.test.ts`
+- `tests/contract/report-export-handler.test.ts`
+- `tests/contract/tracking-data-minimization.test.ts`
+- `tests/contract/tracking-handlers.test.ts`
+- `tests/contract/tracking-permissions.test.ts`
+- `tests/e2e/avisos-email.spec.ts`
+- `tests/e2e/medicao-landing.spec.ts`
+- `tests/e2e/navegacao-menu.spec.ts`
+- `tests/e2e/rastreamento-acompanhamento.spec.ts`
+- `tests/e2e/rastreamento-historico.spec.ts`
+- `tests/e2e/rastreamento-motorista.spec.ts`
+- `tests/e2e/rastreamento-ocorrencia.spec.ts`
+- `tests/e2e/reports.spec.ts`
+- `tests/e2e/support/mock-backend.ts`
+- `tests/e2e/support/mock-reports.ts`
+- `tests/e2e/support/mock-tracking.ts`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-leitor-aberto-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-leitor-aberto-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-leitor-negado-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-leitor-negado-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-ler-cilindro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-ler-cilindro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-erro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-fora-da-cerca-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-fora-da-cerca-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-lida-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-lida-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-precisao-ruim-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-precisao-ruim-768-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-vazia-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-vazia-360-visual-chromium-linux.png`
+- `tests/e2e/visual/campo.visual.spec.ts-snapshots/campo-posicao-vazia-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-cadastro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-entrada-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-entrada-768-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/cilindros.visual.spec.ts-snapshots/cilindros-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-aprovar-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-aprovar-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-fila-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres-plataforma.visual.spec.ts-snapshots/lacres-plataforma-fila-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alerta-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alerta-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alerta-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alertas-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-alertas-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-bloco-cilindro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/lacres.visual.spec.ts-snapshots/lacres-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/landing.visual.spec.ts-snapshots/landing-pagina-1440-visual-chromium-linux.png`
+- `tests/e2e/visual/landing.visual.spec.ts-snapshots/landing-pagina-360-visual-chromium-linux.png`
+- `tests/e2e/visual/landing.visual.spec.ts-snapshots/landing-pagina-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-carregando-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-carregando-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-erro-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-global-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-global-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-global-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-offline-768-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-pronto-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-pronto-360-visual-chromium-linux.png`
+- `tests/e2e/visual/menu.visual.spec.ts-snapshots/menu-pronto-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-anonimizacao-dialogo-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-detalhe-360-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-cliente-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-clientes-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-clientes-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-cadastro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocerca-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocercas-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-geocercas-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-inativacao-dialogo-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-inativacao-dialogo-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motorista-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motorista-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motorista-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motoristas-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-motoristas-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-unidade-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-unidade-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-unidade-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculo-cadastro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculo-detalhe-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculo-detalhe-768-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculos-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/registro.visual.spec.ts-snapshots/registro-veiculos-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-assinatura-traco-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-assinatura-traco-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-assinatura-vazia-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-assinatura-vazia-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-duas-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-duas-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-limite-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-limite-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-vazio-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/anexos-fotos-vazio-360-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-conflito-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-conflito-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-estados-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-estados-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-conflito-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-conflito-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-offline-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-indicador-offline-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-saida-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-saida-768-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-vazia-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/sincronizacao.visual.spec.ts-snapshots/sincronizacao-vazia-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-empresa-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-empresa-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-plataforma-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-da-plataforma-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-erro-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-erro-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-vazio-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/auditoria-vazio-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/cadastro-de-cilindro-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/cadastro-de-cilindro-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/detalhe-de-cilindro-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/detalhe-de-cilindro-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-no-estoque-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/entrada-no-estoque-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/escolha-da-organizacao-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/lista-de-cilindros-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/lista-de-cilindros-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/organizacoes-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/organizacoes-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/papeis-e-permissoes-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/papeis-e-permissoes-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-carregando-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-carregando-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/perfil-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/pessoas-da-empresa-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/pessoas-da-empresa-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/visao-geral-principal-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/telas.visual.spec.ts-snapshots/visao-geral-principal-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-andamento-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-cancelada-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-cancelada-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-carregando-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-carregando-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-concluida-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-concluida-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-concluida-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-planejada-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-detalhe-planejada-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-cancelar-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-cancelar-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-desbloqueio-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-devolucao-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-dialogo-entrega-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-formulario-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-formulario-360-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-768-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-todas-1920-visual-chromium-linux.png`
+- `tests/e2e/visual/viagens.visual.spec.ts-snapshots/viagens-lista-todas-768-visual-chromium-linux.png`
+- `tests/e2e/visual/visao-geral.visual.spec.ts-snapshots/visao-geral-principal-768-visual-chromium-linux.png`
+- `tests/integration/email-notifications.live.test.ts`
+- `tests/integration/navigation-permissions.live.test.ts`
+- `tests/integration/report-exports.live.test.ts`
+- `tsconfig.node.json`
+- `vite.config.ts`
+
+## Testes e evidências
+
+- Comando(s): npm run lint; npm run typecheck; npx vitest run; testes .live de integração; npx supabase db reset e pgTAP; npm run build e Playwright (rastreamento, menu, campo, landing, relatórios, lacre e sessão); medição de LCP da landing; Excel 16 com CSV de valores perigosos; npm run ia:validar.
+- Resultado: aprovado
+- Evidência: lint e tipos sem erros; Vitest com 454 arquivos e 6.286 testes aprovados (um teste falhou só por tempo com a máquina carregada e passou sozinho); 163 testes de integração ao vivo (3 ignorados); pgTAP com 149 arquivos e 3.752 testes; 602 testes E2E; LCP da landing em 2,39 s no desktop e 2,38 s no celular em Slow 4G, com pacote de entrada de 604.426 bytes; CSV aberto no Excel sem fórmulas nem links.
+
+## Decisões e dados pendentes
+
+Depois do merge, gerar o DOCX do RIA em uma PR exclusiva de documentação.
+
+## Validação humana
+
+- Responsável pela revisão da equipe: Alisson Almeida
+- Data da validação humana: 28/10/2026
+- Amostra validada: Perfis gestor e motorista; larguras de celular, tablet e desktop; fluxo de viagens, com envio das posições com o app minimizado e teste com leitor de tela.
+- Ambiente da validação: Chrome no Windows 11 e celular Android com o aplicativo nativo.
+- Duração da validação: 58 minutos
+- Resultado da validação humana: Aprovado
+- Itens a corrigir apontados pela pessoa responsável: Nenhum.
+- Confirmação do responsável: sim, confirmado por Alisson Almeida em 28/10/2026
+- Observações: as respostas foram dadas pela pessoa responsável em entrevista e gravadas com a autorização dela. A pessoa conduziu a validação local com a empresa de demonstração; o CS-004 foi informado como 9 ou 10 leituras corretas, sem tempo cronometrado.
+
+## Regras de preenchimento
+
+- A validação humana é obrigatória para encerrar a spec. As respostas da seção acima vêm da pessoa responsável, em entrevista conduzida pelo agente de IA, e nunca são inventadas nem presumidas.
+- Registrar apenas interações relevantes para o projeto.
+- Escrever de forma natural, como uma pessoa explicaria o trabalho para outra. Preservar o sentido original, retirar palavras robóticas, frases repetitivas e formalidade excessiva, sem inventar fatos nem esconder riscos.
+- Quando o resultado incluir código, preencher “Resposta gerada pela IA” com um resumo objetivo do que foi produzido e um link para validação pela equipe. Preferir o pull request; se ele ainda não existir, usar o repositório ou a branch e registrar como pendência a inclusão do link do PR antes do merge.
+- Não apresentar conteúdo da IA como autoria exclusiva da equipe sem revisão.
+- Registrar a decisão como decisão da equipe, mas identificar a pessoa responsável pela revisão. Não atribuir aprovação a uma pessoa sem sua confirmação explícita.
+- Validar informações técnicas, legais, financeiras ou científicas em fontes confiáveis.
+- Evitar dados pessoais, sigilosos ou sensíveis.
+- Explicar como a equipe decidiu utilizar, adaptar ou descartar o resultado.
+
+## Checklist final
+
+- [x] Ferramentas de IA identificadas.
+- [x] Prompts relevantes registrados por síntese sanitizada.
+- [x] Respostas ou resultados documentados.
+- [x] Texto revisado para soar natural, claro e autêntico, sem alterar o sentido original.
+- [x] Quando houve geração de código, a resposta contém resumo e link para o repositório, branch ou, preferencialmente, pull request.
+- [x] Validação humana explicada.
+- [x] Fontes verificadas quando necessário.
+- [x] Decisão ou pendência registrada.
+- [x] O registro não contém segredos, credenciais ou tokens.
+- [x] Dados pessoais foram removidos ou minimizados.

@@ -50,3 +50,11 @@
 .tabela-de-dados th {
   overflow-wrap: anywhere;
 }
+
+/* Tabela larga (opção quebraSoEntrePalavras): em largura de tabela, datas e palavras não se partem; a área em volta rola. */
+@media (min-width: 768px) {
+  .tabela-de-dados--palavras-inteiras th,
+  .tabela-de-dados--palavras-inteiras td {
+    overflow-wrap: normal;
+  }
+}

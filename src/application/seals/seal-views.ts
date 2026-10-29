@@ -227,6 +227,9 @@ export interface AlertView {
   cylinder: { id: string; serialNumber: string } | null;
   tripId: string | null;
   siteId: string | null;
+  // Spec 015: o alerta de afastamento aponta a ocorrência de proximidade e diz se foi detectado depois.
+  occurrenceId: string | null;
+  retrospective: boolean;
 }
 export interface AlertDetail extends AlertView { closeNote: string | null; seal: SealSummary | null }
 
@@ -240,6 +243,7 @@ function alertView(raw: unknown): AlertView {
     closedAt: strOrNull(a.closed_at), device: { id: str(device.id), deviceCode: str(device.device_code), label: str(device.label) },
     cylinder: cylinder && { id: str(cylinder.id), serialNumber: str(cylinder.serial_number) },
     tripId: strOrNull(a.trip_id), siteId: strOrNull(a.site_id),
+    occurrenceId: strOrNull(a.occurrence_id), retrospective: a.retrospective === true,
   };
 }
 

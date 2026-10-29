@@ -40,13 +40,15 @@ export function FieldSyncProvider({ children }: { children: React.ReactNode }): 
     return () => { active = false; };
   }, [client, live]);
 
-  // O código do envio carrega depois de o aplicativo abrir (fora do pacote de entrada).
+  // O código do envio carrega só com a sessão confirmada (fora do pacote de entrada). Na landing e na entrada ele não é baixado: disputaria
+  // a rede com a página pública (Spec 015, T130; orçamento de LCP da Spec 011).
   const [factory, setFactory] = useState<typeof import('./field-sync-factory') | null>(null);
   useEffect(() => {
+    if (!live || factory) return undefined;
     let active = true;
     void import('./field-sync-factory').then((module) => { if (active) setFactory(module); }).catch(() => undefined);
     return () => { active = false; };
-  }, []);
+  }, [live, factory]);
 
   const value = useMemo<FieldSyncValue | null>(() => {
     if (!factory || !live || !client || !endpoint || !endpointId || !database || !activeOrganizationId || !actorId || !field) return null;

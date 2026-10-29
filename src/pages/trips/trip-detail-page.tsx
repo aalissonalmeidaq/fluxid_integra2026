@@ -16,6 +16,7 @@ import { formatPlate } from '@/domain/registry/plate';
 import { formatDate, formatDateTime } from '@/domain/cylinders/format';
 import { VALIDITY_LABELS } from '@/domain/registry/registry-vocabulary';
 import { TripSealPanel } from './components/trip-seal-panel';
+import { DriverTrackingPanel } from '@/pages/tracking/driver-tracking-panel';
 import { useSealService } from '@/pages/seals/use-seal-service';
 import { AccessGate } from '@/pages/cylinders/components/access-gate';
 import { DetailBlock, secondaryLinkClass } from '@/pages/registry/components/detail-list';
@@ -72,6 +73,8 @@ export interface TripDetailViewProps {
   attachments?: Pick<AttachmentService, 'add' | 'upload' | 'usage'> | null;
   // Spec 012: trava física dos cilindros, para quem pode ver lacres (sem isto, o painel não aparece).
   sealPanel?: React.ReactNode;
+  // Spec 015: painel de coleta da localização, que só aparece para a motorista da viagem em andamento.
+  trackingPanel?: (tripStatus: string) => React.ReactNode;
 }
 
 type Pending =
@@ -82,7 +85,7 @@ type Pending =
 
 type Performed = { ok: true; value: unknown; pending: { queueItemId: string } | null } | { ok: false; failure: TripFailure; text: ActionFailureText };
 
-export function TripDetailView({ organizationId, tripId, service, online, abilities, onSessionExpired, fieldService = null, attachments = null, sealPanel }: TripDetailViewProps): React.JSX.Element {
+export function TripDetailView({ organizationId, tripId, service, online, abilities, onSessionExpired, fieldService = null, attachments = null, sealPanel, trackingPanel }: TripDetailViewProps): React.JSX.Element {
   const [detail, setDetail] = useState<TripDetail | null>(null);
   const [load, setLoad] = useState<Load>('loading');
   const [live, setLive] = useState('');
@@ -366,6 +369,8 @@ export function TripDetailView({ organizationId, tripId, service, online, abilit
         )
         : <TripNotice variant="informacao">{failure.message}</TripNotice>)}
       {trip.status === 'cancelled' && trip.cancelReason && <TripNotice variant="alerta" title="Viagem cancelada">{trip.cancelReason}</TripNotice>}
+      {/* Spec 015: a coleta da localização é o que a motorista precisa ver sem rolar; os avisos informativos vêm depois. */}
+      {trackingPanel && trip.status !== 'planned' && trip.status !== 'loading' && trackingPanel(trip.status)}
       {trip.status === 'in_progress' && detail.items.some((item) => item.lockStatus === 'locked') && (
         <TripNotice variant="informacao" title="Bloqueio lógico">O bloqueio registra a reserva dos cilindros. A trava física de cada lacre aparece em "Trava física dos cilindros" e só muda com a confirmação do dispositivo.</TripNotice>
       )}
@@ -528,7 +533,8 @@ export function TripDetailPage(): React.JSX.Element {
     <AccessGate permission="trip.read">
       <TripDetailView key={`${organizationId}:${tripId}`} organizationId={organizationId} tripId={tripId} service={service} online={online} abilities={abilities} onSessionExpired={() => void logout()} fieldService={fieldService}
         attachments={abilities.operate ? offlineField?.attachments ?? null : null}
-        sealPanel={has('seal.read') ? <TripSealPanel service={seal.service} organizationId={seal.organizationId} tripId={tripId} online={seal.online} realtime={seal.realtime} /> : undefined} />
+        sealPanel={has('seal.read') ? <TripSealPanel service={seal.service} organizationId={seal.organizationId} tripId={tripId} online={seal.online} realtime={seal.realtime} /> : undefined}
+        trackingPanel={(status) => <DriverTrackingPanel organizationId={organizationId} tripId={tripId} tripStatus={status} />} />
     </AccessGate>
   );
 }
