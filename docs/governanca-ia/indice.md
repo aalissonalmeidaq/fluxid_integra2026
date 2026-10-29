@@ -67,7 +67,7 @@
 
 | RIA-037 | 27/10/2026, 09:58:59 - America/Fortaleza | 011 | 02 | Inclusão de Alisson Almeida na landing page | `registros/37_Inclusao_de_Alisson_Almeida_na_Landing_Page.docx` (`RIA-037-inclusao-de-alisson-almeida-na-landing-page.md`) | Utilizado |
 
-| RIA-038 | 28/10/2026, 19:29:47 - America/Fortaleza | 015 | 01 | Rastreamento, proximidade e relatórios | `registros/RIA-038-rastreamento-proximidade-e-relatorios.md` | Utilizado |
+| RIA-038 | 28/10/2026, 19:29:47 - America/Fortaleza | 015 | 01 | Rastreamento, proximidade e relatórios | `registros/38_Rastreamento_Proximidade_e_Relatorios.docx` (`RIA-038-rastreamento-proximidade-e-relatorios.md`) | Utilizado |
 
 > Este índice é atualizado automaticamente pelo gerador de registros.
 
